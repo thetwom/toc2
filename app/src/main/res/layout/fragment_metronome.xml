@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".NavigationActivity"
+    tools:showIn="@layout/app_bar_navigation">
+    <!--tools:context=".MetronomeFragment"> -->
+
+    <Button
+        android:id="@+id/startplay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="start play" />
+    <!--android:layout_centerInParent="true"-->
+
+     <Button
+         android:id="@+id/stopplay"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_toRightOf="@id/startplay"
+         android:text="stop play" />
+
+    <NumberPicker
+        android:id="@+id/numpick"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/startplay"/>
+
+    <toc2.toc2.PlotView
+        android:id="@+id/plotview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/numpick"/>
+
+</RelativeLayout>
