@@ -1,21 +1,29 @@
 package toc2.toc2;
 
-import android.media.AudioTrack;
+import android.content.Context;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
-import android.widget.Toast;
 
-public class PlayerQueue extends Handler {
+class PlayerQueue extends Handler {
 
     public static final int MESSAGE_PLAY = 2;
     public static final int MESSAGE_STOP = 3;
     public static final int MESSAGE_CHANGE_SPEED = 4;
     public static final int MESSAGE_CHANGE_SOUND = 5;
+    public static final int MESSAGE_DESTROY = 6;
 
     private long dt;
-    private AudioTrack sound = null;
+    private final SoundPool soundpool;
+    private int soundid = -1;
+    private final Context context;
+
+    PlayerQueue(Context context){
+        this.context = context;
+        soundpool = new SoundPool.Builder().setMaxStreams(10).build();
+    }
 
     @Override
     public void handleMessage(Message message) {
@@ -28,21 +36,17 @@ public class PlayerQueue extends Handler {
             }
             case MESSAGE_CHANGE_SOUND:{
                 Bundle bundle = message.getData();
-                Bundle soundBundle = bundle.getBundle("sound");
-                // Can we, instead of releasing, just rewrite the sound?
-                if(sound != null)
-                    sound.release();
-                if (soundBundle != null) {
-                    sound = SoundFactory.createSound(soundBundle);
-                }
+                if(soundid < 0)
+                    soundpool.unload(soundid);
+
+                int soundResID = bundle.getInt("sound");
+                soundid = soundpool.load(context, soundResID,1);
                 break;
             }
             case MESSAGE_PLAY:{
-                sound.stop();
-                sound.reloadStaticData();
 
                 long millis = SystemClock.uptimeMillis();
-                sound.play();
+                soundpool.play(soundid, 0.99f, 0.99f, 1, 0, 1.0f);
 
                 Message message_play = new Message();
                 message_play.what = MESSAGE_PLAY;
@@ -51,6 +55,10 @@ public class PlayerQueue extends Handler {
             }
             case MESSAGE_STOP:{
                 removeCallbacksAndMessages(null);
+                break;
+            }
+            case MESSAGE_DESTROY: {
+                soundpool.release();
                 break;
             }
             default: {

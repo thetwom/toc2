@@ -3,36 +3,98 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:style="http://schemas.android.com/apk/res-auto"
     tools:context=".NavigationActivity"
     tools:showIn="@layout/app_bar_navigation">
     <!--tools:context=".MetronomeFragment"> -->
-
+<!--
     <Button
         android:id="@+id/startplay"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="start play" />
+        -->
     <!--android:layout_centerInParent="true"-->
-
+<!--
      <Button
          android:id="@+id/stopplay"
          android:layout_width="wrap_content"
          android:layout_height="wrap_content"
          android:layout_toRightOf="@id/startplay"
          android:text="stop play" />
-
+    -->
+<!--
+        -->
+<!--
     <NumberPicker
         android:id="@+id/numpick"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_below="@id/startplay"/>
+-->
 
+    <ImageButton
+            android:id="@+id/toggleplay"
+            android:layout_marginLeft="24dp"
+            android:layout_marginRight="24dp"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_centerVertical="true"
+            android:layout_alignParentLeft="true"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_play"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+        />
+
+
+    <toc2.toc2.VerticalSeekBar
+        android:id="@+id/speedmeter"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="24dp"
+        android:layout_marginRight="24dp"
+        android:layout_marginLeft="24dp"
+        android:layout_alignParentRight="true"
+        />
+
+    <TextView
+        android:id="@+id/speedview"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:layout_toLeftOf="@id/speedmeter"
+        android:layout_centerVertical="true"
+        android:gravity="center"
+        android:text=""/>
+
+    <Button
+        android:id="@+id/speedplus"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@id/speedview"
+        android:layout_above="@id/speedview"
+        android:layout_marginBottom="30dp"
+        android:text="+"
+        />
+
+    <Button
+        android:id="@+id/speedminus"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@id/speedview"
+        android:layout_below="@id/speedview"
+        android:layout_marginTop="30dp"
+        android:text="-"
+        />
+
+
+<!--
     <toc2.toc2.PlotView
         android:id="@+id/plotview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_centerHorizontal="true"
         android:layout_below="@+id/numpick"/>
-
+-->
 </RelativeLayout>

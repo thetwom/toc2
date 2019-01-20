@@ -1,14 +1,10 @@
 package toc2.toc2;
 
-
-import android.content.Context;
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.Bundle;
-import android.provider.MediaStore;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,7 +33,7 @@ public class SoundGeneratorFragment extends Fragment {
         // Inflate the layout for this fragment
 
         View view = inflater.inflate(R.layout.fragment_sound_generator, container, false);
-        Button button = (Button) view.findViewById(R.id.sgplay);
+        Button button = view.findViewById(R.id.sgplay);
 
         button.setOnClickListener(new View.OnClickListener()
         {
@@ -50,7 +46,7 @@ public class SoundGeneratorFragment extends Fragment {
         return view;
     }
 
-    public void testPlay() {
+    void testPlay() {
         if(track == null) {
             byte sine[] = createSine(440.0, 1.0, nativeRate);
             byte gaussder[] = createGaussDeriv(0.001, nativeRate);
@@ -67,7 +63,7 @@ public class SoundGeneratorFragment extends Fragment {
         track.play();
     }
 
-    public AudioTrack getAudioTrack(int bufferSize) {
+    AudioTrack getAudioTrack(int bufferSize) {
 
             // getMinBufferSize???
         AudioFormat.Builder formatBuilder = new AudioFormat.Builder();
@@ -88,7 +84,7 @@ public class SoundGeneratorFragment extends Fragment {
         return trackBuilder.build();
     }
 
-    public byte[] createSine(double freq, double duration, int sampleRate) {
+    byte[] createSine(double freq, double duration, int sampleRate) {
         int numSamples = (int) Math.round(sampleRate * duration);
         double soundDataRaw[] = new double[numSamples];
 
@@ -111,7 +107,7 @@ public class SoundGeneratorFragment extends Fragment {
         return soundData;
     }
 
-    public byte[] createGaussDeriv(double duration, int sampleRate) {
+    byte[] createGaussDeriv(double duration, int sampleRate) {
         double expfac = 50.0 * Math.log(2.0);
         double maxval = duration / Math.sqrt(2.0*expfac) * Math.exp(-0.5);
         double shift = duration / 2.0;

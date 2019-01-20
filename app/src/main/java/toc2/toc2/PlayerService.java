@@ -3,8 +3,6 @@ package toc2.toc2;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Bundle;
@@ -12,6 +10,7 @@ import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Message;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 import android.widget.Toast;
 
 import static toc2.toc2.App.CHANNEL_ID;
@@ -20,22 +19,23 @@ public class PlayerService extends Service {
 
     private final IBinder playerBinder = new PlayerBinder();
 
-    private final int PLAYER_STARTED = 1;
-    private final int PLAYER_STOPPED = 2;
+    static public final int PLAYER_UNDEF = 0;
+    static public final int PLAYER_STARTED = 1;
+    static public final int PLAYER_STOPPED = 2;
     private int player_status = PLAYER_STOPPED;
 
     private PlayerThread playerThread;
     private PlayerQueue playerQueue;
 
     private class PlayerThread extends HandlerThread {
-        private PlayerQueue playerQueue;
+        private final PlayerQueue playerQueue;
 
-        PlayerThread(String name){
-            super(name);
-            playerQueue = new PlayerQueue();
+        PlayerThread(){
+            super("metronome player");
+            playerQueue = new PlayerQueue(getApplicationContext());
         }
 
-        public PlayerQueue getPlayerQueue(){
+        PlayerQueue getPlayerQueue(){
             return playerQueue;
         }
     }
@@ -52,7 +52,9 @@ public class PlayerService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        playerThread = new PlayerThread("metronome player");
+        Log.v("Metronome", "PlayerService:onBind");
+        playerThread = new PlayerThread();
+        playerThread.setPriority(Thread.MAX_PRIORITY);
         playerThread.start();
         playerQueue = playerThread.getPlayerQueue();
         return playerBinder;
@@ -60,7 +62,12 @@ public class PlayerService extends Service {
 
     @Override
     public boolean onUnbind(Intent intent) {
-        playerThread.quit();
+        Log.v("Metronome", "PlayerService:onUnbind");
+        stopPlay();
+        Message message = new Message();
+        message.what = PlayerQueue.MESSAGE_DESTROY;
+        playerQueue.sendMessage(message);
+        playerThread.quitSafely();
         return super.onUnbind(intent);
     }
 
@@ -95,13 +102,17 @@ public class PlayerService extends Service {
         playerQueue.sendMessage(message);
     }
 
-    public void changeSound(Bundle soundBundle){
+    public void changeSound(int soundid){
         Message message = new Message();
         message.what = PlayerQueue.MESSAGE_CHANGE_SOUND;
         Bundle bundle = new Bundle();
-        bundle.putBundle("sound", soundBundle);
+        bundle.putInt("sound", soundid);
         message.setData(bundle);
         playerQueue.sendMessage(message);
+    }
+
+    int getPlayerStatus(){
+        return player_status;
     }
 
     public void togglePlay() {
@@ -110,10 +121,11 @@ public class PlayerService extends Service {
         else if(player_status == PLAYER_STARTED)
             stopPlay();
         else
-            Toast.makeText(this,"Invalid player status", Toast.LENGTH_LONG);
+            Toast.makeText(this,"Invalid player status", Toast.LENGTH_LONG).show();
     }
 
     public void startPlay() {
+        Log.v("Metronome", "PlayerService:startPlay");
         if(player_status == PLAYER_STARTED)
             return;
 
@@ -126,6 +138,7 @@ public class PlayerService extends Service {
     }
 
     public void stopPlay() {
+        Log.v("Metronome", "PlayerService:stopPlay");
         if(player_status == PLAYER_STOPPED)
             return;
         stopForeground(false);

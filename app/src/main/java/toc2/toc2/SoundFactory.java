@@ -5,12 +5,11 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.Bundle;
-import android.os.Message;
 import android.util.Log;
 
 import static java.lang.Math.pow;
 
-public class SoundFactory {
+class SoundFactory {
 
     private static final int SINE = 1;
     private static final int GAUSSDER = 2;
