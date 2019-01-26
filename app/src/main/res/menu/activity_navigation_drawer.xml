@@ -9,9 +9,9 @@
             android:icon="@drawable/ic_toc_foreground"
             android:title="Metronome" />
         <item
-            android:id="@+id/soundgen"
+            android:id="@+id/testfrag"
             android:icon="@drawable/ic_toc_foreground"
-            android:title="Sound Generator" />
+            android:title="Test Fragment" />
     </group>
 
     <item android:title="Communicate">

@@ -26,11 +26,8 @@
             android:name=".PlayerService"
             android:enabled="true"></service>
 <!--
-        <service
-            android:name=".PlayerService"
-            android:enabled="true"
-            android:exported="true"></service>
--->
         <receiver android:name=".NavigationActivity$NotificationReceiver" />
+
+       -->
     </application>
 </manifest>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".NavigationActivity"
+    tools:showIn="@layout/app_bar_navigation">
+
+    <!-- TODO: Update blank fragment layout -->
+
+    <toc2.toc2.SpeedPanel
+        android:id="@+id/speedpanel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:layout_centerInParent="true"
+        app:circle_stroke="@color/colorPrimary"
+        android:layout_gravity="center"
+        />
+
+    <TextView
+        android:id="@+id/speedtext"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_above="@id/speedpanel"
+        android:layout_gravity="center"
+        android:layout_marginBottom="20dp"
+        android:text="SPEED"
+        android:textSize="30sp"/>
+
+</RelativeLayout>

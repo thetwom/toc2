@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.support.v7.widget.AppCompatSeekBar;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 
 public class VerticalSeekBar extends AppCompatSeekBar {
@@ -50,8 +49,7 @@ public class VerticalSeekBar extends AppCompatSeekBar {
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_MOVE:
             case MotionEvent.ACTION_DOWN:
-                int i = 0;
-                i=getMax() - (int) (getMax() * event.getY() / getHeight());
+                int i = getMax() - (int) (getMax() * event.getY() / getHeight());
                 setProgress(i);
                 //onSizeChanged(getWidth(), getHeight(), 0, 0);
                 break;

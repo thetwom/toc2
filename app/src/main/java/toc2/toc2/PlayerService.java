@@ -19,7 +19,7 @@ public class PlayerService extends Service {
 
     private final IBinder playerBinder = new PlayerBinder();
 
-    static public final int PLAYER_UNDEF = 0;
+    static public final String PLAYER_NOTIFICATION_TOGGLE = "toc2:toggle player service";
     static public final int PLAYER_STARTED = 1;
     static public final int PLAYER_STOPPED = 2;
     private int player_status = PLAYER_STOPPED;
@@ -76,7 +76,7 @@ public class PlayerService extends Service {
          Intent notificationIntent = new Intent(this, NavigationActivity.class);
          PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
-         Intent notifklick = new Intent(this, NavigationActivity.NotificationReceiver.class);
+         Intent notifklick = new Intent(PLAYER_NOTIFICATION_TOGGLE);
          PendingIntent notifklickpend = PendingIntent.getBroadcast(this, 0 , notifklick, 0);
 
          Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)

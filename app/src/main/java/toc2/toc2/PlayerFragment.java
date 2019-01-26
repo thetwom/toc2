@@ -1,21 +1,21 @@
 package toc2.toc2;
 
-
-import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -23,13 +23,22 @@ import android.widget.TextView;
 public class PlayerFragment extends Fragment {
 
     private PlayerService playerService;
-    public boolean playerServiceBound = false;
+    private boolean playerServiceBound = false;
     private Context appContext;
-    public int speed = NavigationActivity.SPEED_INITIAL;
+    private int speed = NavigationActivity.SPEED_INITIAL;
 
     private ServiceConnection playerConnection = null;
 
     private MetronomeFragment metrFrag = null;
+
+    private NotificationReceiver receiver;
+
+    final public class NotificationReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent){
+            togglePlayerIfAvailable();
+        }
+    }
 
     /** Defines callbacks for service binding, passed to bindService() */
     //private final ServiceConnection playerConnection = new ServiceConnection() {
@@ -77,6 +86,26 @@ public class PlayerFragment extends Fragment {
         return null;
     }
 
+    @Override
+    public void onResume() {
+        Log.v("Metronome", "PlayerFragment:onResume");
+        FragmentActivity act = getActivity();
+
+        if (act != null) {
+            IntentFilter filter = new IntentFilter(PlayerService.PLAYER_NOTIFICATION_TOGGLE);
+            receiver = new NotificationReceiver();
+            act.registerReceiver(receiver, filter);
+        }
+        super.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        FragmentActivity act = getActivity();
+        if (act != null)
+            getActivity().unregisterReceiver(receiver);
+        super.onPause();
+    }
 
     @Override
     public void onDestroy() {
@@ -92,7 +121,7 @@ public class PlayerFragment extends Fragment {
     //    return playerServiceBound;
     //}
 
-    public PlayerService bindAndStartPlayer(Context context){
+    private PlayerService bindAndStartPlayer(Context context){
         Log.v("Metronome", "PlayerFragment:bindAndStartPlayer");
         appContext = context;
 
@@ -128,7 +157,7 @@ public class PlayerFragment extends Fragment {
         return playerService;
     }
 
-    public void startPlayer() {
+    private void startPlayer() {
         if (playerServiceBound) {
             playerService.startPlay();
             updateMetronomeFragment();
@@ -136,7 +165,7 @@ public class PlayerFragment extends Fragment {
         }
     }
 
-    public void stopPlayer() {
+    private void stopPlayer() {
         if (playerServiceBound) {
             playerService.stopPlay();
             updateMetronomeFragment();
@@ -151,7 +180,7 @@ public class PlayerFragment extends Fragment {
         }
     }
 
-    public void togglePlayerIfAvailable() {
+    private void togglePlayerIfAvailable() {
         if(playerServiceBound) {
             if(playerService.getPlayerStatus() == PlayerService.PLAYER_STARTED) {
                 stopPlayer();
@@ -183,6 +212,10 @@ public class PlayerFragment extends Fragment {
         if (playerServiceBound) {
             playerService.changeSpeed(val);
         }
+    }
+
+    public int getSpeed(){
+        return speed;
     }
 
     public void setMetronomeFragment(MetronomeFragment metronomeFragment){
