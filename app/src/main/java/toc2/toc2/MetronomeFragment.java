@@ -6,9 +6,6 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.ImageButton;
-import android.widget.SeekBar;
 import android.widget.TextView;
 
 /**
@@ -16,7 +13,8 @@ import android.widget.TextView;
  */
 public class MetronomeFragment extends Fragment {
 
-    private ImageButton playpauseButton;
+    private TextView speedText;
+    private SpeedPanel speedPanel;
 
     public MetronomeFragment() {
         // Required empty public constructor
@@ -28,158 +26,37 @@ public class MetronomeFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_metronome, container, false);
 
-        playpauseButton = view.findViewById(R.id.toggleplay);
+        speedText = view.findViewById(R.id.speedtext);
+        speedText.setText(Integer.toString(getCurrentSpeed()) + " bpm");
 
-        playpauseButton.setOnClickListener(new View.OnClickListener()
-        {
-             @Override
-             public void onClick(View v) {
-                 NavigationActivity act = (NavigationActivity) getActivity();
+        speedPanel = view.findViewById(R.id.speedpanel);
+
+        speedPanel.setOnSpeedChangedListener(new SpeedPanel.SpeedChangedListener(){
+            @Override
+            public void onSpeedChanged(int speed_change) {
+                int currentSpeed = getCurrentSpeed();
+                int speed = currentSpeed + speed_change;
+                speed = Math.max(speed, NavigationActivity.SPEED_MIN);
+                speed = Math.min(speed, NavigationActivity.SPEED_MAX);
+
+                NavigationActivity act = (NavigationActivity) getActivity();
+                if(act != null && act.playerFrag != null && speed_change != 0) {
+                    act.playerFrag.changeSpeed(speed);
+                 }
+                speedText.setText(Integer.toString(speed) + " bpm");
+            }
+        });
+
+        speedPanel.setOnButtonClickedListener(new SpeedPanel.ButtonClickedListener() {
+            @Override
+            public void onButtonClicked() {
+                NavigationActivity act = (NavigationActivity) getActivity();
                  if (act != null) {
                      //Toast.makeText(act, "start", Toast.LENGTH_LONG).show();
                      //act.togglePlayer();
                      act.playerFrag.togglePlayer(act.getApplicationContext());
                  }
-             }
-        });
-
-        //Button startbutton = view.findViewById(R.id.startplay);
-
-        //startbutton.setOnClickListener(new View.OnClickListener()
-        //{
-        //     @Override
-        //     public void onClick(View v)
-        //     {
-        //         NavigationActivity act = (NavigationActivity) getActivity();
-        //        if(act != null) {
-        //             //Toast.makeText(act, "start", Toast.LENGTH_LONG).show();
-        //             act.togglePlayer();
-        //         }
-        //     }
-        //});
-
-        //Button stopbutton = view.findViewById(R.id.stopplay);
-
-        //stopbutton.setOnClickListener(new View.OnClickListener()
-        //{
-        //     @Override
-        //     public void onClick(View v)
-        //     {
-        //         NavigationActivity act = (NavigationActivity) getActivity();
-        //         if(act != null) {
-        //             if (NavigationActivity.playerServiceBound) {
-        //                 //Toast.makeText(act, "stop", Toast.LENGTH_LONG).show();
-        //                 act.stopPlayer();
-        //             }
-        //         }
-        //     }
-        //});
-
-//        NumberPicker numPick = view.findViewById(R.id.numpick);
-//        numPick.setMinValue(10);
-//        numPick.setMaxValue(400);
-//        numPick.setValue(NavigationActivity.speed);
-//
-//        numPick.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
-//            @Override
-//            public void onValueChange(NumberPicker picker, int oldVal, int newVal){
-//                NavigationActivity act = (NavigationActivity) getActivity();
-//                 if(act != null) {
-//                     if (NavigationActivity.playerServiceBound) {
-//                         act.changeSpeed(newVal);
-//                     }
-//                 }
-//            }
-//        });
-
-        final TextView speedView = view.findViewById(R.id.speedview);
-        speedView.setText(Integer.toString(NavigationActivity.SPEED_INITIAL));
-
-        final SeekBar speedMeter = view.findViewById(R.id.speedmeter);
-
-        //final VerticalSeekBar speedMeterVert = view.findViewById(R.id.speedmetervert);
-
-//        speedView.addTextChangedListener(new TextWatcher() {
-//            @Override
-//            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-//
-//            }
-//
-//            @Override
-//            public void onTextChanged(CharSequence s, int start, int before, int count) {
-//               int speed = Integer.parseInt(s.toString());
-//               if(speed >= NavigationActivity.SPEED_MIN && speed <= NavigationActivity.SPEED_MAX) {
-//                   speedMeter.setProgress(speed - NavigationActivity.SPEED_MIN);
-//                   NavigationActivity act = (NavigationActivity) getActivity();
-//                   if(act != null) {
-//                       if (NavigationActivity.playerServiceBound) {
-//                           act.changeSpeed(speed);
-//                       }
-//                   }
-//               }
-//           }
-//
-//            @Override
-//            public void afterTextChanged(Editable s) {
-//            }
-//        });
-
-        speedMeter.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-
-               int speed = seekBar.getProgress() + NavigationActivity.SPEED_MIN;
-                speedView.setText(Integer.toString(speed));
-                NavigationActivity act = (NavigationActivity) getActivity();
-
-                 if(act != null && act.playerFrag != null) {
-
-                     //if (NavigationActivity.playerServiceBound) {
-                     //    Log.v("tocspeed", "New speed: " + Integer.toString(speed));
-                         act.playerFrag.changeSpeed(speed);
-                     //}
-                 }
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-//                int speed = seekBar.getProgress() + NavigationActivity.SPEED_MIN;
-//                speedView.setText(Integer.toString(speed));
-//                NavigationActivity act = (NavigationActivity) getActivity();
-//                 if(act != null) {
-//                     if (NavigationActivity.playerServiceBound) {
-//                         act.changeSpeed(speed);
-//                     }
-//                 }
-            }
-        });
-
-
-        speedMeter.setMax(NavigationActivity.SPEED_MAX - NavigationActivity.SPEED_MIN);
-        speedMeter.setProgress(NavigationActivity.SPEED_INITIAL - NavigationActivity.SPEED_MIN);
-
-        Button plusButton = view.findViewById(R.id.speedplus);
-
-        plusButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int speed = speedMeter.getProgress() + 1;
-                speedMeter.setProgress(speed);
-            }
-        });
-
-        Button minusButton = view.findViewById(R.id.speedminus);
-
-        minusButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int speed = speedMeter.getProgress() - 1;
-                speedMeter.setProgress(speed);
+                //Toast.makeText(getContext(),"Play button clicked", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -195,13 +72,22 @@ public class MetronomeFragment extends Fragment {
 
         switch(playerStatus) {
             case PlayerService.PLAYER_STOPPED:
-                playpauseButton.setImageResource(R.drawable.ic_play);
+                speedPanel.changeStatus(SpeedPanel.STATUS_PAUSED);
                 break;
             case PlayerService.PLAYER_STARTED:
-                playpauseButton.setImageResource(R.drawable.ic_pause);
+                speedPanel.changeStatus(SpeedPanel.STATUS_STARTED);
                 break;
-            default:
+           default:
                 break;
         }
+    }
+
+    private int getCurrentSpeed(){
+        NavigationActivity act = (NavigationActivity) getActivity();
+        int currentSpeed = NavigationActivity.SPEED_INITIAL;
+        if(act != null && act.playerFrag != null) {
+            currentSpeed = act.playerFrag.getSpeed();
+        }
+        return currentSpeed;
     }
 }

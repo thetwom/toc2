@@ -6,7 +6,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.Point;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -18,17 +17,19 @@ import android.widget.Toast;
 public class SpeedPanel extends View {
 
     private Paint circlePaint;
-    // private int circleColor;
+    private int circleColor;
 
     private float previous_x;
     private float previous_y;
     private int previous_speed;
-    private int strokeWidth = 10;
-    private float innerRadiusRatio = 0.6f;
+    final static private int strokeWidth = 10;
+    final static private float innerRadiusRatio = 0.6f;
+    private Path pathPlayButton = null;
+    final static public int STATUS_STARTED = 1;
+    final static public int STATUS_PAUSED = 2;
+    private int buttonStatus = STATUS_PAUSED;
 
     private GestureDetector mTapDetector;
-
-    Toast infoToast;
 
     private class GestureTap extends GestureDetector.SimpleOnGestureListener {
 
@@ -42,11 +43,11 @@ public class SpeedPanel extends View {
     }
 
     public interface SpeedChangedListener {
-        public void onSpeedChanged(int speed);
+        void onSpeedChanged(int speed);
     }
 
     public interface ButtonClickedListener {
-        public void onButtonClicked();
+        void onButtonClicked();
     }
 
     private SpeedChangedListener speedChangedListener;
@@ -57,23 +58,18 @@ public class SpeedPanel extends View {
         init(attrs);
         speedChangedListener = null;
         buttonClickedListener = null;
-        infoToast = Toast.makeText(context, "speed", Toast.LENGTH_LONG);
         mTapDetector = new GestureDetector(context, new GestureTap());
     }
 
     private void init(@Nullable AttributeSet attrs) {
         circlePaint = new Paint();
-        circlePaint.setStyle(Paint.Style.STROKE);
-        circlePaint.setColor(Color.BLACK);
         circlePaint.setAntiAlias(true);
-        circlePaint.setStrokeWidth(strokeWidth);
 
         if(attrs == null)
             return;
 
         TypedArray ta = getContext().obtainStyledAttributes(attrs, R.styleable.SpeedPanel);
-        int circleColor = ta.getColor(R.styleable.SpeedPanel_circle_stroke, Color.GREEN);
-        circlePaint.setColor(circleColor);
+        circleColor = ta.getColor(R.styleable.SpeedPanel_circle_stroke, Color.GREEN);
 
         ta.recycle();
     }
@@ -129,26 +125,85 @@ public class SpeedPanel extends View {
 
         int innerRadius = Math.round(radius * innerRadiusRatio);
 
+        circlePaint.setColor(circleColor);
+
         circlePaint.setStyle(Paint.Style.STROKE);
+        circlePaint.setStrokeWidth(strokeWidth);
         canvas.drawCircle(cx, cy,radius, circlePaint);
 
         circlePaint.setStyle(Paint.Style.FILL);
         canvas.drawCircle(cx, cy,innerRadius, circlePaint);
 
-        float triRad = innerRadius * 0.8f;
-        Point p1 = new Point(Math.round(triRad)+cx, cy);
-        Point p2 = new Point((int) Math.round(cx-Math.cos(Math.PI/3.0)*triRad), (int) Math.round(cy+Math.sin(Math.PI/3.0)*triRad));
-        Point p3 = new Point((int) Math.round(cx-Math.cos(Math.PI/3.0)*triRad), (int) Math.round(cy-Math.sin(Math.PI/3.0)*triRad));
-        Path path = new Path();
-        path.setFillType(Path.FillType.EVEN_ODD);
-        path.moveTo(p1.x,p1.y);
-        path.lineTo(p2.x,p2.y);
-        path.lineTo(p3.x,p3.y);
-        path.close();
-        circlePaint.setStyle(Paint.Style.FILL);
-        circlePaint.setColor(Color.WHITE);
-        canvas.drawPath(path, circlePaint);
-        path.reset();
+        if (buttonStatus == STATUS_PAUSED) {
+            float triRad = innerRadius * 0.7f;
+
+            if(pathPlayButton == null)
+                pathPlayButton = new Path();
+            pathPlayButton.setFillType(Path.FillType.EVEN_ODD);
+
+            pathPlayButton.moveTo(
+                    Math.round(triRad) + cx,
+                    cy
+            );
+            pathPlayButton.lineTo(
+                    (int) Math.round(cx - Math.cos(Math.PI / 3.0) * triRad),
+                    (int) Math.round(cy + Math.sin(Math.PI / 3.0) * triRad)
+            );
+            pathPlayButton.lineTo(
+                    (int) Math.round(cx - Math.cos(Math.PI / 3.0) * triRad),
+                    (int) Math.round(cy - Math.sin(Math.PI / 3.0) * triRad)
+            );
+            pathPlayButton.close();
+            circlePaint.setStyle(Paint.Style.FILL);
+            circlePaint.setColor(Color.WHITE);
+            canvas.drawPath(pathPlayButton, circlePaint);
+            pathPlayButton.rewind();
+        }
+        else if (buttonStatus == STATUS_STARTED) {
+            float xShift = innerRadius * 0.1f;
+            float rectWidth  = innerRadius * 0.4f;
+            float rectHeight = innerRadius * 1f;
+            circlePaint.setStyle(Paint.Style.FILL);
+            circlePaint.setColor(Color.WHITE);
+            canvas.drawRect(
+                    cx - xShift -rectWidth,
+                    cy + rectHeight/2.0f,
+                    cx - xShift,
+                    cy - rectHeight/2.0f,
+                    circlePaint);
+
+            canvas.drawRect(
+                    cx + xShift +rectWidth,
+                    cy + rectHeight/2.0f,
+                    cx + xShift,
+                    cy - rectHeight/2.0f,
+                    circlePaint);
+        }
+
+        float angleMax = 65.0f / 180.0f * (float) Math.PI ;
+        float angleMin = -65.0f / 180.0f * (float) Math.PI;
+        float dAngle = 3.5f / 180.0f * (float) Math.PI;
+        float growthFactor = 1.05f;
+        float radSpeedInner = innerRadius + 0.35f*(radius-innerRadius);
+        float radSpeedOuter = radius - 0.35f*(radius-innerRadius);
+        float strokeWidthSpeed = (radius+innerRadius) * (float) Math.PI / 120.0f;
+
+        circlePaint.setStyle(Paint.Style.STROKE);
+        circlePaint.setStrokeWidth(strokeWidthSpeed);
+        circlePaint.setColor(circleColor);
+
+        float angle = angleMax;
+        while(angle >= angleMin) {
+            canvas.drawLine(
+                    cx + radSpeedInner * (float)Math.sin(angle),
+                    cy - radSpeedInner * (float)Math.cos(angle),
+                    cx + radSpeedOuter * (float)Math.sin(angle),
+                    cy - radSpeedOuter * (float)Math.cos(angle),
+                    circlePaint
+            );
+            dAngle *= growthFactor;
+            angle -= dAngle;
+        }
     }
 
     @Override
@@ -212,5 +267,10 @@ public class SpeedPanel extends View {
     }
     private int getCenterY(){
         return getHeight() / 2;
+    }
+
+    public void changeStatus(int status){
+        buttonStatus = status;
+        invalidate();
     }
 }

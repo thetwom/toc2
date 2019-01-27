@@ -115,14 +115,14 @@ public class PlayerService extends Service {
         return player_status;
     }
 
-    public void togglePlay() {
-        if(player_status == PLAYER_STOPPED)
-            startPlay();
-        else if(player_status == PLAYER_STARTED)
-            stopPlay();
-        else
-            Toast.makeText(this,"Invalid player status", Toast.LENGTH_LONG).show();
-    }
+    //public void togglePlay() {
+    //    if(player_status == PLAYER_STOPPED)
+    //        startPlay();
+    //    else if(player_status == PLAYER_STARTED)
+    //        stopPlay();
+    //    else
+    //        Toast.makeText(this,"Invalid player status", Toast.LENGTH_LONG).show();
+    //}
 
     public void startPlay() {
         Log.v("Metronome", "PlayerService:startPlay");

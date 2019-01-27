@@ -25,8 +25,8 @@ public class NavigationActivity extends AppCompatActivity
     public PlayerFragment playerFrag;
     private static final String playerFragTag = "playerFrag";
 
-    private TestFragment testFrag;
-    private static final String testFragTag = "testFrag";
+    //private TestFragment testFrag;
+    //private static final String testFragTag = "testFrag";
 
     final public static int SPEED_INITIAL = 120;
 
@@ -66,11 +66,11 @@ public class NavigationActivity extends AppCompatActivity
             fragManager.beginTransaction().replace(R.id.mainframe, metrFrag, metrFragTag).commit();
         }
 
-        testFrag = (TestFragment) fragManager.findFragmentByTag(testFragTag);
-        if(testFrag == null){
-            testFrag = new TestFragment();
-            fragManager.beginTransaction().replace(R.id.mainframe, testFrag, testFragTag).commit();
-        }
+        //testFrag = (TestFragment) fragManager.findFragmentByTag(testFragTag);
+        //if(testFrag == null){
+        //    testFrag = new TestFragment();
+        //    fragManager.beginTransaction().replace(R.id.mainframe, testFrag, testFragTag).commit();
+        //}
     }
 
     @Override
@@ -123,9 +123,9 @@ public class NavigationActivity extends AppCompatActivity
             ft.replace(R.id.mainframe, metrFrag, metrFragTag);
             ft.commit();
         } else if (id == R.id.testfrag) {
-            FragmentTransaction ft = fragManager.beginTransaction();
-            ft.replace(R.id.mainframe, testFrag, testFragTag);
-            ft.commit();
+        //    FragmentTransaction ft = fragManager.beginTransaction();
+        //    ft.replace(R.id.mainframe, testFrag, testFragTag);
+        //    ft.commit();
         } else if (id == R.id.nav_share) {
 
         } else if (id == R.id.nav_send) {
