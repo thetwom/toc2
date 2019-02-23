@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="SpeedPanel">
+        <attr name="circle_stroke" format="color"></attr>
+    </declare-styleable>
+</resources>
