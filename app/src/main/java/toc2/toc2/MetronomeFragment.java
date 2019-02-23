@@ -1,12 +1,17 @@
 package toc2.toc2;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 /**
 
@@ -15,6 +20,8 @@ public class MetronomeFragment extends Fragment {
 
     private TextView speedText;
     private SpeedPanel speedPanel;
+
+    private int checkedDialogSound = 0;
 
     public MetronomeFragment() {
         // Required empty public constructor
@@ -57,6 +64,53 @@ public class MetronomeFragment extends Fragment {
                      act.playerFrag.togglePlayer(act.getApplicationContext());
                  }
                 //Toast.makeText(getContext(),"Play button clicked", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+        ImageButton soundButton = view.findViewById(R.id.soundbutton);
+
+        soundButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final NavigationActivity act = (NavigationActivity) getActivity();
+
+                if(act != null) {
+                    //final Sounds sounds = new Sounds();
+
+                    AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(act);
+                    //dialogBuilder.setMessage("test dialog");
+                    dialogBuilder.setTitle("Choose sound");
+                    dialogBuilder.setPositiveButton("ok", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            if(act.playerFrag != null) {
+                                act.playerFrag.changeSound(checkedDialogSound);
+                            }
+                        }
+                    });
+
+                    dialogBuilder.setNegativeButton("dismiss", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+
+                    if(act.playerFrag != null)
+                        checkedDialogSound = act.playerFrag.getSound();
+
+                    //CharSequence[] soundNames = {"hihat", "sticks", "snare"};
+                    dialogBuilder.setSingleChoiceItems(Sounds.getNames(act), checkedDialogSound, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            checkedDialogSound = which;
+                        }
+                    });
+
+                    AlertDialog dialog = dialogBuilder.create();
+                    dialog.show();
+                }
             }
         });
 

@@ -215,7 +215,7 @@ public class SpeedPanel extends View {
 
         int radius = getRadius();
         float circum = getRadius() * (float)Math.PI;
-        float factor = 50.0f;
+        float factor = 20.0f;
 
         mTapDetector.onTouchEvent(event);
 

@@ -5,8 +5,7 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:style="http://schemas.android.com/apk/res-auto"
-    tools:context=".NavigationActivity"
-    tools:showIn="@layout/app_bar_navigation">
+    tools:context=".NavigationActivity">
     <!--tools:context=".MetronomeFragment"> -->
 
     <toc2.toc2.SpeedPanel
@@ -30,4 +29,12 @@
         android:text="SPEED"
         android:textSize="30sp"/>
 
+    <ImageButton
+        android:id="@+id/soundbutton"
+        android:scaleType="fitXY"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:src="@drawable/ic_hihat"/>
 </RelativeLayout>

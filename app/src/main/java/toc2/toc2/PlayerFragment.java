@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -25,7 +26,10 @@ public class PlayerFragment extends Fragment {
     private PlayerService playerService;
     private boolean playerServiceBound = false;
     private Context appContext;
+
     private int speed = NavigationActivity.SPEED_INITIAL;
+    //private int sound = NavigationActivity.SOUND_INITIAL;
+    private int sound = 0; //NavigationActivity.SOUND_INITIAL;
 
     private ServiceConnection playerConnection = null;
 
@@ -66,8 +70,6 @@ public class PlayerFragment extends Fragment {
 
     public PlayerFragment() {
         // Required empty public constructor
-
-
     }
 
     @Override
@@ -76,6 +78,16 @@ public class PlayerFragment extends Fragment {
 
         Log.v("Metronome", "PlayerFragment:onCreate");
         setRetainInstance(true);
+
+        FragmentActivity context = getActivity();
+        if(context != null){
+            Log.v("Metronome", "PlayerFragment:onCreate : loading preferences");
+            SharedPreferences preferences = context.getPreferences(Context.MODE_PRIVATE);
+            speed = preferences.getInt("speed", NavigationActivity.SPEED_INITIAL);
+            sound = preferences.getInt("sound", 0); //NavigationActivity.SOUND_INITIAL);
+            //speed = preferences.getInt("speed", 99);
+        }
+
     }
 
     @Nullable
@@ -108,12 +120,30 @@ public class PlayerFragment extends Fragment {
     }
 
     @Override
+    public void onStop() {
+        FragmentActivity context = getActivity();
+        if(context != null)
+        {
+            Log.v("Metronome", "PlayerFragment:onStop : saving preferences");
+            SharedPreferences preferences = context.getPreferences(Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putInt("speed", speed);
+            editor.putInt("sound", sound);
+            editor.apply();
+        }
+
+        super.onStop();
+    }
+
+    @Override
     public void onDestroy() {
         Log.v("Metronome", "PlayerFragment:onDestroy");
         if(playerServiceBound) {
             appContext.unbindService(playerConnection);
             playerServiceBound = false;
         }
+
+
         super.onDestroy();
     }
 
@@ -138,8 +168,8 @@ public class PlayerFragment extends Fragment {
                         playerService = binder.getService();
                         playerServiceBound = true;
                         playerService.changeSpeed(speed);
-                        final int sound = R.raw.hhp_dry_a;
-                        playerService.changeSound(sound);
+                        //final int sound = R.raw.hhp_dry_a;
+                        playerService.changeSound(Sounds.getSoundID(sound));
                         startPlayer();
                     }
                 }
@@ -223,6 +253,16 @@ public class PlayerFragment extends Fragment {
         updateMetronomeFragment();
     }
 
+    public void changeSound(int soundid) {
+        sound = soundid;
+        if (playerServiceBound) {
+            playerService.changeSound(Sounds.getSoundID(sound));
+        }
+    }
+
+    public int getSound() {
+        return sound;
+    }
     //@Override
     //public View onCreateView(LayoutInflater inflater, ViewGroup container,
     //                         Bundle savedInstanceState) {
