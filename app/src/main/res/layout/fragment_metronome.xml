@@ -36,5 +36,6 @@
         android:layout_height="70dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        android:src="@drawable/ic_hihat"/>
+        android:src="@drawable/ic_hihat"
+        android:contentDescription="soundButtonIcon" />
 </RelativeLayout>

@@ -3,9 +3,6 @@ package toc2.toc2;
 import android.content.Context;
 import android.util.Log;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-
 final class Sounds {
 
     private final static class SoundInfo {
@@ -14,8 +11,8 @@ final class Sounds {
             this.soundID = soundID;
             this.nameID = nameID;
         }
-        int soundID;
-        int nameID;
+        final int soundID;
+        final int nameID;
     }
 
     private final static SoundInfo sounds[] = {
@@ -40,6 +37,9 @@ final class Sounds {
         return names;
     }
 
+    static int getNumSoundID() {
+        return sounds.length;
+    }
     static int getSoundID(int id){
         return sounds[id].soundID;
     }

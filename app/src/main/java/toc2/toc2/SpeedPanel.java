@@ -12,7 +12,6 @@ import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Toast;
 
 public class SpeedPanel extends View {
 
@@ -29,7 +28,7 @@ public class SpeedPanel extends View {
     final static public int STATUS_PAUSED = 2;
     private int buttonStatus = STATUS_PAUSED;
 
-    private GestureDetector mTapDetector;
+    private final GestureDetector mTapDetector;
 
     private class GestureTap extends GestureDetector.SimpleOnGestureListener {
 

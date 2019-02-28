@@ -169,7 +169,7 @@ public class PlayerFragment extends Fragment {
                         playerServiceBound = true;
                         playerService.changeSpeed(speed);
                         //final int sound = R.raw.hhp_dry_a;
-                        playerService.changeSound(Sounds.getSoundID(sound));
+                        playerService.changeSound(sound);
                         startPlayer();
                     }
                 }
@@ -256,7 +256,7 @@ public class PlayerFragment extends Fragment {
     public void changeSound(int soundid) {
         sound = soundid;
         if (playerServiceBound) {
-            playerService.changeSound(Sounds.getSoundID(sound));
+            playerService.changeSound(sound);
         }
     }
 

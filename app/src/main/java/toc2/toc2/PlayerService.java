@@ -4,14 +4,12 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.media.SoundPool;
 import android.os.Binder;
-import android.os.Bundle;
-import android.os.HandlerThread;
+import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
-import android.widget.Toast;
 
 import static toc2.toc2.App.CHANNEL_ID;
 
@@ -22,23 +20,26 @@ public class PlayerService extends Service {
     static public final String PLAYER_NOTIFICATION_TOGGLE = "toc2:toggle player service";
     static public final int PLAYER_STARTED = 1;
     static public final int PLAYER_STOPPED = 2;
-    private int player_status = PLAYER_STOPPED;
+    private int playerStatus = PLAYER_STOPPED;
 
-    private PlayerThread playerThread;
-    private PlayerQueue playerQueue;
+    private final SoundPool soundpool = new SoundPool.Builder().setMaxStreams(10).build();
+    private int soundHandles[];
 
-    private class PlayerThread extends HandlerThread {
-        private final PlayerQueue playerQueue;
+    private int activeSound = 4;
+    private int speed = NavigationActivity.SPEED_INITIAL;
+    private long dt = Math.round(1000.0 * 60.0 / speed);
 
-        PlayerThread(){
-            super("metronome player");
-            playerQueue = new PlayerQueue(getApplicationContext());
+    private final Handler waitHandler = new Handler();
+
+    private final Runnable klickAndWait = new Runnable() {
+        @Override
+        public void run() {
+            if(playerStatus == PLAYER_STARTED) {
+                soundpool.play(soundHandles[activeSound], 0.99f, 0.99f, 1, 0, 1.0f);
+                waitHandler.postDelayed(this, dt);
+            }
         }
-
-        PlayerQueue getPlayerQueue(){
-            return playerQueue;
-        }
-    }
+    };
 
     class PlayerBinder extends Binder {
         PlayerService getService() {
@@ -53,10 +54,13 @@ public class PlayerService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         Log.v("Metronome", "PlayerService:onBind");
-        playerThread = new PlayerThread();
-        playerThread.setPriority(Thread.MAX_PRIORITY);
-        playerThread.start();
-        playerQueue = playerThread.getPlayerQueue();
+
+        int numSounds = Sounds.getNumSoundID();
+        soundHandles = new int[numSounds];
+        for(int i = 0; i < numSounds; ++i){
+            int soundID = Sounds.getSoundID(i);
+            soundHandles[i] = soundpool.load(this, soundID,1);
+        }
         return playerBinder;
     }
 
@@ -64,10 +68,10 @@ public class PlayerService extends Service {
     public boolean onUnbind(Intent intent) {
         Log.v("Metronome", "PlayerService:onUnbind");
         stopPlay();
-        Message message = new Message();
-        message.what = PlayerQueue.MESSAGE_DESTROY;
-        playerQueue.sendMessage(message);
-        playerThread.quitSafely();
+        for(int sH : soundHandles){
+            soundpool.unload(sH);
+        }
+
         return super.onUnbind(intent);
     }
 
@@ -94,25 +98,16 @@ public class PlayerService extends Service {
     }
 
     public void changeSpeed(int speed){
-        Message message = new Message();
-        message.what = PlayerQueue.MESSAGE_CHANGE_SPEED;
-        Bundle bundle = new Bundle();
-        bundle.putInt("speed", speed);
-        message.setData(bundle);
-        playerQueue.sendMessage(message);
+        this.speed = speed;
+        this.dt = Math.round(1000.0 * 60.0 / speed);
     }
 
-    public void changeSound(int soundid){
-        Message message = new Message();
-        message.what = PlayerQueue.MESSAGE_CHANGE_SOUND;
-        Bundle bundle = new Bundle();
-        bundle.putInt("sound", soundid);
-        message.setData(bundle);
-        playerQueue.sendMessage(message);
+    public void changeSound(int activeSound){
+        this.activeSound = activeSound;
     }
 
     int getPlayerStatus(){
-        return player_status;
+        return playerStatus;
     }
 
     //public void togglePlay() {
@@ -126,26 +121,22 @@ public class PlayerService extends Service {
 
     public void startPlay() {
         Log.v("Metronome", "PlayerService:startPlay");
-        if(player_status == PLAYER_STARTED)
+        if(playerStatus == PLAYER_STARTED)
             return;
 
         startForegroundService();
-        player_status = PLAYER_STARTED;
+        playerStatus = PLAYER_STARTED;
 
-        Message message = new Message();
-        message.what = PlayerQueue.MESSAGE_PLAY;
-        playerQueue.sendMessage(message);
+        waitHandler.post(klickAndWait);
     }
 
     public void stopPlay() {
         Log.v("Metronome", "PlayerService:stopPlay");
-        if(player_status == PLAYER_STOPPED)
+        if(playerStatus == PLAYER_STOPPED)
             return;
         stopForeground(false);
-        player_status = PLAYER_STOPPED;
+        playerStatus = PLAYER_STOPPED;
 
-        Message message_stop = new Message();
-        message_stop.what = PlayerQueue.MESSAGE_STOP;
-        playerQueue.sendMessage(message_stop);
+        waitHandler.removeCallbacksAndMessages(null);
     }
 }

@@ -2,15 +2,8 @@ package toc2.toc2;
 
 import android.media.AudioManager;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.design.widget.NavigationView;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -33,8 +26,6 @@ public class NavigationActivity extends AppCompatActivity {
 
     final public static int SPEED_MIN= 20;
     final public static int SPEED_MAX = 220;
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,7 +95,7 @@ public class NavigationActivity extends AppCompatActivity {
     //    // Handle action bar item clicks here. The action bar will
     //    // automatically handle clicks on the Home/Up button, so long
     //    // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+    //    int id = item.getItemId();
 
     //    //noinspection SimplifiableIfStatement
     //    if (id == R.id.action_settings) {
