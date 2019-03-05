@@ -2,9 +2,13 @@ package toc2.toc2;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v4.media.session.MediaControllerCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -54,15 +58,35 @@ public class MetronomeFragment extends Fragment {
         });
 
         speedPanel.setOnButtonClickedListener(new SpeedPanel.ButtonClickedListener() {
+            //@Override
+            //public void onButtonClicked() {
+            //    NavigationActivity act = (NavigationActivity) getActivity();
+            //     if (act != null) {
+            //         Log.v("Metronome", "speedPanel:onButtonClicked()");
+            //         //Toast.makeText(act, "start", Toast.LENGTH_LONG).show();
+            //         //act.togglePlayer();
+            //         //act.playerFrag.togglePlayer(act.getApplicationContext());
+            //         act.playerFrag.startPlayer(act.getApplicationContext());
+            //     }
+            //    //Toast.makeText(getContext(),"Play button clicked", Toast.LENGTH_SHORT).show();
+            //}
+
             @Override
-            public void onButtonClicked() {
+            public void onPause() {
                 NavigationActivity act = (NavigationActivity) getActivity();
-                 if (act != null) {
-                     //Toast.makeText(act, "start", Toast.LENGTH_LONG).show();
-                     //act.togglePlayer();
-                     act.playerFrag.togglePlayer(act.getApplicationContext());
-                 }
-                //Toast.makeText(getContext(),"Play button clicked", Toast.LENGTH_SHORT).show();
+                if (act != null) {
+                     Log.v("Metronome", "speedPanel:onPause()");
+                     act.playerFrag.stopPlayer();
+                }
+            }
+
+            @Override
+            public void onPlay() {
+                NavigationActivity act = (NavigationActivity) getActivity();
+                if (act != null) {
+                     Log.v("Metronome", "speedPanel:onPause()");
+                     act.playerFrag.startPlayer(act.getApplicationContext());
+                }
             }
         });
 
@@ -116,24 +140,32 @@ public class MetronomeFragment extends Fragment {
         return view;
     }
 
-    public void updateView(PlayerService playerService){
-        int playerStatus = PlayerService.PLAYER_STOPPED;
-
-        if(playerService != null) {
-            playerStatus = playerService.getPlayerStatus();
+    public void updateView(PlaybackStateCompat state){
+        if(state.getState() == PlaybackStateCompat.STATE_PLAYING){
+            speedPanel.changeStatus(SpeedPanel.STATUS_PLAYING);
         }
-
-        switch(playerStatus) {
-            case PlayerService.PLAYER_STOPPED:
-                speedPanel.changeStatus(SpeedPanel.STATUS_PAUSED);
-                break;
-            case PlayerService.PLAYER_STARTED:
-                speedPanel.changeStatus(SpeedPanel.STATUS_STARTED);
-                break;
-           default:
-                break;
+        else if(state.getState() == PlaybackStateCompat.STATE_PAUSED){
+            speedPanel.changeStatus(SpeedPanel.STATUS_PAUSED);
         }
     }
+    //public void updateView(PlayerService playerService){
+        //int playerStatus = PlayerService.PLAYER_STOPPED;
+
+        //if(playerService != null) {
+        //    playerStatus = playerService.getPlayerStatus();
+        //}
+
+        //switch(playerStatus) {
+        //    case PlayerService.PLAYER_STOPPED:
+        //        speedPanel.changeStatus(SpeedPanel.STATUS_PAUSED);
+        //        break;
+        //    case PlayerService.PLAYER_STARTED:
+        //        speedPanel.changeStatus(SpeedPanel.STATUS_STARTED);
+        //        break;
+        //   default:
+        //        break;
+        //}
+    //}
 
     private int getCurrentSpeed(){
         NavigationActivity act = (NavigationActivity) getActivity();

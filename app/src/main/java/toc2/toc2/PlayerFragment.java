@@ -1,5 +1,6 @@
 package toc2.toc2;
 
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -13,6 +14,9 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaControllerCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,14 +39,26 @@ public class PlayerFragment extends Fragment {
 
     private MetronomeFragment metrFrag = null;
 
-    private NotificationReceiver receiver;
-
-    final public class NotificationReceiver extends BroadcastReceiver {
+    MediaControllerCompat.Callback mediaControllerCallback = new MediaControllerCompat.Callback() {
         @Override
-        public void onReceive(Context context, Intent intent){
-            togglePlayerIfAvailable();
+        public void onPlaybackStateChanged(PlaybackStateCompat state) {
+            super.onPlaybackStateChanged(state);
+            updateMetronomeFragment(state);
         }
-    }
+
+        @Override
+        public void onMetadataChanged(MediaMetadataCompat metadata) {
+            super.onMetadataChanged(metadata);
+        }
+    };
+    //private NotificationReceiver receiver;
+
+    //final public class NotificationReceiver extends BroadcastReceiver {
+    //    @Override
+    //    public void onReceive(Context context, Intent intent){
+    //        togglePlayerIfAvailable();
+    //    }
+    //}
 
     /** Defines callbacks for service binding, passed to bindService() */
     //private final ServiceConnection playerConnection = new ServiceConnection() {
@@ -101,21 +117,21 @@ public class PlayerFragment extends Fragment {
     @Override
     public void onResume() {
         Log.v("Metronome", "PlayerFragment:onResume");
-        FragmentActivity act = getActivity();
+        //FragmentActivity act = getActivity();
 
-        if (act != null) {
-            IntentFilter filter = new IntentFilter(PlayerService.PLAYER_NOTIFICATION_TOGGLE);
-            receiver = new NotificationReceiver();
-            act.registerReceiver(receiver, filter);
-        }
+        //if (act != null) {
+        //    IntentFilter filter = new IntentFilter(PlayerService.PLAYER_NOTIFICATION_TOGGLE);
+        //    receiver = new NotificationReceiver();
+        //    act.registerReceiver(receiver, filter);
+        //}
         super.onResume();
     }
 
     @Override
     public void onPause() {
-        FragmentActivity act = getActivity();
-        if (act != null)
-            getActivity().unregisterReceiver(receiver);
+        //FragmentActivity act = getActivity();
+        //if (act != null)
+        //    getActivity().unregisterReceiver(receiver);
         super.onPause();
     }
 
@@ -151,8 +167,10 @@ public class PlayerFragment extends Fragment {
     //    return playerServiceBound;
     //}
 
-    private PlayerService bindAndStartPlayer(Context context){
-        Log.v("Metronome", "PlayerFragment:bindAndStartPlayer");
+    //private PlayerService bindAndStartPlayer(Context context){
+    public PlayerService startPlayer(Context context){
+        //Log.v("Metronome", "PlayerFragment:bindAndStartPlayer");
+        Log.v("Metronome", "PlayerFragment:startPlayer");
         appContext = context;
 
         if(!playerServiceBound) {
@@ -170,13 +188,23 @@ public class PlayerFragment extends Fragment {
                         playerService.changeSpeed(speed);
                         //final int sound = R.raw.hhp_dry_a;
                         playerService.changeSound(sound);
-                        startPlayer();
+
+                        playerService.registerMediaControllerCallback(mediaControllerCallback);
+
+                        Log.v("Metronome", "PlayerFragment:startPlayer : sending play-broadcast");
+                        Intent playIntent = new Intent(PlayerService.BROADCAST_PLAYERACTION);
+                        playIntent.putExtra(PlayerService.PLAYERSTATE, PlaybackStateCompat.ACTION_PLAY);
+                        //Intent playIntent = new Intent("blub");
+                        appContext.sendBroadcast(playIntent);
+                        //startPlayer();
+
                     }
                 }
 
                 @Override
                 public void onServiceDisconnected(ComponentName arg0) {
                     Log.v("Metronome", "PlayerService:onServiceDisconnected");
+                    playerService.unregisterMediaControllerCallback(mediaControllerCallback);
                     playerServiceBound = false;
                 }
             };
@@ -184,58 +212,76 @@ public class PlayerFragment extends Fragment {
             Intent serviceIntent = new Intent(appContext, PlayerService.class);
             appContext.bindService(serviceIntent, playerConnection, Context.BIND_AUTO_CREATE);
         }
+        else {
+            Intent playIntent = new Intent(PlayerService.BROADCAST_PLAYERACTION);
+            playIntent.putExtra(PlayerService.PLAYERSTATE, PlaybackStateCompat.ACTION_PLAY);
+            appContext.sendBroadcast(playIntent);
+        }
         return playerService;
     }
 
-    private void startPlayer() {
-        if (playerServiceBound) {
-            playerService.startPlay();
-            updateMetronomeFragment();
-            //metrFrag.playpauseButton.setImageResource(R.drawable.ic_pause);
-        }
-    }
+    //private void startPlayer() {
+    //    if (playerServiceBound) {
+    //        //playerService.startPlay();
+    //        Intent playIntent = new Intent(PlayerService.BROADCAST_PLAYERACTION);
+    //                    playIntent.setAction(PlayerService.ACTION_PLAY);
+    //                    appContext.sendBroadcast(playIntent);
+    //        //updateMetronomeFragment();
+    //        //metrFrag.playpauseButton.setImageResource(R.drawable.ic_pause);
+    //    }
+    //}
 
-    private void stopPlayer() {
+    public void stopPlayer() {
         if (playerServiceBound) {
-            playerService.stopPlay();
-            updateMetronomeFragment();
+            //playerService.stopPlay();
+            Intent intent = new Intent(PlayerService.BROADCAST_PLAYERACTION);
+            intent.putExtra(PlayerService.PLAYERSTATE, PlaybackStateCompat.ACTION_PAUSE);
+            //intent.setAction(PlayerService.ACTION_PAUSE);
+            appContext.sendBroadcast(intent);
+            //updateMetronomeFragment();
             //metrFrag.playpauseButton.setImageResource(R.drawable.ic_play);
         }
     }
 
-    private void updateMetronomeFragment() {
+    private void updateMetronomeFragment(PlaybackStateCompat state) {
         Log.v("Metronome", "PlayerFragment:updateMetronomeFragment");
         if(metrFrag != null){
-            metrFrag.updateView(playerService);
+            metrFrag.updateView(state);
         }
     }
 
-    private void togglePlayerIfAvailable() {
-        if(playerServiceBound) {
-            if(playerService.getPlayerStatus() == PlayerService.PLAYER_STARTED) {
-                stopPlayer();
-            }
-            else if(playerService.getPlayerStatus() == PlayerService.PLAYER_STOPPED){
-                startPlayer();
-            }
-        }
-    }
+    //private void togglePlayerIfAvailable() {
+    //    if(playerServiceBound) {
+    //        if(playerService.getPlayerStatus() == PlayerService.PLAYER_STARTED) {
+    //            stopPlayer();
+    //        }
+    //        else if(playerService.getPlayerStatus() == PlayerService.PLAYER_STOPPED){
+    //            startPlayer();
+    //        }
+    //    }
+    //}
 
-    public void togglePlayer(Context context) {
+    //public void togglePlayer(Context context) {
 
-        if(!playerServiceBound) {
-            playerService = bindAndStartPlayer(context);
-            //bindToPlayerService(); // this also starts player
-        }
-        else {
-            if(playerService.getPlayerStatus() == PlayerService.PLAYER_STARTED) {
-                stopPlayer();
-            }
-            else if(playerService.getPlayerStatus() == PlayerService.PLAYER_STOPPED){
-                startPlayer();
-            }
-        }
-    }
+    //    if(!playerServiceBound) {
+    //        playerService = bindAndStartPlayer(context);
+    //        //bindToPlayerService(); // this also starts player
+    //    }
+    //    else {
+    //        //if(playerService.getPlayerStatus() == PlayerService.PLAYER_STARTED) {
+    //            //stopPlayer();
+    //            //Intent playIntent = new Intent(PlayerService.BROADCAST_PLAYERACTION);
+    //            //playIntent.setAction(PlayerService.ACTION_PAUSE);
+    //            //context.sendBroadcast(playIntent);
+    //        //}
+    //        //else if(playerService.getPlayerStatus() == PlayerService.PLAYER_STOPPED){
+    //            //startPlayer();
+    //            //Intent playIntent = new Intent(PlayerService.BROADCAST_PLAYERACTION);
+    //            //playIntent.setAction(PlayerService.ACTION_PLAY);
+    //            //context.sendBroadcast(playIntent);
+    //        //}
+    //    }
+    //}
 
     public void changeSpeed(int val) {
         speed = val;
@@ -250,7 +296,9 @@ public class PlayerFragment extends Fragment {
 
     public void setMetronomeFragment(MetronomeFragment metronomeFragment){
         metrFrag = metronomeFragment;
-        updateMetronomeFragment();
+        if(playerServiceBound)
+            updateMetronomeFragment(playerService.getPlaybackState());
+        //updateMetronomeFragment();
     }
 
     public void changeSound(int soundid) {

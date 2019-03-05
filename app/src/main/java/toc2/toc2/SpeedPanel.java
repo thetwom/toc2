@@ -24,7 +24,7 @@ public class SpeedPanel extends View {
     final static private int strokeWidth = 10;
     final static private float innerRadiusRatio = 0.6f;
     private Path pathPlayButton = null;
-    final static public int STATUS_STARTED = 1;
+    final static public int STATUS_PLAYING = 1;
     final static public int STATUS_PAUSED = 2;
     private int buttonStatus = STATUS_PAUSED;
 
@@ -34,9 +34,18 @@ public class SpeedPanel extends View {
 
         @Override
         public boolean onSingleTapConfirmed(MotionEvent e) {
-            if(buttonClickedListener != null)
-                buttonClickedListener.onButtonClicked();
-            Log.v("Metronome", "SpeedPanel:GestureTap:onSingleTapConfirmed");
+            if(buttonClickedListener != null) {
+                if(buttonStatus == STATUS_PAUSED){
+                    Log.v("Metronome", "SpeedPanel:GestureTap:onSingleTapConfirmed() : trigger onPlay");
+                    buttonClickedListener.onPlay();
+                }
+                else{
+                    Log.v("Metronome", "SpeedPanel:GestureTap:onSingleTapConfirmed() : trigger onPause");
+                    buttonClickedListener.onPause();
+                }
+                //buttonClickedListener.onButtonClicked();
+            }
+
             return true;
         }
     }
@@ -46,7 +55,10 @@ public class SpeedPanel extends View {
     }
 
     public interface ButtonClickedListener {
-        void onButtonClicked();
+        //void onButtonClicked();
+        void onPlay();
+
+        void onPause();
     }
 
     private SpeedChangedListener speedChangedListener;
@@ -158,7 +170,7 @@ public class SpeedPanel extends View {
             canvas.drawPath(pathPlayButton, circlePaint);
             pathPlayButton.rewind();
         }
-        else if (buttonStatus == STATUS_STARTED) {
+        else if (buttonStatus == STATUS_PLAYING) {
             float xShift = innerRadius * 0.1f;
             float rectWidth  = innerRadius * 0.4f;
             float rectHeight = innerRadius * 1f;
@@ -271,5 +283,9 @@ public class SpeedPanel extends View {
     public void changeStatus(int status){
         buttonStatus = status;
         invalidate();
+    }
+
+    public int getStatus(){
+        return buttonStatus;
     }
 }
