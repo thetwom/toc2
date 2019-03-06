@@ -1,30 +1,26 @@
 package toc2.toc2;
 
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.SoundPool;
-import android.media.session.MediaSession;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.service.notification.StatusBarNotification;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
-import android.support.v4.media.MediaSessionManager;
 import android.support.v4.media.app.NotificationCompat.MediaStyle;
-import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
-import android.widget.MediaController;
-import android.widget.RemoteViews;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -37,29 +33,29 @@ public class PlayerService extends Service {
 
     static public final String BROADCAST_PLAYERACTION = "toc.PlayerService.PLAYERACTION";
     static public final String PLAYERSTATE = "PLAYERSTATE";
+    static public final String PLAYBACKSPEED = "PLAYBACKSPEED";
 
     private final int notificationID = 3252;
 
-    MediaSessionCompat mediaSession = null;
-    PlaybackStateCompat.Builder playbackStateBuilder = new PlaybackStateCompat.Builder();
+    private MediaSessionCompat mediaSession = null;
+    private final PlaybackStateCompat.Builder playbackStateBuilder = new PlaybackStateCompat.Builder();
 
-    NotificationCompat.Builder notificationBuilder = null;
+    private NotificationCompat.Builder notificationBuilder = null;
 
     private final SoundPool soundpool = new SoundPool.Builder().setMaxStreams(10).build();
     private int soundHandles[];
 
     private int activeSound = 0;
-    private int speed = NavigationActivity.SPEED_INITIAL;
-    private long dt = Math.round(1000.0 * 60.0 / speed);
+    //private long dt = Math.round(1000.0 * 60.0 / speed);
 
     private final Handler waitHandler = new Handler();
 
     private final Runnable klickAndWait = new Runnable() {
         @Override
         public void run() {
-            if(mediaSession.getController().getPlaybackState().getState() == PlaybackStateCompat.STATE_PLAYING) {
+            if(getState() == PlaybackStateCompat.STATE_PLAYING) {
                 soundpool.play(soundHandles[activeSound], 0.99f, 0.99f, 1, 0, 1.0f);
-                waitHandler.postDelayed(this, dt);
+                waitHandler.postDelayed(this, getDt());
             }
         }
     };
@@ -79,7 +75,12 @@ public class PlayerService extends Service {
                 return;
             }
 
-            long myAction = extras.getLong(PLAYERSTATE, PlaybackStateCompat.STATE_ERROR);
+            long myAction = extras.getLong(PLAYERSTATE, PlaybackStateCompat.STATE_NONE);
+            int newSpeed = extras.getInt(PLAYBACKSPEED, -1);
+
+            if(newSpeed > 0) {
+                changeSpeed(newSpeed);
+            }
 
             if (myAction == PlaybackStateCompat.ACTION_PLAY) {
                 Log.v("Metronome", "ActionReceiver:onReceive : set state to playing");
@@ -87,10 +88,6 @@ public class PlayerService extends Service {
             } else if (myAction == PlaybackStateCompat.ACTION_PAUSE) {
                 Log.v("Metronome", "ActionReceiver:onReceive : set state to pause");
                 mediaSession.getController().getTransportControls().pause();
-            } else {
-                Log.v("Metronome", "ActionReceiver:onReceive : set state to error");
-                playbackStateBuilder.setState(PlaybackStateCompat.STATE_ERROR, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, speed);
-                mediaSession.setPlaybackState(playbackStateBuilder.build());
             }
         }
     };
@@ -104,7 +101,6 @@ public class PlayerService extends Service {
         Log.v("Metronome", "PlayerService::onCreate()");
         super.onCreate();
 
-        //IntentFilter filter = new IntentFilter("blub");
         IntentFilter filter = new IntentFilter(BROADCAST_PLAYERACTION);
         registerReceiver(actionReceiver, filter);
 
@@ -118,7 +114,7 @@ public class PlayerService extends Service {
             @Override
             public void onPlay() {
                 Log.v("Metronome", "mediaSession:onPlay()");
-                if(mediaSession.getController().getPlaybackState().getState() != PlaybackStateCompat.STATE_PLAYING) {
+                if(getState() != PlaybackStateCompat.STATE_PLAYING) {
                     startPlay();
                 }
                 super.onPlay();
@@ -127,7 +123,7 @@ public class PlayerService extends Service {
             @Override
             public void onPause() {
                 Log.v("Metronome", "mediaSession:onPause()");
-                if(mediaSession.getController().getPlaybackState().getState() == PlaybackStateCompat.STATE_PLAYING) {
+                if(getState() == PlaybackStateCompat.STATE_PLAYING) {
                     stopPlay();
                 }
                 super.onPause();
@@ -137,9 +133,9 @@ public class PlayerService extends Service {
         mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
             MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
 
-        //playbackStateBuilder.setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_PLAY_PAUSE)
-        //                    .setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, speed);
-        playbackStateBuilder.setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, speed);
+        playbackStateBuilder.setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_PLAY_PAUSE)
+                            .setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, NavigationActivity.SPEED_INITIAL);
+        //playbackStateBuilder.setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, speed);
 
         mediaSession.setPlaybackState(playbackStateBuilder.build());
         mediaSession.setActive(true);
@@ -195,13 +191,13 @@ public class PlayerService extends Service {
         final int notificationStateID = 3214;
 
         NotificationCompat.Action controlAction;
-        if(mediaSession.getController().getPlaybackState().getState() == PlaybackStateCompat.STATE_PLAYING){
+        if(getState() == PlaybackStateCompat.STATE_PLAYING){
             Log.v("Metronome","isplaying");
             intent.putExtra(PlayerService.PLAYERSTATE, PlaybackStateCompat.ACTION_PAUSE);
             PendingIntent pIntent = PendingIntent.getBroadcast(this, notificationStateID , intent, PendingIntent.FLAG_UPDATE_CURRENT);
             controlAction = new NotificationCompat.Action(R.drawable.ic_pause, "pause", pIntent);
         }
-        else{ // if(mediaSession.getController().getPlaybackState().getState() == PlaybackStateCompat.STATE_PAUSED){
+        else{ // if(getState() == PlaybackStateCompat.STATE_PAUSED){
             Log.v("Metronome","ispaused");
             intent.putExtra(PlayerService.PLAYERSTATE, PlaybackStateCompat.ACTION_PLAY);
             PendingIntent pIntent = PendingIntent.getBroadcast(this, notificationStateID , intent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -222,15 +218,21 @@ public class PlayerService extends Service {
 
         notificationBuilder.addAction(controlAction);
 
-        notificationBuilder.setContentText(Integer.toString(speed) + " bpm");
+        notificationBuilder.setContentText(getString(R.string.bpm, getSpeed()));
 
         return notificationBuilder.build();
     }
 
-    public void changeSpeed(int speed){
-        this.speed = speed;
+    private void changeSpeed(int speed){
+
+        if(getSpeed() == speed)
+            return;
+
+        playbackStateBuilder
+                .setState(getState(), PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, speed)
+                .build();
+        mediaSession.setPlaybackState(playbackStateBuilder.build());
         NotificationManagerCompat.from(this).notify(notificationID, createNotification());
-        this.dt = Math.round(1000.0 * 60.0 / speed);
     }
 
     public void changeSound(int activeSound){
@@ -241,7 +243,7 @@ public class PlayerService extends Service {
         Log.v("Metronome", "PlayerService:startPlay");
 
         playbackStateBuilder
-                .setState(PlaybackStateCompat.STATE_PLAYING, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, speed)
+                .setState(PlaybackStateCompat.STATE_PLAYING, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, getSpeed())
                 .build();
         mediaSession.setPlaybackState(playbackStateBuilder.build());
 
@@ -254,14 +256,26 @@ public class PlayerService extends Service {
         Log.v("Metronome", "PlayerService:stopPlay");
 
         playbackStateBuilder
-                .setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, speed)
+                .setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, getSpeed())
                 .build();
         mediaSession.setPlaybackState(playbackStateBuilder.build());
-        NotificationManagerCompat.from(this).notify(notificationID, createNotification());
 
         stopForeground(false);
 
         waitHandler.removeCallbacksAndMessages(null);
+
+        // Update notification only if it still exists (check is necessary, when app is canceled)
+        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        if(notificationManager == null)
+            return;
+
+        StatusBarNotification[] notifications = notificationManager.getActiveNotifications();
+        for (StatusBarNotification notification : notifications) {
+             if (notification.getId() == notificationID) {
+                 // This is the line which updates the notification
+                 NotificationManagerCompat.from(this).notify(notificationID, createNotification());
+             }
+        }
     }
 
     public void registerMediaControllerCallback(MediaControllerCompat.Callback callback){
@@ -274,5 +288,17 @@ public class PlayerService extends Service {
 
     public PlaybackStateCompat getPlaybackState(){
         return mediaSession.getController().getPlaybackState();
+    }
+
+    private long getDt() {
+        return Math.round(1000.0 * 60.0 / mediaSession.getController().getPlaybackState().getPlaybackSpeed());
+    }
+
+    private int getSpeed() {
+        return Math.round(mediaSession.getController().getPlaybackState().getPlaybackSpeed());
+    }
+
+    private int getState() {
+        return mediaSession.getController().getPlaybackState().getState();
     }
 }
