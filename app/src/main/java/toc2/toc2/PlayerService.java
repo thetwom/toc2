@@ -8,6 +8,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.MediaMetadata;
 import android.media.SoundPool;
 import android.os.Binder;
 import android.os.Bundle;
@@ -16,6 +17,7 @@ import android.os.IBinder;
 import android.service.notification.StatusBarNotification;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.app.NotificationCompat.MediaStyle;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -39,12 +41,15 @@ public class PlayerService extends Service {
 
     private MediaSessionCompat mediaSession = null;
     private final PlaybackStateCompat.Builder playbackStateBuilder = new PlaybackStateCompat.Builder();
+    private final MediaMetadataCompat.Builder mediaMetadataBuilder = new MediaMetadataCompat.Builder();
 
     private NotificationCompat.Builder notificationBuilder = null;
 
     private final SoundPool soundpool = new SoundPool.Builder().setMaxStreams(10).build();
     private int soundHandles[];
 
+    private int playList[] = {0};
+    private int playListPosition = 0;
     private int activeSound = 0;
     //private long dt = Math.round(1000.0 * 60.0 / speed);
 
@@ -54,7 +59,12 @@ public class PlayerService extends Service {
         @Override
         public void run() {
             if(getState() == PlaybackStateCompat.STATE_PLAYING) {
-                soundpool.play(soundHandles[activeSound], 0.99f, 0.99f, 1, 0, 1.0f);
+                if(playListPosition >= playList.length)
+                    playListPosition = 0;
+                int sound = playList[playListPosition];
+                soundpool.play(soundHandles[sound], 0.99f, 0.99f, 1, 0, 1.0f);
+
+                playListPosition += 1;
                 waitHandler.postDelayed(this, getDt());
             }
         }
@@ -138,6 +148,10 @@ public class PlayerService extends Service {
         //playbackStateBuilder.setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, speed);
 
         mediaSession.setPlaybackState(playbackStateBuilder.build());
+
+        mediaMetadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, MetaDataHelper.createMetaDataString(playList));
+        mediaSession.setMetadata(mediaMetadataBuilder.build());
+
         mediaSession.setActive(true);
     }
 
@@ -223,7 +237,7 @@ public class PlayerService extends Service {
         return notificationBuilder.build();
     }
 
-    private void changeSpeed(int speed){
+    public void changeSpeed(int speed){
 
         if(getSpeed() == speed)
             return;
@@ -235,11 +249,25 @@ public class PlayerService extends Service {
         NotificationManagerCompat.from(this).notify(notificationID, createNotification());
     }
 
-    public void changeSound(int activeSound){
-        this.activeSound = activeSound;
+    public void addValueToSpeed(int dSpeed){
+        int newSpeed = getSpeed() + dSpeed;
+        newSpeed = Math.min(newSpeed, NavigationActivity.SPEED_MAX);
+        newSpeed = Math.max(newSpeed, NavigationActivity.SPEED_MIN);
+        changeSpeed(newSpeed);
     }
 
-    private void startPlay() {
+    //public void changeSound(int activeSound){
+    //    this.activeSound = activeSound;
+    //}
+
+    public void changeSound(int newPlayList[]){
+        playList = newPlayList;
+        String soundString = MetaDataHelper.createMetaDataString(newPlayList);
+        mediaMetadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, soundString);
+        mediaSession.setMetadata(mediaMetadataBuilder.build());
+    }
+
+    public void startPlay() {
         Log.v("Metronome", "PlayerService:startPlay");
 
         playbackStateBuilder
@@ -249,10 +277,11 @@ public class PlayerService extends Service {
 
         startForeground(notificationID, createNotification());
 
+        playListPosition = 0;
         waitHandler.post(klickAndWait);
     }
 
-    private void stopPlay() {
+    public void stopPlay() {
         Log.v("Metronome", "PlayerService:stopPlay");
 
         playbackStateBuilder
@@ -300,5 +329,27 @@ public class PlayerService extends Service {
 
     private int getState() {
         return mediaSession.getController().getPlaybackState().getState();
+    }
+
+    public int[] getSound() {
+        return playList;
+    }
+
+    static public void sendPlayIntent(Context context){
+        Intent intent = new Intent(PlayerService.BROADCAST_PLAYERACTION);
+        intent.putExtra(PlayerService.PLAYERSTATE, PlaybackStateCompat.ACTION_PLAY);
+        context.sendBroadcast(intent);
+    }
+
+    static public void sendPauseIntent(Context context){
+        Intent intent = new Intent(PlayerService.BROADCAST_PLAYERACTION);
+        intent.putExtra(PlayerService.PLAYERSTATE, PlaybackStateCompat.ACTION_PAUSE);
+        context.sendBroadcast(intent);
+    }
+
+    static public void sendChangeSpeedIntent(Context context, int speed){
+        Intent intent = new Intent(PlayerService.BROADCAST_PLAYERACTION);
+        intent.putExtra(PlayerService.PLAYBACKSPEED, speed);
+        context.sendBroadcast(intent);
     }
 }

@@ -55,10 +55,11 @@ public class NavigationActivity extends AppCompatActivity {
         }
 
         metrFrag = (MetronomeFragment) fragManager.findFragmentByTag(metrFragTag);
-        if(metrFrag == null){
+        if(metrFrag == null) {
             metrFrag = new MetronomeFragment();
-            fragManager.beginTransaction().replace(R.id.mainframe, metrFrag, metrFragTag).commit();
         }
+        fragManager.beginTransaction().replace(R.id.mainframe, metrFrag, metrFragTag).commit();
+
 
         //testFrag = (TestFragment) fragManager.findFragmentByTag(testFragTag);
         //if(testFrag == null){
@@ -70,7 +71,6 @@ public class NavigationActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        playerFrag.setMetronomeFragment(metrFrag);
     }
 
     //@Override
