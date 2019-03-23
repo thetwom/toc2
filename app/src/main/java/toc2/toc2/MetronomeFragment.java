@@ -8,13 +8,19 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.animation.DynamicAnimation;
+import android.support.animation.SpringAnimation;
+import android.support.animation.SpringForce;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
@@ -33,6 +39,61 @@ public class MetronomeFragment extends Fragment {
     private int checkedDialogSound = 0;
     private PlayerService playerService;
     private Context playerContext;
+
+    private int fragHeight;
+    private int fragWidth;
+
+    float soundButtonX, soundButtonY;
+
+    private GestureDetector mTapDetector;
+
+    private class GestureTap extends GestureDetector.SimpleOnGestureListener {
+
+        @Override
+        public boolean onSingleTapConfirmed(MotionEvent e) {
+
+            NavigationActivity act = (NavigationActivity) getActivity();
+            if (act == null) {
+                return true;
+            }
+            AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(act);
+            dialogBuilder.setTitle("Choose sound");
+
+            dialogBuilder.setPositiveButton("ok", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    if (playerServiceBound) {
+                        int sounds[] = {checkedDialogSound};
+                        playerService.changeSound(sounds);
+                        //playerService.changeSound(checkedDialogSound);
+                    }
+                }
+            });
+
+            dialogBuilder.setNegativeButton("dismiss", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+
+            checkedDialogSound = 0;
+            if (playerServiceBound) {
+                checkedDialogSound = playerService.getSound()[0];
+            }
+
+            dialogBuilder.setSingleChoiceItems(Sounds.getNames(act), checkedDialogSound, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    checkedDialogSound = which;
+                }
+            });
+
+            AlertDialog dialog = dialogBuilder.create();
+            dialog.show();
+            return false;
+        }
+    }
 
     private final MediaControllerCompat.Callback mediaControllerCallback = new MediaControllerCompat.Callback() {
         @Override
@@ -57,10 +118,12 @@ public class MetronomeFragment extends Fragment {
                              Bundle savedInstanceState) {
         Log.v("Metronome", "MetronomeFragment:onCreateView");
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_metronome, container, false);
+        final View view = inflater.inflate(R.layout.fragment_metronome, container, false);
 
         speedText = view.findViewById(R.id.speedtext);
         //speedText.setText(getString(R.string.bpm,getCurrentSpeed()));
+
+        mTapDetector = new GestureDetector(getActivity(), new GestureTap());
 
         speedPanel = view.findViewById(R.id.speedpanel);
 
@@ -97,56 +160,103 @@ public class MetronomeFragment extends Fragment {
 
         soundButton = view.findViewById(R.id.soundbutton);
 
-        soundButton.setOnClickListener(new View.OnClickListener() {
+        soundButton.setOnTouchListener(new View.OnTouchListener() {
             @Override
-            public void onClick(View v) {
-                NavigationActivity act = (NavigationActivity) getActivity();
-                if(act == null) {
-                    return;
+            public boolean onTouch(View v, MotionEvent event) {
+
+                int action = event.getActionMasked();
+
+                mTapDetector.onTouchEvent(event);
+
+                switch(action){
+                    case MotionEvent.ACTION_DOWN:
+                        soundButtonX = v.getX() - event.getRawX();
+                        soundButtonY = v.getY() - event.getRawY();
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        v.animate()
+                                .x(event.getRawX() + soundButtonX)
+                                .y(event.getRawY() + soundButtonY)
+                                .setDuration(0)
+                                .start();
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        final SpringForce springForceX = new SpringForce(fragWidth - soundButton.getWidth())
+                                .setDampingRatio(SpringForce.DAMPING_RATIO_NO_BOUNCY)
+                                .setStiffness(SpringForce.STIFFNESS_MEDIUM);
+                        final SpringForce springForceY = new SpringForce(fragHeight - soundButton.getHeight())
+                                .setDampingRatio(SpringForce.DAMPING_RATIO_NO_BOUNCY)
+                                .setStiffness(SpringForce.STIFFNESS_MEDIUM);
+                        final SpringAnimation springAnimationX= new SpringAnimation(soundButton, DynamicAnimation.X).setSpring(springForceX);
+                        final SpringAnimation springAnimationY= new SpringAnimation(soundButton, DynamicAnimation.Y).setSpring(springForceY);
+                        springAnimationX.start();
+                        springAnimationY.start();
+                        break;
                 }
-                AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(act);
-                dialogBuilder.setTitle("Choose sound");
 
-                dialogBuilder.setPositiveButton("ok", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        if (playerServiceBound) {
-                            int sounds[] = {checkedDialogSound};
-                            playerService.changeSound(sounds);
-                            //playerService.changeSound(checkedDialogSound);
-                        }
-                    }
-                });
-
-                dialogBuilder.setNegativeButton("dismiss", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
-
-                checkedDialogSound = 0;
-                if(playerServiceBound) {
-                    checkedDialogSound = playerService.getSound()[0];
-                }
-
-                dialogBuilder.setSingleChoiceItems(Sounds.getNames(act), checkedDialogSound, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        checkedDialogSound = which;
-                    }
-                });
-
-                AlertDialog dialog = dialogBuilder.create();
-                dialog.show();
+                return false;
             }
-
         });
+
+        //soundButton.setOnClickListener(new View.OnClickListener() {
+        //    @Override
+        //    public void onClick(View v) {
+        //        NavigationActivity act = (NavigationActivity) getActivity();
+        //        if(act == null) {
+        //            return;
+        //        }
+        //        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(act);
+        //        dialogBuilder.setTitle("Choose sound");
+
+        //        dialogBuilder.setPositiveButton("ok", new DialogInterface.OnClickListener() {
+        //            @Override
+        //            public void onClick(DialogInterface dialog, int which) {
+        //                if (playerServiceBound) {
+        //                    int sounds[] = {checkedDialogSound};
+        //                    playerService.changeSound(sounds);
+        //                    //playerService.changeSound(checkedDialogSound);
+        //                }
+        //            }
+        //        });
+
+        //        dialogBuilder.setNegativeButton("dismiss", new DialogInterface.OnClickListener() {
+        //            @Override
+        //            public void onClick(DialogInterface dialog, int which) {
+        //                dialog.dismiss();
+        //            }
+        //        });
+
+        //        checkedDialogSound = 0;
+        //        if(playerServiceBound) {
+        //            checkedDialogSound = playerService.getSound()[0];
+        //        }
+
+        //        dialogBuilder.setSingleChoiceItems(Sounds.getNames(act), checkedDialogSound, new DialogInterface.OnClickListener() {
+        //            @Override
+        //            public void onClick(DialogInterface dialog, int which) {
+        //                checkedDialogSound = which;
+        //            }
+        //        });
+
+        //        AlertDialog dialog = dialogBuilder.create();
+        //        dialog.show();
+        //    }
+
+        //});
 
         NavigationActivity act = (NavigationActivity) getActivity();
         if(act != null) {
             bindService(act.getApplicationContext());
         }
+
+        view.post(new Runnable() {
+            @Override
+            public void run() {
+                fragHeight = view.getHeight();
+                fragWidth =  view.getWidth();
+            }
+        });
+
         return view;
     }
 
@@ -196,6 +306,7 @@ public class MetronomeFragment extends Fragment {
                     playerContext = context;
                     playerService.registerMediaControllerCallback(mediaControllerCallback);
                     updateView(playerService.getPlaybackState());
+                    updateView(playerService.getMetaData());
                 }
 
                 @Override

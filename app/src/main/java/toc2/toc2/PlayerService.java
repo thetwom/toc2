@@ -319,6 +319,10 @@ public class PlayerService extends Service {
         return mediaSession.getController().getPlaybackState();
     }
 
+    public MediaMetadataCompat getMetaData(){
+        return mediaSession.getController().getMetadata();
+    }
+
     private long getDt() {
         return Math.round(1000.0 * 60.0 / mediaSession.getController().getPlaybackState().getPlaybackSpeed());
     }
