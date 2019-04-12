@@ -14,6 +14,7 @@ import android.support.animation.SpringForce;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -34,6 +35,7 @@ public class MetronomeFragment extends Fragment {
     private TextView speedText;
     private SpeedPanel speedPanel;
     private ImageButton soundButton;
+    private SoundChooser soundChooser;
     private boolean playerServiceBound = false;
     private ServiceConnection playerConnection = null;
     private int checkedDialogSound = 0;
@@ -198,51 +200,21 @@ public class MetronomeFragment extends Fragment {
             }
         });
 
-        //soundButton.setOnClickListener(new View.OnClickListener() {
-        //    @Override
-        //    public void onClick(View v) {
-        //        NavigationActivity act = (NavigationActivity) getActivity();
-        //        if(act == null) {
-        //            return;
-        //        }
-        //        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(act);
-        //        dialogBuilder.setTitle("Choose sound");
+        soundChooser = view.findViewById(R.id.soundchooser);
 
-        //        dialogBuilder.setPositiveButton("ok", new DialogInterface.OnClickListener() {
-        //            @Override
-        //            public void onClick(DialogInterface dialog, int which) {
-        //                if (playerServiceBound) {
-        //                    int sounds[] = {checkedDialogSound};
-        //                    playerService.changeSound(sounds);
-        //                    //playerService.changeSound(checkedDialogSound);
-        //                }
-        //            }
-        //        });
-
-        //        dialogBuilder.setNegativeButton("dismiss", new DialogInterface.OnClickListener() {
-        //            @Override
-        //            public void onClick(DialogInterface dialog, int which) {
-        //                dialog.dismiss();
-        //            }
-        //        });
-
-        //        checkedDialogSound = 0;
-        //        if(playerServiceBound) {
-        //            checkedDialogSound = playerService.getSound()[0];
-        //        }
-
-        //        dialogBuilder.setSingleChoiceItems(Sounds.getNames(act), checkedDialogSound, new DialogInterface.OnClickListener() {
-        //            @Override
-        //            public void onClick(DialogInterface dialog, int which) {
-        //                checkedDialogSound = which;
-        //            }
-        //        });
-
-        //        AlertDialog dialog = dialogBuilder.create();
-        //        dialog.show();
-        //    }
-
-        //});
+        soundChooser.setButtonClickedListener(new SoundChooser.ButtonClickedListener() {
+            @Override
+            public void onButtonClicked(MoveableButton button) {
+                NavigationActivity act = (NavigationActivity) getActivity();
+                SoundChooserDialog soundChooserDialog = new SoundChooserDialog(act);
+                soundChooserDialog.setNewButtonPropertiesListener(new SoundChooserDialog.NewButtonPropertiesListener() {
+                    @Override
+                    public void onNewButtonProperties(Bundle properties) {
+                        Log.v("Metronome", "Setting new button properties");
+                    }
+                });
+            }
+        });
 
         NavigationActivity act = (NavigationActivity) getActivity();
         if(act != null) {
