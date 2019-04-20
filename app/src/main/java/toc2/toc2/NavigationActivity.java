@@ -15,7 +15,7 @@ public class NavigationActivity extends AppCompatActivity {
     private MetronomeFragment metrFrag;
     private static final String metrFragTag = "metrFrag";
 
-    public PlayerFragment playerFrag;
+    private PlayerFragment playerFrag;
     private static final String playerFragTag = "playerFrag";
 
     //private TestFragment testFrag;

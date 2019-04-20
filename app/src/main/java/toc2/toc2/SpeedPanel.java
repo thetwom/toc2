@@ -44,9 +44,10 @@ public class SpeedPanel extends View {
                     buttonClickedListener.onPause();
                 }
                 //buttonClickedListener.onButtonClicked();
+                return true;
             }
 
-            return true;
+            return false;
         }
     }
 
@@ -228,7 +229,9 @@ public class SpeedPanel extends View {
         float circum = getRadius() * (float)Math.PI;
         float factor = 20.0f;
 
-        mTapDetector.onTouchEvent(event);
+        boolean clicked = mTapDetector.onTouchEvent(event);
+        if(clicked)
+            performClick();
 
         switch(action) {
             case MotionEvent.ACTION_DOWN:

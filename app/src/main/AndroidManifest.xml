@@ -25,7 +25,7 @@
         <service
             android:name=".PlayerService"
             android:enabled="true"
-            android:exported="true"
+            android:exported="false"
             ></service>
 <!--
         <receiver android:name=".NavigationActivity$NotificationReceiver" />

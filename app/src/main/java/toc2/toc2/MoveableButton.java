@@ -4,6 +4,7 @@ import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.Resources;
+import android.os.Bundle;
 import android.support.animation.DynamicAnimation;
 import android.support.animation.SpringAnimation;
 import android.support.animation.SpringForce;
@@ -24,6 +25,8 @@ public class MoveableButton extends AppCompatImageButton {
     private float dYstart;
 
     private boolean isMoving = false;
+
+    private final Bundle properties = new Bundle();
 
     private final SpringAnimation springAnimationX = new SpringAnimation(this, DynamicAnimation.X).setSpring(
          new SpringForce()
@@ -62,9 +65,9 @@ public class MoveableButton extends AppCompatImageButton {
             animateColor();
             if(onClickListener != null) {
                 onClickListener.onClick(MoveableButton.this);
-                return false;
+                return true;
             }
-            return true;
+            return false;
         }
     }
 
@@ -87,7 +90,9 @@ public class MoveableButton extends AppCompatImageButton {
             public boolean onTouch(View v, MotionEvent event) {
                 int action = event.getActionMasked();
 
-                mTapDetector.onTouchEvent(event);
+                boolean clicked = mTapDetector.onTouchEvent(event);
+                if(clicked)
+                    v.performClick();
 
                 switch(action){
                     case MotionEvent.ACTION_DOWN:
@@ -176,6 +181,16 @@ public class MoveableButton extends AppCompatImageButton {
 
     public void animateColor() {
         colorAnimation.start();
+    }
+
+    public Bundle getProperties(){
+        return properties;
+    }
+
+    public void setProperties(Bundle newProperties) {
+        properties.putAll(newProperties);
+        setImageResource(Sounds.getIconID(properties.getInt("soundid", 0)));
+        Log.v("Metronome", "Setting new button properties " + properties.getFloat("volume",-1));
     }
 
     private int dp_to_px(int dp) {

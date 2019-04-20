@@ -17,7 +17,7 @@ final class Sounds {
         final int iconID;
     }
 
-    private final static SoundInfo sounds[] = {
+    private final static SoundInfo[] sounds = {
             new SoundInfo(R.raw.hhp_dry_a, R.string.hihat, R.drawable.ic_hihat),
             new SoundInfo(R.raw.sn_jazz_c, R.string.snare, R.drawable.ic_snare),
             new SoundInfo(R.raw.stick, R.string.sticks, R.drawable.ic_sticks),
@@ -27,8 +27,8 @@ final class Sounds {
 
 
     static CharSequence[] getNames(Context context){
-        Log.v("Metronome", "Sound.getNames : number of sounds: " + Integer.toString(sounds.length));
-        CharSequence names[] = new CharSequence[sounds.length];
+        Log.v("Metronome", "Sound.getNames : number of sounds: " + sounds.length);
+        CharSequence[] names = new CharSequence[sounds.length];
         int i = 0;
         for(SoundInfo si : sounds) {
             String name = context.getResources().getString(si.nameID);

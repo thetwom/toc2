@@ -4,17 +4,23 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <Button
-        android:id="@+id/button"
+    <HorizontalScrollView
+        android:id="@+id/availableSounds"
+        android:layout_width="wrap_content"
+        android:layout_height="52dp">
+    </HorizontalScrollView>
+
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Button" />
-
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="10dp"
+        android:text="Volume:" />
     <SeekBar
-        android:id="@+id/seekBar"
+        android:id="@+id/volumeBar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:progress="100"/>
 
 </LinearLayout>

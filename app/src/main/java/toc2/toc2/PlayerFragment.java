@@ -28,8 +28,8 @@ public class PlayerFragment extends Fragment {
 
     private ServiceConnection playerConnection = null;
 
-    int speed = NavigationActivity.SPEED_INITIAL;
-    int sound[] = {0};
+    private int speed = NavigationActivity.SPEED_INITIAL;
+    private int[] sound = {0};
 
     public PlayerFragment() {
         // Required empty public constructor
@@ -44,14 +44,15 @@ public class PlayerFragment extends Fragment {
 
         FragmentActivity context = getActivity();
 
-        if(context != null){
+        if(context != null) {
             Log.v("Metronome", "PlayerFragment:onCreate : loading preferences");
             SharedPreferences preferences = context.getPreferences(Context.MODE_PRIVATE);
             speed = preferences.getInt("speed", NavigationActivity.SPEED_INITIAL);
             String soundString = preferences.getString("sound", "0");
             sound = MetaDataHelper.parseMetaDataString(soundString);
+
+            bindService(context.getApplicationContext());
         }
-        bindService(context.getApplicationContext());
     }
 
     private void bindService(final Context context) {

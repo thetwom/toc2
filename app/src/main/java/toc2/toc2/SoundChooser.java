@@ -2,6 +2,7 @@ package toc2.toc2;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.os.Bundle;
 import android.support.animation.DynamicAnimation;
 import android.support.animation.SpringAnimation;
 import android.support.animation.SpringForce;
@@ -81,7 +82,17 @@ public class SoundChooser extends FrameLayout {
         MoveableButton button = new MoveableButton(this.context);
 
         button.setScaleType(ImageView.ScaleType.FIT_XY);
-        button.setImageResource(R.drawable.ic_hihat);
+        Bundle properties;
+        if(buttons.isEmpty()) {
+            properties = new Bundle();
+            properties.putFloat("volume", 1.0f);
+            properties.putInt("soundid", 0);
+        }
+        else {
+            properties = buttons.get(buttons.size()-1).getProperties();
+        }
+        //button.setImageResource(R.drawable.ic_hihat);
+        button.setProperties(properties);
 
         //FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(getButtonWidth(), getButtonHeight());
         MarginLayoutParams params = new MarginLayoutParams(getButtonWidth(), getButtonHeight());
@@ -91,6 +102,8 @@ public class SoundChooser extends FrameLayout {
 
         button.setBackgroundColor(ContextCompat.getColor(context, R.color.colorPrimary));
         button.setLayoutParams(params);
+        int pad = dp_to_px(5);
+        button.setPadding(pad, pad, pad, pad);
 
         ViewGroup viewGroup = (ViewGroup) this.getParent();
         if (viewGroup == null)

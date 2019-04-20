@@ -8,7 +8,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.media.MediaMetadata;
 import android.media.SoundPool;
 import android.os.Binder;
 import android.os.Bundle;
@@ -46,9 +45,9 @@ public class PlayerService extends Service {
     private NotificationCompat.Builder notificationBuilder = null;
 
     private final SoundPool soundpool = new SoundPool.Builder().setMaxStreams(10).build();
-    private int soundHandles[];
+    private int[] soundHandles;
 
-    private int playList[] = {0};
+    private int[] playList = {0};
     private int playListPosition = 0;
     private int activeSound = 0;
     //private long dt = Math.round(1000.0 * 60.0 / speed);
@@ -260,7 +259,7 @@ public class PlayerService extends Service {
     //    this.activeSound = activeSound;
     //}
 
-    public void changeSound(int newPlayList[]){
+    public void changeSound(int[] newPlayList){
         playList = newPlayList;
         String soundString = MetaDataHelper.createMetaDataString(newPlayList);
         mediaMetadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, soundString);
