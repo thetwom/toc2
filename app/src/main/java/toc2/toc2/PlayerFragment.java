@@ -16,6 +16,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.util.ArrayList;
+
 /**
  * A simple {@link Fragment} subclass.
  */
@@ -29,7 +31,7 @@ public class PlayerFragment extends Fragment {
     private ServiceConnection playerConnection = null;
 
     private int speed = NavigationActivity.SPEED_INITIAL;
-    private int[] sound = {0};
+    private ArrayList<Bundle> playList;
 
     public PlayerFragment() {
         // Required empty public constructor
@@ -49,7 +51,10 @@ public class PlayerFragment extends Fragment {
             SharedPreferences preferences = context.getPreferences(Context.MODE_PRIVATE);
             speed = preferences.getInt("speed", NavigationActivity.SPEED_INITIAL);
             String soundString = preferences.getString("sound", "0");
-            sound = MetaDataHelper.parseMetaDataString(soundString);
+            playList = SoundProperties.parseMetaDataString(soundString);
+            if(playList.isEmpty()){
+                initializePlayList();
+            }
 
             bindService(context.getApplicationContext());
         }
@@ -70,7 +75,7 @@ public class PlayerFragment extends Fragment {
                         playerServiceBound = true;
                         playerContext = context;
                         playerService.changeSpeed(speed);
-                        playerService.changeSound(sound);
+                        playerService.setSounds(playList);
                     }
                 }
 
@@ -117,11 +122,11 @@ public class PlayerFragment extends Fragment {
             //editor.putInt("speed", speed);
             if(playerServiceBound){
                 speed = Math.round(playerService.getPlaybackState().getPlaybackSpeed());
-                sound = playerService.getSound();
+                playList = playerService.getSound();
             }
 
             editor.putInt("speed", speed);
-            editor.putString("sound", MetaDataHelper.createMetaDataString(sound));
+            editor.putString("sound", SoundProperties.createMetaDataString(playList));
             editor.apply();
         }
 
@@ -137,5 +142,13 @@ public class PlayerFragment extends Fragment {
         }
 
         super.onDestroy();
+    }
+
+    private void initializePlayList() {
+        playList = new ArrayList<>();
+        Bundle s = new Bundle();
+        s.putInt("soundid", 0);
+        s.putFloat("volume", 1.0f);
+        playList.add(s);
     }
 }

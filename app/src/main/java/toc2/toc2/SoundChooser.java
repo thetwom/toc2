@@ -20,7 +20,7 @@ public class SoundChooser extends FrameLayout {
 
     final private Context context;
 
-    private int spacing = dp_to_px(4);
+    private int spacing = dp_to_px(2);
     private int defaultButtonHeight = dp_to_px(70);
 
     final private ArrayList<MoveableButton> buttons = new ArrayList<>();
@@ -33,6 +33,12 @@ public class SoundChooser extends FrameLayout {
 
     public interface ButtonClickedListener {
         void onButtonClicked(MoveableButton button);
+    }
+
+    private SoundChangedListener soundChangedListener = null;
+
+    public interface SoundChangedListener {
+        void onSoundChanged(ArrayList<Bundle> sounds);
     }
 
     public SoundChooser(Context context) {
@@ -122,7 +128,7 @@ public class SoundChooser extends FrameLayout {
                 else
                     plusButton.setBackground(null);
 
-                reorderButtons(button, posX);
+                reorderButtons(button, posX);  // this means onSoundChangeListener must be called, which is done in "repositionButtons"
                 repositionButtons();
             }
 
@@ -158,6 +164,9 @@ public class SoundChooser extends FrameLayout {
         }
 
         repositionPlusButton(indexToPosX(buttons.size()), getPaddingTop());
+
+        if(soundChangedListener != null)
+            soundChangedListener.onSoundChanged(getSounds());
     }
 
     private ImageButton createPlusButton() {
@@ -181,7 +190,7 @@ public class SoundChooser extends FrameLayout {
             public void onClick(View v) {
                 int pos = buttons.size();
                 MoveableButton newButton = createButton(pos);
-                buttons.add(pos, newButton);
+                buttons.add(pos, newButton);  // this means onSoundChangeListener must be called, which is done in "repositionButtons"
                 repositionButtons();
             }
         });
@@ -207,7 +216,7 @@ public class SoundChooser extends FrameLayout {
             buttons.remove(button);
             ViewGroup viewGroup = (ViewGroup) getParent();
             if (viewGroup != null)
-                viewGroup.removeView(button);
+                viewGroup.removeView(button);  // this means onSoundChangeListener must be called, which is done in "repositionButtons"
             repositionButtons();
         }
     }
@@ -250,6 +259,8 @@ public class SoundChooser extends FrameLayout {
         if (posX < idxPosX - 0.3 * buttonWidth || posX > idxPosX + 0.3 * buttonWidth)
             return;
 
+        // the next two command require to call the onSoundChangedListener, however, we assume that
+        // "repositionButtons" is called later on which calles the onSoundChangedListener for us.
         buttons.remove(button);
         buttons.add(idxTheory, button);
     }
@@ -308,6 +319,52 @@ public class SoundChooser extends FrameLayout {
                     buttonClickedListener.onButtonClicked(button);
                 }
             });
+        }
+    }
+
+    public void setSoundChangedListener(final SoundChangedListener soundChangedListener) {
+        this.soundChangedListener = soundChangedListener;
+    }
+
+    public ArrayList<Bundle> getSounds() {
+        ArrayList<Bundle> sounds = new ArrayList<>();
+        for(MoveableButton b : buttons)
+            sounds.add(b.getProperties());
+        return sounds;
+    }
+
+    public void setSounds(ArrayList<Bundle> sounds) {
+        boolean soundChanged = false;
+
+        for(int i = 0; i < sounds.size(); ++i){
+
+            if(i < buttons.size()){
+                MoveableButton b = buttons.get(i);
+
+                if(!SoundProperties.equal(b.getProperties(), sounds.get(i))){
+                    b.setProperties(sounds.get(i));
+                    soundChanged = true;
+                }
+            }
+            else{
+                MoveableButton b = createButton(i);
+                b.setProperties(sounds.get(i));
+                buttons.add(i, b);
+                soundChanged = true;
+            }
+        }
+
+        while(buttons.size() > sounds.size()) {
+            MoveableButton b = buttons.get(buttons.size() - 1);
+            buttons.remove(b);
+            ViewGroup viewGroup = (ViewGroup) getParent();
+            if (viewGroup != null)
+                viewGroup.removeView(b);
+            soundChanged = true;
+        }
+
+        if(soundChanged) {
+            repositionButtons(); // this will also call the SoundChangedListener
         }
     }
 }

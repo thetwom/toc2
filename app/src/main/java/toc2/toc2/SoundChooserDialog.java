@@ -114,7 +114,7 @@ public class SoundChooserDialog {
             soundButton.setPadding(pad, pad, pad, pad);
 
             LinearLayoutCompat.LayoutParams params = new LinearLayoutCompat.LayoutParams(buttonSize, buttonSize);
-            int margin = dp_to_px(3);
+            int margin = dp_to_px(2);
             params.setMargins(margin, margin, margin, margin);
 
             soundButton.setOnClickListener(new View.OnClickListener() {

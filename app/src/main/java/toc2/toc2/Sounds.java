@@ -18,11 +18,13 @@ final class Sounds {
     }
 
     private final static SoundInfo[] sounds = {
-            new SoundInfo(R.raw.hhp_dry_a, R.string.hihat, R.drawable.ic_hihat),
-            new SoundInfo(R.raw.sn_jazz_c, R.string.snare, R.drawable.ic_snare),
-            new SoundInfo(R.raw.stick, R.string.sticks, R.drawable.ic_sticks),
-            new SoundInfo(R.raw.claves, R.string.claves, R.drawable.ic_play),
-            new SoundInfo(R.raw.woodblock, R.string.woodblock, R.drawable.ic_play),
+            //new SoundInfo(R.raw.hhp_dry_a, R.string.hihat, R.drawable.ic_hihat),
+            new SoundInfo(R.raw.hihat, R.string.hihat, R.drawable.ic_line_hihat),
+            //new SoundInfo(R.raw.sn_jazz_c, R.string.snare, R.drawable.ic_snare),
+            new SoundInfo(R.raw.snare, R.string.snare, R.drawable.ic_line_snare),
+            new SoundInfo(R.raw.sticks, R.string.sticks, R.drawable.ic_line_sticks),
+            new SoundInfo(R.raw.claves, R.string.claves, R.drawable.ic_line_claves),
+            new SoundInfo(R.raw.woodblock_high, R.string.woodblock, R.drawable.ic_line_block),
     };
 
 

@@ -29,17 +29,6 @@
         android:text="SPEED"
         android:textSize="30sp"/>
 
-    <ImageButton
-        android:id="@+id/soundbutton"
-        android:scaleType="fitXY"
-        android:layout_width="70dp"
-        android:layout_height="70dp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:src="@drawable/ic_hihat"
-        android:contentDescription="soundButtonIcon" />
-
-
     <toc2.toc2.SoundChooser
         android:id="@+id/soundchooser"
         android:layout_alignParentBottom="true"

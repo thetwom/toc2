@@ -47,9 +47,13 @@ public class PlayerService extends Service {
     private final SoundPool soundpool = new SoundPool.Builder().setMaxStreams(10).build();
     private int[] soundHandles;
 
-    private int[] playList = {0};
+    //private int[] playList = {0};
     private int playListPosition = 0;
-    private int activeSound = 0;
+    //private int activeSound = 0;
+
+    private ArrayList<Bundle> playList;
+
+    private Float[] volumes = {1.0f};
     //private long dt = Math.round(1000.0 * 60.0 / speed);
 
     private final Handler waitHandler = new Handler();
@@ -58,10 +62,11 @@ public class PlayerService extends Service {
         @Override
         public void run() {
             if(getState() == PlaybackStateCompat.STATE_PLAYING) {
-                if(playListPosition >= playList.length)
+                if(playListPosition >= playList.size())
                     playListPosition = 0;
-                int sound = playList[playListPosition];
-                soundpool.play(soundHandles[sound], 0.99f, 0.99f, 1, 0, 1.0f);
+                int sound = playList.get(playListPosition).getInt("soundid");
+                float volume = playList.get(playListPosition).getFloat("volume");
+                soundpool.play(soundHandles[sound], volume, volume, 1, 0, 1.0f);
 
                 playListPosition += 1;
                 waitHandler.postDelayed(this, getDt());
@@ -148,8 +153,8 @@ public class PlayerService extends Service {
 
         mediaSession.setPlaybackState(playbackStateBuilder.build());
 
-        mediaMetadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, MetaDataHelper.createMetaDataString(playList));
-        mediaSession.setMetadata(mediaMetadataBuilder.build());
+        //mediaMetadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, SoundProperties.createMetaDataString(playList));
+        //mediaSession.setMetadata(mediaMetadataBuilder.build());
 
         mediaSession.setActive(true);
     }
@@ -259,9 +264,21 @@ public class PlayerService extends Service {
     //    this.activeSound = activeSound;
     //}
 
-    public void changeSound(int[] newPlayList){
-        playList = newPlayList;
-        String soundString = MetaDataHelper.createMetaDataString(newPlayList);
+    /// Delete this function
+//    public void changeSound(int[] newPlayList){
+//        playList = newPlayList;
+//        String soundString = SoundProperties.createMetaDataString(newPlayList);
+//        mediaMetadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, soundString);
+//        mediaSession.setMetadata(mediaMetadataBuilder.build());
+//    }
+
+    public void setSounds(ArrayList<Bundle> sounds) {
+        // Do not do anything if we already have the correct sounds
+        if(SoundProperties.equal(sounds, playList))
+            return;
+
+        playList = sounds;
+        String soundString = SoundProperties.createMetaDataString(playList);
         mediaMetadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, soundString);
         mediaSession.setMetadata(mediaMetadataBuilder.build());
     }
@@ -334,7 +351,7 @@ public class PlayerService extends Service {
         return mediaSession.getController().getPlaybackState().getState();
     }
 
-    public int[] getSound() {
+    public ArrayList<Bundle> getSound() {
         return playList;
     }
 
