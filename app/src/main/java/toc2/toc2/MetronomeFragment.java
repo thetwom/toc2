@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -117,9 +118,17 @@ public class MetronomeFragment extends Fragment {
             }
         });
 
+        return view;
+    }
+
+    @Override
+    public void onResume() {
+        Log.v("Metronome", "MetronomeFragment:onResume");
+        super.onResume();
+
         // We can bind service only after our fragment is fully inflated since while binding,
         // we call commands which require our view fully set up!
-        view.post(new Runnable() {
+        Runnable run = new Runnable() {
             @Override
             public void run() {
                 NavigationActivity act = (NavigationActivity) getActivity();
@@ -127,20 +136,41 @@ public class MetronomeFragment extends Fragment {
                     bindService(act.getApplicationContext());
                 }
             }
-        });
+        };
 
-        return view;
+        if(getView() != null) {
+            getView().post(run);
+        }
+    }
+
+    @Override
+    public void onPause() {
+        Log.v("Metronome", "MetronomeFragment:onPause");
+        if(playerServiceBound)
+          unbindPlayerService();
+        super.onPause();
     }
 
     @Override
     public void onDestroyView() {
         Log.v("Metronome", "MetronomeFragment:onDestroyView");
-        if(playerServiceBound) {
-            playerService.unregisterMediaControllerCallback(mediaControllerCallback);
-            playerServiceBound = false;
-            playerContext.unbindService(playerConnection);
-        }
+        //if(playerServiceBound)
+        // unbindPlayerService();
         super.onDestroyView();
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.v("Metronome", "MetronomeFragment:onDestroy");
+        // if(playerServiceBound)
+        //  unbindPlayerService();
+        super.onDestroy();
+    }
+
+    private void unbindPlayerService() {
+        playerService.unregisterMediaControllerCallback(mediaControllerCallback);
+        playerServiceBound = false;
+        playerContext.unbindService(playerConnection);
     }
 
     public void updateView(PlaybackStateCompat state){
@@ -151,6 +181,9 @@ public class MetronomeFragment extends Fragment {
             speedPanel.changeStatus(SpeedPanel.STATUS_PAUSED);
         }
         speedText.setText(getString(R.string.bpm, Math.round(state.getPlaybackSpeed())));
+        if(state.getPosition() != PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN){
+            soundChooser.animateButton((int) state.getPosition());
+        }
     }
 
     public void updateView(MediaMetadataCompat metadata){

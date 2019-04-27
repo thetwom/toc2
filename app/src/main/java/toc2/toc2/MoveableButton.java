@@ -37,10 +37,10 @@ public class MoveableButton extends AppCompatImageButton {
                  .setDampingRatio(SpringForce.DAMPING_RATIO_LOW_BOUNCY)
                  .setStiffness(SpringForce.STIFFNESS_HIGH));
 
-    private final ValueAnimator colorAnimation = ValueAnimator.ofObject(
-            new ArgbEvaluator(),
+    private final ValueAnimator colorAnimation = ValueAnimator.ofArgb(
             ContextCompat.getColor(getContext(), R.color.colorPrimary),
-            ContextCompat.getColor(getContext(), R.color.colorPrimaryDark),
+            //ContextCompat.getColor(getContext(), R.color.colorPrimaryDark),
+            ContextCompat.getColor(getContext(), R.color.colorAccent),
             ContextCompat.getColor(getContext(), R.color.colorPrimary));
 
     public interface PositionChangedListener {
@@ -75,7 +75,7 @@ public class MoveableButton extends AppCompatImageButton {
     MoveableButton(Context context){
         super(context);
 
-        colorAnimation.setDuration(100); // milliseconds
+        colorAnimation.setDuration(200); // milliseconds
         colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animator) {

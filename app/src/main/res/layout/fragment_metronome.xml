@@ -33,6 +33,7 @@
         android:id="@+id/soundchooser"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
+        android:layout_margin="3dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
     </toc2.toc2.SoundChooser>

@@ -87,7 +87,7 @@ public class SoundChooser extends FrameLayout {
     private MoveableButton createButton(int pos) {
         MoveableButton button = new MoveableButton(this.context);
 
-        button.setScaleType(ImageView.ScaleType.FIT_XY);
+        button.setScaleType(ImageView.ScaleType.FIT_CENTER);
         Bundle properties;
         if(buttons.isEmpty()) {
             properties = new Bundle();
@@ -365,6 +365,12 @@ public class SoundChooser extends FrameLayout {
 
         if(soundChanged) {
             repositionButtons(); // this will also call the SoundChangedListener
+        }
+    }
+
+    public void animateButton(int buttonidx) {
+        if(buttonidx >= 0 && buttonidx < buttons.size()){
+            buttons.get(buttonidx).animateColor();
         }
     }
 }

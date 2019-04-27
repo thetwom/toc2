@@ -47,14 +47,9 @@ public class PlayerService extends Service {
     private final SoundPool soundpool = new SoundPool.Builder().setMaxStreams(10).build();
     private int[] soundHandles;
 
-    //private int[] playList = {0};
     private int playListPosition = 0;
-    //private int activeSound = 0;
 
     private ArrayList<Bundle> playList;
-
-    private Float[] volumes = {1.0f};
-    //private long dt = Math.round(1000.0 * 60.0 / speed);
 
     private final Handler waitHandler = new Handler();
 
@@ -62,14 +57,22 @@ public class PlayerService extends Service {
         @Override
         public void run() {
             if(getState() == PlaybackStateCompat.STATE_PLAYING) {
+
+                waitHandler.postDelayed(this, getDt());
+
                 if(playListPosition >= playList.size())
                     playListPosition = 0;
                 int sound = playList.get(playListPosition).getInt("soundid");
                 float volume = playList.get(playListPosition).getFloat("volume");
                 soundpool.play(soundHandles[sound], volume, volume, 1, 0, 1.0f);
 
+                playbackStateBuilder
+                .setState(getState(), playListPosition, getSpeed())
+                .build();
+                mediaSession.setPlaybackState(playbackStateBuilder.build());
+
                 playListPosition += 1;
-                waitHandler.postDelayed(this, getDt());
+
             }
         }
     };
@@ -250,7 +253,11 @@ public class PlayerService extends Service {
                 .setState(getState(), PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, speed)
                 .build();
         mediaSession.setPlaybackState(playbackStateBuilder.build());
-        NotificationManagerCompat.from(this).notify(notificationID, createNotification());
+
+        if(notificationBuilder != null) {
+            notificationBuilder.setContentText(getString(R.string.bpm, getSpeed()));
+            NotificationManagerCompat.from(this).notify(notificationID, notificationBuilder.build());
+        }
     }
 
     public void addValueToSpeed(int dSpeed){

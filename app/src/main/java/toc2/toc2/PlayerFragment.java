@@ -25,7 +25,6 @@ public class PlayerFragment extends Fragment {
 
     private PlayerService playerService;
     private boolean playerServiceBound = false;
-    private Context appContext = null;
     private Context playerContext = null;
 
     private ServiceConnection playerConnection = null;

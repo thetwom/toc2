@@ -4,6 +4,7 @@ import android.media.AudioManager;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -82,6 +83,24 @@ public class NavigationActivity extends AppCompatActivity {
     //        super.onBackPressed();
     //    }
     //}
+
+
+    @Override
+    protected void onDestroy() {
+        Log.v("Metronome", "NavigationActivity:onDestroy");
+//        if(isFinishing()){
+//            Log.v("Metronome", "NavigationActivity:onDestroy:isFinishing");
+//            if(metrFrag != null) {
+//                fragManager.beginTransaction().remove(metrFrag).commit();
+//                metrFrag = null;
+//            }
+//            if(playerFrag != null) {
+//                fragManager.beginTransaction().remove(playerFrag).commit();
+//                playerFrag = null;
+//            }
+//        }
+        super.onDestroy();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
