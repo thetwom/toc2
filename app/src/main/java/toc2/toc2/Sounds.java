@@ -25,6 +25,7 @@ final class Sounds {
             new SoundInfo(R.raw.sticks, R.string.sticks, R.drawable.ic_line_sticks),
             new SoundInfo(R.raw.claves, R.string.claves, R.drawable.ic_line_claves),
             new SoundInfo(R.raw.woodblock_high, R.string.woodblock, R.drawable.ic_line_block),
+            new SoundInfo(R.raw.hihat, R.string.mute, R.drawable.ic_line_mute),
     };
 
 
@@ -44,10 +45,17 @@ final class Sounds {
     static int getNumSoundID() {
         return sounds.length;
     }
-    static int getSoundID(int id){
+    static int getSoundID(int id)
+    {
         return sounds[id].soundID;
     }
     static int getIconID(int id) {
         return sounds[id].iconID;
+    }
+
+    static boolean isMute(int id) {
+        if(sounds[id].iconID == R.drawable.ic_line_mute)
+            return true;
+        return false;
     }
 }

@@ -66,15 +66,9 @@ public class MetronomeFragment extends Fragment {
         speedPanel.setOnSpeedChangedListener(new SpeedPanel.SpeedChangedListener(){
             @Override
             public void onSpeedChanged(int speedChange) {
-                //int currentSpeed = getCurrentSpeed();
-                //int speed = currentSpeed + speed_change;
-                //speed = Math.max(speed, NavigationActivity.SPEED_MIN);
-                //speed = Math.min(speed, NavigationActivity.SPEED_MAX);
                 if (playerServiceBound) {
                     playerService.addValueToSpeed(speedChange);
                 }
-                //PlayerService.sendChangeSpeedIntent(act, speed);
-                //speedText.setText(getString(R.string.bpm,speed));
             }
         });
 
@@ -188,8 +182,13 @@ public class MetronomeFragment extends Fragment {
 
     public void updateView(MediaMetadataCompat metadata){
         String soundString = metadata.getString(MediaMetadataCompat.METADATA_KEY_TITLE);
+        Log.v("Metronome", "MetronomeFragment : updateView : parsing metadata : " + soundString);
         ArrayList<Bundle> sounds = SoundProperties.parseMetaDataString(soundString);
-        soundChooser.setSounds(sounds);
+        updateView(sounds);
+    }
+
+    public void updateView(ArrayList<Bundle> playList){
+        soundChooser.setSounds(playList);
     }
 
     private void bindService(final Context context) {
@@ -211,8 +210,7 @@ public class MetronomeFragment extends Fragment {
                     playerContext = context;
                     playerService.registerMediaControllerCallback(mediaControllerCallback);
                     updateView(playerService.getPlaybackState());
-                    if(playerService.getMetaData() != null)
-                        updateView(playerService.getMetaData());
+                    updateView(playerService.getSound());
                 }
 
                 @Override

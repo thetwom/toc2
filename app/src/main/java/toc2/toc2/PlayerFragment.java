@@ -125,7 +125,9 @@ public class PlayerFragment extends Fragment {
             }
 
             editor.putInt("speed", speed);
-            editor.putString("sound", SoundProperties.createMetaDataString(playList));
+            String metaDataString = SoundProperties.createMetaDataString(playList);
+            Log.v("Metronome", "PlayerFragment:onStop : saving meta data: " + metaDataString);
+            editor.putString("sound", metaDataString);
             editor.apply();
         }
 

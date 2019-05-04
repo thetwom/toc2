@@ -2,6 +2,7 @@ package toc2.toc2;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -115,41 +116,58 @@ public class SpeedPanel extends View {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 
-        int desiredWidth = Integer.MAX_VALUE;
-        int desiredHeight = Integer.MIN_VALUE;
+        //int desiredWidth = Integer.MAX_VALUE;
+        //int desiredHeight = Integer.MIN_VALUE;
+        int desiredSize = dp_to_px(200) + (Math.max(getPaddingBottom()+getPaddingTop(), getPaddingLeft()+getPaddingRight()));
 
+        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
+        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
+        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
+        int heightSize = MeasureSpec.getSize(heightMeasureSpec);
 
-    int widthMode = MeasureSpec.getMode(widthMeasureSpec);
-    int widthSize = MeasureSpec.getSize(widthMeasureSpec);
-    int heightMode = MeasureSpec.getMode(heightMeasureSpec);
-    int heightSize = MeasureSpec.getSize(heightMeasureSpec);
+        int height;
+        int width;
 
-    int width;
-    int height;
-    int widthNoPadding = widthSize - getPaddingLeft() - getPaddingRight();
-    int heightNoPadding = heightSize - getPaddingTop() - getPaddingBottom();
-    int smallerDim = Math.min(widthNoPadding, heightNoPadding);
+        if(widthMode == MeasureSpec.EXACTLY && heightMode == MeasureSpec.EXACTLY){
+            width = widthSize;
+            height = heightSize;
+        }
+        else if(widthMode == MeasureSpec.EXACTLY && heightMode == MeasureSpec.AT_MOST){
+            width = widthSize;
+            height = Math.min(heightSize, widthSize);
+        }
+        else if(widthMode == MeasureSpec.AT_MOST && heightMode == MeasureSpec.EXACTLY){
+            width = Math.min(widthSize, heightSize);
+            height = heightSize;
+        }
+        else if(widthMode == MeasureSpec.EXACTLY){
+            width = widthSize;
+            height = widthSize;
+        }
+        else if(heightMode == MeasureSpec.EXACTLY){
+            width = heightSize;
+            height = heightSize;
+        }
+        else if(widthMode == MeasureSpec.AT_MOST && heightMode == MeasureSpec.AT_MOST){
+            int size = Math.min(desiredSize, Math.min(widthSize, heightSize));
+            width = size;
+            height = size;
+        }
+        else if(widthMode == MeasureSpec.AT_MOST){
+            int size = Math.min(desiredSize, widthSize);
+            width = size;
+            height = size;
+        }
+        else if(heightMode == MeasureSpec.AT_MOST){
+            int size = Math.min(desiredSize, heightSize);
+            width = size;
+            height = size;
+        }
+        else{
+            width = desiredSize;
+            height = desiredSize;
+        }
 
-    //Measure Width
-    if (widthMode == MeasureSpec.EXACTLY) {
-        width = widthSize;
-        //width = smallerDim;
-    } else if (widthMode == MeasureSpec.AT_MOST) {
-        width = smallerDim + getPaddingLeft() + getPaddingRight();
-    } else {
-        //Be whatever you want
-        width = desiredWidth;
-    }
-
-    //Measure Height
-    if (heightMode == MeasureSpec.EXACTLY) {
-        height = heightSize;
-        //height = smallerDim;
-    } else if (heightMode == MeasureSpec.AT_MOST) {
-        height = smallerDim + getPaddingTop() + getPaddingBottom();
-    } else {
-        height = desiredHeight;
-    }
         setMeasuredDimension(width, height);
     }
 
@@ -167,121 +185,88 @@ public class SpeedPanel extends View {
 
         circlePaint.setStyle(Paint.Style.STROKE);
         circlePaint.setStrokeWidth(strokeWidth);
-        canvas.drawCircle(cx, cy,radius, circlePaint);
+        canvas.drawCircle(cx, cy, radius, circlePaint);
 
         circlePaint.setStyle(Paint.Style.FILL);
-        canvas.drawCircle(cx, cy,innerRadius, circlePaint);
+        canvas.drawCircle(cx, cy, innerRadius, circlePaint);
 
 
-            float triRad = innerRadius * 0.7f;
+        float triRad = innerRadius * 0.7f;
 
-            float xShift = innerRadius * 0.1f;
-            float rectWidth  = innerRadius * 0.4f;
-            float rectHeight = innerRadius * 1f;
+        float xShift = innerRadius * 0.1f;
+        float rectWidth = innerRadius * 0.4f;
+        float rectHeight = innerRadius * 1f;
 
-            double phiPauseOuter = Math.atan((0.5f*rectHeight) / (xShift + rectWidth));
-            double phiPauseInner = Math.atan((0.5f*rectHeight) / xShift);
-            double radPauseOuter = Math.sqrt(Math.pow(xShift + rectWidth, 2) + Math.pow(0.5f*rectHeight, 2));
-            double radPauseInner = Math.sqrt(Math.pow(xShift, 2) + Math.pow(0.5f*rectHeight, 2));
+        double phiPauseOuter = Math.atan((0.5f * rectHeight) / (xShift + rectWidth));
+        double phiPauseInner = Math.atan((0.5f * rectHeight) / xShift);
+        double radPauseOuter = Math.sqrt(Math.pow(xShift + rectWidth, 2) + Math.pow(0.5f * rectHeight, 2));
+        double radPauseInner = Math.sqrt(Math.pow(xShift, 2) + Math.pow(0.5f * rectHeight, 2));
 
-            circlePaint.setStyle(Paint.Style.FILL);
-            circlePaint.setColor(Color.WHITE);
+        circlePaint.setStyle(Paint.Style.FILL);
+        circlePaint.setColor(Color.WHITE);
 
-            if(pathPlayButton == null)
-                pathPlayButton = new Path();
-            pathPlayButton.setFillType(Path.FillType.EVEN_ODD);
+        if (pathPlayButton == null)
+            pathPlayButton = new Path();
+        pathPlayButton.setFillType(Path.FillType.EVEN_ODD);
 
-            double phi = playPercentage * phiPauseOuter + (1-playPercentage) * 2.0*Math.PI;
-            double r = playPercentage * radPauseOuter + (1-playPercentage) * triRad;
-            pathPlayButton.moveTo(pTX(phi, r), pTY(phi, r));
+        double phi = playPercentage * phiPauseOuter + (1 - playPercentage) * 2.0 * Math.PI;
+        double r = playPercentage * radPauseOuter + (1 - playPercentage) * triRad;
+        pathPlayButton.moveTo(pTX(phi, r), pTY(phi, r));
 
-            phi = playPercentage * phiPauseInner + (1-playPercentage) * 2.0*Math.PI;
-            r = playPercentage * radPauseInner + (1-playPercentage) * triRad;
-            pathPlayButton.lineTo(pTX(phi, r), pTY(phi, r));
+        phi = playPercentage * phiPauseInner + (1 - playPercentage) * 2.0 * Math.PI;
+        r = playPercentage * radPauseInner + (1 - playPercentage) * triRad;
+        pathPlayButton.lineTo(pTX(phi, r), pTY(phi, r));
 
-            phi = playPercentage * (-phiPauseInner) + (1-playPercentage) * 2.0*Math.PI/3.0;
-            r = playPercentage * radPauseInner + (1-playPercentage) * triRad;
-            pathPlayButton.lineTo(pTX(phi, r), pTY(phi, r));
+        phi = playPercentage * (-phiPauseInner) + (1 - playPercentage) * 2.0 * Math.PI / 3.0;
+        r = playPercentage * radPauseInner + (1 - playPercentage) * triRad;
+        pathPlayButton.lineTo(pTX(phi, r), pTY(phi, r));
 
-            phi = playPercentage * (-phiPauseOuter) + (1-playPercentage) * 4.0*Math.PI/3.0;
-            r = playPercentage * radPauseOuter + (1-playPercentage) * triRad;
-            pathPlayButton.lineTo(pTX(phi, r), pTY(phi, r));
+        phi = playPercentage * (-phiPauseOuter) + (1 - playPercentage) * 4.0 * Math.PI / 3.0;
+        r = playPercentage * radPauseOuter + (1 - playPercentage) * triRad;
+        pathPlayButton.lineTo(pTX(phi, r), pTY(phi, r));
 
-            canvas.drawPath(pathPlayButton, circlePaint);
-            pathPlayButton.rewind();
+        canvas.drawPath(pathPlayButton, circlePaint);
+        pathPlayButton.rewind();
 
 
-            phi = playPercentage * (Math.PI - phiPauseOuter) + (1-playPercentage) * 2.0*Math.PI;
-            r = playPercentage * radPauseOuter + (1-playPercentage) * triRad;
-            pathPlayButton.moveTo(pTX(phi, r), pTY(phi, r));
+        phi = playPercentage * (Math.PI - phiPauseOuter) + (1 - playPercentage) * 2.0 * Math.PI;
+        r = playPercentage * radPauseOuter + (1 - playPercentage) * triRad;
+        pathPlayButton.moveTo(pTX(phi, r), pTY(phi, r));
 
-            phi = playPercentage * (Math.PI - phiPauseInner) + (1-playPercentage) * 2.0*Math.PI;
-            r = playPercentage * radPauseInner + (1-playPercentage) * triRad;
-            pathPlayButton.lineTo(pTX(phi, r), pTY(phi, r));
+        phi = playPercentage * (Math.PI - phiPauseInner) + (1 - playPercentage) * 2.0 * Math.PI;
+        r = playPercentage * radPauseInner + (1 - playPercentage) * triRad;
+        pathPlayButton.lineTo(pTX(phi, r), pTY(phi, r));
 
-            phi = playPercentage * (phiPauseInner - Math.PI) + (1-playPercentage) * 4.0*Math.PI/3.0;
-            r = playPercentage * radPauseInner + (1-playPercentage) * triRad;
-            pathPlayButton.lineTo(pTX(phi, r), pTY(phi, r));
+        phi = playPercentage * (phiPauseInner - Math.PI) + (1 - playPercentage) * 4.0 * Math.PI / 3.0;
+        r = playPercentage * radPauseInner + (1 - playPercentage) * triRad;
+        pathPlayButton.lineTo(pTX(phi, r), pTY(phi, r));
 
-            phi = playPercentage * (phiPauseOuter - Math.PI) + (1-playPercentage) * 2.0*Math.PI/3.0;
-            r = playPercentage * radPauseOuter + (1-playPercentage) * triRad;
-            pathPlayButton.lineTo(pTX(phi, r), pTY(phi, r));
+        phi = playPercentage * (phiPauseOuter - Math.PI) + (1 - playPercentage) * 2.0 * Math.PI / 3.0;
+        r = playPercentage * radPauseOuter + (1 - playPercentage) * triRad;
+        pathPlayButton.lineTo(pTX(phi, r), pTY(phi, r));
 
-            canvas.drawPath(pathPlayButton, circlePaint);
-            pathPlayButton.rewind();
+        canvas.drawPath(pathPlayButton, circlePaint);
+        pathPlayButton.rewind();
 
-//            pathPlayButton.moveTo(pTX(phiPauseOuter, radPauseOuter), pTY(phiPauseOuter, radPauseOuter));
-//            pathPlayButton.lineTo(pTX(-phiPauseOuter, radPauseOuter), pTY(-phiPauseOuter, radPauseOuter));
-//            pathPlayButton.lineTo(pTX(-phiPauseInner, radPauseInner), pTY(-phiPauseInner, radPauseInner));
-//            pathPlayButton.lineTo(pTX(phiPauseInner, radPauseInner), pTY(phiPauseInner, radPauseInner));
-//            pathPlayButton.close();
-//
-//            canvas.drawPath(pathPlayButton, circlePaint);
-//            pathPlayButton.rewind();
-//
-//            pathPlayButton.moveTo(pTX(Math.PI+phiPauseOuter, radPauseOuter), pTY(Math.PI+phiPauseOuter, radPauseOuter));
-//            pathPlayButton.lineTo(pTX(Math.PI-phiPauseOuter, radPauseOuter), pTY(Math.PI-phiPauseOuter, radPauseOuter));
-//            pathPlayButton.lineTo(pTX(Math.PI-phiPauseInner, radPauseInner), pTY(Math.PI-phiPauseInner, radPauseInner));
-//            pathPlayButton.lineTo(pTX(Math.PI+phiPauseInner, radPauseInner), pTY(Math.PI+phiPauseInner, radPauseInner));
-//            pathPlayButton.close();
-//
-//            canvas.drawPath(pathPlayButton, circlePaint);
-//            pathPlayButton.rewind();
-
-//            canvas.drawRect(
-//                    cx - xShift -rectWidth,
-//                    cy + rectHeight/2.0f,
-//                    cx - xShift,
-//                    cy - rectHeight/2.0f,
-//                    circlePaint);
-//
-//            canvas.drawRect(
-//                    cx + xShift +rectWidth,
-//                    cy + rectHeight/2.0f,
-//                    cx + xShift,
-//                    cy - rectHeight/2.0f,
-//                    circlePaint);
-        //}
-
-        float angleMax = 65.0f / 180.0f * (float) Math.PI ;
+        float angleMax = 65.0f / 180.0f * (float) Math.PI;
         float angleMin = -65.0f / 180.0f * (float) Math.PI;
         float dAngle = 3.5f / 180.0f * (float) Math.PI;
         float growthFactor = 1.05f;
-        float radSpeedInner = innerRadius + 0.35f*(radius-innerRadius);
-        float radSpeedOuter = radius - 0.35f*(radius-innerRadius);
-        float strokeWidthSpeed = (radius+innerRadius) * (float) Math.PI / 120.0f;
+        float radSpeedInner = innerRadius + 0.35f * (radius - innerRadius);
+        float radSpeedOuter = radius - 0.35f * (radius - innerRadius);
+        float strokeWidthSpeed = (radius + innerRadius) * (float) Math.PI / 120.0f;
 
         circlePaint.setStyle(Paint.Style.STROKE);
         circlePaint.setStrokeWidth(strokeWidthSpeed);
         circlePaint.setColor(circleColor);
 
         float angle = angleMax;
-        while(angle >= angleMin) {
+        while (angle >= angleMin) {
             canvas.drawLine(
-                    cx + radSpeedInner * (float)Math.sin(angle),
-                    cy - radSpeedInner * (float)Math.cos(angle),
-                    cx + radSpeedOuter * (float)Math.sin(angle),
-                    cy - radSpeedOuter * (float)Math.cos(angle),
+                    cx + radSpeedInner * (float) Math.sin(angle),
+                    cy - radSpeedInner * (float) Math.cos(angle),
+                    cx + radSpeedOuter * (float) Math.sin(angle),
+                    cy - radSpeedOuter * (float) Math.cos(angle),
                     circlePaint
             );
             dAngle *= growthFactor;
@@ -379,5 +364,9 @@ public class SpeedPanel extends View {
     }
     private float pTY(double phi, double rad) {
         return (float) (rad * Math.sin(phi)) + getCenterY();
+    }
+
+    private int dp_to_px(int dp) {
+        return (int) (dp * Resources.getSystem().getDisplayMetrics().density);
     }
 }

@@ -15,5 +15,6 @@
     <string name="sticks">sticks</string>
     <string name="claves">claves</string>
     <string name="woodblock">woodblock</string>
+    <string name="mute">mute</string>
     <string name="bpm">%d bpm</string>
 </resources>

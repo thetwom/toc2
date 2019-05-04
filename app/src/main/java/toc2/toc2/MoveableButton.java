@@ -4,6 +4,9 @@ import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.Resources;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.support.animation.DynamicAnimation;
 import android.support.animation.SpringAnimation;
@@ -17,6 +20,9 @@ import android.view.View;
 import android.view.ViewGroup;
 
 public class MoveableButton extends AppCompatImageButton {
+
+    private Paint volumePaint;
+    private int volumeColor;
 
     private float posX = 0;
     private float posY = 0;
@@ -74,6 +80,11 @@ public class MoveableButton extends AppCompatImageButton {
 
     MoveableButton(Context context){
         super(context);
+
+        volumePaint = new Paint();
+        volumePaint.setAntiAlias(true);
+
+        volumeColor = Color.RED;
 
         colorAnimation.setDuration(200); // milliseconds
         colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
@@ -183,6 +194,15 @@ public class MoveableButton extends AppCompatImageButton {
         colorAnimation.start();
     }
 
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+        volumePaint.setColor(volumeColor);
+        volumePaint.setStyle(Paint.Style.FILL);
+        float volume = properties.getFloat("volume", 1.0f);
+        canvas.drawRect(getWidth()-dp_to_px(2),getHeight()*(1.0f-volume),getWidth(),getHeight(), volumePaint);
+    }
+
     public Bundle getProperties(){
         return properties;
     }
@@ -190,6 +210,7 @@ public class MoveableButton extends AppCompatImageButton {
     public void setProperties(Bundle newProperties) {
         properties.putAll(newProperties);
         setImageResource(Sounds.getIconID(properties.getInt("soundid", 0)));
+        invalidate();
         Log.v("Metronome", "Setting new button properties " + properties.getFloat("volume",-1));
     }
 

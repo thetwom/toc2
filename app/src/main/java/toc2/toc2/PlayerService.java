@@ -62,9 +62,16 @@ public class PlayerService extends Service {
 
                 if(playListPosition >= playList.size())
                     playListPosition = 0;
-                int sound = playList.get(playListPosition).getInt("soundid");
-                float volume = playList.get(playListPosition).getFloat("volume");
-                soundpool.play(soundHandles[sound], volume, volume, 1, 0, 1.0f);
+                int sound = 0;
+                float volume = 1.0f;
+
+                if(playList.size() > 0){
+                    sound = playList.get(playListPosition).getInt("soundid");
+                    volume = playList.get(playListPosition).getFloat("volume");
+                }
+
+                if(!Sounds.isMute(sound))
+                    soundpool.play(soundHandles[sound], volume, volume, 1, 0, 1.0f);
 
                 playbackStateBuilder
                 .setState(getState(), playListPosition, getSpeed())

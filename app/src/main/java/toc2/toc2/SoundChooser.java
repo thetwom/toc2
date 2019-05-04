@@ -348,9 +348,11 @@ public class SoundChooser extends FrameLayout {
             }
             else{
                 MoveableButton b = createButton(i);
-                b.setProperties(sounds.get(i));
-                buttons.add(i, b);
-                soundChanged = true;
+                if(b != null) {
+                    b.setProperties(sounds.get(i));
+                    buttons.add(i, b);
+                    soundChanged = true;
+                }
             }
         }
 

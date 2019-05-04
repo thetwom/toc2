@@ -1,40 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:style="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/relativeLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     tools:context=".NavigationActivity">
     <!--tools:context=".MetronomeFragment"> -->
 
     <toc2.toc2.SpeedPanel
         android:id="@+id/speedpanel"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:padding="10dp"
-        android:layout_centerInParent="true"
-        app:circle_stroke="@color/colorPrimary"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
         android:layout_gravity="center"
-        />
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:padding="10dp"
+        app:circle_stroke="@color/colorPrimary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layout_conversion_wrapHeight="577"
+        tools:layout_conversion_wrapWidth="577" />
 
     <TextView
         android:id="@+id/speedtext"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_above="@id/speedpanel"
         android:layout_gravity="center"
-        android:layout_marginBottom="20dp"
         android:text="SPEED"
-        android:textSize="30sp"/>
+        android:textSize="30sp"
+        app:layout_constraintBottom_toTopOf="@+id/speedpanel"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.495"
+        tools:layout_conversion_wrapHeight="108"
+        tools:layout_conversion_wrapWidth="239" />
 
     <toc2.toc2.SoundChooser
         android:id="@+id/soundchooser"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_margin="3dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-    </toc2.toc2.SoundChooser>
-</RelativeLayout>
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:layout_conversion_wrapHeight="199"
+        tools:layout_conversion_wrapWidth="1064"></toc2.toc2.SoundChooser>
+</android.support.constraint.ConstraintLayout>
