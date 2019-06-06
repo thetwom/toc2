@@ -5,12 +5,9 @@
     tools:context=".NavigationActivity">
 
     <item
-        android:id="@+id/test_setting"
-        android:title="TestSetting"
-        />
-    <item
-        android:id="@+id/action_settings"
+        android:id="@+id/action_properties"
         android:orderInCategory="100"
         android:title="@string/action_settings"
-        app:showAsAction="never" />
+        android:icon="@drawable/ic_settings"
+        app:showAsAction="ifRoom" />
 </menu>

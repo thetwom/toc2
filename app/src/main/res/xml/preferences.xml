@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+     xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <SwitchPreferenceCompat
+        app:key="darktheme"
+        app:title="Use dark theme"/>
+
+    <Preference
+        app:key="feedback"
+        app:title="Send feedback"
+        app:summary="Report technical issues or suggest new features"/>
+
+</PreferenceScreen>

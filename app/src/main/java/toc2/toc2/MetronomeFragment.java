@@ -5,15 +5,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
-import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -38,7 +41,7 @@ public class MetronomeFragment extends Fragment {
         @Override
         public void onPlaybackStateChanged(PlaybackStateCompat state) {
             super.onPlaybackStateChanged(state);
-            updateView(state);
+            updateView(state, true);
         }
 
         @Override
@@ -48,9 +51,28 @@ public class MetronomeFragment extends Fragment {
         }
     };
 
+    public interface OnFragmentInteractionListener {
+        void onSettingsClicked();
+    }
+
+    private OnFragmentInteractionListener onFragmentInteractionListener = null;
+
+
     public MetronomeFragment() {
         // Required empty public constructor
     }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+
+//    @Override
+//    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+//        super.onCreateOptionsMenu(menu, inflater);
+//        inflater.inflate(R.menu.metronome_menu, menu);
+//    }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -161,18 +183,30 @@ public class MetronomeFragment extends Fragment {
         super.onDestroy();
     }
 
+//    @Override
+//    public boolean onOptionsItemSelected(MenuItem item) {
+//        int id = item.getItemId();
+//        if(id == R.id.action_settings){
+//            if(onFragmentInteractionListener != null) {
+//                onFragmentInteractionListener.onSettingsClicked();
+//                return true;
+//            }
+//        }
+//        return super.onOptionsItemSelected(item);
+//    }
+
     private void unbindPlayerService() {
         playerService.unregisterMediaControllerCallback(mediaControllerCallback);
         playerServiceBound = false;
         playerContext.unbindService(playerConnection);
     }
 
-    public void updateView(PlaybackStateCompat state){
+    public void updateView(PlaybackStateCompat state, boolean animate){
         if(state.getState() == PlaybackStateCompat.STATE_PLAYING){
-            speedPanel.changeStatus(SpeedPanel.STATUS_PLAYING);
+            speedPanel.changeStatus(SpeedPanel.STATUS_PLAYING, animate);
         }
         else if(state.getState() == PlaybackStateCompat.STATE_PAUSED){
-            speedPanel.changeStatus(SpeedPanel.STATUS_PAUSED);
+            speedPanel.changeStatus(SpeedPanel.STATUS_PAUSED, animate);
         }
         speedText.setText(getString(R.string.bpm, Math.round(state.getPlaybackSpeed())));
         if(state.getPosition() != PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN){
@@ -209,7 +243,7 @@ public class MetronomeFragment extends Fragment {
                     playerServiceBound = true;
                     playerContext = context;
                     playerService.registerMediaControllerCallback(mediaControllerCallback);
-                    updateView(playerService.getPlaybackState());
+                    updateView(playerService.getPlaybackState(), false);
                     updateView(playerService.getSound());
                 }
 
@@ -233,4 +267,7 @@ public class MetronomeFragment extends Fragment {
         }
     }
 
+    public void setOnFragmentInteractionListener(OnFragmentInteractionListener onFragmentInteractionListener){
+        this.onFragmentInteractionListener = onFragmentInteractionListener;
+    }
 }

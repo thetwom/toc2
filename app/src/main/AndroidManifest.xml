@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="toc2.toc2">
 
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <application
         android:name=".App"
         android:allowBackup="true"

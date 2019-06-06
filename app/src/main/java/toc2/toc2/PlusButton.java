@@ -1,10 +1,10 @@
 package toc2.toc2;
 
 import android.content.Context;
-import android.support.animation.DynamicAnimation;
-import android.support.animation.SpringAnimation;
-import android.support.animation.SpringForce;
-import android.support.v7.widget.AppCompatImageButton;
+import androidx.dynamicanimation.animation.DynamicAnimation;
+import androidx.dynamicanimation.animation.SpringAnimation;
+import androidx.dynamicanimation.animation.SpringForce;
+import androidx.appcompat.widget.AppCompatImageButton;
 
 public class PlusButton extends AppCompatImageButton {
 

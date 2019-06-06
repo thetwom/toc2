@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:style="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -18,8 +18,10 @@
         android:layout_gravity="center"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
+        app:normalColor="?attr/colorPrimary"
+        app:labelColor="?attr/colorOnPrimary"
+        app:highlightColor="?attr/colorSecondary"
         android:padding="10dp"
-        app:circle_stroke="@color/colorPrimary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -56,4 +58,4 @@
         app:layout_constraintStart_toStartOf="parent"
         tools:layout_conversion_wrapHeight="199"
         tools:layout_conversion_wrapWidth="1064"></toc2.toc2.SoundChooser>
-</android.support.constraint.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

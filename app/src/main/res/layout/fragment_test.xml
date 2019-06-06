@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:padding="10dp"
         android:layout_centerInParent="true"
-        app:circle_stroke="@color/colorPrimary"
+        app:color="@color/colorPrimary"
         android:layout_gravity="center"
         />
 

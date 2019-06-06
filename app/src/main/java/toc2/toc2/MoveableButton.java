@@ -1,6 +1,5 @@
 package toc2.toc2;
 
-import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.Resources;
@@ -8,11 +7,11 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
-import android.support.animation.DynamicAnimation;
-import android.support.animation.SpringAnimation;
-import android.support.animation.SpringForce;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.AppCompatImageButton;
+import androidx.dynamicanimation.animation.DynamicAnimation;
+import androidx.dynamicanimation.animation.SpringAnimation;
+import androidx.dynamicanimation.animation.SpringForce;
+import androidx.core.content.ContextCompat;
+import androidx.appcompat.widget.AppCompatImageButton;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;

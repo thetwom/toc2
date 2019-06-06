@@ -6,55 +6,50 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Outline;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.support.annotation.Nullable;
-import android.support.v4.media.session.PlaybackStateCompat;
+import androidx.annotation.Nullable;
+
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewOutlineProvider;
 
 public class SpeedPanel extends View {
 
     private Paint circlePaint;
-    private int circleColor;
 
     private float previous_x;
     private float previous_y;
     private int previous_speed;
-    final static private int strokeWidth = 10;
+    final private int strokeWidth = dp_to_px(2);
     final static private float innerRadiusRatio = 0.6f;
     private Path pathPlayButton = null;
+    private Path pathOuterCircle = null;
     final static public int STATUS_PLAYING = 1;
     final static public int STATUS_PAUSED = 2;
     private int buttonStatus = STATUS_PAUSED;
 
+    private boolean clickInitiated = false;
+    private boolean changingSpeed = false;
+
     private double playPercentage = 0.0;
 
-    private final GestureDetector mTapDetector;
+    private int highlightColor;
+    private int normalColor;
+    private int labelColor;
 
-    private class GestureTap extends GestureDetector.SimpleOnGestureListener {
-
+    private ViewOutlineProvider outlineProvider = new ViewOutlineProvider() {
         @Override
-        public boolean onSingleTapConfirmed(MotionEvent e) {
-            if(buttonClickedListener != null) {
-                if(buttonStatus == STATUS_PAUSED){
-                    Log.v("Metronome", "SpeedPanel:GestureTap:onSingleTapConfirmed() : trigger onPlay");
-                    buttonClickedListener.onPlay();
-                }
-                else{
-                    Log.v("Metronome", "SpeedPanel:GestureTap:onSingleTapConfirmed() : trigger onPause");
-                    buttonClickedListener.onPause();
-                }
-                //buttonClickedListener.onButtonClicked();
-                return true;
-            }
-
-            return false;
+        public void getOutline(View view, Outline outline) {
+            int radius = getRadius();
+            int cx = getCenterX();
+            int cy = getCenterY();
+            outline.setOval(cx-radius, cy+radius, cx+radius, cy-radius);
         }
-    }
+    };
 
     public interface SpeedChangedListener {
         void onSpeedChanged(int speed);
@@ -75,10 +70,9 @@ public class SpeedPanel extends View {
 
     public SpeedPanel(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init(attrs);
+        init(context, attrs);
         speedChangedListener = null;
         buttonClickedListener = null;
-        mTapDetector = new GestureDetector(context, new GestureTap());
 
         animateToPause.setDuration(200);
         animateToPlay.setDuration(200);
@@ -100,17 +94,22 @@ public class SpeedPanel extends View {
         });
     }
 
-    private void init(@Nullable AttributeSet attrs) {
+    private void init(Context context, @Nullable AttributeSet attrs) {
         circlePaint = new Paint();
         circlePaint.setAntiAlias(true);
 
         if(attrs == null)
             return;
 
-        TypedArray ta = getContext().obtainStyledAttributes(attrs, R.styleable.SpeedPanel);
-        circleColor = ta.getColor(R.styleable.SpeedPanel_circle_stroke, Color.GREEN);
+        TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.SpeedPanel);
+        highlightColor = ta.getColor(R.styleable.SpeedPanel_highlightColor, Color.GRAY);
+        normalColor = ta.getColor(R.styleable.SpeedPanel_normalColor, Color.GRAY);
+        labelColor = ta.getColor(R.styleable.SpeedPanel_labelColor, Color.WHITE);
 
+        //TypedArray ta = getContext().obtainStyledAttributes(attrs, R.styleable.SpeedPanel);
         ta.recycle();
+        //TypedArray ta = getContext().obtainStyledAttributes(attrs, R.styleable.SpeedPanel);
+        //ta.recycle();
     }
 
     @Override
@@ -142,9 +141,11 @@ public class SpeedPanel extends View {
         }
         else if(widthMode == MeasureSpec.EXACTLY){
             width = widthSize;
+            //noinspection SuspiciousNameCombination
             height = widthSize;
         }
         else if(heightMode == MeasureSpec.EXACTLY){
+            //noinspection SuspiciousNameCombination
             width = heightSize;
             height = heightSize;
         }
@@ -179,17 +180,31 @@ public class SpeedPanel extends View {
         int cx = getCenterX();
         int cy = getCenterY();
 
-        int innerRadius = Math.round(radius * innerRadiusRatio);
+        int innerRadius = getInnerRadius();
 
-        circlePaint.setColor(circleColor);
+        //circlePaint.setColor(foregroundColor);
+        circlePaint.setColor(normalColor);
 
-        circlePaint.setStyle(Paint.Style.STROKE);
-        circlePaint.setStrokeWidth(strokeWidth);
-        canvas.drawCircle(cx, cy, radius, circlePaint);
-
+        //circlePaint.setStyle(Paint.Style.STROKE);
         circlePaint.setStyle(Paint.Style.FILL);
-        canvas.drawCircle(cx, cy, innerRadius, circlePaint);
+        //circlePaint.setStrokeWidth(strokeWidth);
 
+        if(pathOuterCircle == null)
+            pathOuterCircle = new Path();
+        pathOuterCircle.setFillType(Path.FillType.EVEN_ODD);
+
+        pathOuterCircle.rewind();
+        pathOuterCircle.addCircle(cx, cy, radius, Path.Direction.CW);
+        pathOuterCircle.addCircle(cx, cy, innerRadius+strokeWidth/2.0f, Path.Direction.CCW);
+
+        canvas.drawPath(pathOuterCircle, circlePaint);
+
+        pathOuterCircle.rewind();
+        pathOuterCircle.addCircle(cx, cy, innerRadius-strokeWidth/2.0f, Path.Direction.CW);
+        canvas.drawPath(pathOuterCircle, circlePaint);
+        //canvas.drawCircle(cx, cy, radius, circlePaint);
+
+        //canvas.drawCircle(cx, cy, innerRadius, circlePaint);
 
         float triRad = innerRadius * 0.7f;
 
@@ -203,11 +218,19 @@ public class SpeedPanel extends View {
         double radPauseInner = Math.sqrt(Math.pow(xShift, 2) + Math.pow(0.5f * rectHeight, 2));
 
         circlePaint.setStyle(Paint.Style.FILL);
-        circlePaint.setColor(Color.WHITE);
+        if(clickInitiated) {
+            circlePaint.setColor(highlightColor);
+        }
+        else {
+            circlePaint.setColor(labelColor);
+        }
+        //circlePaint.setColor(getTextColors().getDefaultColor());
 
         if (pathPlayButton == null)
             pathPlayButton = new Path();
         pathPlayButton.setFillType(Path.FillType.EVEN_ODD);
+
+        //pathPlayButton.addCircle(cx, cy, innerRadius, Path.Direction.CW);
 
         double phi = playPercentage * phiPauseOuter + (1 - playPercentage) * 2.0 * Math.PI;
         double r = playPercentage * radPauseOuter + (1 - playPercentage) * triRad;
@@ -217,17 +240,15 @@ public class SpeedPanel extends View {
         r = playPercentage * radPauseInner + (1 - playPercentage) * triRad;
         pathPlayButton.lineTo(pTX(phi, r), pTY(phi, r));
 
-        phi = playPercentage * (-phiPauseInner) + (1 - playPercentage) * 2.0 * Math.PI / 3.0;
-        r = playPercentage * radPauseInner + (1 - playPercentage) * triRad;
+        phi = playPercentage * (-phiPauseInner) + (1 - playPercentage) * 2.0 * Math.PI / 2.0;
+        r = playPercentage * radPauseInner + (1 - playPercentage) * triRad * Math.cos(2.0*Math.PI / 3.0 + Math.PI);
         pathPlayButton.lineTo(pTX(phi, r), pTY(phi, r));
 
         phi = playPercentage * (-phiPauseOuter) + (1 - playPercentage) * 4.0 * Math.PI / 3.0;
         r = playPercentage * radPauseOuter + (1 - playPercentage) * triRad;
         pathPlayButton.lineTo(pTX(phi, r), pTY(phi, r));
 
-        canvas.drawPath(pathPlayButton, circlePaint);
-        pathPlayButton.rewind();
-
+        pathPlayButton.close();
 
         phi = playPercentage * (Math.PI - phiPauseOuter) + (1 - playPercentage) * 2.0 * Math.PI;
         r = playPercentage * radPauseOuter + (1 - playPercentage) * triRad;
@@ -237,13 +258,15 @@ public class SpeedPanel extends View {
         r = playPercentage * radPauseInner + (1 - playPercentage) * triRad;
         pathPlayButton.lineTo(pTX(phi, r), pTY(phi, r));
 
-        phi = playPercentage * (phiPauseInner - Math.PI) + (1 - playPercentage) * 4.0 * Math.PI / 3.0;
-        r = playPercentage * radPauseInner + (1 - playPercentage) * triRad;
+        phi = playPercentage * (phiPauseInner - Math.PI) + (1 - playPercentage) * 4.0 * Math.PI / 4.0;
+        r = playPercentage * radPauseInner + (1 - playPercentage) * triRad * Math.cos(4.0*Math.PI / 3.0 + Math.PI);
         pathPlayButton.lineTo(pTX(phi, r), pTY(phi, r));
 
         phi = playPercentage * (phiPauseOuter - Math.PI) + (1 - playPercentage) * 2.0 * Math.PI / 3.0;
         r = playPercentage * radPauseOuter + (1 - playPercentage) * triRad;
         pathPlayButton.lineTo(pTX(phi, r), pTY(phi, r));
+
+        pathPlayButton.close();
 
         canvas.drawPath(pathPlayButton, circlePaint);
         pathPlayButton.rewind();
@@ -258,8 +281,13 @@ public class SpeedPanel extends View {
 
         circlePaint.setStyle(Paint.Style.STROKE);
         circlePaint.setStrokeWidth(strokeWidthSpeed);
-        circlePaint.setColor(circleColor);
-
+        //circlePaint.setColor(getIconTint().getDefaultColor());
+        if(changingSpeed) {
+            circlePaint.setColor(highlightColor);
+        }
+        else {
+            circlePaint.setColor(labelColor);
+        }
         float angle = angleMax;
         while (angle >= angleMin) {
             canvas.drawLine(
@@ -269,9 +297,22 @@ public class SpeedPanel extends View {
                     cy - radSpeedOuter * (float) Math.cos(angle),
                     circlePaint
             );
+
             dAngle *= growthFactor;
             angle -= dAngle;
         }
+        float someRad = radSpeedInner*0.7f;
+        //circlePaint.setStyle(Paint.Style.FILL);
+
+        //pathOuterCircle.lineTo(cx-someRad, cy+someRad);
+        //canvas.drawPath(pathOuterCircle, circlePaint);
+        //canvas.drawArc(cx-someRad, cy+someRad, cx+someRad, cy-someRad, 90f, 45f, true, circlePaint);
+        //canvas.drawLine(cx-someRad, cy+someRad, cx+someRad, cy-someRad, circlePaint);
+    }
+
+    @Override
+    public ViewOutlineProvider getOutlineProvider() {
+        return outlineProvider;
     }
 
     @Override
@@ -282,35 +323,54 @@ public class SpeedPanel extends View {
         float y = event.getY() - getCenterY();
 
         int radius = getRadius();
+        int innerRadius = getInnerRadius();
         float circum = getRadius() * (float)Math.PI;
         float factor = 20.0f;
-
-        boolean clicked = mTapDetector.onTouchEvent(event);
-        if(clicked)
-            performClick();
+        int radiusXY = (int) Math.round(Math.sqrt(x*x + y*y));
 
         switch(action) {
             case MotionEvent.ACTION_DOWN:
-                int radiusXY = (int) Math.round(Math.sqrt(x*x + y*y));
-                if (radiusXY > radius*1.1){
+                if (radiusXY > radius*1.1) {
                  return false;
                 }
-                previous_x = x;
-                previous_y = y;
-                previous_speed = 0;
-
-                return true;
-            case MotionEvent.ACTION_MOVE:
-                float dx = x - previous_x;
-                float dy = y - previous_y;
-                int speed = -(int)Math.round((dx * y - dy * x) / Math.sqrt(x*x + y*y) / circum * factor);
-
-                if (previous_speed != speed && speedChangedListener != null) {
-                    speedChangedListener.onSpeedChanged(speed);
+                else if (radiusXY < innerRadius) {
+                    clickInitiated = true;
+                }
+                else {
                     previous_x = x;
                     previous_y = y;
+                    previous_speed = 0;
+                    changingSpeed = true;
                 }
-                previous_speed = speed;
+                invalidate();
+                return true;
+            case MotionEvent.ACTION_MOVE:
+                if(changingSpeed) {
+                    float dx = x - previous_x;
+                    float dy = y - previous_y;
+                    int speed = -(int) Math.round((dx * y - dy * x) / Math.sqrt(x * x + y * y) / circum * factor);
+
+                    if (previous_speed != speed && speedChangedListener != null) {
+                        speedChangedListener.onSpeedChanged(speed);
+                        previous_x = x;
+                        previous_y = y;
+                    }
+                    previous_speed = speed;
+                }
+                else if(clickInitiated && radiusXY > innerRadius) {
+                    clickInitiated = false;
+                    changingSpeed = false;
+                    invalidate();
+                    return false;
+                }
+                return true;
+            case MotionEvent.ACTION_UP:
+                if(clickInitiated && radiusXY < innerRadius){
+                        performClick();
+                }
+                changingSpeed = false;
+                clickInitiated = false;
+                invalidate();
         }
 
         return true;
@@ -323,6 +383,19 @@ public class SpeedPanel extends View {
         buttonClickedListener = listener;
     }
 
+    @Override
+    public boolean performClick() {
+         if (buttonClickedListener != null) {
+             if (buttonStatus == STATUS_PAUSED) {
+                 Log.v("Metronome", "SpeedPanel:GestureTap:onSingleTapConfirmed() : trigger onPlay");
+                 buttonClickedListener.onPlay();
+             } else {
+                 Log.v("Metronome", "SpeedPanel:GestureTap:onSingleTapConfirmed() : trigger onPause");
+                 buttonClickedListener.onPause();
+             }
+         }
+         return super.performClick();
+    }
 
     private int getRadius(){
         int width = getWidth();
@@ -332,6 +405,11 @@ public class SpeedPanel extends View {
         return (Math.min(widthNoPadding, heightNoPadding) - strokeWidth) / 2;
     }
 
+
+    private int getInnerRadius() {
+        return Math.round(getRadius() * innerRadiusRatio);
+    }
+
     private int getCenterX(){
         return getWidth() / 2;
     }
@@ -339,18 +417,29 @@ public class SpeedPanel extends View {
         return getHeight() / 2;
     }
 
-    public void changeStatus(int status){
+    public void changeStatus(int status, boolean animate){
         if(buttonStatus == status)
             return;
 
+        Log.v("Metronome", "changeStatus: changing button status");
         buttonStatus = status;
         if(status == STATUS_PAUSED) {
             //playPercentage = 0.0;
-            animateToPause.start();
+            if(animate) {
+                animateToPause.start();
+            }
+            else {
+                playPercentage = 0.0;
+            }
         }
         else if(status == STATUS_PLAYING) {
             // playPercentage = 1.0;
-            animateToPlay.start();
+            if(animate) {
+                animateToPlay.start();
+            }
+            else {
+                playPercentage = 1.0;
+            }
         }
         invalidate();
     }
