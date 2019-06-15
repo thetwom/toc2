@@ -19,13 +19,13 @@ final class Sounds {
 
     private final static SoundInfo[] sounds = {
             //new SoundInfo(R.raw.hhp_dry_a, R.string.hihat, R.drawable.ic_hihat),
-            new SoundInfo(R.raw.hihat, R.string.hihat, R.drawable.ic_line_hihat),
+            new SoundInfo(R.raw.hihat, R.string.hihat, R.drawable.ic_hihat_note),
             //new SoundInfo(R.raw.sn_jazz_c, R.string.snare, R.drawable.ic_snare),
-            new SoundInfo(R.raw.snare, R.string.snare, R.drawable.ic_line_snare),
-            new SoundInfo(R.raw.sticks, R.string.sticks, R.drawable.ic_line_sticks),
-            new SoundInfo(R.raw.claves, R.string.claves, R.drawable.ic_line_claves),
-            new SoundInfo(R.raw.woodblock_high, R.string.woodblock, R.drawable.ic_line_block),
-            new SoundInfo(R.raw.hihat, R.string.mute, R.drawable.ic_line_mute),
+            new SoundInfo(R.raw.snare, R.string.snare, R.drawable.ic_c_note),
+            new SoundInfo(R.raw.sticks, R.string.sticks, R.drawable.ic_c_note_rim),
+            new SoundInfo(R.raw.claves, R.string.claves, R.drawable.ic_gp_note),
+            new SoundInfo(R.raw.woodblock_high, R.string.woodblock, R.drawable.ic_ep_note),
+            new SoundInfo(R.raw.hihat, R.string.mute, R.drawable.ic_quarter_pause),
     };
 
 
@@ -54,7 +54,7 @@ final class Sounds {
     }
 
     static boolean isMute(int id) {
-        if(sounds[id].iconID == R.drawable.ic_line_mute)
+        if(sounds[id].iconID == R.drawable.ic_quarter_pause)
             return true;
         return false;
     }

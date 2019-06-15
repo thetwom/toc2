@@ -44,7 +44,7 @@ public class PlayerService extends Service {
 
     private NotificationCompat.Builder notificationBuilder = null;
 
-    private final SoundPool soundpool = new SoundPool.Builder().setMaxStreams(10).build();
+    private final SoundPool soundpool = new SoundPool.Builder().setMaxStreams(2).build();
     private int[] soundHandles;
 
     private int playListPosition = 0;

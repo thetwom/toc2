@@ -19,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 public class MoveableButton extends AppCompatImageButton {
+//public class MoveableButton extends MaterialButton {
 
     private Paint volumePaint;
     private int volumeColor;
@@ -85,11 +86,14 @@ public class MoveableButton extends AppCompatImageButton {
 
         volumeColor = Color.RED;
 
+        setElevation(dp_to_px(8));
         colorAnimation.setDuration(200); // milliseconds
         colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animator) {
                 setBackgroundColor((int) animator.getAnimatedValue());
+//                setBackgroundTintList(ColorStateList.valueOf((int) animator.getAnimatedValue()));
+
             }
         });
 
@@ -128,7 +132,8 @@ public class MoveableButton extends AppCompatImageButton {
                             final float resistanceDist = dp_to_px(10);
                             if (dx * dx + dy * dy > resistanceDist * resistanceDist) {
                                 isMoving = true;
-                                setElevation(10);
+//                                setElevation(10);
+                                setTranslationZ(dp_to_px(4));
                                 if(positionChangedListener != null)
                                     positionChangedListener.onStartMoving(MoveableButton.this, getX(), getY());
                             }
@@ -137,7 +142,8 @@ public class MoveableButton extends AppCompatImageButton {
                     case MotionEvent.ACTION_UP:
                         if(isMoving) {
                             isMoving = false;
-                            setElevation(2);
+//                            setElevation(2);
+                            setTranslationZ(0);
                             setNewPosition(posX, posY);
                             //clearColorFilter();
                             if (positionChangedListener != null)
@@ -209,6 +215,8 @@ public class MoveableButton extends AppCompatImageButton {
     public void setProperties(Bundle newProperties) {
         properties.putAll(newProperties);
         setImageResource(Sounds.getIconID(properties.getInt("soundid", 0)));
+       // setIcon(Sounds.getIconID(properties.getInt("soundid", 0)));
+
         invalidate();
         Log.v("Metronome", "Setting new button properties " + properties.getFloat("volume",-1));
     }

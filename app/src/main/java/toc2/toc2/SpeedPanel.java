@@ -25,7 +25,7 @@ public class SpeedPanel extends View {
     private float previous_y;
     private int previous_speed;
     final private int strokeWidth = dp_to_px(2);
-    final static private float innerRadiusRatio = 0.6f;
+    final static private float innerRadiusRatio = 0.57f;
     private Path pathPlayButton = null;
     private Path pathOuterCircle = null;
     final static public int STATUS_PLAYING = 1;
@@ -47,7 +47,7 @@ public class SpeedPanel extends View {
             int radius = getRadius();
             int cx = getCenterX();
             int cy = getCenterY();
-            outline.setOval(cx-radius, cy+radius, cx+radius, cy-radius);
+            outline.setOval(cx-radius, cy-radius, cx+radius, cy+radius);
         }
     };
 
@@ -92,6 +92,8 @@ public class SpeedPanel extends View {
                 invalidate();
             }
         });
+
+        setOutlineProvider(outlineProvider);
     }
 
     private void init(Context context, @Nullable AttributeSet attrs) {
@@ -204,6 +206,15 @@ public class SpeedPanel extends View {
         canvas.drawPath(pathOuterCircle, circlePaint);
         //canvas.drawCircle(cx, cy, radius, circlePaint);
 
+        float someRad2 = innerRadius-strokeWidth/2.0f;
+        //RectF rect = new RectF(cx-someRad2*10000f, cy-someRad2*10000f, cx+someRad2*10000f, cy+someRad2*10000f);
+        //pathOuterCircle.rewind();
+        //pathOuterCircle.addCircle(cx, cy, someRad2, Path.Direction.CW);
+        //pathOuterCircle.addRect(rect, Path.Direction.CCW);
+        //pathOuterCircle.addArc(cx-someRad2, cy-someRad2, cx+someRad2, cy+someRad2, 0f, 270f);
+        //canvas.drawPath(pathOuterCircle, circlePaint);
+
+
         //canvas.drawCircle(cx, cy, innerRadius, circlePaint);
 
         float triRad = innerRadius * 0.7f;
@@ -271,16 +282,7 @@ public class SpeedPanel extends View {
         canvas.drawPath(pathPlayButton, circlePaint);
         pathPlayButton.rewind();
 
-        float angleMax = 65.0f / 180.0f * (float) Math.PI;
-        float angleMin = -65.0f / 180.0f * (float) Math.PI;
-        float dAngle = 3.5f / 180.0f * (float) Math.PI;
-        float growthFactor = 1.05f;
-        float radSpeedInner = innerRadius + 0.35f * (radius - innerRadius);
-        float radSpeedOuter = radius - 0.35f * (radius - innerRadius);
-        float strokeWidthSpeed = (radius + innerRadius) * (float) Math.PI / 120.0f;
-
         circlePaint.setStyle(Paint.Style.STROKE);
-        circlePaint.setStrokeWidth(strokeWidthSpeed);
         //circlePaint.setColor(getIconTint().getDefaultColor());
         if(changingSpeed) {
             circlePaint.setColor(highlightColor);
@@ -288,32 +290,25 @@ public class SpeedPanel extends View {
         else {
             circlePaint.setColor(labelColor);
         }
-        float angle = angleMax;
-        while (angle >= angleMin) {
-            canvas.drawLine(
-                    cx + radSpeedInner * (float) Math.sin(angle),
-                    cy - radSpeedInner * (float) Math.cos(angle),
-                    cx + radSpeedOuter * (float) Math.sin(angle),
-                    cy - radSpeedOuter * (float) Math.cos(angle),
-                    circlePaint
-            );
 
+        float growthFactor = 1.06f;
+        float speedRad = 0.5f* (radius + innerRadius);
+        circlePaint.setStrokeWidth(0.3f * (radius-innerRadius));
+        float angle = -5.0f;
+        float angleMin = -175.0f;
+        float dAngle = 5.5f;
+
+        while (angle >= angleMin) {
+            canvas.drawArc(cx - speedRad, cy - speedRad, cx + speedRad, cy + speedRad, angle, -5f, false, circlePaint);
             dAngle *= growthFactor;
             angle -= dAngle;
         }
-        float someRad = radSpeedInner*0.7f;
-        //circlePaint.setStyle(Paint.Style.FILL);
-
-        //pathOuterCircle.lineTo(cx-someRad, cy+someRad);
-        //canvas.drawPath(pathOuterCircle, circlePaint);
-        //canvas.drawArc(cx-someRad, cy+someRad, cx+someRad, cy-someRad, 90f, 45f, true, circlePaint);
-        //canvas.drawLine(cx-someRad, cy+someRad, cx+someRad, cy-someRad, circlePaint);
     }
 
-    @Override
-    public ViewOutlineProvider getOutlineProvider() {
-        return outlineProvider;
-    }
+    //@Override
+    //public ViewOutlineProvider getOutlineProvider() {
+    //    return outlineProvider;
+    //}
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {

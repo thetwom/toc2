@@ -1,7 +1,6 @@
 package toc2.toc2;
 
 
-import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatDelegate;

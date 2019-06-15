@@ -3,6 +3,7 @@ package toc2.toc2;
 import android.content.Context;
 import android.content.res.Resources;
 import android.os.Bundle;
+
 import androidx.dynamicanimation.animation.DynamicAnimation;
 import androidx.dynamicanimation.animation.SpringAnimation;
 import androidx.dynamicanimation.animation.SpringForce;
@@ -107,6 +108,8 @@ public class SoundChooser extends FrameLayout {
         //params.leftMargin = Math.round(indexToPosX(pos)) + Math.round(getX());
 
         button.setBackgroundColor(ContextCompat.getColor(context, R.color.colorPrimary));
+//        ColorStateList buttonTint = ContextCompat.getColorStateList(context, R.color.colorPrimary);
+//        button.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.colorPrimary));
         button.setLayoutParams(params);
         int pad = dp_to_px(5);
         button.setPadding(pad, pad, pad, pad);
@@ -123,10 +126,12 @@ public class SoundChooser extends FrameLayout {
         MoveableButton.PositionChangedListener positionChangedListener = new MoveableButton.PositionChangedListener() {
             @Override
             public void onPositionChanged(MoveableButton button, float posX, float posY) {
-                if (buttonOverPlusButton(posX, posY))
+                if (buttonOverPlusButton(posX, posY)) {
                     plusButton.setBackgroundColor(ContextCompat.getColor(context, R.color.colorAccent));
-                else
+                }
+                else {
                     plusButton.setBackground(null);
+                }
 
                 reorderButtons(button, posX);  // this means onSoundChangeListener must be called, which is done in "repositionButtons"
                 repositionButtons();
@@ -173,7 +178,7 @@ public class SoundChooser extends FrameLayout {
 
         ImageButton button = new ImageButton(this.context);
 
-        button.setScaleType(ImageView.ScaleType.FIT_XY);
+        button.setScaleType(ImageView.ScaleType.CENTER_CROP);
         button.setImageResource(R.drawable.ic_add);
         button.setBackground(null);
 
