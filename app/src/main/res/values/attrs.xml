@@ -5,4 +5,5 @@
         <attr name="labelColor" format="color"></attr>
         <attr name="highlightColor" format="color"></attr>
     </declare-styleable>
+
 </resources>

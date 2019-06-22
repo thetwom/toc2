@@ -1,5 +1,6 @@
 package toc2.toc2;
 
+import android.animation.TimeInterpolator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.Resources;
@@ -9,54 +10,52 @@ import android.graphics.Color;
 import android.graphics.Outline;
 import android.graphics.Paint;
 import android.graphics.Path;
-import androidx.annotation.Nullable;
-
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewOutlineProvider;
+import android.view.animation.LinearInterpolator;
 
-public class SpeedPanel extends View {
+import androidx.annotation.Nullable;
+
+public class SpeedIndicator extends View {
 
     private Paint circlePaint;
 
-    private float previous_x;
-    private float previous_y;
-    private int previous_speed;
-    final private int strokeWidth = dp_to_px(2);
-    final static public float innerRadiusRatio = 0.62f;
     private Path pathOuterCircle = null;
-
-    private boolean changingSpeed = false;
 
     private int highlightColor;
     private int normalColor;
     private int labelColor;
 
-    private ViewOutlineProvider outlineProvider = new ViewOutlineProvider() {
-        @Override
-        public void getOutline(View view, Outline outline) {
-            int radius = getRadius();
-            int cx = getCenterX();
-            int cy = getCenterY();
-            outline.setOval(cx-radius, cy-radius, cx+radius, cy+radius);
-        }
-    };
+    private boolean stopped = true;
+    private float position = 0.0f;
+    private int nPoints = 12;
+    private float speed = 100.0f;
 
-    public interface SpeedChangedListener {
-        void onSpeedChanged(int speed);
-    }
+    private final ValueAnimator animatePosition = ValueAnimator.ofFloat(0.0f, 360.0f/nPoints);
 
-    private SpeedChangedListener speedChangedListener;
-
-
-    public SpeedPanel(Context context, AttributeSet attrs) {
+    public SpeedIndicator(Context context, AttributeSet attrs) {
         super(context, attrs);
         init(context, attrs);
-        speedChangedListener = null;
 
-        setOutlineProvider(outlineProvider);
+        animatePosition.setDuration(getDt(100.0f));
+        animatePosition.setInterpolator(new LinearInterpolator());
+
+        animatePosition.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                position = (float) animation.getAnimatedValue();
+                invalidate();
+            }
+        });
+
+    }
+
+
+    private long getDt(float speed) {
+        return Math.round(1000.0 * 60.0 / speed);
     }
 
     private void init(Context context, @Nullable AttributeSet attrs) {
@@ -138,113 +137,54 @@ public class SpeedPanel extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        int radius = getRadius();
         int cx = getCenterX();
         int cy = getCenterY();
 
-        int innerRadius = getInnerRadius();
+        float rad = 0.0f * getRadius() + 1.0f * getInnerRadius();
 
-        //circlePaint.setColor(foregroundColor);
-        circlePaint.setColor(normalColor);
-
-        //circlePaint.setStyle(Paint.Style.STROKE);
+        circlePaint.setColor(highlightColor);
+        circlePaint.setStrokeWidth(dp_to_px(2));
         circlePaint.setStyle(Paint.Style.FILL);
-        //circlePaint.setStrokeWidth(strokeWidth);
 
         if(pathOuterCircle == null)
             pathOuterCircle = new Path();
         pathOuterCircle.setFillType(Path.FillType.EVEN_ODD);
 
-        pathOuterCircle.rewind();
-        pathOuterCircle.addCircle(cx, cy, radius, Path.Direction.CW);
+        for(int i = 0; i  < nPoints; ++i) {
+            double ang = (position+i*360.0f/nPoints) * Math.PI / 180.0;
+            float pointSize = dp_to_px(5);
 
-        canvas.drawPath(pathOuterCircle, circlePaint);
-        pathOuterCircle.rewind();
+            double scaleDist = 7.0 * Math.PI / 180.0 * speed/80.0;
+            if(ang < scaleDist && !stopped)
+                pointSize = pointSize * (1.0f + 4.0f * (float) Math.sin(ang / scaleDist * Math.PI));
+            //if(ang < scaleDist && !stopped)
+            //    pointSize = pointSize * (1.0f + 4.0f * (float) Math.cos(ang / scaleDist * Math.PI/2.0));
+            //if(ang > 2.0*Math.PI - scaleDist && !stopped)
+            //    pointSize = pointSize * (1.0f + 4.0f * (float) Math.cos((2.0*Math.PI - ang) / scaleDist * Math.PI/2.0));
 
-        if(changingSpeed) {
-            circlePaint.setColor(highlightColor);
+            //canvas.drawArc(cx - rad, cy - rad, cx + rad, cy + rad, -90.0f, position, false, circlePaint);
+            canvas.drawCircle(cx + rad * (float) Math.sin(ang), cy - rad * (float) Math.cos(ang), pointSize, circlePaint);
         }
-        else {
-            circlePaint.setColor(labelColor);
-        }
-        circlePaint.setStyle(Paint.Style.STROKE);
-        float growthFactor = 1.06f;
-        float speedRad = 0.5f* (radius + innerRadius);
-        circlePaint.setStrokeWidth(0.3f * (radius-innerRadius));
-        float angle = -5.0f;
-        float angleMin = -175.0f;
-        float dAngle = 5.5f;
 
-        while (angle >= angleMin) {
-            canvas.drawArc(cx - speedRad, cy - speedRad, cx + speedRad, cy + speedRad, angle, -2f, false, circlePaint);
-            dAngle *= growthFactor;
-            angle -= dAngle;
-        }
     }
 
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-
-        int action = event.getActionMasked();
-        float x = event.getX() - getCenterX();
-        float y = event.getY() - getCenterY();
-
-        int radius = getRadius();
-        int innerRadius = getInnerRadius();
-        float circum = getRadius() * (float)Math.PI;
-        float factor = 20.0f;
-        int radiusXY = (int) Math.round(Math.sqrt(x*x + y*y));
-
-        switch(action) {
-            case MotionEvent.ACTION_DOWN:
-                if (radiusXY > radius*1.1) {
-                 return false;
-                }
-                else {
-                    previous_x = x;
-                    previous_y = y;
-                    previous_speed = 0;
-                    changingSpeed = true;
-                }
-                invalidate();
-                return true;
-            case MotionEvent.ACTION_MOVE:
-                if(changingSpeed) {
-                    float dx = x - previous_x;
-                    float dy = y - previous_y;
-                    int speed = -(int) Math.round((dx * y - dy * x) / Math.sqrt(x * x + y * y) / circum * factor);
-
-                    if (previous_speed != speed && speedChangedListener != null) {
-                        speedChangedListener.onSpeedChanged(speed);
-                        previous_x = x;
-                        previous_y = y;
-                    }
-                    previous_speed = speed;
-                }
-                return true;
-            case MotionEvent.ACTION_UP:
-                changingSpeed = false;
-                invalidate();
-        }
-
-        return true;
+    public void stopPlay() {
+        animatePosition.pause();
+        position = 0.0f;
+        stopped = true;
+        invalidate();
     }
-
-    void setOnSpeedChangedListener(SpeedChangedListener listener){
-        speedChangedListener = listener;
-    }
-
     private int getRadius(){
         int width = getWidth();
         int height = getHeight();
         int widthNoPadding = width - getPaddingRight() - getPaddingLeft();
         int heightNoPadding = height - getPaddingTop() - getPaddingBottom();
-        return (Math.min(widthNoPadding, heightNoPadding) - strokeWidth) / 2;
+        return (Math.min(widthNoPadding, heightNoPadding)) / 2;
     }
 
 
     private int getInnerRadius() {
-        return Math.round(getRadius() * innerRadiusRatio);
+        return Math.round(getRadius() * SpeedPanel.innerRadiusRatio);
     }
 
     private int getCenterX(){
@@ -254,6 +194,15 @@ public class SpeedPanel extends View {
         return getHeight() / 2;
     }
 
+    public void animatePosition() {
+        stopped = false;
+        animatePosition.start();
+    }
+
+    public void setSpeed(float speed) {
+        animatePosition.setDuration(getDt(speed));
+        this.speed = speed;
+    }
     private float pTX(double phi, double rad) {
         return (float) (rad * Math.cos(phi)) + getCenterX();
     }

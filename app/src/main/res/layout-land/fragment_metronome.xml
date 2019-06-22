@@ -19,8 +19,9 @@
         android:layout_marginBottom="8dp"
         android:padding="10dp"
         android:elevation="8dp"
-        app:normalColor="?attr/colorPrimary"
+        app:normalColor="?attr/colorBackgroundFloating"
         app:highlightColor="?attr/colorSecondary"
+        app:labelColor="?attr/colorOnBackground"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
@@ -28,6 +29,41 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:layout_conversion_wrapHeight="577"
         tools:layout_conversion_wrapWidth="577" />
+
+    <toc2.toc2.PlayButton
+        android:id="@+id/playbutton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:elevation="9dp"
+        android:padding="10dp"
+        app:highlightColor="?attr/colorSecondary"
+        app:labelColor="?attr/colorOnBackground"
+        app:layout_constraintBottom_toBottomOf="@+id/speedpanel"
+        app:layout_constraintEnd_toEndOf="@+id/speedpanel"
+        app:layout_constraintStart_toStartOf="@+id/speedpanel"
+        app:layout_constraintTop_toTopOf="@+id/speedpanel"
+        app:normalColor="?attr/colorBackgroundFloating"
+        tools:layout_conversion_wrapHeight="577" />
+
+    <toc2.toc2.SpeedIndicator
+        android:id="@+id/speedindicator"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:elevation="12dp"
+        android:padding="10dp"
+        app:highlightColor="?attr/colorSecondary"
+        app:labelColor="?attr/colorOnBackground"
+        app:layout_constraintBottom_toBottomOf="@+id/speedpanel"
+        app:layout_constraintEnd_toEndOf="@+id/speedpanel"
+        app:layout_constraintStart_toStartOf="@+id/speedpanel"
+        app:layout_constraintTop_toTopOf="@+id/speedpanel"
+        app:normalColor="?attr/colorBackgroundFloating"
+        tools:layout_conversion_wrapHeight="577" />
+
 
     <TextView
         android:id="@+id/speedtext"

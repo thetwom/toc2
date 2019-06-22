@@ -27,6 +27,8 @@ public class MetronomeFragment extends Fragment {
 
     private TextView speedText;
     private SpeedPanel speedPanel;
+    private PlayButton playButton;
+    private SpeedIndicator speedIndicator;
     private SoundChooser soundChooser;
     private boolean playerServiceBound = false;
     private ServiceConnection playerConnection = null;
@@ -82,6 +84,8 @@ public class MetronomeFragment extends Fragment {
 
         speedPanel = view.findViewById(R.id.speedpanel);
 
+        speedIndicator = view.findViewById(R.id.speedindicator);
+
         speedPanel.setOnSpeedChangedListener(new SpeedPanel.SpeedChangedListener(){
             @Override
             public void onSpeedChanged(int speedChange) {
@@ -91,17 +95,19 @@ public class MetronomeFragment extends Fragment {
             }
         });
 
-        speedPanel.setOnButtonClickedListener(new SpeedPanel.ButtonClickedListener() {
+        playButton = view.findViewById(R.id.playbutton);
+
+        playButton.setOnButtonClickedListener(new PlayButton.ButtonClickedListener() {
 
             @Override
             public void onPause() {
-                Log.v("Metronome", "speedPanel:onPause()");
+                Log.v("Metronome", "playButton:onPause()");
                 playerService.stopPlay();
             }
 
             @Override
             public void onPlay() {
-                Log.v("Metronome", "speedPanel:onPause()");
+                Log.v("Metronome", "playButton:onPause()");
                 playerService.startPlay();
             }
         });
@@ -200,14 +206,17 @@ public class MetronomeFragment extends Fragment {
 
     public void updateView(PlaybackStateCompat state, boolean animate){
         if(state.getState() == PlaybackStateCompat.STATE_PLAYING){
-            speedPanel.changeStatus(SpeedPanel.STATUS_PLAYING, animate);
+            playButton.changeStatus(PlayButton.STATUS_PLAYING, animate);
         }
         else if(state.getState() == PlaybackStateCompat.STATE_PAUSED){
-            speedPanel.changeStatus(SpeedPanel.STATUS_PAUSED, animate);
+            speedIndicator.stopPlay();
+            playButton.changeStatus(PlayButton.STATUS_PAUSED, animate);
         }
         speedText.setText(getString(R.string.bpm, Math.round(state.getPlaybackSpeed())));
+        speedIndicator.setSpeed(state.getPlaybackSpeed());
         if(state.getPosition() != PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN){
             soundChooser.animateButton((int) state.getPosition());
+            speedIndicator.animatePosition();
         }
     }
 
