@@ -1,35 +1,35 @@
 <vector android:height="24dp" android:viewportHeight="50"
     android:viewportWidth="50" android:width="24dp" xmlns:android="http://schemas.android.com/apk/res/android">
-    <path android:fillColor="?attr/colorOnPrimary"
+    <path android:fillColor="?attr/colorOnBackground"
         android:pathData="M0,24.9435L50,24.9435" android:strokeAlpha="1"
-        android:strokeColor="?attr/colorOnPrimary" android:strokeLineCap="butt"
+        android:strokeColor="?attr/colorOnBackground" android:strokeLineCap="butt"
         android:strokeLineJoin="miter" android:strokeWidth="1"/>
-    <path android:fillColor="?attr/colorOnPrimary"
+    <path android:fillColor="?attr/colorOnBackground"
         android:pathData="M0,40.4451L50,40.4451" android:strokeAlpha="1"
-        android:strokeColor="?attr/colorOnPrimary" android:strokeLineCap="butt"
+        android:strokeColor="?attr/colorOnBackground" android:strokeLineCap="butt"
         android:strokeLineJoin="miter" android:strokeWidth="1"/>
-    <path android:fillColor="?attr/colorOnPrimary"
+    <path android:fillColor="?attr/colorOnBackground"
         android:pathData="M0,9.4419L50,9.4419" android:strokeAlpha="1"
-        android:strokeColor="?attr/colorOnPrimary" android:strokeLineCap="butt"
+        android:strokeColor="?attr/colorOnBackground" android:strokeLineCap="butt"
         android:strokeLineJoin="miter" android:strokeWidth="1"/>
-    <path android:fillColor="?attr/colorOnPrimary"
+    <path android:fillColor="?attr/colorOnBackground"
         android:pathData="M0,32.6943L50,32.6943" android:strokeAlpha="1"
-        android:strokeColor="?attr/colorOnPrimary" android:strokeLineCap="butt"
+        android:strokeColor="?attr/colorOnBackground" android:strokeLineCap="butt"
         android:strokeLineJoin="miter" android:strokeWidth="1"/>
-    <path android:fillColor="?attr/colorOnPrimary"
+    <path android:fillColor="?attr/colorOnBackground"
         android:pathData="M0,17.1927L50,17.1927" android:strokeAlpha="1"
-        android:strokeColor="?attr/colorOnPrimary" android:strokeLineCap="butt"
+        android:strokeColor="?attr/colorOnBackground" android:strokeLineCap="butt"
         android:strokeLineJoin="miter" android:strokeWidth="1"/>
-    <path android:fillColor="?attr/colorOnPrimary"
+    <path android:fillColor="?attr/colorOnBackground"
         android:pathData="M19.8106,30.2952L19.8106,8.4459"
-        android:strokeAlpha="1" android:strokeColor="?attr/colorOnPrimary"
+        android:strokeAlpha="1" android:strokeColor="?attr/colorOnBackground"
         android:strokeLineCap="butt" android:strokeLineJoin="miter" android:strokeWidth="0.9465149"/>
-    <path android:fillColor="?attr/colorOnPrimary"
+    <path android:fillColor="?attr/colorOnBackground"
         android:pathData="m19.8448,8.9348 l8.4858,-7.6172"
-        android:strokeAlpha="1" android:strokeColor="?attr/colorOnPrimary"
+        android:strokeAlpha="1" android:strokeColor="?attr/colorOnBackground"
         android:strokeLineCap="butt" android:strokeLineJoin="miter" android:strokeWidth="1"/>
-    <path android:fillColor="?attr/colorOnPrimary"
+    <path android:fillColor="?attr/colorOnBackground"
         android:pathData="m19.8448,1.2507 l8.4858,7.8176"
-        android:strokeAlpha="1" android:strokeColor="?attr/colorOnPrimary"
+        android:strokeAlpha="1" android:strokeColor="?attr/colorOnBackground"
         android:strokeLineCap="butt" android:strokeLineJoin="miter" android:strokeWidth="1"/>
 </vector>

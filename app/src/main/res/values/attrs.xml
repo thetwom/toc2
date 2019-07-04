@@ -1,9 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <attr name="normalColor" format="color"></attr>
+    <attr name="labelColor" format="color"></attr>
+    <attr name="highlightColor" format="color"></attr>
+
     <declare-styleable name="SpeedPanel">
-        <attr name="normalColor" format="color"></attr>
-        <attr name="labelColor" format="color"></attr>
-        <attr name="highlightColor" format="color"></attr>
+        <attr name="normalColor"></attr>
+        <attr name="labelColor"></attr>
+        <attr name="highlightColor"></attr>
     </declare-styleable>
 
+    <declare-styleable name="SoundChooser">
+        <attr name="normalColor"></attr>
+        <attr name="highlightColor"></attr>
+    </declare-styleable>
+
+
+    <declare-styleable name="SpeedIndicator">
+        <attr name="normalColor"></attr>
+        <attr name="highlightColor"></attr>
+    </declare-styleable>
+
+    <declare-styleable name="PlayButton">
+        <attr name="normalColor"></attr>
+        <attr name="labelColor"></attr>
+        <attr name="highlightColor"></attr>
+    </declare-styleable>
 </resources>

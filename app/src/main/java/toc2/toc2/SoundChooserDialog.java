@@ -108,7 +108,7 @@ public class SoundChooserDialog {
 
             soundButton.setImageResource(Sounds.getIconID(i));
             soundButton.setScaleType(ImageView.ScaleType.FIT_XY);
-            soundButton.setBackgroundColor(ContextCompat.getColor(activity, R.color.colorPrimary));
+            soundButton.setBackgroundColor(ContextCompat.getColor(activity, R.color.colorMyBackground));
 
             int pad = dp_to_px(5);
             soundButton.setPadding(pad, pad, pad, pad);
@@ -143,7 +143,7 @@ public class SoundChooserDialog {
                 newProperties.putInt("soundid", i);
             }
             else {
-                b.setBackgroundColor(ContextCompat.getColor(activity, R.color.colorPrimary));
+                b.setBackgroundColor(ContextCompat.getColor(activity, R.color.colorMyBackground));
             }
             ++i;
         }

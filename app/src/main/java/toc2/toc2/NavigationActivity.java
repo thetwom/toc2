@@ -9,6 +9,8 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.preference.PreferenceManager;
+
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -35,18 +37,26 @@ public class NavigationActivity extends AppCompatActivity implements MetronomeFr
     final public static int SPEED_INITIAL = 120;
     // final public static int SOUND_INITIAL = R.raw.hhp_dry_a;
 
-    final public static int SPEED_MIN= 20;
+    //final public static int SPEED_MIN= 20;
     final public static int SPEED_MAX = 220;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        SharedPreferences preferences = getPreferences(Context.MODE_PRIVATE);
-        int nightMode= preferences.getInt("nightmode", AppCompatDelegate.MODE_NIGHT_NO);
+        SharedPreferences sharedPreferences =
+            PreferenceManager.getDefaultSharedPreferences(this /* Activity context */);
 
+        boolean manualThemeYesNo = sharedPreferences.getBoolean("manualtheme", true);
+        boolean nightModeYesNo = sharedPreferences.getBoolean("darktheme", false);
+        int nightMode = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM;
+        if(manualThemeYesNo) {
+            if (nightModeYesNo)
+                nightMode = AppCompatDelegate.MODE_NIGHT_YES;
+            else
+                nightMode = AppCompatDelegate.MODE_NIGHT_NO;
+        }
         AppCompatDelegate.setDefaultNightMode(nightMode);
-//        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
         setContentView(R.layout.activity_navigation);
         //Toolbar toolbar = findViewById(R.id.toolbar);
@@ -204,14 +214,6 @@ public class NavigationActivity extends AppCompatActivity implements MetronomeFr
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    public void setNightMode(int mode) {
-        SharedPreferences preferences = getPreferences(Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putInt("nightmode", mode);
-        editor.apply();
-        recreate();
     }
 
     @Override

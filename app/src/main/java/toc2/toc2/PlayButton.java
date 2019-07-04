@@ -17,11 +17,10 @@ import android.view.ViewOutlineProvider;
 
 import androidx.annotation.Nullable;
 
-public class PlayButton extends View {
+public class PlayButton extends ControlPanel {
 
     private Paint circlePaint;
 
-    final private int strokeWidth = dp_to_px(2);
     private Path pathPlayButton = null;
     private Path pathOuterCircle = null;
     final static public int STATUS_PLAYING = 1;
@@ -92,72 +91,12 @@ public class PlayButton extends View {
         if(attrs == null)
             return;
 
-        TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.SpeedPanel);
-        highlightColor = ta.getColor(R.styleable.SpeedPanel_highlightColor, Color.GRAY);
-        normalColor = ta.getColor(R.styleable.SpeedPanel_normalColor, Color.GRAY);
-        labelColor = ta.getColor(R.styleable.SpeedPanel_labelColor, Color.WHITE);
+        TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.PlayButton);
+        highlightColor = ta.getColor(R.styleable.PlayButton_highlightColor, Color.GRAY);
+        normalColor = ta.getColor(R.styleable.PlayButton_normalColor, Color.GRAY);
+        labelColor = ta.getColor(R.styleable.PlayButton_labelColor, Color.WHITE);
 
         ta.recycle();
-    }
-
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-
-        //int desiredWidth = Integer.MAX_VALUE;
-        //int desiredHeight = Integer.MIN_VALUE;
-        int desiredSize = dp_to_px(200) + (Math.max(getPaddingBottom()+getPaddingTop(), getPaddingLeft()+getPaddingRight()));
-
-        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
-        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
-        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
-        int heightSize = MeasureSpec.getSize(heightMeasureSpec);
-
-        int height;
-        int width;
-
-        if(widthMode == MeasureSpec.EXACTLY && heightMode == MeasureSpec.EXACTLY){
-            width = widthSize;
-            height = heightSize;
-        }
-        else if(widthMode == MeasureSpec.EXACTLY && heightMode == MeasureSpec.AT_MOST){
-            width = widthSize;
-            height = Math.min(heightSize, widthSize);
-        }
-        else if(widthMode == MeasureSpec.AT_MOST && heightMode == MeasureSpec.EXACTLY){
-            width = Math.min(widthSize, heightSize);
-            height = heightSize;
-        }
-        else if(widthMode == MeasureSpec.EXACTLY){
-            width = widthSize;
-            //noinspection SuspiciousNameCombination
-            height = widthSize;
-        }
-        else if(heightMode == MeasureSpec.EXACTLY){
-            //noinspection SuspiciousNameCombination
-            width = heightSize;
-            height = heightSize;
-        }
-        else if(widthMode == MeasureSpec.AT_MOST && heightMode == MeasureSpec.AT_MOST){
-            int size = Math.min(desiredSize, Math.min(widthSize, heightSize));
-            width = size;
-            height = size;
-        }
-        else if(widthMode == MeasureSpec.AT_MOST){
-            int size = Math.min(desiredSize, widthSize);
-            width = size;
-            height = size;
-        }
-        else if(heightMode == MeasureSpec.AT_MOST){
-            int size = Math.min(desiredSize, heightSize);
-            width = size;
-            height = size;
-        }
-        else{
-            width = desiredSize;
-            height = desiredSize;
-        }
-
-        setMeasuredDimension(width, height);
     }
 
     @Override
@@ -303,26 +242,6 @@ public class PlayButton extends View {
          return super.performClick();
     }
 
-    private int getRadius(){
-        int width = getWidth();
-        int height = getHeight();
-        int widthNoPadding = width - getPaddingRight() - getPaddingLeft();
-        int heightNoPadding = height - getPaddingTop() - getPaddingBottom();
-        return (Math.min(widthNoPadding, heightNoPadding) - strokeWidth) / 2;
-    }
-
-
-    private int getInnerRadius() {
-        return Math.round(getRadius() * SpeedPanel.innerRadiusRatio);
-    }
-
-    private int getCenterX(){
-        return getWidth() / 2;
-    }
-    private int getCenterY(){
-        return getHeight() / 2;
-    }
-
     public void changeStatus(int status, boolean animate){
         if(buttonStatus == status)
             return;
@@ -354,14 +273,4 @@ public class PlayButton extends View {
         return buttonStatus;
     }
 
-    private float pTX(double phi, double rad) {
-        return (float) (rad * Math.cos(phi)) + getCenterX();
-    }
-    private float pTY(double phi, double rad) {
-        return (float) (rad * Math.sin(phi)) + getCenterY();
-    }
-
-    private int dp_to_px(int dp) {
-        return (int) (dp * Resources.getSystem().getDisplayMetrics().density);
-    }
 }

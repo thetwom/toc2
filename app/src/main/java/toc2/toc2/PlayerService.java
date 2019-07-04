@@ -36,6 +36,9 @@ public class PlayerService extends Service {
     static public final String PLAYERSTATE = "PLAYERSTATE";
     static public final String PLAYBACKSPEED = "PLAYBACKSPEED";
 
+    private int minimumSpeed = 20;
+    private int maximumSpeed = 250;
+
     private final int notificationID = 3252;
 
     private MediaSessionCompat mediaSession = null;
@@ -269,8 +272,10 @@ public class PlayerService extends Service {
 
     public void addValueToSpeed(int dSpeed){
         int newSpeed = getSpeed() + dSpeed;
-        newSpeed = Math.min(newSpeed, NavigationActivity.SPEED_MAX);
-        newSpeed = Math.max(newSpeed, NavigationActivity.SPEED_MIN);
+//        newSpeed = Math.min(newSpeed, NavigationActivity.SPEED_MAX);
+//        newSpeed = Math.max(newSpeed, NavigationActivity.SPEED_MIN);
+        newSpeed = Math.min(newSpeed, maximumSpeed);
+        newSpeed = Math.max(newSpeed, minimumSpeed);
         changeSpeed(newSpeed);
     }
 
@@ -369,6 +374,27 @@ public class PlayerService extends Service {
         return playList;
     }
 
+    public boolean setMinimumSpeed(int speed){
+        if(speed >= maximumSpeed)
+            return false;
+
+        minimumSpeed = speed;
+        if(getSpeed() < minimumSpeed) {
+            changeSpeed(minimumSpeed);
+        }
+        return true;
+    }
+
+    public boolean setMaximumSpeed(int speed){
+        if(speed <= minimumSpeed)
+            return false;
+
+        maximumSpeed = speed;
+        if(getSpeed() > maximumSpeed) {
+            changeSpeed(maximumSpeed);
+        }
+        return true;
+    }
     static public void sendPlayIntent(Context context){
         Intent intent = new Intent(PlayerService.BROADCAST_PLAYERACTION);
         intent.putExtra(PlayerService.PLAYERSTATE, PlaybackStateCompat.ACTION_PLAY);

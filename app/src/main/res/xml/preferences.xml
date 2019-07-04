@@ -2,13 +2,36 @@
 <androidx.preference.PreferenceScreen
      xmlns:app="http://schemas.android.com/apk/res-auto">
 
+
+    <SwitchPreferenceCompat
+        app:key="manualtheme"
+        app:title="Manual theme setting"
+        />
+
     <SwitchPreferenceCompat
         app:key="darktheme"
-        app:title="Use dark theme"/>
+        app:title="Use dark theme"
+        app:dependency="manualtheme"
 
-    <Preference
-        app:key="feedback"
-        app:title="Send feedback"
-        app:summary="Report technical issues or suggest new features"/>
+        />
+    <!--app:isPreferenceVisible="false"-->
 
+    <EditTextPreference
+        app:key="minimumspeed"
+        app:title="Minimum speed"
+        app:defaultValue="20"
+        />
+
+
+    <EditTextPreference
+        app:key="maximumspeed"
+        app:title="Maximum speed"
+        app:defaultValue="250"
+        />
+
+    <CheckBoxPreference
+        app:key="setdefault"
+        app:title="Reset all settings"
+        app:defaultValue="false"
+        />
 </androidx.preference.PreferenceScreen>

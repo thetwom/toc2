@@ -19,22 +19,22 @@ import android.view.animation.LinearInterpolator;
 
 import androidx.annotation.Nullable;
 
-public class SpeedIndicator extends View {
+public class SpeedIndicator extends ControlPanel {
 
     private Paint circlePaint;
 
     private Path pathOuterCircle = null;
 
     private int highlightColor;
-    private int normalColor;
-    private int labelColor;
+//    private int normalColor;
+//    private int labelColor;
 
     private boolean stopped = true;
     private float position = 0.0f;
     private int nPoints = 12;
     private float speed = 100.0f;
 
-    private final ValueAnimator animatePosition = ValueAnimator.ofFloat(0.0f, 360.0f/nPoints);
+    private final ValueAnimator animatePosition = ValueAnimator.ofFloat(0.0f, 360.0f / nPoints);
 
     public SpeedIndicator(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -62,75 +62,15 @@ public class SpeedIndicator extends View {
         circlePaint = new Paint();
         circlePaint.setAntiAlias(true);
 
-        if(attrs == null)
+        if (attrs == null)
             return;
 
-        TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.SpeedPanel);
-        highlightColor = ta.getColor(R.styleable.SpeedPanel_highlightColor, Color.GRAY);
-        normalColor = ta.getColor(R.styleable.SpeedPanel_normalColor, Color.GRAY);
-        labelColor = ta.getColor(R.styleable.SpeedPanel_labelColor, Color.WHITE);
+        TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.SpeedIndicator);
+        highlightColor = ta.getColor(R.styleable.SpeedIndicator_highlightColor, Color.GRAY);
+//        normalColor = ta.getColor(R.styleable.SpeedPanel_normalColor, Color.GRAY);
+//        labelColor = ta.getColor(R.styleable.SpeedPanel_labelColor, Color.WHITE);
 
         ta.recycle();
-    }
-
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-
-        //int desiredWidth = Integer.MAX_VALUE;
-        //int desiredHeight = Integer.MIN_VALUE;
-        int desiredSize = dp_to_px(200) + (Math.max(getPaddingBottom()+getPaddingTop(), getPaddingLeft()+getPaddingRight()));
-
-        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
-        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
-        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
-        int heightSize = MeasureSpec.getSize(heightMeasureSpec);
-
-        int height;
-        int width;
-
-        if(widthMode == MeasureSpec.EXACTLY && heightMode == MeasureSpec.EXACTLY){
-            width = widthSize;
-            height = heightSize;
-        }
-        else if(widthMode == MeasureSpec.EXACTLY && heightMode == MeasureSpec.AT_MOST){
-            width = widthSize;
-            height = Math.min(heightSize, widthSize);
-        }
-        else if(widthMode == MeasureSpec.AT_MOST && heightMode == MeasureSpec.EXACTLY){
-            width = Math.min(widthSize, heightSize);
-            height = heightSize;
-        }
-        else if(widthMode == MeasureSpec.EXACTLY){
-            width = widthSize;
-            //noinspection SuspiciousNameCombination
-            height = widthSize;
-        }
-        else if(heightMode == MeasureSpec.EXACTLY){
-            //noinspection SuspiciousNameCombination
-            width = heightSize;
-            height = heightSize;
-        }
-        else if(widthMode == MeasureSpec.AT_MOST && heightMode == MeasureSpec.AT_MOST){
-            int size = Math.min(desiredSize, Math.min(widthSize, heightSize));
-            width = size;
-            height = size;
-        }
-        else if(widthMode == MeasureSpec.AT_MOST){
-            int size = Math.min(desiredSize, widthSize);
-            width = size;
-            height = size;
-        }
-        else if(heightMode == MeasureSpec.AT_MOST){
-            int size = Math.min(desiredSize, heightSize);
-            width = size;
-            height = size;
-        }
-        else{
-            width = desiredSize;
-            height = desiredSize;
-        }
-
-        setMeasuredDimension(width, height);
     }
 
     @Override
@@ -146,16 +86,16 @@ public class SpeedIndicator extends View {
         circlePaint.setStrokeWidth(dp_to_px(2));
         circlePaint.setStyle(Paint.Style.FILL);
 
-        if(pathOuterCircle == null)
+        if (pathOuterCircle == null)
             pathOuterCircle = new Path();
         pathOuterCircle.setFillType(Path.FillType.EVEN_ODD);
 
-        for(int i = 0; i  < nPoints; ++i) {
-            double ang = (position+i*360.0f/nPoints) * Math.PI / 180.0;
+        for (int i = 0; i < nPoints; ++i) {
+            double ang = (position + i * 360.0f / nPoints) * Math.PI / 180.0;
             float pointSize = dp_to_px(5);
 
-            double scaleDist = 7.0 * Math.PI / 180.0 * speed/80.0;
-            if(ang < scaleDist && !stopped)
+            double scaleDist = 7.0 * Math.PI / 180.0 * speed / 80.0;
+            if (ang < scaleDist && !stopped)
                 pointSize = pointSize * (1.0f + 4.0f * (float) Math.sin(ang / scaleDist * Math.PI));
             //if(ang < scaleDist && !stopped)
             //    pointSize = pointSize * (1.0f + 4.0f * (float) Math.cos(ang / scaleDist * Math.PI/2.0));
@@ -174,25 +114,6 @@ public class SpeedIndicator extends View {
         stopped = true;
         invalidate();
     }
-    private int getRadius(){
-        int width = getWidth();
-        int height = getHeight();
-        int widthNoPadding = width - getPaddingRight() - getPaddingLeft();
-        int heightNoPadding = height - getPaddingTop() - getPaddingBottom();
-        return (Math.min(widthNoPadding, heightNoPadding)) / 2;
-    }
-
-
-    private int getInnerRadius() {
-        return Math.round(getRadius() * SpeedPanel.innerRadiusRatio);
-    }
-
-    private int getCenterX(){
-        return getWidth() / 2;
-    }
-    private int getCenterY(){
-        return getHeight() / 2;
-    }
 
     public void animatePosition() {
         stopped = false;
@@ -202,15 +123,5 @@ public class SpeedIndicator extends View {
     public void setSpeed(float speed) {
         animatePosition.setDuration(getDt(speed));
         this.speed = speed;
-    }
-    private float pTX(double phi, double rad) {
-        return (float) (rad * Math.cos(phi)) + getCenterX();
-    }
-    private float pTY(double phi, double rad) {
-        return (float) (rad * Math.sin(phi)) + getCenterY();
-    }
-
-    private int dp_to_px(int dp) {
-        return (int) (dp * Resources.getSystem().getDisplayMetrics().density);
     }
 }

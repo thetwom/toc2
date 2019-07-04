@@ -2,6 +2,8 @@ package toc2.toc2;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.os.Bundle;
 
 import androidx.dynamicanimation.animation.DynamicAnimation;
@@ -9,6 +11,7 @@ import androidx.dynamicanimation.animation.SpringAnimation;
 import androidx.dynamicanimation.animation.SpringForce;
 import androidx.core.content.ContextCompat;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -30,6 +33,9 @@ public class SoundChooser extends FrameLayout {
     private SpringAnimation springAnimationX;
     private SpringAnimation springAnimationY;
 
+    private int normalButtonColor = Color.BLACK;
+    private int highlightButtonColor = Color.GRAY;
+
     private ButtonClickedListener buttonClickedListener = null;
 
     public interface ButtonClickedListener {
@@ -50,11 +56,13 @@ public class SoundChooser extends FrameLayout {
     public SoundChooser(Context context, AttributeSet attrs) {
         super(context, attrs);
         this.context = context;
+        readAttributes(attrs);
     }
 
     public SoundChooser(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         this.context = context;
+        readAttributes(attrs);
     }
 
     @Override
@@ -85,8 +93,20 @@ public class SoundChooser extends FrameLayout {
 
     }
 
+    private void readAttributes(AttributeSet attrs){
+        if(attrs == null)
+            return;
+
+        Log.v("Metronome", "SoundChooser:readAttributes");
+        TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.SoundChooser);
+        highlightButtonColor = ta.getColor(R.styleable.SoundChooser_highlightColor, Color.BLUE);
+        normalButtonColor = ta.getColor(R.styleable.SoundChooser_normalColor, Color.BLACK);
+
+        ta.recycle();
+    }
+
     private MoveableButton createButton(int pos) {
-        MoveableButton button = new MoveableButton(this.context);
+        MoveableButton button = new MoveableButton(this.context, normalButtonColor, highlightButtonColor);
 
         button.setScaleType(ImageView.ScaleType.FIT_CENTER);
         Bundle properties;
@@ -98,7 +118,7 @@ public class SoundChooser extends FrameLayout {
         else {
             properties = buttons.get(buttons.size()-1).getProperties();
         }
-        //button.setImageResource(R.drawable.ic_hihat);
+//        button.setImageResource(R.drawable.ic_hihat);
         button.setProperties(properties);
 
         //FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(getButtonWidth(), getButtonHeight());
@@ -107,9 +127,8 @@ public class SoundChooser extends FrameLayout {
         //params.topMargin = getPaddingTop() + Math.round(getY());
         //params.leftMargin = Math.round(indexToPosX(pos)) + Math.round(getX());
 
-        button.setBackgroundColor(ContextCompat.getColor(context, R.color.colorPrimary));
-//        ColorStateList buttonTint = ContextCompat.getColorStateList(context, R.color.colorPrimary);
-//        button.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.colorPrimary));
+        // button.setBackgroundColor(ContextCompat.getColor(context, R.color.colorPrimary));
+
         button.setLayoutParams(params);
         int pad = dp_to_px(5);
         button.setPadding(pad, pad, pad, pad);

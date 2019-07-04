@@ -17,15 +17,15 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewOutlineProvider;
 
-public class SpeedPanel extends View {
+public class SpeedPanel extends ControlPanel {
 
     private Paint circlePaint;
 
     private float previous_x;
     private float previous_y;
     private int previous_speed;
-    final private int strokeWidth = dp_to_px(2);
-    final static public float innerRadiusRatio = 0.62f;
+    //final private int strokeWidth = dp_to_px(2);
+    //final static public float innerRadiusRatio = 0.62f;
     private Path pathOuterCircle = null;
 
     private boolean changingSpeed = false;
@@ -73,66 +73,66 @@ public class SpeedPanel extends View {
 
         ta.recycle();
     }
-
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-
-        //int desiredWidth = Integer.MAX_VALUE;
-        //int desiredHeight = Integer.MIN_VALUE;
-        int desiredSize = dp_to_px(200) + (Math.max(getPaddingBottom()+getPaddingTop(), getPaddingLeft()+getPaddingRight()));
-
-        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
-        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
-        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
-        int heightSize = MeasureSpec.getSize(heightMeasureSpec);
-
-        int height;
-        int width;
-
-        if(widthMode == MeasureSpec.EXACTLY && heightMode == MeasureSpec.EXACTLY){
-            width = widthSize;
-            height = heightSize;
-        }
-        else if(widthMode == MeasureSpec.EXACTLY && heightMode == MeasureSpec.AT_MOST){
-            width = widthSize;
-            height = Math.min(heightSize, widthSize);
-        }
-        else if(widthMode == MeasureSpec.AT_MOST && heightMode == MeasureSpec.EXACTLY){
-            width = Math.min(widthSize, heightSize);
-            height = heightSize;
-        }
-        else if(widthMode == MeasureSpec.EXACTLY){
-            width = widthSize;
-            //noinspection SuspiciousNameCombination
-            height = widthSize;
-        }
-        else if(heightMode == MeasureSpec.EXACTLY){
-            //noinspection SuspiciousNameCombination
-            width = heightSize;
-            height = heightSize;
-        }
-        else if(widthMode == MeasureSpec.AT_MOST && heightMode == MeasureSpec.AT_MOST){
-            int size = Math.min(desiredSize, Math.min(widthSize, heightSize));
-            width = size;
-            height = size;
-        }
-        else if(widthMode == MeasureSpec.AT_MOST){
-            int size = Math.min(desiredSize, widthSize);
-            width = size;
-            height = size;
-        }
-        else if(heightMode == MeasureSpec.AT_MOST){
-            int size = Math.min(desiredSize, heightSize);
-            width = size;
-            height = size;
-        }
-        else{
-            width = desiredSize;
-            height = desiredSize;
-        }
-
-        setMeasuredDimension(width, height);
-    }
+//
+//    @Override
+//    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+//
+//        //int desiredWidth = Integer.MAX_VALUE;
+//        //int desiredHeight = Integer.MIN_VALUE;
+//        int desiredSize = dp_to_px(200) + (Math.max(getPaddingBottom()+getPaddingTop(), getPaddingLeft()+getPaddingRight()));
+//
+//        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
+//        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
+//        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
+//        int heightSize = MeasureSpec.getSize(heightMeasureSpec);
+//
+//        int height;
+//        int width;
+//
+//        if(widthMode == MeasureSpec.EXACTLY && heightMode == MeasureSpec.EXACTLY){
+//            width = widthSize;
+//            height = heightSize;
+//        }
+//        else if(widthMode == MeasureSpec.EXACTLY && heightMode == MeasureSpec.AT_MOST){
+//            width = widthSize;
+//            height = Math.min(heightSize, widthSize);
+//        }
+//        else if(widthMode == MeasureSpec.AT_MOST && heightMode == MeasureSpec.EXACTLY){
+//            width = Math.min(widthSize, heightSize);
+//            height = heightSize;
+//        }
+//        else if(widthMode == MeasureSpec.EXACTLY){
+//            width = widthSize;
+//            //noinspection SuspiciousNameCombination
+//            height = widthSize;
+//        }
+//        else if(heightMode == MeasureSpec.EXACTLY){
+//            //noinspection SuspiciousNameCombination
+//            width = heightSize;
+//            height = heightSize;
+//        }
+//        else if(widthMode == MeasureSpec.AT_MOST && heightMode == MeasureSpec.AT_MOST){
+//            int size = Math.min(desiredSize, Math.min(widthSize, heightSize));
+//            width = size;
+//            height = size;
+//        }
+//        else if(widthMode == MeasureSpec.AT_MOST){
+//            int size = Math.min(desiredSize, widthSize);
+//            width = size;
+//            height = size;
+//        }
+//        else if(heightMode == MeasureSpec.AT_MOST){
+//            int size = Math.min(desiredSize, heightSize);
+//            width = size;
+//            height = size;
+//        }
+//        else{
+//            width = desiredSize;
+//            height = desiredSize;
+//        }
+//
+//        setMeasuredDimension(width, height);
+//    }
 
     @Override
     protected void onDraw(Canvas canvas) {
@@ -234,34 +234,34 @@ public class SpeedPanel extends View {
         speedChangedListener = listener;
     }
 
-    private int getRadius(){
-        int width = getWidth();
-        int height = getHeight();
-        int widthNoPadding = width - getPaddingRight() - getPaddingLeft();
-        int heightNoPadding = height - getPaddingTop() - getPaddingBottom();
-        return (Math.min(widthNoPadding, heightNoPadding) - strokeWidth) / 2;
-    }
-
-
-    private int getInnerRadius() {
-        return Math.round(getRadius() * innerRadiusRatio);
-    }
-
-    private int getCenterX(){
-        return getWidth() / 2;
-    }
-    private int getCenterY(){
-        return getHeight() / 2;
-    }
-
-    private float pTX(double phi, double rad) {
-        return (float) (rad * Math.cos(phi)) + getCenterX();
-    }
-    private float pTY(double phi, double rad) {
-        return (float) (rad * Math.sin(phi)) + getCenterY();
-    }
-
-    private int dp_to_px(int dp) {
-        return (int) (dp * Resources.getSystem().getDisplayMetrics().density);
-    }
+//    private int getRadius(){
+//        int width = getWidth();
+//        int height = getHeight();
+//        int widthNoPadding = width - getPaddingRight() - getPaddingLeft();
+//        int heightNoPadding = height - getPaddingTop() - getPaddingBottom();
+//        return (Math.min(widthNoPadding, heightNoPadding) - strokeWidth) / 2;
+//    }
+//
+//
+//    private int getInnerRadius() {
+//        return Math.round(getRadius() * innerRadiusRatio);
+//    }
+//
+//    private int getCenterX(){
+//        return getWidth() / 2;
+//    }
+//    private int getCenterY(){
+//        return getHeight() / 2;
+//    }
+//
+//    private float pTX(double phi, double rad) {
+//        return (float) (rad * Math.cos(phi)) + getCenterX();
+//    }
+//    private float pTY(double phi, double rad) {
+//        return (float) (rad * Math.sin(phi)) + getCenterY();
+//    }
+//
+//    private int dp_to_px(int dp) {
+//        return (int) (dp * Resources.getSystem().getDisplayMetrics().density);
+//    }
 }

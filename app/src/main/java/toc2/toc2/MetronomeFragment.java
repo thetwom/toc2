@@ -4,11 +4,15 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.preference.PreferenceManager;
+
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -248,6 +252,8 @@ public class MetronomeFragment extends Fragment {
                     playerService = binder.getService();
                     playerServiceBound = true;
                     playerContext = context;
+                    playerService.setMaximumSpeed(getMaximumSpeed());
+                    playerService.setMinimumSpeed(getMinimumSpeed());
                     playerService.registerMediaControllerCallback(mediaControllerCallback);
                     updateView(playerService.getPlaybackState(), false);
                     updateView(playerService.getSound());
@@ -275,5 +281,58 @@ public class MetronomeFragment extends Fragment {
 
     public void setOnFragmentInteractionListener(OnFragmentInteractionListener onFragmentInteractionListener){
         this.onFragmentInteractionListener = onFragmentInteractionListener;
+    }
+
+
+    int getMaximumSpeed() {
+        final int maximumSpeedDefault = 250;
+
+        FragmentActivity act = getActivity();
+        if(act == null)
+            throw new RuntimeException("No activity available");
+
+        SharedPreferences sharedPreferences =
+            PreferenceManager.getDefaultSharedPreferences(act);
+
+        String speedString = sharedPreferences.getString("maximumspeed", Integer.toString(maximumSpeedDefault));
+        if(speedString == null)
+            return maximumSpeedDefault;
+
+        try {
+            int speed = Integer.parseInt(speedString);
+            if (speed < 1)
+                return maximumSpeedDefault;
+            else
+                return speed;
+        }
+        catch(java.lang.NumberFormatException ex) {
+            return maximumSpeedDefault;
+        }
+    }
+
+    int getMinimumSpeed() {
+        final int minimumSpeedDefault = 20;
+
+        FragmentActivity act = getActivity();
+        if(act == null)
+            throw new RuntimeException("No activity available");
+
+        SharedPreferences sharedPreferences =
+            PreferenceManager.getDefaultSharedPreferences(act);
+
+        String speedString = sharedPreferences.getString("minimumspeed", Integer.toString(minimumSpeedDefault));
+        if(speedString == null)
+            return minimumSpeedDefault;
+
+        try {
+            int speed = Integer.parseInt(speedString);
+            if (speed < 1)
+                return minimumSpeedDefault;
+            else
+                return speed;
+        }
+        catch(java.lang.NumberFormatException ex) {
+            return minimumSpeedDefault;
+        }
     }
 }
