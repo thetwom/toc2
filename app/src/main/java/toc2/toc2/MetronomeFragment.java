@@ -30,7 +30,6 @@ import java.util.ArrayList;
 public class MetronomeFragment extends Fragment {
 
     private TextView speedText;
-    private SpeedPanel speedPanel;
     private PlayButton playButton;
     private SpeedIndicator speedIndicator;
     private SoundChooser soundChooser;
@@ -54,11 +53,11 @@ public class MetronomeFragment extends Fragment {
         }
     };
 
-    public interface OnFragmentInteractionListener {
-        void onSettingsClicked();
-    }
-
-    private OnFragmentInteractionListener onFragmentInteractionListener = null;
+//    public interface OnFragmentInteractionListener {
+//        void onSettingsClicked();
+//    }
+//
+//    private OnFragmentInteractionListener onFragmentInteractionListener = null;
 
 
     public MetronomeFragment() {
@@ -86,7 +85,7 @@ public class MetronomeFragment extends Fragment {
 
         speedText = view.findViewById(R.id.speedtext);
 
-        speedPanel = view.findViewById(R.id.speedpanel);
+        SpeedPanel speedPanel = view.findViewById(R.id.speedpanel);
 
         speedIndicator = view.findViewById(R.id.speedindicator);
 
@@ -122,15 +121,17 @@ public class MetronomeFragment extends Fragment {
             @Override
             public void onButtonClicked(final MoveableButton button) {
                 NavigationActivity act = (NavigationActivity) getActivity();
-                SoundChooserDialog soundChooserDialog = new SoundChooserDialog(act, button.getProperties());
-                soundChooserDialog.setNewButtonPropertiesListener(new SoundChooserDialog.NewButtonPropertiesListener() {
-                    @Override
-                    public void onNewButtonProperties(Bundle properties) {
-                        Log.v("Metronome", "Setting new button properties ");
-                        button.setProperties(properties);
-                        setNewSound(soundChooser.getSounds());
-                    }
-                });
+                assert act != null;
+                act.loadSoundChooserDialog(button, playerService);
+//                SoundChooserDialog soundChooserDialog = new SoundChooserDialog(act, button.getProperties());
+//                soundChooserDialog.setNewButtonPropertiesListener(new SoundChooserDialog.NewButtonPropertiesListener() {
+//                    @Override
+//                    public void onNewButtonProperties(Bundle properties) {
+//                        Log.v("Metronome", "Setting new button properties ");
+//                        button.setProperties(properties);
+//                        setNewSound(soundChooser.getSounds());
+//                    }
+//                });
             }
         });
 
@@ -208,7 +209,7 @@ public class MetronomeFragment extends Fragment {
         playerContext.unbindService(playerConnection);
     }
 
-    public void updateView(PlaybackStateCompat state, boolean animate){
+    private void updateView(PlaybackStateCompat state, boolean animate){
         if(state.getState() == PlaybackStateCompat.STATE_PLAYING){
             playButton.changeStatus(PlayButton.STATUS_PLAYING, animate);
         }
@@ -224,14 +225,14 @@ public class MetronomeFragment extends Fragment {
         }
     }
 
-    public void updateView(MediaMetadataCompat metadata){
+    private void updateView(MediaMetadataCompat metadata){
         String soundString = metadata.getString(MediaMetadataCompat.METADATA_KEY_TITLE);
         Log.v("Metronome", "MetronomeFragment : updateView : parsing metadata : " + soundString);
         ArrayList<Bundle> sounds = SoundProperties.parseMetaDataString(soundString);
         updateView(sounds);
     }
 
-    public void updateView(ArrayList<Bundle> playList){
+    private void updateView(ArrayList<Bundle> playList){
         soundChooser.setSounds(playList);
     }
 
@@ -278,13 +279,13 @@ public class MetronomeFragment extends Fragment {
             playerService.setSounds(sounds);
         }
     }
+//
+//    public void setOnFragmentInteractionListener(OnFragmentInteractionListener onFragmentInteractionListener){
+//        this.onFragmentInteractionListener = onFragmentInteractionListener;
+//    }
 
-    public void setOnFragmentInteractionListener(OnFragmentInteractionListener onFragmentInteractionListener){
-        this.onFragmentInteractionListener = onFragmentInteractionListener;
-    }
 
-
-    int getMaximumSpeed() {
+    private int getMaximumSpeed() {
         final int maximumSpeedDefault = 250;
 
         FragmentActivity act = getActivity();
@@ -310,7 +311,7 @@ public class MetronomeFragment extends Fragment {
         }
     }
 
-    int getMinimumSpeed() {
+    private int getMinimumSpeed() {
         final int minimumSpeedDefault = 20;
 
         FragmentActivity act = getActivity();

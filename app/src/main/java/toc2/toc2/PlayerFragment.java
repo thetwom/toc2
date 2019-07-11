@@ -50,6 +50,7 @@ public class PlayerFragment extends Fragment {
             SharedPreferences preferences = context.getPreferences(Context.MODE_PRIVATE);
             speed = preferences.getInt("speed", NavigationActivity.SPEED_INITIAL);
             String soundString = preferences.getString("sound", "0");
+            assert soundString != null;
             playList = SoundProperties.parseMetaDataString(soundString);
             if(playList.isEmpty()){
                 initializePlayList();
@@ -103,11 +104,6 @@ public class PlayerFragment extends Fragment {
     public void onResume() {
         Log.v("Metronome", "PlayerFragment:onResume");
         super.onResume();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
     }
 
     @Override

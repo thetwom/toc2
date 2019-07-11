@@ -95,5 +95,5 @@
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         tools:layout_conversion_wrapHeight="183"
-        tools:layout_conversion_wrapWidth="1920"></toc2.toc2.SoundChooser>
+        tools:layout_conversion_wrapWidth="1920" />
 </androidx.constraintlayout.widget.ConstraintLayout>

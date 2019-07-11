@@ -1,12 +1,14 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
+    <!-- <style name="AppTheme" parent="Theme.MaterialComponents.Light.DarkActionBar"> -->
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
         <!-- Customize your theme here. -->
 
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorSecondary">@color/colorSecondary</item>
         <item name="colorOnPrimary">@color/myColorOnPrimary</item>
+        <item name="android:colorBackground">@color/colorMyBackground</item>
     </style>
 
 

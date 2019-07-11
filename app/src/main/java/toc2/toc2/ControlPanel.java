@@ -2,22 +2,12 @@ package toc2.toc2;
 
 import android.content.Context;
 import android.content.res.Resources;
-import android.content.res.TypedArray;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Outline;
-import android.graphics.Paint;
-import android.graphics.Path;
 import android.util.AttributeSet;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewOutlineProvider;
-
-import androidx.annotation.Nullable;
 
 public class ControlPanel extends View {
 
-    final static public float innerRadiusRatio = 0.62f;
+    private final static float innerRadiusRatio = 0.62f;
 
     public ControlPanel(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -83,7 +73,7 @@ public class ControlPanel extends View {
         setMeasuredDimension(width, height);
     }
 
-    public int getRadius(){
+    int getRadius(){
         int width = getWidth();
         int height = getHeight();
         int widthNoPadding = width - getPaddingRight() - getPaddingLeft();
@@ -91,25 +81,25 @@ public class ControlPanel extends View {
         return Math.min(widthNoPadding, heightNoPadding) / 2;
     }
 
-    public int getInnerRadius() {
+    int getInnerRadius() {
         return Math.round(getRadius() * innerRadiusRatio);
     }
 
-    public int getCenterX(){
+    int getCenterX(){
         return getWidth() / 2;
     }
-    public int getCenterY(){
+    int getCenterY(){
         return getHeight() / 2;
     }
 
-    public float pTX(double phi, double rad) {
+    float pTX(double phi, double rad) {
         return (float) (rad * Math.cos(phi)) + getCenterX();
     }
-    public float pTY(double phi, double rad) {
+    float pTY(double phi, double rad) {
         return (float) (rad * Math.sin(phi)) + getCenterY();
     }
 
-    public int dp_to_px(int dp) {
+    int dp_to_px(int dp) {
         return (int) (dp * Resources.getSystem().getDisplayMetrics().density);
     }
 }

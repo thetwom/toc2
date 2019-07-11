@@ -53,7 +53,9 @@ final class Sounds {
         return sounds[id].iconID;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     static boolean isMute(int id) {
+        //noinspection RedundantIfStatement
         if(sounds[id].iconID == R.drawable.ic_quarter_pause)
             return true;
         return false;

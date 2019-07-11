@@ -4,9 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".NavigationActivity">
-    <!--tools:context=".MetronomeFragment"> -->
-
+    tools:context=".MetronomeFragment">
+    <!--tools:context=".NavigationActivity"-->
     <toc2.toc2.SpeedPanel
         android:id="@+id/speedpanel"
         android:layout_width="0dp"
@@ -15,15 +14,17 @@
         android:layout_centerVertical="true"
         android:layout_gravity="center"
         android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp"
         android:layout_marginRight="8dp"
+        android:layout_marginBottom="8dp"
         android:elevation="8dp"
         android:padding="10dp"
         app:highlightColor="?attr/colorSecondary"
         app:labelColor="?attr/colorOnBackground"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/soundchooser"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/speedtext"
         app:normalColor="?attr/colorBackgroundFloating"
         tools:layout_conversion_wrapHeight="577"
         tools:layout_conversion_wrapWidth="577" />
@@ -69,13 +70,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
         android:text="SPEED"
         android:textSize="30sp"
-        app:layout_constraintBottom_toTopOf="@+id/speedpanel"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.495"
         tools:layout_conversion_wrapHeight="108"
         tools:layout_conversion_wrapWidth="239" />
 
@@ -87,14 +89,14 @@
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
         app:highlightColor="?attr/colorSecondary"
-        app:normalColor="?attr/colorBackgroundFloating"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:normalColor="?attr/colorBackgroundFloating"
         tools:layout_conversion_wrapHeight="199"
-        tools:layout_conversion_wrapWidth="1064"></toc2.toc2.SoundChooser>
+        tools:layout_conversion_wrapWidth="1064" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -24,8 +24,8 @@ public class SoundChooser extends FrameLayout {
 
     final private Context context;
 
-    private int spacing = dp_to_px(2);
-    private int defaultButtonHeight = dp_to_px(70);
+    private final int spacing = dp_to_px(2);
+    private final int defaultButtonHeight = dp_to_px(70);
 
     final private ArrayList<MoveableButton> buttons = new ArrayList<>();
     private ImageButton plusButton;
@@ -350,7 +350,7 @@ public class SoundChooser extends FrameLayout {
         this.soundChangedListener = soundChangedListener;
     }
 
-    public ArrayList<Bundle> getSounds() {
+    private ArrayList<Bundle> getSounds() {
         ArrayList<Bundle> sounds = new ArrayList<>();
         for(MoveableButton b : buttons)
             sounds.add(b.getProperties());

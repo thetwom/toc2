@@ -5,19 +5,14 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
 import androidx.preference.CheckBoxPreference;
 import androidx.preference.EditTextPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
-import androidx.preference.PreferenceManager;
 import androidx.preference.SwitchPreferenceCompat;
 
 import android.os.IBinder;
@@ -33,7 +28,7 @@ import android.widget.Toast;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class SettingsFragment extends PreferenceFragmentCompat { // implements SharedPreferences.OnSharedPreferenceChangeListener {
+class SettingsFragment extends PreferenceFragmentCompat { // implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     private boolean playerServiceBound = false;
     private ServiceConnection playerConnection = null;
@@ -199,7 +194,7 @@ public class SettingsFragment extends PreferenceFragmentCompat { // implements S
         }
     }
 
-    void unbindPlayerService() {
+    private void unbindPlayerService() {
         playerServiceBound = false;
         playerContext.unbindService(playerConnection);
     }

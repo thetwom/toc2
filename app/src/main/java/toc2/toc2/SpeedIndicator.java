@@ -1,20 +1,13 @@
 package toc2.toc2;
 
-import android.animation.TimeInterpolator;
 import android.animation.ValueAnimator;
 import android.content.Context;
-import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Outline;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewOutlineProvider;
 import android.view.animation.LinearInterpolator;
 
 import androidx.annotation.Nullable;
@@ -31,7 +24,7 @@ public class SpeedIndicator extends ControlPanel {
 
     private boolean stopped = true;
     private float position = 0.0f;
-    private int nPoints = 12;
+    private final int nPoints = 12;
     private float speed = 100.0f;
 
     private final ValueAnimator animatePosition = ValueAnimator.ofFloat(0.0f, 360.0f / nPoints);

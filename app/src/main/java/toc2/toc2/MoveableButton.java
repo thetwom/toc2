@@ -3,11 +3,11 @@ package toc2.toc2;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.Resources;
-import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Outline;
 import android.graphics.Paint;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import androidx.dynamicanimation.animation.DynamicAnimation;
 import androidx.dynamicanimation.animation.SpringAnimation;
@@ -15,26 +15,24 @@ import androidx.dynamicanimation.animation.SpringForce;
 import androidx.core.content.ContextCompat;
 import androidx.appcompat.widget.AppCompatImageButton;
 
-import android.util.AttributeSet;
 import android.util.Log;
-import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
+import android.view.animation.LinearInterpolator;
 
 public class MoveableButton extends AppCompatImageButton {
-//public class MoveableButton extends MaterialButton {
-//public class MoveableButton extends View {
-    private Paint volumePaint;
-    private int volumeColor;
 
-    private Paint backgroundPaint;
-    private int normalColor;
-    private int highlightColor;
+    private final Paint volumePaint;
+    private final int volumeColor;
+
+    private final Paint backgroundPaint;
+    private final int normalColor;
+    private final int highlightColor;
     private int buttonColor;
 
-    private int cornerRadius = dp_to_px(4);
+    private final int cornerRadius = dp_to_px(4);
 
     private float posX = 0;
     private float posY = 0;
@@ -42,7 +40,11 @@ public class MoveableButton extends AppCompatImageButton {
     private float dXstart;
     private float dYstart;
 
+    private float rippleStatus = 1;
+
     private boolean isMoving = false;
+
+    private Drawable icon = null;
 
     private final Bundle properties = new Bundle();
 
@@ -55,7 +57,8 @@ public class MoveableButton extends AppCompatImageButton {
                  .setDampingRatio(SpringForce.DAMPING_RATIO_LOW_BOUNCY)
                  .setStiffness(SpringForce.STIFFNESS_HIGH));
 
-    private ValueAnimator colorAnimation;
+    private final ValueAnimator colorAnimation;
+    private final ValueAnimator rippleAnimation;
 //            ContextCompat.getColor(getContext(), normalColor),
 //            ContextCompat.getColor(getContext(), highlightColor),
 //            ContextCompat.getColor(getContext(), normalColor));
@@ -72,39 +75,25 @@ public class MoveableButton extends AppCompatImageButton {
     private PositionChangedListener positionChangedListener = null;
 
     private OnClickListener onClickListener = null;
-    private final GestureDetector mTapDetector;
-
-    private class GestureTap extends GestureDetector.SimpleOnGestureListener {
-
-        @Override
-        public boolean onSingleTapConfirmed(MotionEvent e) {
-            Log.v("testlayout", "Button clicked");
-            animateColor();
-            if(onClickListener != null) {
-                onClickListener.onClick(MoveableButton.this);
-                return true;
-            }
-            return false;
-        }
-    }
-
-    private ViewOutlineProvider outlineProvider = new ViewOutlineProvider() {
-        @Override
-        public void getOutline(View view, Outline outline) {
-            outline.setRoundRect(0, 0, getWidth(), getHeight(), cornerRadius);
-        }
-    };
 
 
     MoveableButton(Context context, int normalColor, int highlightColor){
         super(context);
 
+        ViewOutlineProvider outlineProvider = new ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, Outline outline) {
+                outline.setRoundRect(0, 0, getWidth(), getHeight(), cornerRadius);
+            }
+        };
         setOutlineProvider(outlineProvider);
         this.normalColor = normalColor;
         this.highlightColor = highlightColor;
         this.buttonColor = normalColor;
 
         colorAnimation = ValueAnimator.ofArgb(normalColor, highlightColor, normalColor);
+        rippleAnimation = ValueAnimator.ofFloat(0, 1);
+        rippleAnimation.setInterpolator(new LinearInterpolator());
 
         volumePaint = new Paint();
         volumePaint.setAntiAlias(true);
@@ -128,16 +117,24 @@ public class MoveableButton extends AppCompatImageButton {
             }
         });
 
-        mTapDetector = new GestureDetector(context, new GestureTap());
+        rippleAnimation.setDuration(100);
+        rippleAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                rippleStatus = (float) animation.getAnimatedValue();
+                invalidate();
+            }
+        });
+//        mTapDetector = new GestureDetector(context, new GestureTap());
 
         setOnTouchListener(new OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 int action = event.getActionMasked();
-
-                boolean clicked = mTapDetector.onTouchEvent(event);
-                if(clicked)
-                    v.performClick();
+//
+//                boolean clicked = mTapDetector.onTouchEvent(event);
+//                if(clicked)
+//                    v.performClick();
 
                 switch(action){
                     case MotionEvent.ACTION_DOWN:
@@ -145,6 +142,10 @@ public class MoveableButton extends AppCompatImageButton {
                         posY = v.getY();
                         dXstart = v.getX() - event.getRawX();
                         dYstart = v.getY() - event.getRawY();
+                        rippleStatus = 0;
+                        Log.v("Metronome", "pos: " + (-dXstart) + " " + (-dYstart));
+                        invalidate();
+                        isMoving = false;
                         break;
                     case MotionEvent.ACTION_MOVE:
                         float newX = event.getRawX() + dXstart;
@@ -171,6 +172,7 @@ public class MoveableButton extends AppCompatImageButton {
                         }
                         break;
                     case MotionEvent.ACTION_UP:
+                        rippleAnimation.start();
                         if(isMoving) {
                             isMoving = false;
 //                            setElevation(2);
@@ -180,13 +182,18 @@ public class MoveableButton extends AppCompatImageButton {
                             if (positionChangedListener != null)
                                 positionChangedListener.onEndMoving(MoveableButton.this, getX(), getY());
                         }
+                        else {
+                            if(onClickListener != null)
+                                onClickListener.onClick(v);
+//                            animateColor();
+                            v.performClick();
+                        }
                         break;
                 }
 
-                return false;
+                return true;
             }
         });
-
     }
 
     @Override
@@ -228,23 +235,35 @@ public class MoveableButton extends AppCompatImageButton {
 
     public void animateColor() {
         colorAnimation.start();
-        //buttonColor = highlightColor;
-        //invalidate();
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
 
+        backgroundPaint.setAlpha(1000);
         backgroundPaint.setColor(buttonColor);
         backgroundPaint.setStyle(Paint.Style.FILL);
         canvas.drawRoundRect(0, 0, getWidth(), getHeight(), cornerRadius, cornerRadius, backgroundPaint);
-//        super.onDraw(canvas);
+
         volumePaint.setColor(volumeColor);
         volumePaint.setStyle(Paint.Style.FILL);
         float volume = properties.getFloat("volume", 1.0f);
-        canvas.drawRect(getWidth()-dp_to_px(2),(getHeight()-2*cornerRadius)*(1.0f-volume)+cornerRadius,getWidth(),getHeight()-cornerRadius, volumePaint);
+        canvas.drawRect(getWidth()-dp_to_px(2),(getHeight()-2*cornerRadius)*(1.0f-volume)+cornerRadius,getWidth(),
+                getHeight()-cornerRadius, volumePaint);
+
+        if(icon != null) {
+            icon.setBounds(Math.round(getWidth()/2.0f-getHeight()/2.0f), 0,
+                    Math.round(getWidth()/2.0f + getHeight()/2.0f), Math.round(getHeight()));
+            icon.draw(canvas);
+        }
 
         super.onDraw(canvas);
+
+        if(rippleStatus < 1){
+            backgroundPaint.setColor(Color.BLACK);
+            backgroundPaint.setAlpha(Math.round((1-rippleStatus) * 100));
+            canvas.drawCircle(-dXstart, -dYstart-getHeight(), dp_to_px(30) + rippleStatus*getWidth(), backgroundPaint);
+        }
     }
 
     public void highlight(boolean value){
@@ -260,9 +279,9 @@ public class MoveableButton extends AppCompatImageButton {
     }
 
     public void setProperties(Bundle newProperties) {
+
         properties.putAll(newProperties);
-        setImageResource(Sounds.getIconID(properties.getInt("soundid", 0)));
-       // setIcon(Sounds.getIconID(properties.getInt("soundid", 0)));
+        icon = ContextCompat.getDrawable(getContext(), Sounds.getIconID(properties.getInt("soundid", 0)));
 
         invalidate();
         Log.v("Metronome", "Setting new button properties " + properties.getFloat("volume",-1));

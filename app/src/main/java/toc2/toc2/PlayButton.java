@@ -2,7 +2,6 @@ package toc2.toc2;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
-import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -34,16 +33,6 @@ public class PlayButton extends ControlPanel {
     private int highlightColor;
     private int normalColor;
     private int labelColor;
-
-    private ViewOutlineProvider outlineProvider = new ViewOutlineProvider() {
-        @Override
-        public void getOutline(View view, Outline outline) {
-            int radius = getInnerRadius();
-            int cx = getCenterX();
-            int cy = getCenterY();
-            outline.setOval(cx-radius, cy-radius, cx+radius, cy+radius);
-        }
-    };
 
     public interface ButtonClickedListener {
         //void onButtonClicked();
@@ -81,6 +70,15 @@ public class PlayButton extends ControlPanel {
             }
         });
 
+        ViewOutlineProvider outlineProvider = new ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, Outline outline) {
+                int radius = getInnerRadius();
+                int cx = getCenterX();
+                int cy = getCenterY();
+                outline.setOval(cx - radius, cy - radius, cx + radius, cy + radius);
+            }
+        };
         setOutlineProvider(outlineProvider);
     }
 
@@ -190,10 +188,8 @@ public class PlayButton extends ControlPanel {
         float x = event.getX() - getCenterX();
         float y = event.getY() - getCenterY();
 
-        int radius = getRadius();
         int innerRadius = getInnerRadius();
-        float circum = getRadius() * (float)Math.PI;
-        float factor = 20.0f;
+
         int radiusXY = (int) Math.round(Math.sqrt(x*x + y*y));
 
         switch(action) {
@@ -269,8 +265,10 @@ public class PlayButton extends ControlPanel {
         invalidate();
     }
 
-    public int getStatus(){
-        return buttonStatus;
-    }
+// --Commented out by Inspection START (11.07.19 20:38):
+//    public int getStatus(){
+//        return buttonStatus;
+//    }
+// --Commented out by Inspection STOP (11.07.19 20:38)
 
 }

@@ -1,8 +1,6 @@
 package toc2.toc2;
 
-import android.animation.ValueAnimator;
 import android.content.Context;
-import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -12,7 +10,6 @@ import android.graphics.Path;
 import androidx.annotation.Nullable;
 
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewOutlineProvider;
@@ -34,16 +31,6 @@ public class SpeedPanel extends ControlPanel {
     private int normalColor;
     private int labelColor;
 
-    private ViewOutlineProvider outlineProvider = new ViewOutlineProvider() {
-        @Override
-        public void getOutline(View view, Outline outline) {
-            int radius = getRadius();
-            int cx = getCenterX();
-            int cy = getCenterY();
-            outline.setOval(cx-radius, cy-radius, cx+radius, cy+radius);
-        }
-    };
-
     public interface SpeedChangedListener {
         void onSpeedChanged(int speed);
     }
@@ -56,6 +43,15 @@ public class SpeedPanel extends ControlPanel {
         init(context, attrs);
         speedChangedListener = null;
 
+        ViewOutlineProvider outlineProvider = new ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, Outline outline) {
+                int radius = getRadius();
+                int cx = getCenterX();
+                int cy = getCenterY();
+                outline.setOval(cx - radius, cy - radius, cx + radius, cy + radius);
+            }
+        };
         setOutlineProvider(outlineProvider);
     }
 
@@ -73,66 +69,6 @@ public class SpeedPanel extends ControlPanel {
 
         ta.recycle();
     }
-//
-//    @Override
-//    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-//
-//        //int desiredWidth = Integer.MAX_VALUE;
-//        //int desiredHeight = Integer.MIN_VALUE;
-//        int desiredSize = dp_to_px(200) + (Math.max(getPaddingBottom()+getPaddingTop(), getPaddingLeft()+getPaddingRight()));
-//
-//        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
-//        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
-//        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
-//        int heightSize = MeasureSpec.getSize(heightMeasureSpec);
-//
-//        int height;
-//        int width;
-//
-//        if(widthMode == MeasureSpec.EXACTLY && heightMode == MeasureSpec.EXACTLY){
-//            width = widthSize;
-//            height = heightSize;
-//        }
-//        else if(widthMode == MeasureSpec.EXACTLY && heightMode == MeasureSpec.AT_MOST){
-//            width = widthSize;
-//            height = Math.min(heightSize, widthSize);
-//        }
-//        else if(widthMode == MeasureSpec.AT_MOST && heightMode == MeasureSpec.EXACTLY){
-//            width = Math.min(widthSize, heightSize);
-//            height = heightSize;
-//        }
-//        else if(widthMode == MeasureSpec.EXACTLY){
-//            width = widthSize;
-//            //noinspection SuspiciousNameCombination
-//            height = widthSize;
-//        }
-//        else if(heightMode == MeasureSpec.EXACTLY){
-//            //noinspection SuspiciousNameCombination
-//            width = heightSize;
-//            height = heightSize;
-//        }
-//        else if(widthMode == MeasureSpec.AT_MOST && heightMode == MeasureSpec.AT_MOST){
-//            int size = Math.min(desiredSize, Math.min(widthSize, heightSize));
-//            width = size;
-//            height = size;
-//        }
-//        else if(widthMode == MeasureSpec.AT_MOST){
-//            int size = Math.min(desiredSize, widthSize);
-//            width = size;
-//            height = size;
-//        }
-//        else if(heightMode == MeasureSpec.AT_MOST){
-//            int size = Math.min(desiredSize, heightSize);
-//            width = size;
-//            height = size;
-//        }
-//        else{
-//            width = desiredSize;
-//            height = desiredSize;
-//        }
-//
-//        setMeasuredDimension(width, height);
-//    }
 
     @Override
     protected void onDraw(Canvas canvas) {
@@ -168,18 +104,38 @@ public class SpeedPanel extends ControlPanel {
             circlePaint.setColor(labelColor);
         }
         circlePaint.setStyle(Paint.Style.STROKE);
-        float growthFactor = 1.06f;
+        float growthFactor = 1.1f;
         float speedRad = 0.5f* (radius + innerRadius);
-        circlePaint.setStrokeWidth(0.3f * (radius-innerRadius));
-        float angle = -5.0f;
-        float angleMin = -175.0f;
-        float dAngle = 5.5f;
+        float strokeWidth = 0.3f * (radius - innerRadius);
+        circlePaint.setStrokeWidth(strokeWidth);
+        float angleMax  = -50.0f;
+        float angleMin = -130.0f;
+        float dAngle = 3.0f;
 
+        float angle = angleMax -dAngle + 2.0f;
         while (angle >= angleMin) {
             canvas.drawArc(cx - speedRad, cy - speedRad, cx + speedRad, cy + speedRad, angle, -2f, false, circlePaint);
             dAngle *= growthFactor;
             angle -= dAngle;
         }
+
+        circlePaint.setStyle(Paint.Style.FILL);
+
+        float radArrI = speedRad - 0.5f * strokeWidth;
+        float radArrO = speedRad + 0.5f * strokeWidth;
+        double angleMinRad = angleMin * Math.PI / 180.0f;
+        double dArrAngle = strokeWidth / speedRad;
+        pathOuterCircle.moveTo(cx + radArrI * (float) Math.cos(angleMinRad), cy + radArrI * (float) Math.sin(angleMinRad));
+        pathOuterCircle.lineTo(cx + radArrO * (float) Math.cos(angleMinRad), cy + radArrO * (float) Math.sin(angleMinRad));
+        pathOuterCircle.lineTo(cx + speedRad * (float) Math.cos(angleMinRad-dArrAngle), cy + speedRad * (float) Math.sin(angleMinRad-dArrAngle));
+        canvas.drawPath(pathOuterCircle, circlePaint);
+        pathOuterCircle.rewind();
+
+        double angleMaxRad = angleMax * Math.PI / 180.0f;
+        pathOuterCircle.moveTo(cx + radArrI * (float) Math.cos(angleMaxRad), cy + radArrI * (float) Math.sin(angleMaxRad));
+        pathOuterCircle.lineTo(cx + radArrO * (float) Math.cos(angleMaxRad), cy + radArrO * (float) Math.sin(angleMaxRad));
+        pathOuterCircle.lineTo(cx + speedRad * (float) Math.cos(angleMaxRad+dArrAngle), cy + speedRad * (float) Math.sin(angleMaxRad+dArrAngle));
+        canvas.drawPath(pathOuterCircle, circlePaint);
     }
 
     @Override

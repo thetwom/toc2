@@ -4,7 +4,7 @@ import android.os.Bundle;
 
 import java.util.ArrayList;
 
-public class SoundProperties {
+class SoundProperties {
 
     static public ArrayList<Bundle> parseMetaDataString(String data){
         String[] elements = data.split("\\s");
@@ -31,9 +31,11 @@ public class SoundProperties {
         return mdata.toString();
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     static public boolean equal(Bundle sound1, Bundle sound2) {
         if(Math.abs(sound1.getFloat("volume", 1.0f) - sound2.getFloat("volume", 1.0f)) > 1e-3)
             return false;
+        //noinspection RedundantIfStatement
         if(sound1.getInt("soundid", 0) != sound2.getInt("soundid",0))
             return false;
         return true;

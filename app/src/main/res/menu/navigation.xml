@@ -10,4 +10,11 @@
         android:title="@string/action_settings"
         android:icon="@drawable/ic_settings"
         app:showAsAction="ifRoom" />
+
+    <!--<item-->
+        <!--android:id="@+id/test_setting"-->
+        <!--android:orderInCategory="99"-->
+        <!--android:title="Test setting"-->
+        <!--android:icon="@drawable/ic_add"-->
+        <!--app:showAsAction="ifRoom" />-->
 </menu>
