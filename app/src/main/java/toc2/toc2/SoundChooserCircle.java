@@ -181,6 +181,8 @@ public class SoundChooserCircle extends FrameLayout {
             button.setTranslationX(bcx - buttonSize / 2.0f);
             button.setTranslationY(bcy - buttonSize / 2.0f);
 
+            button.setLockPosition(true);
+
             buttons.add(button);
         }
         setActiveSoundID(currentSoundID);

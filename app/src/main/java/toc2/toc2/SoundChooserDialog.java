@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,7 +14,7 @@ import androidx.fragment.app.Fragment;
 
 import com.google.android.material.button.MaterialButton;
 
-class SoundChooserDialogNew extends Fragment implements View.OnClickListener {
+class SoundChooserDialog extends Fragment implements View.OnClickListener {
 
     private MoveableButton activeButton = null;
     private PlayerService playerService = null;
@@ -21,8 +22,6 @@ class SoundChooserDialogNew extends Fragment implements View.OnClickListener {
     private SoundChooserCircle soundChooserCircle = null;
 
     private VolumeControl volumeControl = null;
-//    private int normalButtonColor = Color.BLACK;
-//    private int highlightButtonColor = Color.GRAY;
 
     interface OnBackgroundClickedListener{
         void onClick();
@@ -31,20 +30,18 @@ class SoundChooserDialogNew extends Fragment implements View.OnClickListener {
 
     private OnBackgroundClickedListener onBackgroundClickedListener = null;
 
-//    @Override
-//    public void onInflate(@NonNull Context context, @NonNull AttributeSet attrs, @Nullable Bundle savedInstanceState) {
-//        super.onInflate(context, attrs, savedInstanceState);
-//        readAttributes(attrs);
-//    }
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         final View view =inflater.inflate(R.layout.sound_chooser_dialog_new, container, false);
 
-        Log.v("Metronome", "SoundChooserDialogNew.onCreateView");
-//        TextView backgroundView = view.findViewById(R.id.soundchooserbackground);
-//        backgroundView.setOnClickListener(this);
+        Log.v("Metronome", "SoundChooserDialog.onCreateView");
+        TextView backgroundView = view.findViewById(R.id.soundchooserbackground);
+        backgroundView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+            }
+        });
 
         MaterialButton okButton = view.findViewById(R.id.okbutton);
         okButton.setOnClickListener(this);
@@ -84,59 +81,6 @@ class SoundChooserDialogNew extends Fragment implements View.OnClickListener {
         setStatus(activeButton, playerService);
         return view;
     }
-
-//    @Override
-//    public void onResume() {
-//        super.onResume();
-//
-//        getView().post(new Runnable() {
-//            @Override
-//            public void run() {
-//                init();
-//            }
-//        });
-//    }
-
-//    private void init() {
-//        FragmentActivity act = getActivity();
-//        View view = getView();
-//
-//        final int buttonSize = dp_to_px(100);
-//        float cx = view.getWidth() / 2.0f;
-//        float cy = view.getHeight() / 2.0f;
-//
-//        MoveableButton button = new MoveableButton(act, normalButtonColor, highlightButtonColor);
-//
-//        Bundle properties;
-//        properties = new Bundle();
-//        properties.putFloat("volume", 1.0f);
-//        properties.putInt("soundid", 0);
-//        button.setScaleType(ImageView.ScaleType.FIT_CENTER);
-//        button.setProperties(properties);
-//        ViewGroup.MarginLayoutParams params = new ViewGroup.MarginLayoutParams(buttonSize, buttonSize);
-//        button.setLayoutParams(params);
-//        button.setElevation(24);
-//        ConstraintLayout layout = view.findViewById(R.id.soundchooserndialogewlayout);
-//
-//        layout.addView(button);
-//
-//        button.setTranslationX(cx-buttonSize/2.0f);
-//        button.setTranslationY(cy-buttonSize/2.0f);
-//    }
-
-
-//    private void readAttributes(AttributeSet attrs){
-//        if(attrs == null)
-//            return;
-//
-//        TypedArray ta = getContext().obtainStyledAttributes(attrs, R.styleable.SoundChooserDialogNew);
-//        highlightButtonColor = ta.getColor(R.styleable.SoundChooserDialogNew_highlightColor, Color.BLUE);
-//        normalButtonColor = ta.getColor(R.styleable.SoundChooserDialogNew_normalColor, Color.BLACK);
-//
-//        ta.recycle();
-//    }
-
-
 
     @Override
     public void onClick(View v) {

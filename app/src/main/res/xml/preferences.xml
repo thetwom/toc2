@@ -1,19 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.preference.PreferenceScreen
-     xmlns:app="http://schemas.android.com/apk/res-auto">
+<androidx.preference.PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <ListPreference
+      app:key="appearance"
+      app:title="Appearance"
+      android:entries="@array/appearanceList"
+      android:entryValues="@array/appearanceValues"
+        android:dialogTitle="Appearance"
+        android:defaultValue="auto"
+    />
 
-    <SwitchPreferenceCompat
-        app:key="manualtheme"
-        app:title="Manual theme setting"
-        />
-
-    <SwitchPreferenceCompat
-        app:key="darktheme"
-        app:title="Use dark theme"
-        app:dependency="manualtheme"
-
-        />
     <!--app:isPreferenceVisible="false"-->
 
     <EditTextPreference

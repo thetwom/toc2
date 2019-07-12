@@ -8,9 +8,12 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.preference.CheckBoxPreference;
 import androidx.preference.EditTextPreference;
+import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreferenceCompat;
@@ -19,6 +22,8 @@ import android.os.IBinder;
 import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -36,34 +41,38 @@ class SettingsFragment extends PreferenceFragmentCompat { // implements SharedPr
     private Context playerContext = null;
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+
+    @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.preferences, rootKey);
     }
 
     @Override
+    public void onPrepareOptionsMenu(@NonNull Menu menu) {
+//        super.onPrepareOptionsMenu(menu);
+        MenuItem settingsItem = menu.findItem(R.id.action_properties);
+        if(settingsItem != null)
+            settingsItem.setVisible(false);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        final SwitchPreferenceCompat manualThemeSwitch = findPreference("manualtheme");
-        if(manualThemeSwitch == null)
-            throw new RuntimeException("No manual theme switch");
-        manualThemeSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                Log.v("Metronome", "onPreferenceChagnes bublabjasd");
-                NavigationActivity act = (NavigationActivity) getActivity();
-                if(act != null)
-                    act.recreate();
-                return true;
-            }
-        });
+        final ListPreference appearance = findPreference("appearance");
 
-        final SwitchPreferenceCompat darkThemeSwitch = findPreference("darktheme");
-        if(darkThemeSwitch == null)
-            throw new RuntimeException("No dark theme switch");
-        darkThemeSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+        if(appearance == null)
+            throw new RuntimeException("No appearance preference");
+
+        appearance.setSummary(getAppearanceSummary());
+        appearance.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 NavigationActivity act = (NavigationActivity) getActivity();
+                appearance.setSummary(getAppearanceSummary());
                 if(act != null)
                     act.recreate();
                 return true;
@@ -136,9 +145,8 @@ class SettingsFragment extends PreferenceFragmentCompat { // implements SharedPr
                 minimumSpeed.getOnPreferenceChangeListener().onPreferenceChange(minimumSpeed, "20");
                 maximumSpeed.setText("250");
                 maximumSpeed.getOnPreferenceChangeListener().onPreferenceChange(maximumSpeed, "250");
-                darkThemeSwitch.setChecked(false);
-                manualThemeSwitch.setChecked(false);
-                manualThemeSwitch.getOnPreferenceChangeListener().onPreferenceChange(manualThemeSwitch, false);
+                appearance.setValue("auto");
+                appearance.getOnPreferenceChangeListener().onPreferenceChange(appearance, "auto");
 
                 return false;
             }
@@ -199,7 +207,20 @@ class SettingsFragment extends PreferenceFragmentCompat { // implements SharedPr
         playerContext.unbindService(playerConnection);
     }
 
-
+    private String getAppearanceSummary() {
+        final ListPreference listPreference = findPreference("appearance");
+        assert listPreference != null;
+        String state = listPreference.getValue();
+        if(state.equals("auto"))
+            return "Appearance follows system settings";
+        else if(state.equals("dark")){
+            return "Dark appearance";
+        }
+        else if(state.equals("light")){
+            return "Light appearance";
+        }
+        throw new RuntimeException("No summary for given appearance value");
+    }
     //    @Override
 //    public void onResume() {
 //        //super.onResume();

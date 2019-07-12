@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="appearanceList">
+        <item>"auto"</item>
+        <item>"dark"</item>
+        <item>"light"</item>
+    </string-array>
+
+    <string-array name="appearanceValues">
+        <item>"auto"</item>
+        <item>"dark"</item>
+        <item>"light"</item>
+    </string-array>
+</resources>

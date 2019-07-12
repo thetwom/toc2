@@ -44,6 +44,8 @@ public class MoveableButton extends AppCompatImageButton {
 
     private boolean isMoving = false;
 
+    private boolean lockPosition = false;
+
     private Drawable icon = null;
 
     private final Bundle properties = new Bundle();
@@ -143,7 +145,6 @@ public class MoveableButton extends AppCompatImageButton {
                         dXstart = v.getX() - event.getRawX();
                         dYstart = v.getY() - event.getRawY();
                         rippleStatus = 0;
-                        Log.v("Metronome", "pos: " + (-dXstart) + " " + (-dYstart));
                         invalidate();
                         isMoving = false;
                         break;
@@ -162,7 +163,12 @@ public class MoveableButton extends AppCompatImageButton {
                             float dx = posX - newX;
                             float dy = posY - newY;
                             final float resistanceDist = dp_to_px(10);
-                            if (dx * dx + dy * dy > resistanceDist * resistanceDist) {
+                            if(lockPosition){
+                                dXstart = v.getX() - event.getRawX();
+                                dYstart = v.getY() - event.getRawY();
+                                invalidate();
+                            }
+                            else if (dx * dx + dy * dy > resistanceDist * resistanceDist) {
                                 isMoving = true;
 //                                setElevation(10);
                                 setTranslationZ(dp_to_px(4));
@@ -183,10 +189,15 @@ public class MoveableButton extends AppCompatImageButton {
                                 positionChangedListener.onEndMoving(MoveableButton.this, getX(), getY());
                         }
                         else {
-                            if(onClickListener != null)
-                                onClickListener.onClick(v);
+                            float relX = -v.getX() + event.getRawX();
+                            float relY = -v.getY() + event.getRawY() - getHeight();
+
+                            if(relX > 0 && relX < getWidth() && relY > 0 && relY < getHeight()) {
+                                if (onClickListener != null)
+                                    onClickListener.onClick(v);
 //                            animateColor();
-                            v.performClick();
+                                v.performClick();
+                            }
                         }
                         break;
                 }
@@ -285,6 +296,10 @@ public class MoveableButton extends AppCompatImageButton {
 
         invalidate();
         Log.v("Metronome", "Setting new button properties " + properties.getFloat("volume",-1));
+    }
+
+    void setLockPosition(boolean lock){
+        lockPosition = lock;
     }
 
     private int dp_to_px(int dp) {
