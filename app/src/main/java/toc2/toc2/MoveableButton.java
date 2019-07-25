@@ -2,7 +2,6 @@ package toc2.toc2;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Outline;
@@ -13,16 +12,15 @@ import androidx.dynamicanimation.animation.DynamicAnimation;
 import androidx.dynamicanimation.animation.SpringAnimation;
 import androidx.dynamicanimation.animation.SpringForce;
 import androidx.core.content.ContextCompat;
-import androidx.appcompat.widget.AppCompatImageButton;
 
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
 import android.view.animation.LinearInterpolator;
 
-public class MoveableButton extends AppCompatImageButton {
+//public class MoveableButton extends AppCompatImageButton {
+public class MoveableButton extends View {
 
     private final Paint volumePaint;
     private final int volumeColor;
@@ -32,13 +30,19 @@ public class MoveableButton extends AppCompatImageButton {
     private final int highlightColor;
     private int buttonColor;
 
-    private final int cornerRadius = dp_to_px(4);
+    private final int cornerRadius = Utilities.dp_to_px(4);
 
-    private float posX = 0;
-    private float posY = 0;
+    private float viewPosX = 0;
+    private float viewPosY = 0;
 
-    private float dXstart;
-    private float dYstart;
+    private float viewPosStartX = 0;
+    private float viewPosStartY = 0;
+
+    private float touchPosStartX;
+    private float touchPosStartY;
+
+    private float localTouchPosX;
+    private float localTouchPosY;
 
     private float rippleStatus = 1;
 
@@ -73,11 +77,15 @@ public class MoveableButton extends AppCompatImageButton {
         void onEndMoving(MoveableButton button, float posX, float posY);
     }
 
+    public interface OnPropertiesChangedListener {
+        void onPropertiesChanged(MoveableButton button);
+    }
 
     private PositionChangedListener positionChangedListener = null;
 
     private OnClickListener onClickListener = null;
 
+    private OnPropertiesChangedListener onPropertiesChangedListener = null;
 
     MoveableButton(Context context, int normalColor, int highlightColor){
         super(context);
@@ -106,7 +114,7 @@ public class MoveableButton extends AppCompatImageButton {
         backgroundPaint.setAntiAlias(true);
 
 
-        setElevation(dp_to_px(8));
+        setElevation(Utilities.dp_to_px(8));
         colorAnimation.setDuration(200); // milliseconds
         colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
@@ -128,30 +136,41 @@ public class MoveableButton extends AppCompatImageButton {
             }
         });
 //        mTapDetector = new GestureDetector(context, new GestureTap());
-
         setOnTouchListener(new OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 int action = event.getActionMasked();
+
+                if(onClickListener == null && lockPosition) {
+                    return false;
+                }
 //
 //                boolean clicked = mTapDetector.onTouchEvent(event);
 //                if(clicked)
 //                    v.performClick();
+                localTouchPosX = event.getX();
+                localTouchPosY = event.getY();
 
                 switch(action){
                     case MotionEvent.ACTION_DOWN:
-                        posX = v.getX();
-                        posY = v.getY();
-                        dXstart = v.getX() - event.getRawX();
-                        dYstart = v.getY() - event.getRawY();
+                        viewPosX = v.getX();
+                        viewPosY = v.getY();
+                        viewPosStartX = viewPosX;
+                        viewPosStartY = viewPosY;
+//                        touchPosStartX = v.getX() - event.getRawX();
+//                        touchPosStartY = v.getY() - event.getRawY();
+                        touchPosStartX = event.getRawX();
+                        touchPosStartY = event.getRawY();
                         rippleStatus = 0;
                         invalidate();
                         isMoving = false;
                         break;
                     case MotionEvent.ACTION_MOVE:
-                        float newX = event.getRawX() + dXstart;
-                        float newY = event.getRawY() + dYstart;
+                        float dx = event.getRawX() - touchPosStartX;
+                        float dy = event.getRawY() - touchPosStartY;
                         if (isMoving) {
+                            float newX = viewPosStartX + dx;
+                            float newY = viewPosStartY + dy;
                             v.animate()
                                     .x(newX)
                                     .y(newY)
@@ -160,18 +179,14 @@ public class MoveableButton extends AppCompatImageButton {
                             if (positionChangedListener != null)
                                 positionChangedListener.onPositionChanged(MoveableButton.this, getX(), getY());
                         } else {
-                            float dx = posX - newX;
-                            float dy = posY - newY;
-                            final float resistanceDist = dp_to_px(10);
+                            final float resistanceDist = Utilities.dp_to_px(10);
                             if(lockPosition){
-                                dXstart = v.getX() - event.getRawX();
-                                dYstart = v.getY() - event.getRawY();
                                 invalidate();
                             }
                             else if (dx * dx + dy * dy > resistanceDist * resistanceDist) {
                                 isMoving = true;
 //                                setElevation(10);
-                                setTranslationZ(dp_to_px(4));
+                                setTranslationZ(Utilities.dp_to_px(4));
                                 if(positionChangedListener != null)
                                     positionChangedListener.onStartMoving(MoveableButton.this, getX(), getY());
                             }
@@ -183,16 +198,18 @@ public class MoveableButton extends AppCompatImageButton {
                             isMoving = false;
 //                            setElevation(2);
                             setTranslationZ(0);
-                            setNewPosition(posX, posY);
+                            setNewPosition(viewPosX, viewPosY);
                             //clearColorFilter();
                             if (positionChangedListener != null)
                                 positionChangedListener.onEndMoving(MoveableButton.this, getX(), getY());
                         }
                         else {
-                            float relX = -v.getX() + event.getRawX();
-                            float relY = -v.getY() + event.getRawY() - getHeight();
-
-                            if(relX > 0 && relX < getWidth() && relY > 0 && relY < getHeight()) {
+//                            float relX = -v.getX() + event.getRawX();
+//                            float relY = -v.getY() + event.getRawY() - getHeight();
+                              float x = event.getX();
+                              float y = event.getY();
+//                            if(relX > 0 && relX < getWidth() && relY > 0 && relY < getHeight()) {
+                            if(x > 0 && x < getWidth() && y > 0 && y < getHeight()) {
                                 if (onClickListener != null)
                                     onClickListener.onClick(v);
 //                            animateColor();
@@ -211,8 +228,8 @@ public class MoveableButton extends AppCompatImageButton {
     public void setLayoutParams(ViewGroup.LayoutParams params) {
         super.setLayoutParams(params);
         ViewGroup.MarginLayoutParams marginLayoutParams = (ViewGroup.MarginLayoutParams) params;
-        posX = marginLayoutParams.leftMargin;
-        posY = marginLayoutParams.topMargin;
+        viewPosX = marginLayoutParams.leftMargin;
+        viewPosY = marginLayoutParams.topMargin;
     }
 
     @Override
@@ -221,20 +238,20 @@ public class MoveableButton extends AppCompatImageButton {
     }
 
     void setNewPosition(float newX, float newY) {
-        posX = newX;
-        posY = newY;
+        viewPosX = newX;
+        viewPosY = newY;
 
         if (isMoving) {
             return;
         }
 
-        int dx = Math.round(posX - getX());
-        int dy = Math.round(posY - getY());
+        int dx = Math.round(viewPosX - getX());
+        int dy = Math.round(viewPosY - getY());
         if(dx == 0 && dy == 0)
             return;
 
-        springAnimationX.getSpring().setFinalPosition(posX);
-        springAnimationY.getSpring().setFinalPosition(posY);
+        springAnimationX.getSpring().setFinalPosition(viewPosX);
+        springAnimationY.getSpring().setFinalPosition(viewPosY);
 
         springAnimationX.start();
         springAnimationY.start();
@@ -242,6 +259,10 @@ public class MoveableButton extends AppCompatImageButton {
 
     public void setOnPositionChangedListener(PositionChangedListener positionChangedListener){
         this.positionChangedListener = positionChangedListener;
+    }
+
+    public void setOnPropertiesChangedListener(OnPropertiesChangedListener onPropertiesChangedListener){
+        this.onPropertiesChangedListener = onPropertiesChangedListener;
     }
 
     public void animateColor() {
@@ -259,7 +280,7 @@ public class MoveableButton extends AppCompatImageButton {
         volumePaint.setColor(volumeColor);
         volumePaint.setStyle(Paint.Style.FILL);
         float volume = properties.getFloat("volume", 1.0f);
-        canvas.drawRect(getWidth()-dp_to_px(2),(getHeight()-2*cornerRadius)*(1.0f-volume)+cornerRadius,getWidth(),
+        canvas.drawRect(getWidth()-Utilities.dp_to_px(2),(getHeight()-2*cornerRadius)*(1.0f-volume)+cornerRadius,getWidth(),
                 getHeight()-cornerRadius, volumePaint);
 
         if(icon != null) {
@@ -273,7 +294,7 @@ public class MoveableButton extends AppCompatImageButton {
         if(rippleStatus < 1){
             backgroundPaint.setColor(Color.BLACK);
             backgroundPaint.setAlpha(Math.round((1-rippleStatus) * 100));
-            canvas.drawCircle(-dXstart, -dYstart-getHeight(), dp_to_px(30) + rippleStatus*getWidth(), backgroundPaint);
+            canvas.drawCircle(localTouchPosX, localTouchPosY, Utilities.dp_to_px(30) + rippleStatus*getWidth(), backgroundPaint);
         }
     }
 
@@ -289,20 +310,17 @@ public class MoveableButton extends AppCompatImageButton {
         return properties;
     }
 
-    public void setProperties(Bundle newProperties) {
+    public void setProperties(Bundle newProperties, boolean suppressOnPropertiesChangedListener) {
 
         properties.putAll(newProperties);
         icon = ContextCompat.getDrawable(getContext(), Sounds.getIconID(properties.getInt("soundid", 0)));
-
         invalidate();
-        Log.v("Metronome", "Setting new button properties " + properties.getFloat("volume",-1));
+        if(onPropertiesChangedListener != null && !suppressOnPropertiesChangedListener)
+            onPropertiesChangedListener.onPropertiesChanged(this);
+//        Log.v("Metronome", "Setting new button properties " + properties.getFloat("volume",-1));
     }
 
     void setLockPosition(boolean lock){
         lockPosition = lock;
-    }
-
-    private int dp_to_px(int dp) {
-        return (int) (dp * Resources.getSystem().getDisplayMetrics().density);
     }
 }

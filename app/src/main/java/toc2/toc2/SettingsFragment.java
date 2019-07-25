@@ -1,6 +1,7 @@
 package toc2.toc2;
 
 
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -9,24 +10,22 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.preference.CheckBoxPreference;
 import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
-import androidx.preference.SwitchPreferenceCompat;
 
 import android.os.IBinder;
 import android.text.InputType;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
@@ -57,10 +56,19 @@ class SettingsFragment extends PreferenceFragmentCompat { // implements SharedPr
         MenuItem settingsItem = menu.findItem(R.id.action_properties);
         if(settingsItem != null)
             settingsItem.setVisible(false);
+
+
+        MenuItem loadDataItem = menu.findItem(R.id.action_load);
+        if(loadDataItem != null)
+            loadDataItem.setVisible(false);
+
+        MenuItem saveDataItem = menu.findItem(R.id.action_save);
+        if(saveDataItem != null)
+            saveDataItem.setVisible(false);
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         final ListPreference appearance = findPreference("appearance");
 
@@ -82,7 +90,7 @@ class SettingsFragment extends PreferenceFragmentCompat { // implements SharedPr
         final EditTextPreference minimumSpeed = findPreference("minimumspeed");
         if(minimumSpeed == null)
             throw new RuntimeException("No minimum speed preference");
-        minimumSpeed.setSummary(minimumSpeed.getText() + " bpm");
+        minimumSpeed.setSummary(getString(R.string.bpm, Integer.parseInt(minimumSpeed.getText())));
         minimumSpeed.setOnBindEditTextListener(new EditTextPreference.OnBindEditTextListener() {
             @Override
             public void onBindEditText(@NonNull EditText editText) {
@@ -96,7 +104,7 @@ class SettingsFragment extends PreferenceFragmentCompat { // implements SharedPr
                 if(playerServiceBound) {
                     int speed = Integer.parseInt((String) newValue);
                     if(playerService.setMinimumSpeed(speed)){
-                        minimumSpeed.setSummary(speed + " bpm");
+                        minimumSpeed.setSummary(getString(R.string.bpm, speed));
                         return true;
                     }
                     else{
@@ -110,7 +118,7 @@ class SettingsFragment extends PreferenceFragmentCompat { // implements SharedPr
         final EditTextPreference maximumSpeed = findPreference("maximumspeed");
         if(maximumSpeed == null)
             throw new RuntimeException("No maximum speed preference");
-        maximumSpeed.setSummary(maximumSpeed.getText() + " bpm");
+        maximumSpeed.setSummary(getString(R.string.bpm, Integer.parseInt(maximumSpeed.getText())));
         maximumSpeed.setOnBindEditTextListener(new EditTextPreference.OnBindEditTextListener() {
             @Override
             public void onBindEditText(@NonNull EditText editText) {
@@ -124,7 +132,7 @@ class SettingsFragment extends PreferenceFragmentCompat { // implements SharedPr
                 if(playerServiceBound) {
                     int speed = Integer.parseInt((String) newValue);
                     if(playerService.setMaximumSpeed(speed)){
-                        maximumSpeed.setSummary(speed + " bpm");
+                        maximumSpeed.setSummary(getString(R.string.bpm, speed));
                         return true;
                     }
                     else{
@@ -152,6 +160,23 @@ class SettingsFragment extends PreferenceFragmentCompat { // implements SharedPr
             }
         });
 
+        Preference aboutPreference = findPreference("about");
+        if(aboutPreference == null)
+            throw new RuntimeException("About preference not available");
+        aboutPreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                TextView textView = new TextView(getContext());
+                textView.setText(R.string.about_message);
+                int pad = Utilities.dp_to_px(20);
+                textView.setPadding(pad, pad, pad, pad);
+                AlertDialog.Builder builder = new AlertDialog.Builder(getContext())
+                        .setTitle(R.string.about)
+                        .setView(textView);
+                builder.show();
+                return false;
+            }
+        });
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 
@@ -210,14 +235,16 @@ class SettingsFragment extends PreferenceFragmentCompat { // implements SharedPr
     private String getAppearanceSummary() {
         final ListPreference listPreference = findPreference("appearance");
         assert listPreference != null;
-        String state = listPreference.getValue();
-        if(state.equals("auto"))
-            return "Appearance follows system settings";
+        CharSequence state = listPreference.getEntry();
+
+        if(state == null || state.equals("auto")) {
+            return getString(R.string.system_appearance);
+        }
         else if(state.equals("dark")){
-            return "Dark appearance";
+            return getString(R.string.dark_appearance);
         }
         else if(state.equals("light")){
-            return "Light appearance";
+            return getString(R.string.light_appearance);
         }
         throw new RuntimeException("No summary for given appearance value");
     }

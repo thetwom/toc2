@@ -89,12 +89,9 @@ public class MetronomeFragment extends Fragment {
 
         speedIndicator = view.findViewById(R.id.speedindicator);
 
-        speedPanel.setOnSpeedChangedListener(new SpeedPanel.SpeedChangedListener(){
-            @Override
-            public void onSpeedChanged(int speedChange) {
-                if (playerServiceBound) {
-                    playerService.addValueToSpeed(speedChange);
-                }
+        speedPanel.setOnSpeedChangedListener(speedChange -> {
+            if (playerServiceBound) {
+                playerService.addValueToSpeed(speedChange);
             }
         });
 
@@ -117,12 +114,10 @@ public class MetronomeFragment extends Fragment {
 
         soundChooser = view.findViewById(R.id.soundchooser);
 
-        soundChooser.setButtonClickedListener(new SoundChooser.ButtonClickedListener() {
-            @Override
-            public void onButtonClicked(final MoveableButton button) {
-                NavigationActivity act = (NavigationActivity) getActivity();
-                assert act != null;
-                act.loadSoundChooserDialog(button, playerService);
+        soundChooser.setButtonClickedListener(button -> {
+            NavigationActivity act = (NavigationActivity) getActivity();
+            assert act != null;
+            act.loadSoundChooserDialog(button, playerService);
 //                SoundChooserDialog soundChooserDialog = new SoundChooserDialog(act, button.getProperties());
 //                soundChooserDialog.setNewButtonPropertiesListener(new SoundChooserDialog.NewButtonPropertiesListener() {
 //                    @Override
@@ -132,15 +127,9 @@ public class MetronomeFragment extends Fragment {
 //                        setNewSound(soundChooser.getSounds());
 //                    }
 //                });
-            }
         });
 
-        soundChooser.setSoundChangedListener(new SoundChooser.SoundChangedListener() {
-            @Override
-            public void onSoundChanged(ArrayList<Bundle> sounds) {
-                setNewSound(sounds);
-            }
-        });
+        soundChooser.setSoundChangedListener(sounds -> setNewSound(sounds));
 
         return view;
     }

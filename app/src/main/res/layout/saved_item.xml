@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="?android:attr/colorBackground"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/colorPrimary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        />
+
+    <!--<toc2.toc2.SavedItemAttributes-->
+        <!--android:id="@+id/saved_item_attributes"-->
+        <!--android:layout_width="0dp"-->
+        <!--android:layout_height="0dp"-->
+        <!--app:deleteColor="?attr/colorError"-->
+        <!--app:onDeleteColor="?attr/colorOnError"-->
+        <!--app:layout_constraintTop_toTopOf="parent"-->
+        <!--app:layout_constraintStart_toStartOf="parent"/>-->
+
+    <TextView
+        android:id="@+id/saved_item_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:textSize="18sp"
+        android:text="@string/title"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/saved_item_date"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <toc2.toc2.IconListVisualizer
+        android:id="@+id/saved_item_sounds"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:padding="8dp"
+        android:clipToPadding="false"
+        app:normalColor="?attr/colorBackgroundFloating"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/saved_item_speed"
+        app:layout_constraintTop_toBottomOf="@id/saved_item_title"/>
+
+    <TextView
+        android:id="@+id/saved_item_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:textSize="12sp"
+        android:text="12:00h  21.03.2019"
+        android:gravity="end"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="HardcodedText" />
+
+    <TextView
+        android:id="@+id/saved_item_speed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:text="65 bpm"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/saved_item_sounds"
+        app:layout_constraintBottom_toBottomOf="@id/saved_item_sounds"
+        app:layout_constraintEnd_toStartOf="@id/saved_item_sounds"
+        tools:ignore="HardcodedText" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

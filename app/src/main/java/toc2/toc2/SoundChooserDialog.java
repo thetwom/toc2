@@ -1,6 +1,5 @@
 package toc2.toc2;
 
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -54,7 +53,7 @@ class SoundChooserDialog extends Fragment implements View.OnClickListener {
                 if(activeButton != null) {
                     Bundle bundle = new Bundle();
                     bundle.putInt("soundid", soundID);
-                    activeButton.setProperties(bundle);
+                    activeButton.setProperties(bundle, false);
                     soundChooserCircle.setActiveSoundID(soundID);
                 }
                 if(playerService != null) {
@@ -71,7 +70,7 @@ class SoundChooserDialog extends Fragment implements View.OnClickListener {
                 if(activeButton != null) {
                     Bundle bundle = new Bundle();
                     bundle.putFloat("volume", volume);
-                    activeButton.setProperties(bundle);
+                    activeButton.setProperties(bundle, false);
                 }
                 if(playerService != null) {
                     playerService.playSpecificSound(soundChooserCircle.getCurrentSoundID(), volume);
@@ -105,9 +104,5 @@ class SoundChooserDialog extends Fragment implements View.OnClickListener {
         if(volumeControl != null)
             volumeControl.setState(button.getProperties().getFloat("volume"));
 
-    }
-
-    private int dp_to_px(int dp) {
-        return (int) (dp * Resources.getSystem().getDisplayMetrics().density);
     }
 }

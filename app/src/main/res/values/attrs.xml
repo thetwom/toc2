@@ -9,6 +9,7 @@
         <attr name="normalColor" />
         <attr name="labelColor" />
         <attr name="highlightColor" />
+        <attr name="textColor" format="color" />
     </declare-styleable>
 
     <declare-styleable name="SoundChooser">
@@ -39,5 +40,14 @@
         <attr name="vertical" format="boolean" />
     </declare-styleable>
 
+     <declare-styleable name="IconListVisualizer">
+        <attr name="normalColor" />
+    </declare-styleable>
+
+    <declare-styleable name="SavedItemAttributes">
+        <attr name="deleteColor" format="color"/>
+        <attr name="onDeleteColor" format="color"/>
+        <attr name="seperatorColor" format="color"/>
+    </declare-styleable>
 
 </resources>

@@ -1,7 +1,6 @@
 package toc2.toc2;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -10,7 +9,6 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 
 import java.util.ArrayList;
 
@@ -66,7 +64,7 @@ public class SoundChooserCircle extends FrameLayout {
 
         //int desiredWidth = Integer.MAX_VALUE;
         //int desiredHeight = Integer.MIN_VALUE;
-        int desiredSize = dp_to_px(500) + (Math.max(getPaddingBottom()+getPaddingTop(), getPaddingLeft()+getPaddingRight()));
+        int desiredSize = Utilities.dp_to_px(500) + (Math.max(getPaddingBottom()+getPaddingTop(), getPaddingLeft()+getPaddingRight()));
 
         int widthMode = MeasureSpec.getMode(widthMeasureSpec);
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);
@@ -136,7 +134,7 @@ public class SoundChooserCircle extends FrameLayout {
 
     private void init() {
          Log.v("Metronome", "SoundChooserCircle:init()");
-        final int buttonSize = dp_to_px(80);
+        final int buttonSize = Utilities.dp_to_px(80);
         float cx = getWidth() / 2.0f + getLeft();
         float cy = getHeight() / 2.0f + getTop();
         float rad = Math.min(getWidth(),getHeight()) / 2.0f - buttonSize/2.0f;
@@ -164,13 +162,14 @@ public class SoundChooserCircle extends FrameLayout {
             properties = new Bundle();
             properties.putFloat("volume", 0.0f);
             properties.putInt("soundid", isound);
-            button.setScaleType(ImageView.ScaleType.FIT_CENTER);
-            button.setProperties(properties);
+//            button.setScaleType(ImageView.ScaleType.FIT_CENTER);
+
+            button.setProperties(properties, false);
             ViewGroup.MarginLayoutParams params = new ViewGroup.MarginLayoutParams(buttonSize, buttonSize);
             button.setLayoutParams(params);
             button.setElevation(24);
 
-            int pad = dp_to_px(5);
+            int pad = Utilities.dp_to_px(5);
             button.setPadding(pad, pad, pad, pad);
 
             viewGroup.addView(button);
@@ -186,10 +185,6 @@ public class SoundChooserCircle extends FrameLayout {
             buttons.add(button);
         }
         setActiveSoundID(currentSoundID);
-    }
-
-    private int dp_to_px(int dp) {
-        return (int) (dp * Resources.getSystem().getDisplayMetrics().density);
     }
 
     public void setActiveSoundID(int soundID){

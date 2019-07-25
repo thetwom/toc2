@@ -21,7 +21,8 @@
         android:elevation="8dp"
         app:normalColor="?attr/colorBackgroundFloating"
         app:highlightColor="?attr/colorSecondary"
-        app:labelColor="?attr/colorOnBackground"
+        app:labelColor="?attr/colorPrimary"
+         app:textColor="?attr/colorPrimary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
@@ -79,7 +80,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:layout_conversion_wrapHeight="108"
-        tools:layout_conversion_wrapWidth="239" />
+        tools:layout_conversion_wrapWidth="239"
+        tools:ignore="HardcodedText" />
 
     <toc2.toc2.SoundChooser
         android:id="@+id/soundchooser"

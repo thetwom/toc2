@@ -29,7 +29,7 @@ public class PlayerFragment extends Fragment {
 
     private ServiceConnection playerConnection = null;
 
-    private int speed = NavigationActivity.SPEED_INITIAL;
+    private int speed = InitialValues.speed;
     private ArrayList<Bundle> playList;
 
     public PlayerFragment() {
@@ -48,7 +48,7 @@ public class PlayerFragment extends Fragment {
         if(context != null) {
             Log.v("Metronome", "PlayerFragment:onCreate : loading preferences");
             SharedPreferences preferences = context.getPreferences(Context.MODE_PRIVATE);
-            speed = preferences.getInt("speed", NavigationActivity.SPEED_INITIAL);
+            speed = preferences.getInt("speed", InitialValues.speed);
             String soundString = preferences.getString("sound", "0");
             assert soundString != null;
             playList = SoundProperties.parseMetaDataString(soundString);
@@ -147,5 +147,9 @@ public class PlayerFragment extends Fragment {
         s.putInt("soundid", 0);
         s.putFloat("volume", 1.0f);
         playList.add(s);
+    }
+
+    PlayerService getPlayerService() {
+        return playerService;
     }
 }

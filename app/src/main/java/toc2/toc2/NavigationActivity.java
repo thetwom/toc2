@@ -1,46 +1,51 @@
 package toc2.toc2;
 
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.os.Bundle;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentManager;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.preference.PreferenceManager;
 
-import android.util.Log;
+import android.support.v4.media.MediaMetadataCompat;
+import android.text.InputType;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
+import android.widget.Toast;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Objects;
 
 public class NavigationActivity extends AppCompatActivity {
 
-    // TODO: In SondChooserDialog, we do not want that the sound buttons can move
     // TODO: TapIn
-    // TODO: Save settings
-    // TODO: Rename app
-    // TODO: Strings should be in extra string class
     // TODO: new app icon
-    // TODO: all initial values in one InitialValues-class
     // TODO: add settings options for speed changing sensitivity
 
     private static FragmentManager fragManager;
 
     private static final String metrFragTag = "metrFrag";
 
+    private PlayerFragment playerFrag = null;
     private static final String playerFragTag = "playerFrag";
 
     private SettingsFragment settingsFrag;
     private static final String settingsFragTag = "settingsFrag";
 
     private SoundChooserDialog soundChooserDialog;
-    private static final String soundChooserDialogNewTag = "soundChooserDialog";
+    private static final String soundChooserDialogTag = "soundChooserDialog";
 
-    final public static int SPEED_INITIAL = 120;
-    // final public static int SOUND_INITIAL = R.raw.hhp_dry_a;
+    private SaveDataFragment saveDataFragment;
+    private static final String saveDataFragTag = "saveDataFagment";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,14 +54,14 @@ public class NavigationActivity extends AppCompatActivity {
         SharedPreferences sharedPreferences =
             PreferenceManager.getDefaultSharedPreferences(this /* Activity context */);
 
-        String appearance = sharedPreferences.getString("appearance", "auto");
+        String appearance = sharedPreferences.getString("appearance", getString(R.string.system_appearance_short));
         assert appearance != null;
         int nightMode = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM;
 
-        if(appearance.equals("dark")){
+        if(appearance.equals(getString(R.string.dark_appearance_short))){
             nightMode = AppCompatDelegate.MODE_NIGHT_YES;
         }
-        else if(appearance.equals("light")){
+        else if(appearance.equals(getString(R.string.light_appearance_short))){
             nightMode = AppCompatDelegate.MODE_NIGHT_NO;
         }
 
@@ -70,7 +75,7 @@ public class NavigationActivity extends AppCompatActivity {
 
         fragManager = getSupportFragmentManager();
 
-        PlayerFragment playerFrag = (PlayerFragment) fragManager.findFragmentByTag(playerFragTag);
+        playerFrag = (PlayerFragment) fragManager.findFragmentByTag(playerFragTag);
         if(playerFrag == null) {
             playerFrag = new PlayerFragment();
             fragManager.beginTransaction().add(playerFrag, playerFragTag).commit();
@@ -86,12 +91,12 @@ public class NavigationActivity extends AppCompatActivity {
             settingsFrag = new SettingsFragment();
         }
 
-        soundChooserDialog = (SoundChooserDialog) fragManager.findFragmentByTag(soundChooserDialogNewTag);
+        soundChooserDialog = (SoundChooserDialog) fragManager.findFragmentByTag(soundChooserDialogTag);
         if(soundChooserDialog == null) {
             soundChooserDialog = new SoundChooserDialog();
 
             fragManager.beginTransaction()
-                    .add(R.id.dialogframe, soundChooserDialog, soundChooserDialogNewTag)
+                    .add(R.id.dialogframe, soundChooserDialog, soundChooserDialogTag)
                     .detach(soundChooserDialog)
                     .commit();
         }
@@ -99,6 +104,18 @@ public class NavigationActivity extends AppCompatActivity {
             @Override
             public void onClick() {
                 unloadSoundChooserDialog();
+            }
+        });
+
+        saveDataFragment = (SaveDataFragment) fragManager.findFragmentByTag(saveDataFragTag);
+        if(saveDataFragment == null) {
+            saveDataFragment = new SaveDataFragment();
+        }
+        saveDataFragment.setOnItemClickedListener(new SavedItemDatabase.OnItemClickedListener() {
+            @Override
+            public void onItemClicked(SavedItemDatabase.SavedItem item, int position) {
+                loadSettings(item);
+                fragManager.popBackStack();
             }
         });
 
@@ -114,46 +131,11 @@ public class NavigationActivity extends AppCompatActivity {
         });
     }
 
-//    @Override
-//    public void onAttachFragment(Fragment fragment) {
-//        if(fragment instanceof MetronomeFragment){
-//            MetronomeFragment frag = (MetronomeFragment) fragment;
-//            frag.setOnFragmentInteractionListener(this);
-//        }
-//    }
 
     @Override
     protected void onPause() {
         unloadSoundChooserDialog();
         super.onPause();
-    }
-
-    //    @Override
-//    public void onBackPressed() {
-//        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-//        if (drawer.isDrawerOpen(GravityCompat.START)) {
-//            drawer.closeDrawer(GravityCompat.START);
-//        } else {
-//            super.onBackPressed();
-//        }
-//    }
-
-
-    @Override
-    protected void onDestroy() {
-        Log.v("Metronome", "NavigationActivity:onDestroy");
-//        if(isFinishing()){
-//            Log.v("Metronome", "NavigationActivity:onDestroy:isFinishing");
-//            if(metrFrag != null) {
-//                fragManager.beginTransaction().remove(metrFrag).commit();
-//                metrFrag = null;
-//            }
-//            if(playerFrag != null) {
-//                fragManager.beginTransaction().remove(playerFrag).commit();
-//                playerFrag = null;
-//            }
-//        }
-        super.onDestroy();
     }
 
     @Override
@@ -187,6 +169,15 @@ public class NavigationActivity extends AppCompatActivity {
                     .addToBackStack("blub")
                     .commit();
         }
+        else if (id == R.id.action_load) {
+            fragManager.beginTransaction()
+                    .replace(R.id.mainframe, saveDataFragment, saveDataFragTag)
+                    .addToBackStack("blub")
+                    .commit();
+        }
+        else if (id == R.id.action_save) {
+            saveCurrentSettings();
+        }
 //        else if(id == R.id.test_setting) {
 //            fragManager.beginTransaction()
 //                    .attach(soundChooserDialog)
@@ -211,4 +202,50 @@ public class NavigationActivity extends AppCompatActivity {
                 .commit();
     }
 
+    private void saveCurrentSettings() {
+
+        final EditText editText = new EditText(this);
+//        editText.setPadding(dp_to_px(8), dp_to_px(8), dp_to_px(8), dp_to_px(8));
+        editText.setHint(R.string.save_name);
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+        editText.setInputType(InputType.TYPE_CLASS_TEXT);
+        dialogBuilder
+                .setTitle(R.string.save_settings_dialog_title)
+                .setView(editText)
+                .setPositiveButton(R.string.save,
+                new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    SavedItemDatabase.SavedItem item = new SavedItemDatabase.SavedItem();
+                    item.title = editText.getText().toString();
+                    DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
+                    DateFormat timeFormat = new SimpleDateFormat("hh:mm");
+                    Date date = Calendar.getInstance().getTime();
+                    item.date = dateFormat.format(date);
+                    item.time = timeFormat.format(date);
+
+                    item.bpm = playerFrag.getPlayerService().getSpeed();
+                    item.playList = playerFrag.getPlayerService().getMetaData().getString(MediaMetadataCompat.METADATA_KEY_TITLE);
+
+                    if(item.title.length() > 200) {
+                        item.title = item.title.substring(0, 200);
+                        Toast.makeText(NavigationActivity.this, getString(R.string.max_allowed_characters, 200), Toast.LENGTH_SHORT).show();
+                    }
+                    saveDataFragment.saveItem(NavigationActivity.this, item);
+                    Toast.makeText(NavigationActivity.this, getString(R.string.saved_item_message, item.title), Toast.LENGTH_SHORT).show();
+                }
+        }).setNegativeButton(R.string.dismiss, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+        dialogBuilder.show();
+    }
+
+    private void loadSettings(SavedItemDatabase.SavedItem item) {
+        playerFrag.getPlayerService().changeSpeed(item.bpm);
+        playerFrag.getPlayerService().setSounds(SoundProperties.parseMetaDataString(item.playList));
+        Toast.makeText(this, getString(R.string.loaded_message, item.title), Toast.LENGTH_SHORT).show();
+    }
 }

@@ -76,7 +76,7 @@ public class SpeedIndicator extends ControlPanel {
         float rad = 0.0f * getRadius() + 1.0f * getInnerRadius();
 
         circlePaint.setColor(highlightColor);
-        circlePaint.setStrokeWidth(dp_to_px(2));
+        circlePaint.setStrokeWidth(Utilities.dp_to_px(2));
         circlePaint.setStyle(Paint.Style.FILL);
 
         if (pathOuterCircle == null)
@@ -85,7 +85,7 @@ public class SpeedIndicator extends ControlPanel {
 
         for (int i = 0; i < nPoints; ++i) {
             double ang = (position + i * 360.0f / nPoints) * Math.PI / 180.0;
-            float pointSize = dp_to_px(5);
+            float pointSize = Utilities.dp_to_px(5);
 
             double scaleDist = 7.0 * Math.PI / 180.0 * speed / 80.0;
             if (ang < scaleDist && !stopped)

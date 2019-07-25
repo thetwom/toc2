@@ -24,12 +24,14 @@ public class SpeedPanel extends ControlPanel {
     //final private int strokeWidth = dp_to_px(2);
     //final static public float innerRadiusRatio = 0.62f;
     private Path pathOuterCircle = null;
+    private Path textPath = null;
 
     private boolean changingSpeed = false;
 
     private int highlightColor;
     private int normalColor;
     private int labelColor;
+    private int textColor;
 
     public interface SpeedChangedListener {
         void onSpeedChanged(int speed);
@@ -66,6 +68,7 @@ public class SpeedPanel extends ControlPanel {
         highlightColor = ta.getColor(R.styleable.SpeedPanel_highlightColor, Color.GRAY);
         normalColor = ta.getColor(R.styleable.SpeedPanel_normalColor, Color.GRAY);
         labelColor = ta.getColor(R.styleable.SpeedPanel_labelColor, Color.WHITE);
+        textColor = ta.getColor(R.styleable.SpeedPanel_textColor, Color.BLACK);
 
         ta.recycle();
     }
@@ -87,8 +90,10 @@ public class SpeedPanel extends ControlPanel {
         circlePaint.setStyle(Paint.Style.FILL);
         //circlePaint.setStrokeWidth(strokeWidth);
 
-        if(pathOuterCircle == null)
+        if(pathOuterCircle == null) {
             pathOuterCircle = new Path();
+            textPath = new Path();
+        }
         pathOuterCircle.setFillType(Path.FillType.EVEN_ODD);
 
         pathOuterCircle.rewind();
@@ -136,6 +141,18 @@ public class SpeedPanel extends ControlPanel {
         pathOuterCircle.lineTo(cx + radArrO * (float) Math.cos(angleMaxRad), cy + radArrO * (float) Math.sin(angleMaxRad));
         pathOuterCircle.lineTo(cx + speedRad * (float) Math.cos(angleMaxRad+dArrAngle), cy + speedRad * (float) Math.sin(angleMaxRad+dArrAngle));
         canvas.drawPath(pathOuterCircle, circlePaint);
+
+        textPath.addArc(cx - speedRad, cy - speedRad, cx + speedRad, cy + speedRad, 180, -180);
+//        circlePaint.setStrokeWidth(1);
+//        circlePaint.setStyle(Paint.Style.STROKE);
+//        canvas.drawPath(textPath, circlePaint);
+        circlePaint.setStyle(Paint.Style.FILL);
+        circlePaint.setTextAlign(Paint.Align.CENTER);
+        circlePaint.setTextSize(Utilities.sp_to_px(22));
+        circlePaint.setColor(textColor);
+
+        canvas.drawTextOnPath(getContext().getString(R.string.tap_in), textPath, 0, Utilities.sp_to_px(22)/2.0f, circlePaint);
+
     }
 
     @Override
@@ -146,7 +163,6 @@ public class SpeedPanel extends ControlPanel {
         float y = event.getY() - getCenterY();
 
         int radius = getRadius();
-        int innerRadius = getInnerRadius();
         float circum = getRadius() * (float)Math.PI;
         float factor = 20.0f;
         int radiusXY = (int) Math.round(Math.sqrt(x*x + y*y));

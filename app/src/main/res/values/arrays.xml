@@ -8,8 +8,8 @@
     </string-array>
 
     <string-array name="appearanceValues">
-        <item>"auto"</item>
-        <item>"dark"</item>
-        <item>"light"</item>
+        <item>@string/system_appearance_short</item>
+        <item>@string/dark_appearance_short</item>
+        <item>@string/light_appearance_short</item>
     </string-array>
 </resources>

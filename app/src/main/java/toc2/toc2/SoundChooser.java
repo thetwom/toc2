@@ -1,7 +1,6 @@
 package toc2.toc2;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -24,14 +23,14 @@ public class SoundChooser extends FrameLayout {
 
     final private Context context;
 
-    private final int spacing = dp_to_px(2);
-    private final int defaultButtonHeight = dp_to_px(70);
+    private final int spacing = Utilities.dp_to_px(2);
+    private final int defaultButtonHeight = Utilities.dp_to_px(70);
 
     final private ArrayList<MoveableButton> buttons = new ArrayList<>();
-    private ImageButton plusButton;
+    private PlusButton plusButton;
 
-    private SpringAnimation springAnimationX;
-    private SpringAnimation springAnimationY;
+//    private SpringAnimation springAnimationX;
+//    private SpringAnimation springAnimationY;
 
     private int normalButtonColor = Color.BLACK;
     private int highlightButtonColor = Color.GRAY;
@@ -77,19 +76,20 @@ public class SoundChooser extends FrameLayout {
     }
 
     private void init() {
+        Log.v("Metronome", "SoundChooser:init");
 
         plusButton = createPlusButton();
-
-        springAnimationX = new SpringAnimation(plusButton, DynamicAnimation.X).setSpring(
-                new SpringForce()
-                        .setDampingRatio(SpringForce.DAMPING_RATIO_LOW_BOUNCY)
-                        .setStiffness(SpringForce.STIFFNESS_HIGH)
-        );
-        springAnimationY = new SpringAnimation(plusButton, DynamicAnimation.Y).setSpring(
-                new SpringForce()
-                        .setDampingRatio(SpringForce.DAMPING_RATIO_LOW_BOUNCY)
-                        .setStiffness(SpringForce.STIFFNESS_HIGH)
-        );
+//
+//        springAnimationX = new SpringAnimation(plusButton, DynamicAnimation.X).setSpring(
+//                new SpringForce()
+//                        .setDampingRatio(SpringForce.DAMPING_RATIO_LOW_BOUNCY)
+//                        .setStiffness(SpringForce.STIFFNESS_HIGH)
+//        );
+//        springAnimationY = new SpringAnimation(plusButton, DynamicAnimation.Y).setSpring(
+//                new SpringForce()
+//                        .setDampingRatio(SpringForce.DAMPING_RATIO_LOW_BOUNCY)
+//                        .setStiffness(SpringForce.STIFFNESS_HIGH)
+//        );
 
     }
 
@@ -108,7 +108,7 @@ public class SoundChooser extends FrameLayout {
     private MoveableButton createButton(int pos) {
         MoveableButton button = new MoveableButton(this.context, normalButtonColor, highlightButtonColor);
 
-        button.setScaleType(ImageView.ScaleType.FIT_CENTER);
+//        button.setScaleType(ImageView.ScaleType.FIT_CENTER);
         Bundle properties;
         if(buttons.isEmpty()) {
             properties = new Bundle();
@@ -119,7 +119,7 @@ public class SoundChooser extends FrameLayout {
             properties = buttons.get(buttons.size()-1).getProperties();
         }
 //        button.setImageResource(R.drawable.ic_hihat);
-        button.setProperties(properties);
+        button.setProperties(properties, true);
 
         //FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(getButtonWidth(), getButtonHeight());
         MarginLayoutParams params = new MarginLayoutParams(getButtonWidth(), getButtonHeight());
@@ -130,7 +130,7 @@ public class SoundChooser extends FrameLayout {
         // button.setBackgroundColor(ContextCompat.getColor(context, R.color.colorPrimary));
 
         button.setLayoutParams(params);
-        int pad = dp_to_px(5);
+        int pad = Utilities.dp_to_px(5);
         button.setPadding(pad, pad, pad, pad);
 
         ViewGroup viewGroup = (ViewGroup) this.getParent();
@@ -146,6 +146,8 @@ public class SoundChooser extends FrameLayout {
             @Override
             public void onPositionChanged(MoveableButton button, float posX, float posY) {
                 if (buttonOverPlusButton(posX, posY)) {
+//                if(plusButton.contains(posX, posY)) {
+                    // TODO: Define color in xml
                     plusButton.setBackgroundColor(ContextCompat.getColor(context, R.color.colorAccent));
                 }
                 else {
@@ -169,13 +171,21 @@ public class SoundChooser extends FrameLayout {
 
         button.setOnPositionChangedListener(positionChangedListener);
 
+        button.setOnPropertiesChangedListener(new MoveableButton.OnPropertiesChangedListener() {
+            @Override
+            public void onPropertiesChanged(MoveableButton button) {
+                if(soundChangedListener != null)
+                    soundChangedListener.onSoundChanged(getSounds());
+            }
+        });
+
         setCurrentButtonClickedListenerSingleButton(button);
 
         return button;
     }
 
     private void repositionButtons() {
-
+        Log.v("Metronome", "SoundChooser:repositionButtons " + getButtonWidth());
         for (int i = 0; i < buttons.size(); ++i) {
             MoveableButton b = buttons.get(i);
             ViewGroup.LayoutParams params = b.getLayoutParams();
@@ -187,22 +197,23 @@ public class SoundChooser extends FrameLayout {
             buttons.get(i).setNewPosition(indexToPosX(i) + getX(), getPaddingTop() + getY());
         }
 
-        repositionPlusButton(indexToPosX(buttons.size()), getPaddingTop());
+        plusButton.reposition(indexToPosX(buttons.size()), getPaddingTop());
+//        repositionPlusButton(indexToPosX(buttons.size()), getPaddingTop());
 
         if(soundChangedListener != null)
             soundChangedListener.onSoundChanged(getSounds());
     }
 
-    private ImageButton createPlusButton() {
+    private PlusButton createPlusButton() {
 
-        ImageButton button = new ImageButton(this.context);
+        PlusButton button = new PlusButton(this.context);
 
-        button.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        button.setImageResource(R.drawable.ic_add);
-        button.setBackground(null);
+//        button.setScaleType(ImageView.ScaleType.CENTER_CROP);
+//        button.setImageResource(R.drawable.ic_add);
+//        button.setBackground(null);
 
         int buttonHeight = getButtonHeight();
-        int buttonWidth = Math.min(buttonHeight, getWidth() - getPaddingLeft() - getPaddingRight());
+        int buttonWidth = determinePlusButtonWidth();
         LayoutParams params = new LayoutParams(buttonWidth, buttonHeight);
         params.topMargin = getPaddingTop();
         params.leftMargin = getPaddingLeft();
@@ -221,22 +232,25 @@ public class SoundChooser extends FrameLayout {
 
         return button;
     }
-
-    private void repositionPlusButton(float posX, float posY) {
-        springAnimationX.getSpring().setFinalPosition(posX);
-        springAnimationY.getSpring().setFinalPosition(posY);
-        springAnimationX.start();
-        springAnimationY.start();
-    }
+//
+//    private void repositionPlusButton(float posX, float posY) {
+//        springAnimationX.getSpring().setFinalPosition(posX);
+//        springAnimationY.getSpring().setFinalPosition(posY);
+//        springAnimationX.start();
+//        springAnimationY.start();
+//    }
 
     private void buttonStartsMoving(MoveableButton button, float posX, float posY) {
         plusButton.setImageResource(R.drawable.ic_delete);
     }
 
     private void buttonEndsMoving(MoveableButton button, float posX, float posY) {
-        plusButton.setImageResource(R.drawable.ic_add);
-        plusButton.setBackground(null);
+        plusButton.resetAppearance();
+//        plusButton.setBackground(null);
+
         if (buttonOverPlusButton(posX, posY)) {
+            // TODO: Use contains function of plusButtion here, but therefore we might have to work on rawX, rawY
+//        if (plusButton.contains(posX, posY)) {
             buttons.remove(button);
             ViewGroup viewGroup = (ViewGroup) getParent();
             if (viewGroup != null)
@@ -307,17 +321,18 @@ public class SoundChooser extends FrameLayout {
         setMeasuredDimension(width, height);
     }
 
-    private int dp_to_px(int dp) {
-        return (int) (dp * Resources.getSystem().getDisplayMetrics().density);
-    }
-
     private int getButtonWidth() {
-        int plusButtonWidth = plusButton.getWidth();
+        int plusButtonWidth = determinePlusButtonWidth();
+//        Log.v("Metronome", "SoundChooser:plusbuttonwidth " + plusButtonWidth);
         int newButtonWidth = Math.round(
                 (getWidth() - getPaddingLeft() - getPaddingRight() - plusButtonWidth)
                         / (float) buttons.size()) - spacing;
         newButtonWidth = Math.min(newButtonWidth, getButtonHeight());
         return newButtonWidth;
+    }
+
+    private int determinePlusButtonWidth() {
+        return Math.min(getButtonHeight(), getWidth() - getPaddingLeft() - getPaddingRight());
     }
 
     private int getButtonHeight() {
@@ -366,17 +381,18 @@ public class SoundChooser extends FrameLayout {
                 MoveableButton b = buttons.get(i);
 
                 if(!SoundProperties.equal(b.getProperties(), sounds.get(i))){
-                    b.setProperties(sounds.get(i));
+                    b.setProperties(sounds.get(i), true);
                     soundChanged = true;
                 }
             }
-            else{
+            else {
                 MoveableButton b = createButton(i);
-                if(b != null) {
-                    b.setProperties(sounds.get(i));
-                    buttons.add(i, b);
-                    soundChanged = true;
-                }
+                assert b != null;
+                if(!SoundProperties.equal(b.getProperties(), sounds.get(i)))
+                    b.setProperties(sounds.get(i), true);
+//                b.setProperties(sounds.get(i));
+                buttons.add(i, b);
+                soundChanged = true;
             }
         }
 

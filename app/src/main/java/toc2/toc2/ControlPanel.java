@@ -1,7 +1,6 @@
 package toc2.toc2;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -18,7 +17,7 @@ public class ControlPanel extends View {
 
         //int desiredWidth = Integer.MAX_VALUE;
         //int desiredHeight = Integer.MIN_VALUE;
-        int desiredSize = dp_to_px(200) + (Math.max(getPaddingBottom()+getPaddingTop(), getPaddingLeft()+getPaddingRight()));
+        int desiredSize = Utilities.dp_to_px(200) + (Math.max(getPaddingBottom()+getPaddingTop(), getPaddingLeft()+getPaddingRight()));
 
         int widthMode = MeasureSpec.getMode(widthMeasureSpec);
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);
@@ -97,9 +96,5 @@ public class ControlPanel extends View {
     }
     float pTY(double phi, double rad) {
         return (float) (rad * Math.sin(phi)) + getCenterY();
-    }
-
-    int dp_to_px(int dp) {
-        return (int) (dp * Resources.getSystem().getDisplayMetrics().density);
     }
 }

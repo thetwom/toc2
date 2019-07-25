@@ -4,10 +4,10 @@
 
     <ListPreference
       app:key="appearance"
-      app:title="Appearance"
+      app:title="@string/appearance"
       android:entries="@array/appearanceList"
       android:entryValues="@array/appearanceValues"
-        android:dialogTitle="Appearance"
+        android:dialogTitle="@string/appearance"
         android:defaultValue="auto"
     />
 
@@ -15,20 +15,25 @@
 
     <EditTextPreference
         app:key="minimumspeed"
-        app:title="Minimum speed"
+        app:title="@string/minimum_speed"
         app:defaultValue="20"
         />
 
 
     <EditTextPreference
         app:key="maximumspeed"
-        app:title="Maximum speed"
+        app:title="@string/maximum_speed"
         app:defaultValue="250"
         />
 
     <CheckBoxPreference
         app:key="setdefault"
-        app:title="Reset all settings"
+        app:title="@string/reset_all_settings"
         app:defaultValue="false"
+        />
+
+    <Preference
+        app:key="about"
+        app:title="@string/about"
         />
 </androidx.preference.PreferenceScreen>

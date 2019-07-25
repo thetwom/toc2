@@ -1,7 +1,6 @@
 package toc2.toc2;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -20,8 +19,8 @@ import androidx.core.content.ContextCompat;
 
 public class VolumeControl extends ViewGroup {
 
-    final private int default_width = dp_to_px(60);
-    final private int default_length = dp_to_px(300);
+    final private int default_width = Utilities.dp_to_px(60);
+    final private int default_length = Utilities.dp_to_px(300);
     final private Rect rectInt = new Rect();
     final private RectF rect = new RectF();
     final private RectF rectPos = new RectF();
@@ -34,7 +33,7 @@ public class VolumeControl extends ViewGroup {
     private int sliderColor = Color.BLACK;
     private boolean vertical = false;
 
-    private final float iSpace = dp_to_px(2);
+    private final float iSpace = Utilities.dp_to_px(2);
     private float pos = 0f;
 
     private final Paint contourPaint = new Paint();
@@ -49,7 +48,7 @@ public class VolumeControl extends ViewGroup {
         @Override
         public void getOutline(View view, Outline outline) {
             float iWid = getMovableHeight();
-            float cornerRad = dp_to_px(Math.round(iWid));
+            float cornerRad = Utilities.dp_to_px(Math.round(iWid));
 
             rectInt.set(Math.round(getPaddingLeft()), Math.round(getPaddingTop()),
                     Math.round(getWidth() - getPaddingRight()),
@@ -118,7 +117,7 @@ public class VolumeControl extends ViewGroup {
 
         float iLen = getMovableLength();
         float iWid = getMovableHeight();
-        float cornerRad = dp_to_px(Math.round(iWid));
+        float cornerRad = Utilities.dp_to_px(Math.round(iWid));
 
         contourPaint.setAntiAlias(true);
 
@@ -246,9 +245,5 @@ public class VolumeControl extends ViewGroup {
 
     public void setOnVolumeChangedListener(OnVolumeChangedListener onVolumeChangedListener) {
         this.onVolumeChangedListener = onVolumeChangedListener;
-    }
-
-    private int dp_to_px(int dp) {
-        return (int) (dp * Resources.getSystem().getDisplayMetrics().density);
     }
 }

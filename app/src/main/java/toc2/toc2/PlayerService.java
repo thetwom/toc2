@@ -161,7 +161,7 @@ public class PlayerService extends Service {
                 MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
 
         playbackStateBuilder.setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_PLAY_PAUSE)
-                .setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, NavigationActivity.SPEED_INITIAL);
+                .setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, InitialValues.speed);
         //playbackStateBuilder.setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, speed);
 
         mediaSession.setPlaybackState(playbackStateBuilder.build());
@@ -211,8 +211,8 @@ public class PlayerService extends Service {
             Intent activityIntent = new Intent(this, NavigationActivity.class);
             PendingIntent launchActivity = PendingIntent.getActivity(this, 0, activityIntent, 0);
 
-            notificationBuilder.setContentTitle("Metronome")
-                    .setSmallIcon(R.drawable.ic_toc_foreground)
+            notificationBuilder.setContentTitle(getString(R.string.app_name))
+                    .setSmallIcon(R.drawable.ic_toc_swb)
                     .setContentIntent(launchActivity)
                     .setStyle(new MediaStyle().setMediaSession(mediaSession.getSessionToken()).setShowActionsInCompactView(0));
         }
@@ -360,7 +360,7 @@ public class PlayerService extends Service {
         return Math.round(1000.0 * 60.0 / mediaSession.getController().getPlaybackState().getPlaybackSpeed());
     }
 
-    private int getSpeed() {
+    public int getSpeed() {
         return Math.round(mediaSession.getController().getPlaybackState().getPlaybackSpeed());
     }
 

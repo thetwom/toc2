@@ -50,7 +50,7 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/okbutton"
-        android:text="Done"
+        android:text="@string/done"
         android:layout_width="match_parent"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"

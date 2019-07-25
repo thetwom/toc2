@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">toc2</string>
+    <string name="app_name">Metronome</string>
     <string name="action_settings">Settings</string>
 
     <!-- TODO: Remove or change this placeholder text -->
@@ -11,4 +11,41 @@
     <string name="woodblock">woodblock</string>
     <string name="mute">mute</string>
     <string name="bpm">%d bpm</string>
+
+    <string name="load_data">Load data</string>
+    <string name="save_data">Save data</string>
+    <string name="title">Title</string>
+    <string name="done">Done</string>
+    <string name="appearance">Appearance</string>
+    <string name="dark_appearance">Dark appearance</string>
+    <string name="light_appearance">Light appearance</string>
+    <string name="system_appearance">Appearance follows system settings</string>
+
+    <string name="dark_appearance_short">Dark</string>
+    <string name="light_appearance_short">Light</string>
+    <string name="system_appearance_short">Auto</string>
+
+    <string name="minimum_speed">Minimum speed</string>
+    <string name="maximum_speed">Maximum speed</string>
+
+    <string name="reset_all_settings">Reset all settings</string>
+    <string name="about">About</string>
+
+    <string name="undo">Undo</string>
+    <string name="item_deleted">Item deleted</string>
+    <string name="delete">Delete</string>
+
+    <string name="save_settings_dialog_title">Save current settings</string>
+    <string name="save_name">Name</string>
+    <string name="saved_item_message">Saved current settings: %s</string>
+    <string name="save">Save</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="max_allowed_characters">Maximum character number: %d</string>
+
+    <string name="loaded_message">Loaded settings: %s</string>
+
+    <string name="tap_in">TAP IN</string>
+
+    <string name="about_message">Metronome app\nVersion: 0.9</string>
+
 </resources>
