@@ -2,7 +2,7 @@
 <androidx.preference.PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <ListPreference
+    <androidx.preference.ListPreference
       app:key="appearance"
       app:title="@string/appearance"
       android:entries="@array/appearanceList"
@@ -16,6 +16,7 @@
     <EditTextPreference
         app:key="minimumspeed"
         app:title="@string/minimum_speed"
+        app:summary=""
         app:defaultValue="20"
         />
 
@@ -26,10 +27,13 @@
         app:defaultValue="250"
         />
 
-    <CheckBoxPreference
+    <!--<CheckBoxPreference-->
+        <!--app:title="test"-->
+        <!--/>-->
+
+    <Preference
         app:key="setdefault"
         app:title="@string/reset_all_settings"
-        app:defaultValue="false"
         />
 
     <Preference

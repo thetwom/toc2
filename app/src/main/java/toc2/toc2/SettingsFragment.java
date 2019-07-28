@@ -1,15 +1,16 @@
 package toc2.toc2;
 
 
-import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.preference.CheckBoxPreference;
 import androidx.preference.EditTextPreference;
@@ -19,11 +20,15 @@ import androidx.preference.PreferenceFragmentCompat;
 
 import android.os.IBinder;
 import android.text.InputType;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+
+//import android.widget.EditText;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -56,7 +61,6 @@ class SettingsFragment extends PreferenceFragmentCompat { // implements SharedPr
         MenuItem settingsItem = menu.findItem(R.id.action_properties);
         if(settingsItem != null)
             settingsItem.setVisible(false);
-
 
         MenuItem loadDataItem = menu.findItem(R.id.action_load);
         if(loadDataItem != null)
@@ -104,7 +108,12 @@ class SettingsFragment extends PreferenceFragmentCompat { // implements SharedPr
                 if(playerServiceBound) {
                     int speed = Integer.parseInt((String) newValue);
                     if(playerService.setMinimumSpeed(speed)){
+
+                        Log.v("Metronome", "Changed minimum speed summary");
+//                        minimumSpeed.notifyChanged();
+//                        getListView().getAdapter().notifyDataSetChanged();
                         minimumSpeed.setSummary(getString(R.string.bpm, speed));
+
                         return true;
                     }
                     else{
@@ -133,6 +142,8 @@ class SettingsFragment extends PreferenceFragmentCompat { // implements SharedPr
                     int speed = Integer.parseInt((String) newValue);
                     if(playerService.setMaximumSpeed(speed)){
                         maximumSpeed.setSummary(getString(R.string.bpm, speed));
+//                        getListView().getAdapter().notifyDataSetChanged();
+//                        getListView().getAdapter().notifyDataSetChanged();
                         return true;
                     }
                     else{
@@ -143,19 +154,33 @@ class SettingsFragment extends PreferenceFragmentCompat { // implements SharedPr
             }
         });
 
-        CheckBoxPreference resetSettings = findPreference("setdefault");
+        Preference resetSettings = findPreference("setdefault");
         if(resetSettings == null)
             throw new RuntimeException("Set default preference not available");
-        resetSettings.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+        resetSettings.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                minimumSpeed.setText("20");
-                minimumSpeed.getOnPreferenceChangeListener().onPreferenceChange(minimumSpeed, "20");
-                maximumSpeed.setText("250");
-                maximumSpeed.getOnPreferenceChangeListener().onPreferenceChange(maximumSpeed, "250");
-                appearance.setValue("auto");
-                appearance.getOnPreferenceChangeListener().onPreferenceChange(appearance, "auto");
+            public boolean onPreferenceClick(Preference preference) {
 
+                AlertDialog.Builder builder = new AlertDialog.Builder(getContext())
+                        .setTitle(R.string.reset_settings_prompt)
+                        .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                minimumSpeed.setText("20");
+                                minimumSpeed.getOnPreferenceChangeListener().onPreferenceChange(minimumSpeed, "20");
+                                maximumSpeed.setText("250");
+                                maximumSpeed.getOnPreferenceChangeListener().onPreferenceChange(maximumSpeed, "250");
+                                appearance.setValue("auto");
+                                appearance.getOnPreferenceChangeListener().onPreferenceChange(appearance, "auto");
+                            }
+                        })
+                        .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+                            }
+                        });
+                builder.show();
                 return false;
             }
         });
@@ -186,6 +211,7 @@ class SettingsFragment extends PreferenceFragmentCompat { // implements SharedPr
         if(playerServiceBound)
           unbindPlayerService();
         super.onPause();
+//        getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
     }
 
     @Override
@@ -195,9 +221,8 @@ class SettingsFragment extends PreferenceFragmentCompat { // implements SharedPr
         if(act != null) {
             bindService(act.getApplicationContext());
         }
+//        getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
     }
-
-
 
     private void bindService(final Context context) {
 
@@ -248,6 +273,7 @@ class SettingsFragment extends PreferenceFragmentCompat { // implements SharedPr
         }
         throw new RuntimeException("No summary for given appearance value");
     }
+
     //    @Override
 //    public void onResume() {
 //        //super.onResume();

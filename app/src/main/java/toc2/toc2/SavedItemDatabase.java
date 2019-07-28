@@ -54,7 +54,7 @@ public class SavedItemDatabase extends RecyclerView.Adapter<SavedItemDatabase.Vi
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
 
         SavedItem item = dataBase.get(position);
 

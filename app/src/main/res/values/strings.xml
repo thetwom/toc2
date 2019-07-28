@@ -29,6 +29,7 @@
     <string name="maximum_speed">Maximum speed</string>
 
     <string name="reset_all_settings">Reset all settings</string>
+    <string name="reset_settings_prompt">Do you really want to reset all settings?</string>
     <string name="about">About</string>
 
     <string name="undo">Undo</string>
@@ -47,5 +48,8 @@
     <string name="tap_in">TAP IN</string>
 
     <string name="about_message">Metronome app\nVersion: 0.9</string>
+
+    <string name="yes">yes</string>
+    <string name="no">no</string>
 
 </resources>

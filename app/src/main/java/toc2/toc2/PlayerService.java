@@ -13,6 +13,7 @@ import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.SystemClock;
 import android.service.notification.StatusBarNotification;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -39,6 +40,8 @@ public class PlayerService extends Service {
     private int minimumSpeed = 20;
     private int maximumSpeed = 250;
 
+    private long syncKlickTime = -1;
+
     private final int notificationID = 3252;
 
     private MediaSessionCompat mediaSession = null;
@@ -60,8 +63,18 @@ public class PlayerService extends Service {
         @Override
         public void run() {
             if (getState() == PlaybackStateCompat.STATE_PLAYING) {
-
-                waitHandler.postDelayed(this, getDt());
+//                Log.v("Metronome", "PlayerService:Runnable: currentTime="+System.currentTimeMillis() + ";  nextClick=" + syncKlickTime);
+                if(syncKlickTime > SystemClock.uptimeMillis()){
+                    long nextKlickTime = syncKlickTime;
+                    if(syncKlickTime - SystemClock.uptimeMillis() < 0.5 * getDt())
+                        nextKlickTime += getDt();
+                    waitHandler.postAtTime(this, nextKlickTime);
+                    syncKlickTime = -1;
+                }
+                else {
+                    waitHandler.postDelayed(this, getDt());
+//                     waitHandler.postAtTime(this, SystemClock.uptimeMillis() +getDt());
+                }
 
                 if (playListPosition >= playList.size())
                     playListPosition = 0;
@@ -254,7 +267,7 @@ public class PlayerService extends Service {
 
     public void changeSpeed(int speed) {
 
-        if (getSpeed() == speed)
+        if (getSpeed() == speed || speed < minimumSpeed || speed > maximumSpeed)
             return;
 
         playbackStateBuilder
@@ -337,6 +350,14 @@ public class PlayerService extends Service {
                 // This is the line which updates the notification
                 NotificationManagerCompat.from(this).notify(notificationID, createNotification());
             }
+        }
+    }
+
+    public void syncKlickWithUptimeMillis(long time) {
+        if(getState() == PlaybackStateCompat.STATE_PLAYING) {
+            syncKlickTime = time;
+//            waitHandler.removeCallbacksAndMessages(null);
+//            waitHandler.postAtTime(klickAndWait, time);
         }
     }
 

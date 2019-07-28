@@ -115,7 +115,7 @@ public class MoveableButton extends View {
 
 
         setElevation(Utilities.dp_to_px(8));
-        colorAnimation.setDuration(200); // milliseconds
+        colorAnimation.setDuration(400); // milliseconds
         colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animator) {

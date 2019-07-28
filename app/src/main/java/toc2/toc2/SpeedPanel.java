@@ -1,5 +1,6 @@
 package toc2.toc2;
 
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
@@ -9,10 +10,15 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import androidx.annotation.Nullable;
 
+import android.os.SystemClock;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewOutlineProvider;
+import android.view.animation.LinearInterpolator;
+
+import java.util.Arrays;
 
 public class SpeedPanel extends ControlPanel {
 
@@ -20,21 +26,32 @@ public class SpeedPanel extends ControlPanel {
 
     private float previous_x;
     private float previous_y;
-    private int previous_speed;
+//    private int previous_speed;
     //final private int strokeWidth = dp_to_px(2);
     //final static public float innerRadiusRatio = 0.62f;
     private Path pathOuterCircle = null;
     private Path textPath = null;
 
     private boolean changingSpeed = false;
+//    private boolean highlightTapIn = false;
 
     private int highlightColor;
     private int normalColor;
     private int labelColor;
     private int textColor;
 
+    private final ValueAnimator tapInAnimation = ValueAnimator.ofFloat(0, 1);
+    private float tapInAnimationValue = 1.0f;
+
+    private final ValueAnimator changingSpeedAnimation = ValueAnimator.ofFloat(1, 1.7f);
+    private float changingSpeedAnimationValue = 1.0f;
+
+    int numTapInTimes = 3;
+    long tapInTimes[];
+
     public interface SpeedChangedListener {
-        void onSpeedChanged(int speed);
+        void onSpeedChanged(int dSpeed);
+        void onAbsoluteSpeedChanged(int newSpeed, long nextKlickTimeInMillis);
     }
 
     private SpeedChangedListener speedChangedListener;
@@ -55,6 +72,25 @@ public class SpeedPanel extends ControlPanel {
             }
         };
         setOutlineProvider(outlineProvider);
+
+        tapInAnimation.setDuration(500);
+        tapInAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                tapInAnimationValue = (float) animation.getAnimatedValue();
+                invalidate();
+            }
+        });
+
+        changingSpeedAnimation.setDuration(150);
+        changingSpeedAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                changingSpeedAnimationValue = (float) animation.getAnimatedValue();
+                invalidate();
+            }
+        });
+//        tapInAnimation.setInterpolator(new LinearInterpolator());
     }
 
     private void init(Context context, @Nullable AttributeSet attrs) {
@@ -71,6 +107,9 @@ public class SpeedPanel extends ControlPanel {
         textColor = ta.getColor(R.styleable.SpeedPanel_textColor, Color.BLACK);
 
         ta.recycle();
+
+        tapInTimes = new long[numTapInTimes];
+        Arrays.fill(tapInTimes, -1);
     }
 
     @Override
@@ -113,13 +152,13 @@ public class SpeedPanel extends ControlPanel {
         float speedRad = 0.5f* (radius + innerRadius);
         float strokeWidth = 0.3f * (radius - innerRadius);
         circlePaint.setStrokeWidth(strokeWidth);
-        float angleMax  = -50.0f;
-        float angleMin = -130.0f;
-        float dAngle = 3.0f;
+        float angleMax  = -90.0f + 40 * changingSpeedAnimationValue;
+        float angleMin = -90.0f - 40 * changingSpeedAnimationValue;
+        float dAngle = 3.0f * changingSpeedAnimationValue;
 
-        float angle = angleMax -dAngle + 2.0f;
+        float angle = angleMax -dAngle + 2.0f * changingSpeedAnimationValue;
         while (angle >= angleMin) {
-            canvas.drawArc(cx - speedRad, cy - speedRad, cx + speedRad, cy + speedRad, angle, -2f, false, circlePaint);
+            canvas.drawArc(cx - speedRad, cy - speedRad, cx + speedRad, cy + speedRad, angle, -2f*changingSpeedAnimationValue, false, circlePaint);
             dAngle *= growthFactor;
             angle -= dAngle;
         }
@@ -142,17 +181,26 @@ public class SpeedPanel extends ControlPanel {
         pathOuterCircle.lineTo(cx + speedRad * (float) Math.cos(angleMaxRad+dArrAngle), cy + speedRad * (float) Math.sin(angleMaxRad+dArrAngle));
         canvas.drawPath(pathOuterCircle, circlePaint);
 
-        textPath.addArc(cx - speedRad, cy - speedRad, cx + speedRad, cy + speedRad, 180, -180);
+        textPath.addArc(cx - speedRad, cy - speedRad, cx + speedRad, cy + speedRad, 265, -350);
 //        circlePaint.setStrokeWidth(1);
 //        circlePaint.setStyle(Paint.Style.STROKE);
 //        canvas.drawPath(textPath, circlePaint);
         circlePaint.setStyle(Paint.Style.FILL);
         circlePaint.setTextAlign(Paint.Align.CENTER);
-        circlePaint.setTextSize(Utilities.sp_to_px(22));
+        final float tapInTextSize = Utilities.sp_to_px(22);
+        circlePaint.setTextSize(tapInTextSize);
+
         circlePaint.setColor(textColor);
 
-        canvas.drawTextOnPath(getContext().getString(R.string.tap_in), textPath, 0, Utilities.sp_to_px(22)/2.0f, circlePaint);
+        canvas.drawTextOnPath(getContext().getString(R.string.tap_in), textPath, 0, tapInTextSize/2.0f, circlePaint);
 
+        if(tapInAnimationValue <= 0.99999) {
+            circlePaint.setColor(highlightColor);
+            circlePaint.setAlpha(Math.round(255*(1-tapInAnimationValue)));
+            float highlightTextSize = tapInTextSize * (1 + 10*tapInAnimationValue);
+            circlePaint.setTextSize(highlightTextSize);
+            canvas.drawTextOnPath(getContext().getString(R.string.tap_in), textPath, 0, tapInTextSize / 2.0f, circlePaint);
+        }
     }
 
     @Override
@@ -170,13 +218,23 @@ public class SpeedPanel extends ControlPanel {
         switch(action) {
             case MotionEvent.ACTION_DOWN:
                 if (radiusXY > radius*1.1) {
-                 return false;
+                    return false;
+                }
+
+                double angle = 180.0 * Math.atan2(y, x) / Math.PI;
+                if(angle > 60 && angle < 120) {
+//                    highlightTapIn = true;
+                    System.arraycopy(tapInTimes, 1, tapInTimes, 0, numTapInTimes-1);
+                    tapInTimes[numTapInTimes-1] = SystemClock.uptimeMillis();
+                    evaluateTapInTimes();
+                    tapInAnimation.start();
                 }
                 else {
                     previous_x = x;
                     previous_y = y;
-                    previous_speed = 0;
+//                    previous_speed = 0;
                     changingSpeed = true;
+                    changingSpeedAnimation.start();
                 }
                 invalidate();
                 return true;
@@ -184,22 +242,55 @@ public class SpeedPanel extends ControlPanel {
                 if(changingSpeed) {
                     float dx = x - previous_x;
                     float dy = y - previous_y;
-                    int speed = -(int) Math.round((dx * y - dy * x) / Math.sqrt(x * x + y * y) / circum * factor);
+                    int dSpeed = -(int) Math.round((dx * y - dy * x) / Math.sqrt(x * x + y * y) / circum * factor);
 
-                    if (previous_speed != speed && speedChangedListener != null) {
-                        speedChangedListener.onSpeedChanged(speed);
+//                    if (previous_speed != dSpeed && speedChangedListener != null) {
+                    if (Math.abs(dSpeed) > 0 && speedChangedListener != null) { // TODO: make dSpeed to float and then compare against a threshhold instead of 0
+                        speedChangedListener.onSpeedChanged(dSpeed);
                         previous_x = x;
                         previous_y = y;
                     }
-                    previous_speed = speed;
+//                    previous_speed = dSpeed;
                 }
                 return true;
             case MotionEvent.ACTION_UP:
-                changingSpeed = false;
+                if(changingSpeed) {
+                    changingSpeed = false;
+                    changingSpeedAnimation.reverse();
+                }
+//                highlightTapIn = false;
                 invalidate();
         }
 
         return true;
+    }
+
+    void evaluateTapInTimes(){
+        if(tapInTimes[numTapInTimes-1] == -1)
+            return;
+
+        final double std_max = 0.2;
+        double mean = 0;
+        double std = 0;
+        for(int i = 1; i < numTapInTimes; ++i)
+            mean += tapInTimes[i] - tapInTimes[i-1];
+        mean /= numTapInTimes-1;
+
+        for(int i = 1; i < numTapInTimes; ++i) {
+            double dev = tapInTimes[i] - tapInTimes[i-1] - mean;
+            std += dev * dev;
+        }
+        std = Math.sqrt(std / (numTapInTimes-1)) / mean;
+        Log.v("Metronome", "SpeedPanel:evaluateTapInTimes: speed=" + (int) Math.round(60.0 * 1000.0 / mean) + " ;  std="+std);
+        if(std <= std_max){
+            int speed = (int) Math.round(60.0 * 1000.0 / mean);
+
+            int shiftMillis = -50; // Shift next klick time a little bit, since it feels more natural
+
+            if(speedChangedListener != null)
+                speedChangedListener.onAbsoluteSpeedChanged(speed,
+                        SystemClock.uptimeMillis() + tapInTimes[numTapInTimes-1] - tapInTimes[numTapInTimes-2]+shiftMillis);
+        }
     }
 
     void setOnSpeedChangedListener(SpeedChangedListener listener){

@@ -27,9 +27,10 @@ import java.util.Objects;
 
 public class NavigationActivity extends AppCompatActivity {
 
-    // TODO: TapIn
+    // TODO: Individual toolbar for each fragment
     // TODO: new app icon
     // TODO: add settings options for speed changing sensitivity
+    // TODO: allow smaller steps than 1
 
     private static FragmentManager fragManager;
 
