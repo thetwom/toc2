@@ -135,9 +135,11 @@ public class SoundChooserCircle extends FrameLayout {
     private void init() {
          Log.v("Metronome", "SoundChooserCircle:init()");
         final int buttonSize = Utilities.dp_to_px(80);
-        float cx = getWidth() / 2.0f + getLeft();
-        float cy = getHeight() / 2.0f + getTop();
-        float rad = Math.min(getWidth(),getHeight()) / 2.0f - buttonSize/2.0f;
+        float width = getWidth()-getPaddingStart()-getPaddingEnd();
+        float height = getHeight()-getPaddingTop()-getPaddingBottom();
+        float cx = width / 2.0f + getLeft() + getPaddingLeft();
+        float cy = height / 2.0f + getTop() + getPaddingTop();
+        float rad = Math.min(width, height) / 2.0f - buttonSize/2.0f;
 
         ViewGroup viewGroup = (ViewGroup) this.getParent();
         assert viewGroup != null;
