@@ -320,6 +320,7 @@ public class MoveableButton extends View {
 //        Log.v("Metronome", "Setting new button properties " + properties.getFloat("volume",-1));
     }
 
+    @SuppressWarnings("SameParameterValue")
     void setLockPosition(boolean lock){
         lockPosition = lock;
     }

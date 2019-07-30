@@ -3,8 +3,6 @@ package toc2.toc2;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.ShapeDrawable;
 import android.os.Bundle;
 import android.util.AttributeSet;
 import android.view.ViewTreeObserver;

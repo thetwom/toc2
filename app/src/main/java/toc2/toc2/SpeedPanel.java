@@ -16,7 +16,6 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewOutlineProvider;
-import android.view.animation.LinearInterpolator;
 
 import java.util.Arrays;
 
@@ -46,8 +45,8 @@ public class SpeedPanel extends ControlPanel {
     private final ValueAnimator changingSpeedAnimation = ValueAnimator.ofFloat(1, 1.7f);
     private float changingSpeedAnimationValue = 1.0f;
 
-    int numTapInTimes = 3;
-    long tapInTimes[];
+    private int numTapInTimes = 3;
+    private long[] tapInTimes;
 
     public interface SpeedChangedListener {
         void onSpeedChanged(int dSpeed);
@@ -265,7 +264,7 @@ public class SpeedPanel extends ControlPanel {
         return true;
     }
 
-    void evaluateTapInTimes(){
+    private void evaluateTapInTimes(){
         if(tapInTimes[numTapInTimes-1] == -1)
             return;
 

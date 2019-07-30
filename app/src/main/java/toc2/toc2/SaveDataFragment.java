@@ -167,7 +167,6 @@ class SaveDataFragment extends Fragment {
 
     void saveItem(FragmentActivity activity, SavedItemDatabase.SavedItem item)
     {
-        assert savedItemsAdapter != null;
         savedItemsAdapter.addItem(activity, item);
     }
 

@@ -11,7 +11,7 @@ import androidx.annotation.Nullable;
 
 public class SavedItemAttributes extends View {
 
-    public int deleteColor;
+    public final int deleteColor;
     public final int onDeleteColor;
 
     public SavedItemAttributes(Context context, @Nullable AttributeSet attrs) {
