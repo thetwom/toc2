@@ -35,7 +35,7 @@ import androidx.preference.PreferenceManager;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.util.Log;
+// import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -98,7 +98,7 @@ public class MetronomeFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        Log.v("Metronome", "MetronomeFragment:onCreateView");
+        // Log.v("Metronome", "MetronomeFragment:onCreateView");
         // Inflate the layout for this fragment
         final View view = inflater.inflate(R.layout.fragment_metronome, container, false);
 
@@ -131,13 +131,13 @@ public class MetronomeFragment extends Fragment {
 
             @Override
             public void onPause() {
-                Log.v("Metronome", "playButton:onPause()");
+                // Log.v("Metronome", "playButton:onPause()");
                 playerService.stopPlay();
             }
 
             @Override
             public void onPlay() {
-                Log.v("Metronome", "playButton:onPause()");
+                // Log.v("Metronome", "playButton:onPause()");
                 playerService.startPlay();
             }
         });
@@ -154,7 +154,7 @@ public class MetronomeFragment extends Fragment {
 //                soundChooserDialog.setNewButtonPropertiesListener(new SoundChooserDialog.NewButtonPropertiesListener() {
 //                    @Override
 //                    public void onNewButtonProperties(Bundle properties) {
-//                        Log.v("Metronome", "Setting new button properties ");
+//                        // Log.v("Metronome", "Setting new button properties ");
 //                        button.setProperties(properties);
 //                        setNewSound(soundChooser.getSounds());
 //                    }
@@ -174,7 +174,7 @@ public class MetronomeFragment extends Fragment {
 
     @Override
     public void onResume() {
-        Log.v("Metronome", "MetronomeFragment:onResume");
+        // Log.v("Metronome", "MetronomeFragment:onResume");
         super.onResume();
 
         // We can bind service only after our fragment is fully inflated since while binding,
@@ -196,7 +196,7 @@ public class MetronomeFragment extends Fragment {
 
     @Override
     public void onPause() {
-        Log.v("Metronome", "MetronomeFragment:onPause");
+        // Log.v("Metronome", "MetronomeFragment:onPause");
         if(playerServiceBound)
           unbindPlayerService();
         super.onPause();
@@ -204,7 +204,7 @@ public class MetronomeFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
-        Log.v("Metronome", "MetronomeFragment:onDestroyView");
+        // Log.v("Metronome", "MetronomeFragment:onDestroyView");
         //if(playerServiceBound)
         // unbindPlayerService();
         super.onDestroyView();
@@ -212,7 +212,7 @@ public class MetronomeFragment extends Fragment {
 
     @Override
     public void onDestroy() {
-        Log.v("Metronome", "MetronomeFragment:onDestroy");
+        // Log.v("Metronome", "MetronomeFragment:onDestroy");
         // if(playerServiceBound)
         //  unbindPlayerService();
         super.onDestroy();
@@ -254,7 +254,7 @@ public class MetronomeFragment extends Fragment {
 
     private void updateView(MediaMetadataCompat metadata){
         String soundString = metadata.getString(MediaMetadataCompat.METADATA_KEY_TITLE);
-        Log.v("Metronome", "MetronomeFragment : updateView : parsing metadata : " + soundString);
+        // Log.v("Metronome", "MetronomeFragment : updateView : parsing metadata : " + soundString);
         ArrayList<Bundle> sounds = SoundProperties.parseMetaDataString(soundString);
         updateView(sounds);
     }
@@ -274,7 +274,7 @@ public class MetronomeFragment extends Fragment {
             playerConnection = new ServiceConnection() {
                 @Override
                 public void onServiceConnected(ComponentName className, IBinder service) {
-                    Log.v("Metronome", "PlayerService:onServiceConnected");
+                    // Log.v("Metronome", "PlayerService:onServiceConnected");
                     // We've bound to LocalService, cast the IBinder and get LocalService instance
                     PlayerService.PlayerBinder binder = (PlayerService.PlayerBinder) service;
                     playerService = binder.getService();
@@ -289,7 +289,7 @@ public class MetronomeFragment extends Fragment {
 
                 @Override
                 public void onServiceDisconnected(ComponentName arg0) {
-                    Log.v("Metronome", "PlayerService:onServiceDisconnected");
+                    // Log.v("Metronome", "PlayerService:onServiceDisconnected");
                     playerService.unregisterMediaControllerCallback(mediaControllerCallback);
                     playerServiceBound = false;
                     playerContext = null;

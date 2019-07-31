@@ -22,7 +22,7 @@ package de.moekadu.metronome;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
+// import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -95,12 +95,12 @@ public class SavedItemDatabase extends RecyclerView.Adapter<SavedItemDatabase.Vi
         holder.view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.v("Metronome", "SavedItemDatabase:onClickListener " + holder.getAdapterPosition());
+                // Log.v("Metronome", "SavedItemDatabase:onClickListener " + holder.getAdapterPosition());
                 if(onItemClickedListener != null)
                     onItemClickedListener.onItemClicked(dataBase.get(holder.getAdapterPosition()), holder.getAdapterPosition());
             }
         });
-        Log.v("Metronome", "SavedItemDatabase:onBindViewHolder (position = " + position + ")");
+        // Log.v("Metronome", "SavedItemDatabase:onBindViewHolder (position = " + position + ")");
     }
 
     SavedItem remove(int position) {
@@ -126,7 +126,7 @@ public class SavedItemDatabase extends RecyclerView.Adapter<SavedItemDatabase.Vi
             loadData(activity);
         dataBase.add(item);
         notifyItemRangeInserted(dataBase.size()-1, dataBase.size());
-        Log.v("Metronome", "SavedItemDatabase:addItem: Number of items: " + dataBase.size());
+        // Log.v("Metronome", "SavedItemDatabase:addItem: Number of items: " + dataBase.size());
     }
 
     void addItem(FragmentActivity activity, SavedItem item, int position) {
@@ -137,7 +137,7 @@ public class SavedItemDatabase extends RecyclerView.Adapter<SavedItemDatabase.Vi
 
         dataBase.add(position, item);
         notifyItemRangeInserted(position, 1);
-//        Log.v("Metronome", "SavedItemDatabase:addItem: Number of items: " + dataBase.size());
+//        // Log.v("Metronome", "SavedItemDatabase:addItem: Number of items: " + dataBase.size());
     }
 
     void saveData(FragmentActivity activity) {
@@ -152,7 +152,7 @@ public class SavedItemDatabase extends RecyclerView.Adapter<SavedItemDatabase.Vi
         }
         String dataString = stringBuilder.toString();
 
-        Log.v("Metronome", "SavedItemDatabase:saveData: " + dataString);
+        // Log.v("Metronome", "SavedItemDatabase:saveData: " + dataString);
 
         SharedPreferences preferences = activity.getPreferences(Context.MODE_PRIVATE);
 
@@ -170,7 +170,7 @@ public class SavedItemDatabase extends RecyclerView.Adapter<SavedItemDatabase.Vi
         SharedPreferences preferences = activity.getPreferences(Context.MODE_PRIVATE);
         String dataString = preferences.getString("savedDatabase", "");
 
-        Log.v("Metronome", "SavedItemFragment:loadData: " + dataString);
+        // Log.v("Metronome", "SavedItemFragment:loadData: " + dataString);
         if(dataString == null)
             return;
         else if(dataString.equals(""))

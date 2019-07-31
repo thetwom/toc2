@@ -26,7 +26,7 @@ import android.os.Bundle;
 
 import androidx.core.content.ContextCompat;
 import android.util.AttributeSet;
-import android.util.Log;
+// import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -90,7 +90,7 @@ public class SoundChooser extends FrameLayout {
     }
 
     private void init() {
-        Log.v("Metronome", "SoundChooser:init");
+        // Log.v("Metronome", "SoundChooser:init");
 
         plusButton = createPlusButton();
 //
@@ -111,7 +111,7 @@ public class SoundChooser extends FrameLayout {
         if(attrs == null)
             return;
 
-        Log.v("Metronome", "SoundChooser:readAttributes");
+        // Log.v("Metronome", "SoundChooser:readAttributes");
         TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.SoundChooser);
         highlightButtonColor = ta.getColor(R.styleable.SoundChooser_highlightColor, Color.BLUE);
         normalButtonColor = ta.getColor(R.styleable.SoundChooser_normalColor, Color.BLACK);
@@ -199,7 +199,7 @@ public class SoundChooser extends FrameLayout {
     }
 
     private void repositionButtons() {
-        Log.v("Metronome", "SoundChooser:repositionButtons " + getButtonWidth());
+        // Log.v("Metronome", "SoundChooser:repositionButtons " + getButtonWidth());
         for (int i = 0; i < buttons.size(); ++i) {
             MoveableButton b = buttons.get(i);
             ViewGroup.LayoutParams params = b.getLayoutParams();
@@ -337,7 +337,7 @@ public class SoundChooser extends FrameLayout {
 
     private int getButtonWidth() {
         int plusButtonWidth = determinePlusButtonWidth();
-//        Log.v("Metronome", "SoundChooser:plusbuttonwidth " + plusButtonWidth);
+//        // Log.v("Metronome", "SoundChooser:plusbuttonwidth " + plusButtonWidth);
         int newButtonWidth = Math.round(
                 (getWidth() - getPaddingLeft() - getPaddingRight() - plusButtonWidth)
                         / (float) buttons.size()) - spacing;

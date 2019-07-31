@@ -20,7 +20,7 @@
 package de.moekadu.metronome;
 
 import android.os.Bundle;
-import android.util.Log;
+// import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,7 +32,7 @@ import androidx.fragment.app.Fragment;
 
 import com.google.android.material.button.MaterialButton;
 
-class SoundChooserDialog extends Fragment implements View.OnClickListener {
+public class SoundChooserDialog extends Fragment implements View.OnClickListener {
 
     private MoveableButton activeButton = null;
     private PlayerService playerService = null;
@@ -53,7 +53,7 @@ class SoundChooserDialog extends Fragment implements View.OnClickListener {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         final View view =inflater.inflate(R.layout.sound_chooser_dialog_new, container, false);
 
-        Log.v("Metronome", "SoundChooserDialog.onCreateView");
+        // Log.v("Metronome", "SoundChooserDialog.onCreateView");
         TextView backgroundView = view.findViewById(R.id.soundchooserbackground);
         backgroundView.setOnClickListener(new View.OnClickListener() {
             @Override

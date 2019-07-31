@@ -41,7 +41,7 @@ import androidx.media.app.NotificationCompat.MediaStyle;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.util.Log;
+// import android.util.Log;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -82,7 +82,7 @@ public class PlayerService extends Service {
         @Override
         public void run() {
             if (getState() == PlaybackStateCompat.STATE_PLAYING) {
-//                Log.v("Metronome", "PlayerService:Runnable: currentTime="+System.currentTimeMillis() + ";  nextClick=" + syncKlickTime);
+//                // Log.v("Metronome", "PlayerService:Runnable: currentTime="+System.currentTimeMillis() + ";  nextClick=" + syncKlickTime);
                 if(syncKlickTime > SystemClock.uptimeMillis()){
                     long nextKlickTime = syncKlickTime;
                     if(syncKlickTime - SystemClock.uptimeMillis() < 0.5 * getDt())
@@ -128,7 +128,7 @@ public class PlayerService extends Service {
     private final BroadcastReceiver actionReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.v("Metronome", "ActionReceiver:onReceive()");
+            // Log.v("Metronome", "ActionReceiver:onReceive()");
             Bundle extras = intent.getExtras();
             if (extras == null) {
                 return;
@@ -142,10 +142,10 @@ public class PlayerService extends Service {
             }
 
             if (myAction == PlaybackStateCompat.ACTION_PLAY) {
-                Log.v("Metronome", "ActionReceiver:onReceive : set state to playing");
+                // Log.v("Metronome", "ActionReceiver:onReceive : set state to playing");
                 mediaSession.getController().getTransportControls().play();
             } else if (myAction == PlaybackStateCompat.ACTION_PAUSE) {
-                Log.v("Metronome", "ActionReceiver:onReceive : set state to pause");
+                // Log.v("Metronome", "ActionReceiver:onReceive : set state to pause");
                 mediaSession.getController().getTransportControls().pause();
             }
         }
@@ -157,7 +157,7 @@ public class PlayerService extends Service {
 
     @Override
     public void onCreate() {
-        Log.v("Metronome", "PlayerService::onCreate()");
+        // Log.v("Metronome", "PlayerService::onCreate()");
         super.onCreate();
 
         IntentFilter filter = new IntentFilter(BROADCAST_PLAYERACTION);
@@ -172,7 +172,7 @@ public class PlayerService extends Service {
         mediaSession.setCallback(new MediaSessionCompat.Callback() {
             @Override
             public void onPlay() {
-                Log.v("Metronome", "mediaSession:onPlay()");
+                // Log.v("Metronome", "mediaSession:onPlay()");
                 if (getState() != PlaybackStateCompat.STATE_PLAYING) {
                     startPlay();
                 }
@@ -181,7 +181,7 @@ public class PlayerService extends Service {
 
             @Override
             public void onPause() {
-                Log.v("Metronome", "mediaSession:onPause()");
+                // Log.v("Metronome", "mediaSession:onPause()");
                 if (getState() == PlaybackStateCompat.STATE_PLAYING) {
                     stopPlay();
                 }
@@ -206,7 +206,7 @@ public class PlayerService extends Service {
 
     @Override
     public void onDestroy() {
-        Log.v("Metronome", "PlayerService:onDestroy");
+        // Log.v("Metronome", "PlayerService:onDestroy");
         unregisterReceiver(actionReceiver);
         mediaSession.release();
         super.onDestroy();
@@ -214,7 +214,7 @@ public class PlayerService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        Log.v("Metronome", "PlayerService:onBind");
+        // Log.v("Metronome", "PlayerService:onBind");
 
         int numSounds = Sounds.getNumSoundID();
         soundHandles = new int[numSounds];
@@ -227,7 +227,7 @@ public class PlayerService extends Service {
 
     @Override
     public boolean onUnbind(Intent intent) {
-        Log.v("Metronome", "PlayerService:onUnbind");
+        // Log.v("Metronome", "PlayerService:onUnbind");
         stopPlay();
         for (int sH : soundHandles) {
             soundpool.unload(sH);
@@ -254,12 +254,12 @@ public class PlayerService extends Service {
 
         NotificationCompat.Action controlAction;
         if (getState() == PlaybackStateCompat.STATE_PLAYING) {
-            Log.v("Metronome", "isplaying");
+            // Log.v("Metronome", "isplaying");
             intent.putExtra(PlayerService.PLAYERSTATE, PlaybackStateCompat.ACTION_PAUSE);
             PendingIntent pIntent = PendingIntent.getBroadcast(this, notificationStateID, intent, PendingIntent.FLAG_UPDATE_CURRENT);
             controlAction = new NotificationCompat.Action(R.drawable.ic_pause, "pause", pIntent);
         } else { // if(getState() == PlaybackStateCompat.STATE_PAUSED){
-            Log.v("Metronome", "ispaused");
+            // Log.v("Metronome", "ispaused");
             intent.putExtra(PlayerService.PLAYERSTATE, PlaybackStateCompat.ACTION_PLAY);
             PendingIntent pIntent = PendingIntent.getBroadcast(this, notificationStateID, intent, PendingIntent.FLAG_UPDATE_CURRENT);
             controlAction = new NotificationCompat.Action(R.drawable.ic_play, "play", pIntent);
@@ -333,7 +333,7 @@ public class PlayerService extends Service {
     }
 
     public void startPlay() {
-        Log.v("Metronome", "PlayerService:startPlay");
+        // Log.v("Metronome", "PlayerService:startPlay");
 
         playbackStateBuilder
                 .setState(PlaybackStateCompat.STATE_PLAYING, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, getSpeed())
@@ -347,7 +347,7 @@ public class PlayerService extends Service {
     }
 
     public void stopPlay() {
-        Log.v("Metronome", "PlayerService:stopPlay");
+        // Log.v("Metronome", "PlayerService:stopPlay");
 
         playbackStateBuilder
                 .setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, getSpeed())

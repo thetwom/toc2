@@ -37,7 +37,7 @@ import androidx.preference.PreferenceFragmentCompat;
 
 import android.os.IBinder;
 import android.text.InputType;
-import android.util.Log;
+// import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -53,7 +53,7 @@ import android.widget.Toast;
 /**
  * A simple {@link Fragment} subclass.
  */
-class SettingsFragment extends PreferenceFragmentCompat { // implements SharedPreferences.OnSharedPreferenceChangeListener {
+public class SettingsFragment extends PreferenceFragmentCompat { // implements SharedPreferences.OnSharedPreferenceChangeListener {
 
     private boolean playerServiceBound = false;
     private ServiceConnection playerConnection = null;
@@ -125,7 +125,7 @@ class SettingsFragment extends PreferenceFragmentCompat { // implements SharedPr
                     int speed = Integer.parseInt((String) newValue);
                     if(playerService.setMinimumSpeed(speed)){
 
-                        Log.v("Metronome", "Changed minimum speed summary");
+                        // Log.v("Metronome", "Changed minimum speed summary");
 //                        minimumSpeed.notifyChanged();
 //                        getListView().getAdapter().notifyDataSetChanged();
                         minimumSpeed.setSummary(getString(R.string.bpm, speed));

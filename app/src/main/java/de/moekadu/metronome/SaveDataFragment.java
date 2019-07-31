@@ -25,7 +25,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.util.Log;
+// import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -43,7 +43,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.snackbar.Snackbar;
 
-class SaveDataFragment extends Fragment {
+public class SaveDataFragment extends Fragment {
 
     private RecyclerView savedItems = null;
     private RecyclerView.LayoutManager savedItemsManager;
@@ -129,7 +129,7 @@ class SaveDataFragment extends Fragment {
 
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                Log.v("Metronome", "SaveDataFragment:onSwiped " + viewHolder.getAdapterPosition());
+                // Log.v("Metronome", "SaveDataFragment:onSwiped " + viewHolder.getAdapterPosition());
 
                 lastRemovedItemIndex = viewHolder.getAdapterPosition();
                 lastRemovedItem = savedItemsAdapter.remove(lastRemovedItemIndex);

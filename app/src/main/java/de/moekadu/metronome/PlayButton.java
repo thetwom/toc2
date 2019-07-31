@@ -28,7 +28,7 @@ import android.graphics.Outline;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.util.AttributeSet;
-import android.util.Log;
+// import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewOutlineProvider;
@@ -247,10 +247,10 @@ public class PlayButton extends ControlPanel {
     public boolean performClick() {
          if (buttonClickedListener != null) {
              if (buttonStatus == STATUS_PAUSED) {
-                 Log.v("Metronome", "PlayButton:GestureTap:onSingleTapConfirmed() : trigger onPlay");
+                 // Log.v("Metronome", "PlayButton:GestureTap:onSingleTapConfirmed() : trigger onPlay");
                  buttonClickedListener.onPlay();
              } else {
-                 Log.v("Metronome", "PlayButton:GestureTap:onSingleTapConfirmed() : trigger onPause");
+                 // Log.v("Metronome", "PlayButton:GestureTap:onSingleTapConfirmed() : trigger onPause");
                  buttonClickedListener.onPause();
              }
          }
@@ -261,7 +261,7 @@ public class PlayButton extends ControlPanel {
         if(buttonStatus == status)
             return;
 
-        Log.v("Metronome", "changeStatus: changing button status");
+        // Log.v("Metronome", "changeStatus: changing button status");
         buttonStatus = status;
         if(status == STATUS_PAUSED) {
             //playPercentage = 0.0;

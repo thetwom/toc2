@@ -24,7 +24,7 @@ import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.AttributeSet;
-import android.util.Log;
+// import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -143,7 +143,7 @@ public class SoundChooserCircle extends FrameLayout {
         if(attrs == null)
             return;
 
-        Log.v("Metronome", "SoundChooserCircle:readAttributes");
+        // Log.v("Metronome", "SoundChooserCircle:readAttributes");
         TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.SoundChooserCircle);
         highlightButtonColor = ta.getColor(R.styleable.SoundChooserCircle_highlightColor, Color.BLUE);
         normalButtonColor = ta.getColor(R.styleable.SoundChooserCircle_normalColor, Color.BLACK);
@@ -152,7 +152,7 @@ public class SoundChooserCircle extends FrameLayout {
     }
 
     private void init() {
-         Log.v("Metronome", "SoundChooserCircle:init()");
+         // Log.v("Metronome", "SoundChooserCircle:init()");
         final int buttonSize = Utilities.dp_to_px(80);
         float width = getWidth()-getPaddingStart()-getPaddingEnd();
         float height = getHeight()-getPaddingTop()-getPaddingBottom();

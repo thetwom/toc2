@@ -30,7 +30,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
-import android.util.Log;
+// import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -59,13 +59,13 @@ public class PlayerFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Log.v("Metronome", "PlayerFragment:onCreate");
+        // Log.v("Metronome", "PlayerFragment:onCreate");
         setRetainInstance(true);
 
         FragmentActivity context = getActivity();
 
         if(context != null) {
-            Log.v("Metronome", "PlayerFragment:onCreate : loading preferences");
+            // Log.v("Metronome", "PlayerFragment:onCreate : loading preferences");
             SharedPreferences preferences = context.getPreferences(Context.MODE_PRIVATE);
             speed = preferences.getInt("speed", InitialValues.speed);
             String soundString = preferences.getString("sound", "0");
@@ -85,7 +85,7 @@ public class PlayerFragment extends Fragment {
             playerConnection = new ServiceConnection() {
                 @Override
                 public void onServiceConnected(ComponentName className, IBinder service) {
-                    Log.v("Metronome", "PlayerService:onServiceConnected");
+                    // Log.v("Metronome", "PlayerService:onServiceConnected");
 
                     if (context != null) {
                         // We've bound to LocalService, cast the IBinder and get LocalService instance
@@ -100,7 +100,7 @@ public class PlayerFragment extends Fragment {
 
                 @Override
                 public void onServiceDisconnected(ComponentName arg0) {
-                    Log.v("Metronome", "PlayerService:onServiceDisconnected");
+                    // Log.v("Metronome", "PlayerService:onServiceDisconnected");
                     playerServiceBound = false;
                     playerContext = null;
                 }
@@ -121,7 +121,7 @@ public class PlayerFragment extends Fragment {
 
     @Override
     public void onResume() {
-        Log.v("Metronome", "PlayerFragment:onResume");
+        // Log.v("Metronome", "PlayerFragment:onResume");
         super.onResume();
     }
 
@@ -130,7 +130,7 @@ public class PlayerFragment extends Fragment {
         FragmentActivity context = getActivity();
         if(context != null)
         {
-            Log.v("Metronome", "PlayerFragment:onStop : saving preferences");
+            // Log.v("Metronome", "PlayerFragment:onStop : saving preferences");
             SharedPreferences preferences = context.getPreferences(Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = preferences.edit();
             //editor.putInt("speed", speed);
@@ -141,7 +141,7 @@ public class PlayerFragment extends Fragment {
 
             editor.putInt("speed", speed);
             String metaDataString = SoundProperties.createMetaDataString(playList);
-            Log.v("Metronome", "PlayerFragment:onStop : saving meta data: " + metaDataString);
+            // Log.v("Metronome", "PlayerFragment:onStop : saving meta data: " + metaDataString);
             editor.putString("sound", metaDataString);
             editor.apply();
         }
@@ -151,7 +151,7 @@ public class PlayerFragment extends Fragment {
 
     @Override
     public void onDestroy() {
-        Log.v("Metronome", "PlayerFragment:onDestroy");
+        // Log.v("Metronome", "PlayerFragment:onDestroy");
         if(playerServiceBound) {
             playerContext.unbindService(playerConnection);
             playerServiceBound = false;

@@ -20,7 +20,7 @@
 package de.moekadu.metronome;
 
 import android.content.Context;
-import android.util.Log;
+// import android.util.Log;
 
 final class Sounds {
 
@@ -49,12 +49,12 @@ final class Sounds {
 
 
     static CharSequence[] getNames(Context context){
-        Log.v("Metronome", "Sound.getNames : number of sounds: " + sounds.length);
+        // Log.v("Metronome", "Sound.getNames : number of sounds: " + sounds.length);
         CharSequence[] names = new CharSequence[sounds.length];
         int i = 0;
         for(SoundInfo si : sounds) {
             String name = context.getResources().getString(si.nameID);
-            Log.v("Metronome", "Sounds.get_names : " + name);
+            // Log.v("Metronome", "Sounds.get_names : " + name);
             names[i] = name;
             i++;
         }

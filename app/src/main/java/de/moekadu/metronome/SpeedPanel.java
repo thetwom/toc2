@@ -31,7 +31,7 @@ import androidx.annotation.Nullable;
 
 import android.os.SystemClock;
 import android.util.AttributeSet;
-import android.util.Log;
+// import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewOutlineProvider;
@@ -299,7 +299,7 @@ public class SpeedPanel extends ControlPanel {
             std += dev * dev;
         }
         std = Math.sqrt(std / (numTapInTimes-1)) / mean;
-        Log.v("Metronome", "SpeedPanel:evaluateTapInTimes: speed=" + (int) Math.round(60.0 * 1000.0 / mean) + " ;  std="+std);
+        // Log.v("Metronome", "SpeedPanel:evaluateTapInTimes: speed=" + (int) Math.round(60.0 * 1000.0 / mean) + " ;  std="+std);
         if(std <= std_max){
             int speed = (int) Math.round(60.0 * 1000.0 / mean);
 

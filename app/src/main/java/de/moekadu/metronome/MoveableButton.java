@@ -336,7 +336,7 @@ public class MoveableButton extends View {
         invalidate();
         if(onPropertiesChangedListener != null && !suppressOnPropertiesChangedListener)
             onPropertiesChangedListener.onPropertiesChanged(this);
-//        Log.v("Metronome", "Setting new button properties " + properties.getFloat("volume",-1));
+//        // Log.v("Metronome", "Setting new button properties " + properties.getFloat("volume",-1));
     }
 
     @SuppressWarnings("SameParameterValue")
