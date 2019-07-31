@@ -1,10 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  - Copyright 2019 Michael Moessner
+  -
+  - This file is part of Metronome.
+  -
+  - Metronome is free software: you can redistribute it and/or modify
+  - it under the terms of the GNU General Public License as published by
+  - the Free Software Foundation, either version 3 of the License, or
+  - (at your option) any later version.
+  -
+  - Metronome is distributed in the hope that it will be useful,
+  - but WITHOUT ANY WARRANTY; without even the implied warranty of
+  - MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  - GNU General Public License for more details.
+  -
+  - You should have received a copy of the GNU General Public License
+  - along with Metronome.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="toc2.toc2">
+    package="de.moekadu.metronome">
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <application
-        android:name=".App"
+        android:name="de.moekadu.metronome.App"
         android:allowBackup="true"
         android:icon="@mipmap/ic_toc2"
         android:label="@string/app_name"
@@ -12,7 +31,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".NavigationActivity"
+            android:name="de.moekadu.metronome.NavigationActivity"
             android:label="@string/app_name"
             android:launchMode="singleInstance"
             android:theme="@style/AppTheme">
@@ -24,7 +43,7 @@
         </activity>
 
         <service
-            android:name=".PlayerService"
+            android:name="de.moekadu.metronome.PlayerService"
             android:enabled="true"
             android:exported="false" />
 <!--

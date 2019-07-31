@@ -1,4 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  - Copyright 2019 Michael Moessner
+  -
+  - This file is part of Metronome.
+  -
+  - Metronome is free software: you can redistribute it and/or modify
+  - it under the terms of the GNU General Public License as published by
+  - the Free Software Foundation, either version 3 of the License, or
+  - (at your option) any later version.
+  -
+  - Metronome is distributed in the hope that it will be useful,
+  - but WITHOUT ANY WARRANTY; without even the implied warranty of
+  - MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  - GNU General Public License for more details.
+  -
+  - You should have received a copy of the GNU General Public License
+  - along with Metronome.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -6,7 +25,7 @@
     android:layout_height="match_parent"
     tools:context=".MetronomeFragment">
     <!--tools:context=".NavigationActivity"-->
-    <toc2.toc2.SpeedPanel
+    <de.moekadu.metronome.SpeedPanel
         android:id="@+id/speedpanel"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -31,7 +50,7 @@
         tools:layout_conversion_wrapWidth="577" />
 
 
-    <toc2.toc2.PlayButton
+    <de.moekadu.metronome.PlayButton
         android:id="@+id/playbutton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -49,7 +68,7 @@
         tools:layout_conversion_wrapHeight="577" />
 
 
-    <toc2.toc2.SpeedIndicator
+    <de.moekadu.metronome.SpeedIndicator
         android:id="@+id/speedindicator"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -66,12 +85,12 @@
         app:normalColor="?attr/colorBackgroundFloating"
         tools:layout_conversion_wrapHeight="577" />
 
-    <!--<toc2.toc2.IconListVisualizer-->
+    <!--<toc2.moekadu.toc2.IconListVisualizer-->
         <!--android:layout_width="100dp"-->
         <!--android:layout_height="100dp"-->
         <!--app:layout_constraintTop_toTopOf="parent"-->
         <!--app:layout_constraintStart_toStartOf="parent"-->
-        <!--&gt;</toc2.toc2.IconListVisualizer>-->
+        <!--&gt;</toc2.moekadu.toc2.IconListVisualizer>-->
 
     <TextView
         android:id="@+id/speedtext"
@@ -90,7 +109,7 @@
         tools:layout_conversion_wrapWidth="239"
         tools:ignore="HardcodedText" />
 
-    <toc2.toc2.SoundChooser
+    <de.moekadu.metronome.SoundChooser
         android:id="@+id/soundchooser"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -1,4 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  - Copyright 2019 Michael Moessner
+  -
+  - This file is part of Metronome.
+  -
+  - Metronome is free software: you can redistribute it and/or modify
+  - it under the terms of the GNU General Public License as published by
+  - the Free Software Foundation, either version 3 of the License, or
+  - (at your option) any later version.
+  -
+  - Metronome is distributed in the hope that it will be useful,
+  - but WITHOUT ANY WARRANTY; without even the implied warranty of
+  - MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  - GNU General Public License for more details.
+  -
+  - You should have received a copy of the GNU General Public License
+  - along with Metronome.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -14,7 +33,7 @@
         app:layout_constraintStart_toStartOf="parent"
         />
 
-    <!--<toc2.toc2.SavedItemAttributes-->
+    <!--<toc2.moekadu.toc2.SavedItemAttributes-->
         <!--android:id="@+id/saved_item_attributes"-->
         <!--android:layout_width="0dp"-->
         <!--android:layout_height="0dp"-->
@@ -34,7 +53,7 @@
         app:layout_constraintEnd_toStartOf="@id/saved_item_date"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <toc2.toc2.IconListVisualizer
+    <de.moekadu.metronome.IconListVisualizer
         android:id="@+id/saved_item_sounds"
         android:layout_width="0dp"
         android:layout_height="50dp"
