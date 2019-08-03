@@ -31,7 +31,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name="de.moekadu.metronome.NavigationActivity"
+            android:name="de.moekadu.metronome.MainActivity"
             android:label="@string/app_name"
             android:launchMode="singleInstance"
             android:theme="@style/AppTheme">
@@ -47,7 +47,7 @@
             android:enabled="true"
             android:exported="false" />
 <!--
-        <receiver android:name=".NavigationActivity$NotificationReceiver" />
+        <receiver android:name=".MainActivity$NotificationReceiver" />
 
        -->
     </application>

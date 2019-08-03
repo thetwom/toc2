@@ -51,7 +51,7 @@ public class SoundChooserDialog extends Fragment implements View.OnClickListener
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        final View view =inflater.inflate(R.layout.sound_chooser_dialog_new, container, false);
+        final View view =inflater.inflate(R.layout.sound_chooser_dialog, container, false);
 
         // Log.v("Metronome", "SoundChooserDialog.onCreateView");
         TextView backgroundView = view.findViewById(R.id.soundchooserbackground);

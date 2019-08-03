@@ -99,7 +99,7 @@ public class SettingsFragment extends PreferenceFragmentCompat { // implements S
         appearance.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
-                NavigationActivity act = (NavigationActivity) getActivity();
+                MainActivity act = (MainActivity) getActivity();
                 appearance.setSummary(getAppearanceSummary());
                 if(act != null)
                     act.recreate();
@@ -233,7 +233,7 @@ public class SettingsFragment extends PreferenceFragmentCompat { // implements S
     @Override
     public void onResume() {
         super.onResume();
-        NavigationActivity act = (NavigationActivity) getActivity();
+        MainActivity act = (MainActivity) getActivity();
         if(act != null) {
             bindService(act.getApplicationContext());
         }

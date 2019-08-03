@@ -147,7 +147,7 @@ public class MetronomeFragment extends Fragment {
         soundChooser.setButtonClickedListener(new SoundChooser.ButtonClickedListener() {
             @Override
             public void onButtonClicked(MoveableButton button) {
-                NavigationActivity act = (NavigationActivity) getActivity();
+                MainActivity act = (MainActivity) getActivity();
                 assert act != null;
                 act.loadSoundChooserDialog(button, playerService);
 //                SoundChooserDialog soundChooserDialog = new SoundChooserDialog(act, button.getProperties());
@@ -182,7 +182,7 @@ public class MetronomeFragment extends Fragment {
         Runnable run = new Runnable() {
             @Override
             public void run() {
-                NavigationActivity act = (NavigationActivity) getActivity();
+                MainActivity act = (MainActivity) getActivity();
                 if(act != null) {
                     bindService(act.getApplicationContext());
                 }

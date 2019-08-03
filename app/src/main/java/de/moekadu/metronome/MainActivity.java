@@ -44,7 +44,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Objects;
 
-public class NavigationActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity {
 
     // TODO: Individual toolbar for each fragment
     // TODO: new app icon
@@ -87,7 +87,7 @@ public class NavigationActivity extends AppCompatActivity {
 
         AppCompatDelegate.setDefaultNightMode(nightMode);
 
-        setContentView(R.layout.activity_navigation);
+        setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -172,7 +172,7 @@ public class NavigationActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.navigation, menu);
+        getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 
@@ -249,10 +249,10 @@ public class NavigationActivity extends AppCompatActivity {
 
                     if(item.title.length() > 200) {
                         item.title = item.title.substring(0, 200);
-                        Toast.makeText(NavigationActivity.this, getString(R.string.max_allowed_characters, 200), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, getString(R.string.max_allowed_characters, 200), Toast.LENGTH_SHORT).show();
                     }
-                    saveDataFragment.saveItem(NavigationActivity.this, item);
-                    Toast.makeText(NavigationActivity.this, getString(R.string.saved_item_message, item.title), Toast.LENGTH_SHORT).show();
+                    saveDataFragment.saveItem(MainActivity.this, item);
+                    Toast.makeText(MainActivity.this, getString(R.string.saved_item_message, item.title), Toast.LENGTH_SHORT).show();
                 }
         }).setNegativeButton(R.string.dismiss, new DialogInterface.OnClickListener() {
             @Override

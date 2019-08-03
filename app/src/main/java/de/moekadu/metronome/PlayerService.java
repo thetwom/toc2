@@ -165,7 +165,7 @@ public class PlayerService extends Service {
 
         mediaSession = new MediaSessionCompat(this, "toc2");
 
-        Intent activityIntent = new Intent(this, NavigationActivity.class);
+        Intent activityIntent = new Intent(this, MainActivity.class);
         PendingIntent launchActivity = PendingIntent.getActivity(this, 0, activityIntent, 0);
         mediaSession.setSessionActivity(launchActivity);
 
@@ -240,7 +240,7 @@ public class PlayerService extends Service {
         if (notificationBuilder == null) {
             notificationBuilder = new NotificationCompat.Builder(this, CHANNEL_ID);
 
-            Intent activityIntent = new Intent(this, NavigationActivity.class);
+            Intent activityIntent = new Intent(this, MainActivity.class);
             PendingIntent launchActivity = PendingIntent.getActivity(this, 0, activityIntent, 0);
 
             notificationBuilder.setContentTitle(getString(R.string.app_name))
@@ -302,8 +302,8 @@ public class PlayerService extends Service {
 
     public void addValueToSpeed(int dSpeed) {
         int newSpeed = getSpeed() + dSpeed;
-//        newSpeed = Math.min(newSpeed, NavigationActivity.SPEED_MAX);
-//        newSpeed = Math.max(newSpeed, NavigationActivity.SPEED_MIN);
+//        newSpeed = Math.min(newSpeed, MainActivity.SPEED_MAX);
+//        newSpeed = Math.max(newSpeed, MainActivity.SPEED_MIN);
         newSpeed = Math.min(newSpeed, maximumSpeed);
         newSpeed = Math.max(newSpeed, minimumSpeed);
         changeSpeed(newSpeed);

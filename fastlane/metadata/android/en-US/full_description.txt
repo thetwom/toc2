@@ -1,0 +1,5 @@
+    Simple metronome app which supports basic functionality to help keeping time when practicing music. It includes features like:
+    * Setting the time in "beats per minute".
+    * Setting the time by "tap in".
+    * Select different sounds.
+    * Save and load your current setup.
