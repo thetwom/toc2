@@ -27,12 +27,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.media.SoundPool;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 import android.service.notification.StatusBarNotification;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -41,6 +43,7 @@ import androidx.media.app.NotificationCompat.MediaStyle;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.util.Log;
 // import android.util.Log;
 
 import java.lang.reflect.Field;
@@ -56,8 +59,10 @@ public class PlayerService extends Service {
     private static final String PLAYERSTATE = "PLAYERSTATE";
     private static final String PLAYBACKSPEED = "PLAYBACKSPEED";
 
-    private int minimumSpeed = 20;
-    private int maximumSpeed = 250;
+    private float minimumSpeed;
+    private float maximumSpeed;
+
+    private float speedIncrement;
 
     private long syncKlickTime = -1;
 
@@ -76,6 +81,7 @@ public class PlayerService extends Service {
 
     private ArrayList<Bundle> playList;
 
+    private SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener;
     private final Handler waitHandler = new Handler();
 
     private final Runnable klickAndWait = new Runnable() {
@@ -135,7 +141,7 @@ public class PlayerService extends Service {
             }
 
             long myAction = extras.getLong(PLAYERSTATE, PlaybackStateCompat.STATE_NONE);
-            int newSpeed = extras.getInt(PLAYBACKSPEED, -1);
+            float newSpeed = extras.getFloat(PLAYBACKSPEED, -1);
 
             if (newSpeed > 0) {
                 changeSpeed(newSpeed);
@@ -202,6 +208,39 @@ public class PlayerService extends Service {
         //mediaSession.setMetadata(mediaMetadataBuilder.build());
 
         mediaSession.setActive(true);
+
+        sharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+                if(key.equals("minimumspeed")){
+                    String newMinimumSpeed = sharedPreferences.getString("minimumspeed", Float.toString(InitialValues.minimumSpeed));
+                    assert newMinimumSpeed != null;
+                    setMinimumSpeed(Float.parseFloat(newMinimumSpeed));
+                }
+                else if(key.equals("maximumspeed")){
+                    String newMaximumSpeed = sharedPreferences.getString("maximumspeed", Float.toString(InitialValues.maximumSpeed));
+                    assert newMaximumSpeed != null;
+                    setMaximumSpeed(Float.parseFloat(newMaximumSpeed));
+                }
+                else if(key.equals("speedincrement")){
+//                    String newSpeedIncrement = sharedPreferences.getString("speedincrement", "1");
+                    int newSpeedIncrementIndex = sharedPreferences.getInt("speedincrement", InitialValues.speedIncrementIndex);
+//                    assert newSpeedIncrement != null;
+                    float newSpeedIncrement = Utilities.speedIncrements[newSpeedIncrementIndex];
+                    setSpeedIncrement(newSpeedIncrement);
+                }
+            }
+        };
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
+
+        minimumSpeed = Float.parseFloat(sharedPreferences.getString("minimumspeed", Float.toString(InitialValues.minimumSpeed)));
+        maximumSpeed = Float.parseFloat(sharedPreferences.getString("maximumspeed", Float.toString(InitialValues.maximumSpeed)));
+//        speedIncrement = Float.parseFloat(sharedPreferences.getString("speedincrement", "1"));
+        int speedIncrementIndex = sharedPreferences.getInt("speedincrement", InitialValues.speedIncrementIndex);
+        speedIncrement = Utilities.speedIncrements[speedIncrementIndex];
+//        Log.v("Metronome", "PlayerService:onCreate: speedIncrement=" + speedIncrement);
     }
 
     @Override
@@ -209,6 +248,9 @@ public class PlayerService extends Service {
         // Log.v("Metronome", "PlayerService:onDestroy");
         unregisterReceiver(actionReceiver);
         mediaSession.release();
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        sharedPreferences.unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
         super.onDestroy();
     }
 
@@ -279,15 +321,27 @@ public class PlayerService extends Service {
 
         notificationBuilder.addAction(controlAction);
 
-        notificationBuilder.setContentText(getString(R.string.bpm, getSpeed()));
+        notificationBuilder.setContentText(getString(R.string.bpm, Utilities.getBpmString(getSpeed(), speedIncrement)));
 
         return notificationBuilder.build();
     }
 
-    public void changeSpeed(int speed) {
+    public void changeSpeed(float speed) {
 
-        if (getSpeed() == speed || speed < minimumSpeed || speed > maximumSpeed)
+        final float tolerance = 1.0e-6f;
+
+        speed = Math.min(speed, maximumSpeed);
+        speed = Math.max(speed, minimumSpeed);
+        // Make speed match the increment
+        speed = Math.round(speed / speedIncrement) * speedIncrement;
+
+        if (Math.abs(getSpeed() - speed) < tolerance)
             return;
+
+        if(speed < minimumSpeed - tolerance)
+            speed += speedIncrement;
+        if(speed > maximumSpeed + tolerance)
+            speed -= speedIncrement;
 
         playbackStateBuilder
                 .setState(getState(), PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, speed)
@@ -295,13 +349,13 @@ public class PlayerService extends Service {
         mediaSession.setPlaybackState(playbackStateBuilder.build());
 
         if (notificationBuilder != null) {
-            notificationBuilder.setContentText(getString(R.string.bpm, getSpeed()));
+            notificationBuilder.setContentText(getString(R.string.bpm, Utilities.getBpmString(getSpeed(), speedIncrement)));
             NotificationManagerCompat.from(this).notify(notificationID, notificationBuilder.build());
         }
     }
 
-    public void addValueToSpeed(int dSpeed) {
-        int newSpeed = getSpeed() + dSpeed;
+    public void addValueToSpeed(float dSpeed) {
+        float newSpeed = getSpeed() + dSpeed;
 //        newSpeed = Math.min(newSpeed, MainActivity.SPEED_MAX);
 //        newSpeed = Math.max(newSpeed, MainActivity.SPEED_MIN);
         newSpeed = Math.min(newSpeed, maximumSpeed);
@@ -400,8 +454,8 @@ public class PlayerService extends Service {
         return Math.round(1000.0 * 60.0 / mediaSession.getController().getPlaybackState().getPlaybackSpeed());
     }
 
-    public int getSpeed() {
-        return Math.round(mediaSession.getController().getPlaybackState().getPlaybackSpeed());
+    public float getSpeed() {
+        return mediaSession.getController().getPlaybackState().getPlaybackSpeed();
     }
 
     private int getState() {
@@ -412,7 +466,7 @@ public class PlayerService extends Service {
         return playList;
     }
 
-    public boolean setMinimumSpeed(int speed) {
+    private boolean setMinimumSpeed(float speed) {
         if (speed >= maximumSpeed)
             return false;
 
@@ -423,7 +477,7 @@ public class PlayerService extends Service {
         return true;
     }
 
-    public boolean setMaximumSpeed(int speed) {
+    private boolean setMaximumSpeed(float speed) {
         if (speed <= minimumSpeed)
             return false;
 
@@ -432,6 +486,11 @@ public class PlayerService extends Service {
             changeSpeed(maximumSpeed);
         }
         return true;
+    }
+
+    private void setSpeedIncrement(float speedIncrement) {
+        this.speedIncrement = speedIncrement;
+        changeSpeed(getSpeed()); // Make sure that current speed fits speedIncrement
     }
 
     void playSpecificSound(int sound, float volume) {
@@ -451,7 +510,7 @@ public class PlayerService extends Service {
         context.sendBroadcast(intent);
     }
 
-    static public void sendChangeSpeedIntent(Context context, int speed){
+    static public void sendChangeSpeedIntent(Context context, float speed){
         Intent intent = new Intent(PlayerService.BROADCAST_PLAYERACTION);
         intent.putExtra(PlayerService.PLAYBACKSPEED, speed);
         context.sendBroadcast(intent);

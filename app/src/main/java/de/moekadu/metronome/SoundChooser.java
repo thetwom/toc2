@@ -37,8 +37,8 @@ public class SoundChooser extends FrameLayout {
 
     final private Context context;
 
-    private final int spacing = Utilities.dp_to_px(2);
-    private final int defaultButtonHeight = Utilities.dp_to_px(70);
+    private final float spacing = Utilities.dp_to_px(2);
+    private final int defaultButtonHeight = Math.round(Utilities.dp_to_px(70));
 
     final private ArrayList<MoveableButton> buttons = new ArrayList<>();
     private PlusButton plusButton;
@@ -144,7 +144,7 @@ public class SoundChooser extends FrameLayout {
         // button.setBackgroundColor(ContextCompat.getColor(context, R.color.colorPrimary));
 
         button.setLayoutParams(params);
-        int pad = Utilities.dp_to_px(5);
+        int pad = Math.round(Utilities.dp_to_px(5));
         button.setPadding(pad, pad, pad, pad);
 
         ViewGroup viewGroup = (ViewGroup) this.getParent();
@@ -340,7 +340,7 @@ public class SoundChooser extends FrameLayout {
 //        // Log.v("Metronome", "SoundChooser:plusbuttonwidth " + plusButtonWidth);
         int newButtonWidth = Math.round(
                 (getWidth() - getPaddingLeft() - getPaddingRight() - plusButtonWidth)
-                        / (float) buttons.size()) - spacing;
+                        / (float) buttons.size() - spacing);
         newButtonWidth = Math.min(newButtonWidth, getButtonHeight());
         return newButtonWidth;
     }

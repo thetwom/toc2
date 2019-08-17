@@ -21,7 +21,7 @@
 <androidx.preference.PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <androidx.preference.ListPreference
+    <ListPreference
       app:key="appearance"
       app:title="@string/appearance"
       android:entries="@array/appearanceList"
@@ -30,20 +30,28 @@
         android:defaultValue="auto"
     />
 
+    <SeekBarPreference
+        app:key="speedincrement"
+        app:title="@string/speedincrement"
+        android:defaultValue="3"
+        />
+
+    <SeekBarPreference
+        app:key="speedsensitivity"
+        app:title="@string/speed_sensitivity"
+        android:defaultValue="30"
+        />
     <!--app:isPreferenceVisible="false"-->
 
     <EditTextPreference
         app:key="minimumspeed"
         app:title="@string/minimum_speed"
-        app:summary=""
-        app:defaultValue="20"
         />
 
 
     <EditTextPreference
         app:key="maximumspeed"
         app:title="@string/maximum_speed"
-        app:defaultValue="250"
         />
 
     <!--<CheckBoxPreference-->
@@ -59,4 +67,5 @@
         app:key="about"
         app:title="@string/about"
         />
+
 </androidx.preference.PreferenceScreen>

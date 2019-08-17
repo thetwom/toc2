@@ -20,5 +20,9 @@
 package de.moekadu.metronome;
 
 class InitialValues {
-    static final int speed = 120;
+    static final float speed = 120;
+    static final float minimumSpeed = 20;
+    static final float maximumSpeed = 250;
+    static final float speedSensitivity = 2.0f;
+    static final int speedIncrementIndex = 3;
 }

@@ -38,8 +38,8 @@ import androidx.core.content.ContextCompat;
 
 public class VolumeControl extends ViewGroup {
 
-    final private int default_width = Utilities.dp_to_px(60);
-    final private int default_length = Utilities.dp_to_px(300);
+    final private int default_width = Math.round(Utilities.dp_to_px(60));
+    final private int default_length = Math.round(Utilities.dp_to_px(300));
     final private Rect rectInt = new Rect();
     final private RectF rect = new RectF();
     final private RectF rectPos = new RectF();

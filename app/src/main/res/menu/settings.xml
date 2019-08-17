@@ -18,18 +18,22 @@
   - along with Metronome.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
-<resources>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MainActivity">
 
-    <string-array name="appearanceList">
-        <item>"auto"</item>
-        <item>"dark"</item>
-        <item>"light"</item>
-    </string-array>
-
-    <string-array name="appearanceValues">
-        <item>@string/system_appearance_short</item>
-        <item>@string/dark_appearance_short</item>
-        <item>@string/light_appearance_short</item>
-    </string-array>
-
-</resources>
+    <item
+        android:id="@+id/action_test"
+        android:orderInCategory="98"
+        android:title="@string/save_data"
+        android:icon="@drawable/ic_pause"
+        app:showAsAction="ifRoom"
+        />
+    <!--<item-->
+        <!--android:id="@+id/test_setting"-->
+        <!--android:orderInCategory="99"-->
+        <!--android:title="Test setting"-->
+        <!--android:icon="@drawable/ic_add"-->
+        <!--app:showAsAction="ifRoom" />-->
+</menu>

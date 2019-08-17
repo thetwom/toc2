@@ -32,6 +32,7 @@ import androidx.annotation.Nullable;
 import android.os.SystemClock;
 import android.util.AttributeSet;
 // import android.util.Log;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewOutlineProvider;
@@ -42,6 +43,7 @@ public class SpeedPanel extends ControlPanel {
 
     private Paint circlePaint;
 
+    private float integratedDistance;
     private float previous_x;
     private float previous_y;
 //    private int previous_speed;
@@ -51,6 +53,8 @@ public class SpeedPanel extends ControlPanel {
     private Path textPath = null;
 
     private boolean changingSpeed = false;
+
+    private float speedSensitivity = InitialValues.speedSensitivity; // steps per cm
 //    private boolean highlightTapIn = false;
 
     private int highlightColor;
@@ -67,9 +71,11 @@ public class SpeedPanel extends ControlPanel {
     private int numTapInTimes = 3;
     private long[] tapInTimes;
 
+    private float speedIncrement = Utilities.speedIncrements[InitialValues.speedIncrementIndex];
+
     public interface SpeedChangedListener {
-        void onSpeedChanged(int dSpeed);
-        void onAbsoluteSpeedChanged(int newSpeed, long nextKlickTimeInMillis);
+        void onSpeedChanged(float dSpeed);
+        void onAbsoluteSpeedChanged(float newSpeed, long nextKlickTimeInMillis);
     }
 
     private SpeedChangedListener speedChangedListener;
@@ -248,6 +254,7 @@ public class SpeedPanel extends ControlPanel {
                     tapInAnimation.start();
                 }
                 else {
+                    integratedDistance = 0.0f;
                     previous_x = x;
                     previous_y = y;
 //                    previous_speed = 0;
@@ -260,15 +267,23 @@ public class SpeedPanel extends ControlPanel {
                 if(changingSpeed) {
                     float dx = x - previous_x;
                     float dy = y - previous_y;
-                    int dSpeed = -(int) Math.round((dx * y - dy * x) / Math.sqrt(x * x + y * y) / circum * factor);
+//                    double dSpeed = - (dx * y - dy * x) / Math.sqrt(x * x + y * y) / circum * factor;
+                    double dSpeed = - (dx * y - dy * x) / Math.sqrt(x * x + y * y);
+                    integratedDistance += dSpeed;
+                    previous_x = x;
+                    previous_y = y;
+//                    Log.v("Metronome", "SpeedPanel:onTouchEvent: integratedDistance="+integratedDistance + "  " + Utilities.px2cm(integratedDistance));
 
-//                    if (previous_speed != dSpeed && speedChangedListener != null) {
-                    if (Math.abs(dSpeed) > 0 && speedChangedListener != null) { // TODO: make dSpeed to float and then compare against a threshhold instead of 0
-                        speedChangedListener.onSpeedChanged(dSpeed);
-                        previous_x = x;
-                        previous_y = y;
+                    float speedSteps = speedSensitivity * Utilities.px2cm(integratedDistance);
+                    if(Math.abs(speedSteps) >= 1 && speedChangedListener != null) {
+                        speedChangedListener.onSpeedChanged(speedSteps * speedIncrement);
+                        integratedDistance = 0.0f;
                     }
-//                    previous_speed = dSpeed;
+//                    if (Math.abs(dSpeed) >= speedIncrement && speedChangedListener != null) {
+//                        speedChangedListener.onSpeedChanged((float) dSpeed);
+//                        previous_x = x;
+//                        previous_y = y;
+//                    }
                 }
                 return true;
             case MotionEvent.ACTION_UP:
@@ -288,8 +303,8 @@ public class SpeedPanel extends ControlPanel {
             return;
 
         final double std_max = 0.2;
-        double mean = 0;
-        double std = 0;
+        float mean = 0;
+        float std = 0;
         for(int i = 1; i < numTapInTimes; ++i)
             mean += tapInTimes[i] - tapInTimes[i-1];
         mean /= numTapInTimes-1;
@@ -298,10 +313,10 @@ public class SpeedPanel extends ControlPanel {
             double dev = tapInTimes[i] - tapInTimes[i-1] - mean;
             std += dev * dev;
         }
-        std = Math.sqrt(std / (numTapInTimes-1)) / mean;
-        // Log.v("Metronome", "SpeedPanel:evaluateTapInTimes: speed=" + (int) Math.round(60.0 * 1000.0 / mean) + " ;  std="+std);
+        std = (float) Math.sqrt(std / (numTapInTimes-1)) / mean;
+        // Log.v("Metronome", "SpeedPanel:evaluateTapInTimes: speed=" + (float) (60.0f * 1000.0f / mean) + " ;  std="+std);
         if(std <= std_max){
-            int speed = (int) Math.round(60.0 * 1000.0 / mean);
+            float speed = 60.0f * 1000.0f / mean;
 
             int shiftMillis = -50; // Shift next klick time a little bit, since it feels more natural
 
@@ -315,34 +330,14 @@ public class SpeedPanel extends ControlPanel {
         speedChangedListener = listener;
     }
 
-//    private int getRadius(){
-//        int width = getWidth();
-//        int height = getHeight();
-//        int widthNoPadding = width - getPaddingRight() - getPaddingLeft();
-//        int heightNoPadding = height - getPaddingTop() - getPaddingBottom();
-//        return (Math.min(widthNoPadding, heightNoPadding) - strokeWidth) / 2;
-//    }
-//
-//
-//    private int getInnerRadius() {
-//        return Math.round(getRadius() * innerRadiusRatio);
-//    }
-//
-//    private int getCenterX(){
-//        return getWidth() / 2;
-//    }
-//    private int getCenterY(){
-//        return getHeight() / 2;
-//    }
-//
-//    private float pTX(double phi, double rad) {
-//        return (float) (rad * Math.cos(phi)) + getCenterX();
-//    }
-//    private float pTY(double phi, double rad) {
-//        return (float) (rad * Math.sin(phi)) + getCenterY();
-//    }
-//
-//    private int dp_to_px(int dp) {
-//        return (int) (dp * Resources.getSystem().getDisplayMetrics().density);
-//    }
+    void setSpeedIncrement(float speedIncrement){
+//         Log.v("Metronome","SpeedPanel:setIncrement");
+        this.speedIncrement = speedIncrement;
+    }
+
+    void setSensitivity(float speedSensitivity){
+
+//        Log.v("Metronome","SpeedPanel:setSensitivity");
+        this.speedSensitivity = speedSensitivity;
+    }
 }

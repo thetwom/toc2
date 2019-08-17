@@ -49,7 +49,7 @@ public class MoveableButton extends View {
     private final int highlightColor;
     private int buttonColor;
 
-    private final int cornerRadius = Utilities.dp_to_px(4);
+    private final int cornerRadius = Math.round(Utilities.dp_to_px(4));
 
     private float viewPosX = 0;
     private float viewPosY = 0;

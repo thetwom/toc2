@@ -36,7 +36,7 @@ public class ControlPanel extends View {
 
         //int desiredWidth = Integer.MAX_VALUE;
         //int desiredHeight = Integer.MIN_VALUE;
-        int desiredSize = Utilities.dp_to_px(200) + (Math.max(getPaddingBottom()+getPaddingTop(), getPaddingLeft()+getPaddingRight()));
+        int desiredSize = Math.round(Utilities.dp_to_px(200) + (Math.max(getPaddingBottom()+getPaddingTop(), getPaddingLeft()+getPaddingRight())));
 
         int widthMode = MeasureSpec.getMode(widthMeasureSpec);
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);

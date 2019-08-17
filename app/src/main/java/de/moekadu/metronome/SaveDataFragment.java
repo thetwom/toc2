@@ -190,7 +190,7 @@ public class SaveDataFragment extends Fragment {
     }
 
 
-    public void setOnItemClickedListener(SavedItemDatabase.OnItemClickedListener onItemClickedListener) {
+    void setOnItemClickedListener(SavedItemDatabase.OnItemClickedListener onItemClickedListener) {
         savedItemsAdapter.setOnItemClickedListener(onItemClickedListener);
     }
 }

@@ -34,6 +34,7 @@ import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.SeekBarPreference;
 
 import android.os.IBinder;
 import android.text.InputType;
@@ -53,12 +54,7 @@ import android.widget.Toast;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class SettingsFragment extends PreferenceFragmentCompat { // implements SharedPreferences.OnSharedPreferenceChangeListener {
-
-    private boolean playerServiceBound = false;
-    private ServiceConnection playerConnection = null;
-    private PlayerService playerService;
-    private Context playerContext = null;
+public class SettingsFragment extends PreferenceFragmentCompat {
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -107,11 +103,64 @@ public class SettingsFragment extends PreferenceFragmentCompat { // implements S
             }
         });
 
+        final SeekBarPreference speedIncrement = findPreference("speedincrement");
+        assert speedIncrement != null;
+        speedIncrement.setUpdatesContinuously(true);
+        speedIncrement.setSeekBarIncrement(1);
+        speedIncrement.setMin(0);
+        speedIncrement.setMax(Utilities.speedIncrements.length-1);
+        if(Utilities.speedIncrements.length > speedIncrement.getValue()) {
+            float speedIncrementValue = Utilities.speedIncrements[speedIncrement.getValue()];
+            speedIncrement.setSummary(getString(R.string.bpm, Utilities.getBpmString(speedIncrementValue, speedIncrementValue)));
+        }
+        speedIncrement.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                int incrementIndex = (int) newValue;
+                if(incrementIndex < Utilities.speedIncrements.length) {
+                    float speedIncrementValue = Utilities.speedIncrements[incrementIndex];
+                    speedIncrement.setSummary(getString(R.string.bpm, Utilities.getBpmString(speedIncrementValue, speedIncrementValue)));
+                }
+                return true;
+            }
+        });
+        float speedIncrementValue = Utilities.speedIncrements[speedIncrement.getValue()];
+
+        final SeekBarPreference speedSensitivity = findPreference("speedsensitivity");
+        assert speedSensitivity != null;
+        speedSensitivity.setUpdatesContinuously(true);
+        speedSensitivity.setSummary(getString(R.string.speed_sensitivity_summary, Utilities.percentage2sensitivity(speedSensitivity.getValue())));
+        speedSensitivity.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                int percentage = (int) newValue;
+                float sensitivity = Utilities.percentage2sensitivity(percentage);
+                speedSensitivity.setSummary(getString(R.string.speed_sensitivity_summary, sensitivity));
+                return true;
+            }
+        });
+
         final EditTextPreference minimumSpeed = findPreference("minimumspeed");
-        if(minimumSpeed == null)
-            throw new RuntimeException("No minimum speed preference");
-        minimumSpeed.setSummary(getString(R.string.bpm, Integer.parseInt(minimumSpeed.getText())));
+        assert minimumSpeed != null;
+        if(minimumSpeed.getText() == null)
+            minimumSpeed.setText(Float.toString(InitialValues.minimumSpeed));
+
+        minimumSpeed.setSummary(getString(R.string.bpm, Utilities.getBpmString(Float.parseFloat(minimumSpeed.getText()), speedIncrementValue)));
         minimumSpeed.setOnBindEditTextListener(new EditTextPreference.OnBindEditTextListener() {
+            @Override
+            public void onBindEditText(@NonNull EditText editText) {
+                editText.setInputType(InputType.TYPE_CLASS_NUMBER);
+            }
+        });
+
+        final EditTextPreference maximumSpeed = findPreference("maximumspeed");
+        assert maximumSpeed != null;
+        if(maximumSpeed.getText() == null)
+            maximumSpeed.setText(Float.toString(InitialValues.maximumSpeed));
+//        maximumSpeed.setDefaultValue(Float.toString(InitialValues.maximumSpeed));
+
+        maximumSpeed.setSummary(getString(R.string.bpm, Utilities.getBpmString(Float.parseFloat(maximumSpeed.getText()), speedIncrementValue)));
+        maximumSpeed.setOnBindEditTextListener(new EditTextPreference.OnBindEditTextListener() {
             @Override
             public void onBindEditText(@NonNull EditText editText) {
                 editText.setInputType(InputType.TYPE_CLASS_NUMBER);
@@ -121,51 +170,36 @@ public class SettingsFragment extends PreferenceFragmentCompat { // implements S
         minimumSpeed.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
-                if(playerServiceBound) {
-                    int speed = Integer.parseInt((String) newValue);
-                    if(playerService.setMinimumSpeed(speed)){
-
-                        // Log.v("Metronome", "Changed minimum speed summary");
-//                        minimumSpeed.notifyChanged();
-//                        getListView().getAdapter().notifyDataSetChanged();
-                        minimumSpeed.setSummary(getString(R.string.bpm, speed));
-
+//                if(playerServiceBound) {
+                    float speed = Float.parseFloat((String) newValue);
+                    float maxSpeed = Float.parseFloat(maximumSpeed.getText());
+                    if(speed < maxSpeed){
+                        minimumSpeed.setSummary(getString(R.string.bpm, Utilities.getBpmString(speed)));
                         return true;
                     }
                     else{
                         Toast.makeText(getActivity(), "Invalid minimum speed: "+speed, Toast.LENGTH_SHORT).show();
                     }
-                }
+//                }
                 return false;
-            }
-        });
-
-        final EditTextPreference maximumSpeed = findPreference("maximumspeed");
-        if(maximumSpeed == null)
-            throw new RuntimeException("No maximum speed preference");
-        maximumSpeed.setSummary(getString(R.string.bpm, Integer.parseInt(maximumSpeed.getText())));
-        maximumSpeed.setOnBindEditTextListener(new EditTextPreference.OnBindEditTextListener() {
-            @Override
-            public void onBindEditText(@NonNull EditText editText) {
-                editText.setInputType(InputType.TYPE_CLASS_NUMBER);
             }
         });
 
         maximumSpeed.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
-                if(playerServiceBound) {
-                    int speed = Integer.parseInt((String) newValue);
-                    if(playerService.setMaximumSpeed(speed)){
-                        maximumSpeed.setSummary(getString(R.string.bpm, speed));
-//                        getListView().getAdapter().notifyDataSetChanged();
-//                        getListView().getAdapter().notifyDataSetChanged();
+//                if(playerServiceBound) {
+                    float speed = Float.parseFloat((String) newValue);
+                    // if(playerService.setMaximumSpeed(speed)){
+                    float minSpeed = Float.parseFloat(minimumSpeed.getText());
+                    if(speed > minSpeed){
+                        maximumSpeed.setSummary(getString(R.string.bpm, Utilities.getBpmString(speed)));
                         return true;
                     }
                     else{
                         Toast.makeText(getActivity(), "Invalid maximum speed: "+speed, Toast.LENGTH_SHORT).show();
                     }
-                }
+//                }
                 return false;
             }
         });
@@ -182,10 +216,16 @@ public class SettingsFragment extends PreferenceFragmentCompat { // implements S
                         .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                minimumSpeed.setText("20");
-                                minimumSpeed.getOnPreferenceChangeListener().onPreferenceChange(minimumSpeed, "20");
-                                maximumSpeed.setText("250");
-                                maximumSpeed.getOnPreferenceChangeListener().onPreferenceChange(maximumSpeed, "250");
+                                minimumSpeed.setText(Float.toString(InitialValues.minimumSpeed));
+                                minimumSpeed.getOnPreferenceChangeListener().onPreferenceChange(minimumSpeed, Float.toString(InitialValues.minimumSpeed));
+                                maximumSpeed.setText(Float.toString(InitialValues.maximumSpeed));
+                                maximumSpeed.getOnPreferenceChangeListener().onPreferenceChange(maximumSpeed, Float.toString(InitialValues.maximumSpeed));
+                                speedIncrement.setValue(3);
+                                speedIncrement.getOnPreferenceChangeListener().onPreferenceChange(speedIncrement, 3);
+
+                                speedSensitivity.setValue(30);
+                                speedSensitivity.getOnPreferenceChangeListener().onPreferenceChange(speedSensitivity, 30);
+
                                 appearance.setValue("auto");
                                 appearance.getOnPreferenceChangeListener().onPreferenceChange(appearance, "auto");
                             }
@@ -208,8 +248,8 @@ public class SettingsFragment extends PreferenceFragmentCompat { // implements S
             @Override
             public boolean onPreferenceClick(Preference preference) {
                 TextView textView = new TextView(getContext());
-                textView.setText(R.string.about_message);
-                int pad = Utilities.dp_to_px(20);
+                textView.setText(getString(R.string.about_message, getString(R.string.version)));
+                int pad = Math.round(Utilities.dp_to_px(20));
                 textView.setPadding(pad, pad, pad, pad);
                 AlertDialog.Builder builder = new AlertDialog.Builder(getContext())
                         .setTitle(R.string.about)
@@ -222,88 +262,18 @@ public class SettingsFragment extends PreferenceFragmentCompat { // implements S
     }
 
 
-    @Override
-    public void onPause() {
-        if(playerServiceBound)
-          unbindPlayerService();
-        super.onPause();
-//        getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        MainActivity act = (MainActivity) getActivity();
-        if(act != null) {
-            bindService(act.getApplicationContext());
-        }
-//        getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
-    }
-
-    private void bindService(final Context context) {
-
-        if(!playerServiceBound) {
-            playerConnection = new ServiceConnection() {
-                @Override
-                public void onServiceConnected(ComponentName className, IBinder service) {
-
-                    if (context != null) {
-                        // We've bound to LocalService, cast the IBinder and get LocalService instance
-                        PlayerService.PlayerBinder binder = (PlayerService.PlayerBinder) service;
-                        playerService = binder.getService();
-                        playerServiceBound = true;
-                        playerContext = context;
-                    }
-                }
-
-                @Override
-                public void onServiceDisconnected(ComponentName arg0) {
-                    playerServiceBound = false;
-                    playerContext = null;
-                }
-            };
-
-            Intent serviceIntent = new Intent(context, PlayerService.class);
-            context.bindService(serviceIntent, playerConnection, Context.BIND_AUTO_CREATE);
-        }
-    }
-
-    private void unbindPlayerService() {
-        playerServiceBound = false;
-        playerContext.unbindService(playerConnection);
-    }
-
     private String getAppearanceSummary() {
         final ListPreference listPreference = findPreference("appearance");
         assert listPreference != null;
         CharSequence state = listPreference.getEntry();
 
-        if(state == null || state.equals("auto")) {
+        if (state == null || state.equals("auto")) {
             return getString(R.string.system_appearance);
-        }
-        else if(state.equals("dark")){
+        } else if (state.equals("dark")) {
             return getString(R.string.dark_appearance);
-        }
-        else if(state.equals("light")){
+        } else if (state.equals("light")) {
             return getString(R.string.light_appearance);
         }
         throw new RuntimeException("No summary for given appearance value");
     }
-
-    //    @Override
-//    public void onResume() {
-//        //super.onResume();
-//
-//    }
-//
-//    @Override
-//    public void onPause() {
-//        super.onPause();
-//        //getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
-//    }
-//
-//    @Override
-//    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-//
-//    }
 }

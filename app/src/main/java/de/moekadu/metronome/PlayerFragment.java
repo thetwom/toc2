@@ -48,7 +48,7 @@ public class PlayerFragment extends Fragment {
 
     private ServiceConnection playerConnection = null;
 
-    private int speed = InitialValues.speed;
+    private float speed = InitialValues.speed;
     private ArrayList<Bundle> playList;
 
     public PlayerFragment() {
@@ -67,7 +67,7 @@ public class PlayerFragment extends Fragment {
         if(context != null) {
             // Log.v("Metronome", "PlayerFragment:onCreate : loading preferences");
             SharedPreferences preferences = context.getPreferences(Context.MODE_PRIVATE);
-            speed = preferences.getInt("speed", InitialValues.speed);
+            speed = preferences.getFloat("speed", InitialValues.speed);
             String soundString = preferences.getString("sound", "0");
             assert soundString != null;
             playList = SoundProperties.parseMetaDataString(soundString);
@@ -135,11 +135,11 @@ public class PlayerFragment extends Fragment {
             SharedPreferences.Editor editor = preferences.edit();
             //editor.putInt("speed", speed);
             if(playerServiceBound){
-                speed = Math.round(playerService.getPlaybackState().getPlaybackSpeed());
+                speed = playerService.getPlaybackState().getPlaybackSpeed();
                 playList = playerService.getSound();
             }
 
-            editor.putInt("speed", speed);
+            editor.putFloat("speed", speed);
             String metaDataString = SoundProperties.createMetaDataString(playList);
             // Log.v("Metronome", "PlayerFragment:onStop : saving meta data: " + metaDataString);
             editor.putString("sound", metaDataString);

@@ -36,6 +36,7 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 // import android.util.Log;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -56,7 +57,8 @@ public class MetronomeFragment extends Fragment {
     private ServiceConnection playerConnection = null;
     private PlayerService playerService;
     private Context playerContext;
-
+    private SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener;
+    private float speedIncrement = Utilities.speedIncrements[InitialValues.speedIncrementIndex];
 
     private final MediaControllerCompat.Callback mediaControllerCallback = new MediaControllerCompat.Callback() {
         @Override
@@ -110,14 +112,14 @@ public class MetronomeFragment extends Fragment {
 
         speedPanel.setOnSpeedChangedListener(new SpeedPanel.SpeedChangedListener() {
             @Override
-            public void onSpeedChanged(int dSpeed) {
+            public void onSpeedChanged(float dSpeed) {
                 if (playerServiceBound) {
                     playerService.addValueToSpeed(dSpeed);
                 }
             }
 
             @Override
-            public void onAbsoluteSpeedChanged(int newSpeed, long nextKlickTimeInMillis) {
+            public void onAbsoluteSpeedChanged(float newSpeed, long nextKlickTimeInMillis) {
                 if (playerServiceBound) {
                     playerService.changeSpeed(newSpeed);
                     playerService.syncKlickWithUptimeMillis(nextKlickTimeInMillis);
@@ -169,6 +171,31 @@ public class MetronomeFragment extends Fragment {
             }
         });
 
+        sharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+
+                if(key.equals("speedincrement")){
+                    int newSpeedIncrementIndex = sharedPreferences.getInt("speedincrement", InitialValues.speedIncrementIndex);
+//                    assert newSpeedIncrement != null;
+                    speedIncrement = Utilities.speedIncrements[newSpeedIncrementIndex];
+                    speedPanel.setSpeedIncrement(speedIncrement);
+                }
+                else if(key.equals("speedsensitivity")){
+                    float newSpeedSensitivity = sharedPreferences.getInt("speedsensitivity", Math.round(Utilities.sensitivity2percentage(InitialValues.speedSensitivity)));
+                    speedPanel.setSensitivity(Utilities.percentage2sensitivity(newSpeedSensitivity));
+                }
+            }
+        };
+        assert getContext() != null;
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        int speedIncrementIndex = sharedPreferences.getInt("speedincrement", InitialValues.speedIncrementIndex);
+        speedIncrement = Utilities.speedIncrements[speedIncrementIndex];
+        speedPanel.setSpeedIncrement(speedIncrement);
+
+        float speedSensitivity = sharedPreferences.getInt("speedsensitivity", Math.round(Utilities.sensitivity2percentage(InitialValues.speedSensitivity)));
+        speedPanel.setSensitivity(Utilities.percentage2sensitivity(speedSensitivity));
+
         return view;
     }
 
@@ -177,6 +204,9 @@ public class MetronomeFragment extends Fragment {
         // Log.v("Metronome", "MetronomeFragment:onResume");
         super.onResume();
 
+        assert getContext() != null;
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
         // We can bind service only after our fragment is fully inflated since while binding,
         // we call commands which require our view fully set up!
         Runnable run = new Runnable() {
@@ -197,6 +227,10 @@ public class MetronomeFragment extends Fragment {
     @Override
     public void onPause() {
         // Log.v("Metronome", "MetronomeFragment:onPause");
+        assert getContext() != null;
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        sharedPreferences.unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
+
         if(playerServiceBound)
           unbindPlayerService();
         super.onPause();
@@ -244,7 +278,7 @@ public class MetronomeFragment extends Fragment {
             speedIndicator.stopPlay();
             playButton.changeStatus(PlayButton.STATUS_PAUSED, animate);
         }
-        speedText.setText(getString(R.string.bpm, Math.round(state.getPlaybackSpeed())));
+        speedText.setText(getString(R.string.bpm, Utilities.getBpmString(state.getPlaybackSpeed(), speedIncrement)));
         speedIndicator.setSpeed(state.getPlaybackSpeed());
         if(state.getPosition() != PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN){
             soundChooser.animateButton((int) state.getPosition());
@@ -280,8 +314,6 @@ public class MetronomeFragment extends Fragment {
                     playerService = binder.getService();
                     playerServiceBound = true;
                     playerContext = context;
-                    playerService.setMaximumSpeed(getMaximumSpeed());
-                    playerService.setMinimumSpeed(getMinimumSpeed());
                     playerService.registerMediaControllerCallback(mediaControllerCallback);
                     updateView(playerService.getPlaybackState(), false);
                     updateView(playerService.getSound());
@@ -304,63 +336,6 @@ public class MetronomeFragment extends Fragment {
     private void setNewSound(ArrayList<Bundle> sounds) {
         if(playerServiceBound) {
             playerService.setSounds(sounds);
-        }
-    }
-//
-//    public void setOnFragmentInteractionListener(OnFragmentInteractionListener onFragmentInteractionListener){
-//        this.onFragmentInteractionListener = onFragmentInteractionListener;
-//    }
-
-
-    private int getMaximumSpeed() {
-        final int maximumSpeedDefault = 250;
-
-        FragmentActivity act = getActivity();
-        if(act == null)
-            throw new RuntimeException("No activity available");
-
-        SharedPreferences sharedPreferences =
-            PreferenceManager.getDefaultSharedPreferences(act);
-
-        String speedString = sharedPreferences.getString("maximumspeed", Integer.toString(maximumSpeedDefault));
-        if(speedString == null)
-            return maximumSpeedDefault;
-
-        try {
-            int speed = Integer.parseInt(speedString);
-            if (speed < 1)
-                return maximumSpeedDefault;
-            else
-                return speed;
-        }
-        catch(java.lang.NumberFormatException ex) {
-            return maximumSpeedDefault;
-        }
-    }
-
-    private int getMinimumSpeed() {
-        final int minimumSpeedDefault = 20;
-
-        FragmentActivity act = getActivity();
-        if(act == null)
-            throw new RuntimeException("No activity available");
-
-        SharedPreferences sharedPreferences =
-            PreferenceManager.getDefaultSharedPreferences(act);
-
-        String speedString = sharedPreferences.getString("minimumspeed", Integer.toString(minimumSpeedDefault));
-        if(speedString == null)
-            return minimumSpeedDefault;
-
-        try {
-            int speed = Integer.parseInt(speedString);
-            if (speed < 1)
-                return minimumSpeedDefault;
-            else
-                return speed;
-        }
-        catch(java.lang.NumberFormatException ex) {
-            return minimumSpeedDefault;
         }
     }
 }

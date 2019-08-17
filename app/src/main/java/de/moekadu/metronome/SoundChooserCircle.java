@@ -83,7 +83,7 @@ public class SoundChooserCircle extends FrameLayout {
 
         //int desiredWidth = Integer.MAX_VALUE;
         //int desiredHeight = Integer.MIN_VALUE;
-        int desiredSize = Utilities.dp_to_px(500) + (Math.max(getPaddingBottom()+getPaddingTop(), getPaddingLeft()+getPaddingRight()));
+        int desiredSize = Math.round(Utilities.dp_to_px(500) + (Math.max(getPaddingBottom()+getPaddingTop(), getPaddingLeft()+getPaddingRight())));
 
         int widthMode = MeasureSpec.getMode(widthMeasureSpec);
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);
@@ -153,7 +153,7 @@ public class SoundChooserCircle extends FrameLayout {
 
     private void init() {
          // Log.v("Metronome", "SoundChooserCircle:init()");
-        final int buttonSize = Utilities.dp_to_px(80);
+        final float buttonSize = Utilities.dp_to_px(80);
         float width = getWidth()-getPaddingStart()-getPaddingEnd();
         float height = getHeight()-getPaddingTop()-getPaddingBottom();
         float cx = width / 2.0f + getLeft() + getPaddingLeft();
@@ -186,11 +186,11 @@ public class SoundChooserCircle extends FrameLayout {
 //            button.setScaleType(ImageView.ScaleType.FIT_CENTER);
 
             button.setProperties(properties, false);
-            ViewGroup.MarginLayoutParams params = new ViewGroup.MarginLayoutParams(buttonSize, buttonSize);
+            ViewGroup.MarginLayoutParams params = new ViewGroup.MarginLayoutParams(Math.round(buttonSize), Math.round(buttonSize));
             button.setLayoutParams(params);
             button.setElevation(24);
 
-            int pad = Utilities.dp_to_px(5);
+            int pad = Math.round(Utilities.dp_to_px(5));
             button.setPadding(pad, pad, pad, pad);
 
             viewGroup.addView(button);

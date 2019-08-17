@@ -21,15 +21,13 @@
     <string name="app_name">Metronome</string>
     <string name="action_settings">Settings</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-
     <string name="hihat">hi-hat</string>
     <string name="snare">snare</string>
     <string name="sticks">sticks</string>
     <string name="claves">claves</string>
     <string name="woodblock">woodblock</string>
     <string name="mute">mute</string>
-    <string name="bpm">%d bpm</string>
+    <string name="bpm">%s bpm</string>
 
     <string name="load_data">Load data</string>
     <string name="save_data">Save data</string>
@@ -44,6 +42,9 @@
     <string name="light_appearance_short">Light</string>
     <string name="system_appearance_short">Auto</string>
 
+    <string name="speed_sensitivity">Speed changing sensitivity</string>
+    <string name="speed_sensitivity_summary">Speed steps per cm: %.1f</string>
+    <string name="speedincrement">Speed increment</string>
     <string name="minimum_speed">Minimum speed</string>
     <string name="maximum_speed">Maximum speed</string>
 
@@ -66,9 +67,16 @@
 
     <string name="tap_in">TAP IN</string>
 
-    <string name="about_message">Metronome app\nVersion: 1.0.2</string>
+    <string name="about_message">Metronome app\nVersion: %s\nLicense: GPLv3</string>
 
     <string name="yes">yes</string>
     <string name="no">no</string>
+
+    <string name="speed_too_small">Saved speed %s bpm is smaller than the minimum speed %s bpm.\n</string>
+    <string name="speed_too_large">Saved speed %s bpm is larger than the maximum speed %s bpm.\n</string>
+    <string name="inconsistent_increment">Saved speed %s bpm cannot be resolved by the current speed increment %s bpm.\n</string>
+    <string name="inconsistent_load_title">Inconsistent load</string>
+    <string name="inconsistent_summary">\nChange your settings if you want to load the item correctly.</string>
+    <string name="acknowledged">Acknowledged</string>
 
 </resources>

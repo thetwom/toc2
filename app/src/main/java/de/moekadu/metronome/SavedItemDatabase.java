@@ -44,7 +44,7 @@ public class SavedItemDatabase extends RecyclerView.Adapter<SavedItemDatabase.Vi
         String title;
         String date;
         String time;
-        int bpm;
+        float bpm;
         String playList;
     }
 
@@ -85,7 +85,7 @@ public class SavedItemDatabase extends RecyclerView.Adapter<SavedItemDatabase.Vi
         titleView.setText(item.title);
         dateView.setText(item.date + "\n" + item.time);
 //        dateView.setText("23.03.2019\n23:43");
-        speedView.setText(holder.view.getContext().getString(R.string.bpm, item.bpm));
+        speedView.setText(holder.view.getContext().getString(R.string.bpm, Utilities.getBpmString(item.bpm)));
 
         IconListVisualizer iconListVisualizer = holder.view.findViewById(R.id.saved_item_sounds);
         ArrayList<Bundle> metaData = SoundProperties.parseMetaDataString(item.playList);
@@ -146,9 +146,11 @@ public class SavedItemDatabase extends RecyclerView.Adapter<SavedItemDatabase.Vi
 
         StringBuilder stringBuilder = new StringBuilder();
 
+        stringBuilder.append(String.format(Locale.ENGLISH,"%50s", activity.getString(R.string.version)));
+
         for(SavedItem si : dataBase)
         {
-           stringBuilder.append(String.format(Locale.ENGLISH,"%200s%10s%5s%6d%sEND", si.title, si.date, si.time, si.bpm, si.playList));
+           stringBuilder.append(String.format(Locale.ENGLISH,"%200s%10s%5s%12.5f%sEND", si.title, si.date, si.time, si.bpm, si.playList));
         }
         String dataString = stringBuilder.toString();
 
@@ -176,10 +178,17 @@ public class SavedItemDatabase extends RecyclerView.Adapter<SavedItemDatabase.Vi
         else if(dataString.equals(""))
             return;
 
-        int pos = 0;
+        if(dataString.length() < 50)
+            return;
+        String version = dataString.substring(0, 50).trim();
+
+        int pos = 50;
         while(pos < dataString.length())
         {
             SavedItem si = new SavedItem();
+            if(pos+50 >= dataString.length())
+                return;
+
             if(pos+200 >= dataString.length())
                 return;
             si.title = dataString.substring(pos, pos+200).trim();
@@ -194,8 +203,8 @@ public class SavedItemDatabase extends RecyclerView.Adapter<SavedItemDatabase.Vi
             pos += 5;
             if(pos+6 >= dataString.length())
                 return;
-            si.bpm = Integer.parseInt(dataString.substring(pos, pos+6).trim());
-            pos += 6;
+            si.bpm = Float.parseFloat(dataString.substring(pos, pos+12).trim());
+            pos += 12;
             int playListEnd = dataString.indexOf("END", pos);
             if(playListEnd == -1)
                 return;

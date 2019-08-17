@@ -48,8 +48,10 @@ public class MainActivity extends AppCompatActivity {
 
     // TODO: Individual toolbar for each fragment
     // TODO: new app icon
-    // TODO: add settings options for speed changing sensitivity
-    // TODO: allow smaller steps than 1
+    // TODO: handle incorrect loads which could occur, when loading with newer version
+    // TODO: Find a better way to display the running
+    // TODO: Improve TapIn
+    // TODO: Nicer background-job layout
 
     private static FragmentManager fragManager;
 
@@ -264,8 +266,42 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadSettings(SavedItemDatabase.SavedItem item) {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String minimumSpeedString = sharedPreferences.getString("minimumspeed", Float.toString(InitialValues.minimumSpeed));
+        assert minimumSpeedString != null;
+        float minimumSpeed = Float.parseFloat(minimumSpeedString);
+        String maximumSpeedString = sharedPreferences.getString("maximumspeed", Float.toString(InitialValues.maximumSpeed));
+        assert maximumSpeedString != null;
+        float maximumSpeed = Float.parseFloat(maximumSpeedString);
+        int speedIncrementIndex = sharedPreferences.getInt("speedincrement", InitialValues.speedIncrementIndex);
+        float speedIncrement = Utilities.speedIncrements[speedIncrementIndex];
+        final float tolerance = 1.0e-6f;
+        StringBuilder stringBuilder = new StringBuilder();
+        if(item.bpm < minimumSpeed - tolerance)
+            stringBuilder.append(getString(R.string.speed_too_small, Utilities.getBpmString(item.bpm), Utilities.getBpmString(minimumSpeed)));
+        if(item.bpm > maximumSpeed + tolerance)
+            stringBuilder.append(getString(R.string.speed_too_large, Utilities.getBpmString(item.bpm), Utilities.getBpmString(maximumSpeed)));
+        if(Math.abs(item.bpm /  speedIncrement - Math.round(item.bpm / speedIncrement)) > tolerance)
+            stringBuilder.append(getString(R.string.inconsistent_increment, Utilities.getBpmString(item.bpm), Utilities.getBpmString(speedIncrement)));
+        if(stringBuilder.length() > 0) {
+            stringBuilder.append(getString(R.string.inconsistent_summary));
+            AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                    .setTitle(R.string.inconsistent_load_title)
+                    .setMessage(stringBuilder.toString())
+                    .setNegativeButton(R.string.acknowledged, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+            builder.show();
+        }
+
+
+
         playerFrag.getPlayerService().changeSpeed(item.bpm);
         playerFrag.getPlayerService().setSounds(SoundProperties.parseMetaDataString(item.playList));
         Toast.makeText(this, getString(R.string.loaded_message, item.title), Toast.LENGTH_SHORT).show();
     }
+
 }
