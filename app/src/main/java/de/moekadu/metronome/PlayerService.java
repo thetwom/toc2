@@ -44,6 +44,8 @@ import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
+import android.widget.RemoteViews;
+import android.widget.TextView;
 // import android.util.Log;
 
 import java.lang.reflect.Field;
@@ -73,6 +75,8 @@ public class PlayerService extends Service {
     private final MediaMetadataCompat.Builder mediaMetadataBuilder = new MediaMetadataCompat.Builder();
 
     private NotificationCompat.Builder notificationBuilder = null;
+    private RemoteViews notificationView = null;
+//    private TextView notificationSpeedText = null;
 
     private final SoundPool soundpool = new SoundPool.Builder().setMaxStreams(2).build();
     private int[] soundHandles;
@@ -281,6 +285,7 @@ public class PlayerService extends Service {
     private Notification createNotification() {
         if (notificationBuilder == null) {
             notificationBuilder = new NotificationCompat.Builder(this, CHANNEL_ID);
+            notificationView = new RemoteViews(getPackageName(), R.layout.notification);
 
             Intent activityIntent = new Intent(this, MainActivity.class);
             PendingIntent launchActivity = PendingIntent.getActivity(this, 0, activityIntent, 0);
@@ -288,40 +293,48 @@ public class PlayerService extends Service {
             notificationBuilder.setContentTitle(getString(R.string.app_name))
                     .setSmallIcon(R.drawable.ic_toc_swb)
                     .setContentIntent(launchActivity)
-                    .setStyle(new MediaStyle().setMediaSession(mediaSession.getSessionToken()).setShowActionsInCompactView(0));
+                    .setStyle(new NotificationCompat.DecoratedCustomViewStyle())
+                    .setCustomContentView(notificationView);
+                    //.setStyle(new MediaStyle().setMediaSession(mediaSession.getSessionToken()).setShowActionsInCompactView(0));
         }
+        notificationView.setTextViewText(R.id.notification_speedtext, getString(R.string.bpm, Utilities.getBpmString(getSpeed(), speedIncrement)));
 
         Intent intent = new Intent(BROADCAST_PLAYERACTION);
         final int notificationStateID = 3214;
 
-        NotificationCompat.Action controlAction;
+//        NotificationCompat.Action controlAction;
         if (getState() == PlaybackStateCompat.STATE_PLAYING) {
             // Log.v("Metronome", "isplaying");
+             notificationView.setImageViewResource(R.id.notification_button, R.drawable.ic_pause);
             intent.putExtra(PlayerService.PLAYERSTATE, PlaybackStateCompat.ACTION_PAUSE);
             PendingIntent pIntent = PendingIntent.getBroadcast(this, notificationStateID, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-            controlAction = new NotificationCompat.Action(R.drawable.ic_pause, "pause", pIntent);
+            notificationView.setOnClickPendingIntent(R.id.notification_button, pIntent);
+//            controlAction = new NotificationCompat.Action(R.drawable.ic_pause, "pause", pIntent);
         } else { // if(getState() == PlaybackStateCompat.STATE_PAUSED){
             // Log.v("Metronome", "ispaused");
+            notificationView.setImageViewResource(R.id.notification_button, R.drawable.ic_play);
             intent.putExtra(PlayerService.PLAYERSTATE, PlaybackStateCompat.ACTION_PLAY);
             PendingIntent pIntent = PendingIntent.getBroadcast(this, notificationStateID, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-            controlAction = new NotificationCompat.Action(R.drawable.ic_play, "play", pIntent);
+            notificationView.setOnClickPendingIntent(R.id.notification_button, pIntent);
+//            controlAction = new NotificationCompat.Action(R.drawable.ic_play, "play", pIntent);
         }
 
-        // Clear actions: code copies from stackoverflow
-        try {
-            //Use reflection clean up old actions
-            Field f = notificationBuilder.getClass().getDeclaredField("mActions");
-            f.setAccessible(true);
-            f.set(notificationBuilder, new ArrayList<NotificationCompat.Action>());
-        } catch (NoSuchFieldException e) {
-            // no field
-        } catch (IllegalAccessException e) {
-            // wrong types
-        }
-
-        notificationBuilder.addAction(controlAction);
-
-        notificationBuilder.setContentText(getString(R.string.bpm, Utilities.getBpmString(getSpeed(), speedIncrement)));
+//
+//        // Clear actions: code copies from stackoverflow
+//        try {
+//            //Use reflection clean up old actions
+//            Field f = notificationBuilder.getClass().getDeclaredField("mActions");
+//            f.setAccessible(true);
+//            f.set(notificationBuilder, new ArrayList<NotificationCompat.Action>());
+//        } catch (NoSuchFieldException e) {
+//            // no field
+//        } catch (IllegalAccessException e) {
+//            // wrong types
+//        }
+//
+//        notificationBuilder.addAction(controlAction);
+//
+//        notificationBuilder.setContentText(getString(R.string.bpm, Utilities.getBpmString(getSpeed(), speedIncrement)));
 
         return notificationBuilder.build();
     }
@@ -349,7 +362,8 @@ public class PlayerService extends Service {
         mediaSession.setPlaybackState(playbackStateBuilder.build());
 
         if (notificationBuilder != null) {
-            notificationBuilder.setContentText(getString(R.string.bpm, Utilities.getBpmString(getSpeed(), speedIncrement)));
+//            notificationBuilder.setContentText(getString(R.string.bpm, Utilities.getBpmString(getSpeed(), speedIncrement)));
+            notificationView.setTextViewText(R.id.notification_speedtext, getString(R.string.bpm, Utilities.getBpmString(getSpeed(), speedIncrement)));
             NotificationManagerCompat.from(this).notify(notificationID, notificationBuilder.build());
         }
     }

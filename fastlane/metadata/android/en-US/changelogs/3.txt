@@ -1,0 +1,3 @@
+- Use custom notification layout, such that the pause/play button is larger
+- Show message in Save Data, if no items are saved.
+- Show trash instead of Delete-string, when swiping saved items

@@ -23,6 +23,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <TextView
+        android:id="@+id/noSavedItemsMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:layout_gravity="center_horizontal"
+        android:text="@string/no_saved_items"
+        />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/savedItems"
         android:layout_width="match_parent"

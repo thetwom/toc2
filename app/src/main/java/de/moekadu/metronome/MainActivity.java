@@ -46,12 +46,12 @@ import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
-    // TODO: Individual toolbar for each fragment
     // TODO: new app icon
     // TODO: handle incorrect loads which could occur, when loading with newer version
     // TODO: Find a better way to display the running
     // TODO: Improve TapIn
-    // TODO: Nicer background-job layout
+    // TODO: nicer saved-item layout
+    // TODO: do not play sounds in soundchooser if metronome is playing
 
     private static FragmentManager fragManager;
 

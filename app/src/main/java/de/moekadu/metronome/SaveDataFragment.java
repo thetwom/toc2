@@ -31,10 +31,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -54,6 +56,8 @@ public class SaveDataFragment extends Fragment {
     private SavedItemDatabase.SavedItem lastRemovedItem = null;
 
     private int deleteTextSize;
+
+    private TextView noSavedItemsMessage = null;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -87,6 +91,9 @@ public class SaveDataFragment extends Fragment {
 
         deleteTextSize = Utilities.sp_to_px(18);
 
+        noSavedItemsMessage = view.findViewById(R.id.noSavedItemsMessage);
+        updateNoSavedItemsMessage();
+
         savedItems = view.findViewById(R.id.savedItems);
         savedItems.setHasFixedSize(true);
         savedItems.setLayoutManager(savedItemsManager);
@@ -100,9 +107,8 @@ public class SaveDataFragment extends Fragment {
         ItemTouchHelper.SimpleCallback simpleTouchHelper = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
 
             Drawable background;
-            Paint undoPaint;
-//            Drawable xMark;
-//            int xMarkMargin;
+            Drawable deleteIcon;
+
             boolean initialized = false;
 
             private void init() {
@@ -110,15 +116,9 @@ public class SaveDataFragment extends Fragment {
                     return;
 
                 background = new ColorDrawable(savedItemAttributes.deleteColor);
-                undoPaint = new Paint();
-                undoPaint.setTextSize(deleteTextSize);
-                undoPaint.setAntiAlias(true);
-                undoPaint.setStyle(Paint.Style.FILL);
-                undoPaint.setTextAlign(Paint.Align.RIGHT);
-                undoPaint.setColor(savedItemAttributes.onDeleteColor);
-//                xMark = ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_clear_24dp);
-//                xMark.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP);
-//                xMarkMargin = (int) MainActivity.this.getResources().getDimension(R.dimen.ic_clear_margin);
+                assert getActivity() != null;
+                deleteIcon = ContextCompat.getDrawable(getActivity(), R.drawable.ic_delete_on_error);
+
                 initialized = true;
             }
 
@@ -133,6 +133,7 @@ public class SaveDataFragment extends Fragment {
 
                 lastRemovedItemIndex = viewHolder.getAdapterPosition();
                 lastRemovedItem = savedItemsAdapter.remove(lastRemovedItemIndex);
+                updateNoSavedItemsMessage();
                 CoordinatorLayout view = (CoordinatorLayout) getView();
                 assert view != null;
 
@@ -144,6 +145,7 @@ public class SaveDataFragment extends Fragment {
                                     savedItemsAdapter.addItem(getActivity(), lastRemovedItem, lastRemovedItemIndex);
                                     lastRemovedItem = null;
                                     lastRemovedItemIndex = -1;
+                                    updateNoSavedItemsMessage();
                                 }
                             }
                         }).show();
@@ -165,9 +167,12 @@ public class SaveDataFragment extends Fragment {
                 background.setBounds(backgroundArea);
                 background.draw(c);
 
-                c.drawText(getString(R.string.delete), itemView.getRight()-itemView.getPaddingRight()-Utilities.dp_to_px(8),
-                        (itemView.getTop()+itemView.getBottom() + deleteTextSize)/2.0f, undoPaint);
-
+                int iconHeight = Math.round(0.7f*(itemView.getHeight()-itemView.getPaddingTop()-itemView.getPaddingBottom()));
+                deleteIcon.setBounds(itemView.getRight()-iconHeight-itemView.getPaddingRight(),
+                        (itemView.getTop()+itemView.getBottom() - iconHeight)/2,
+                        itemView.getRight()-itemView.getPaddingRight(),
+                        (itemView.getTop()+itemView.getBottom()+iconHeight)/2);
+                deleteIcon.draw(c);
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
             }
         };
@@ -187,10 +192,20 @@ public class SaveDataFragment extends Fragment {
     void saveItem(FragmentActivity activity, SavedItemDatabase.SavedItem item)
     {
         savedItemsAdapter.addItem(activity, item);
+        updateNoSavedItemsMessage();
     }
 
 
     void setOnItemClickedListener(SavedItemDatabase.OnItemClickedListener onItemClickedListener) {
         savedItemsAdapter.setOnItemClickedListener(onItemClickedListener);
+    }
+
+    private void updateNoSavedItemsMessage() {
+        if(savedItemsAdapter.getItemCount() == 0){
+            noSavedItemsMessage.setVisibility(View.VISIBLE);
+        }
+        else{
+            noSavedItemsMessage.setVisibility(View.GONE);
+        }
     }
 }

@@ -62,6 +62,8 @@
     <string name="save">Save</string>
     <string name="dismiss">Dismiss</string>
     <string name="max_allowed_characters">Maximum character number: %d</string>
+    
+    <string name="no_saved_items">Currently no saved items"</string>
 
     <string name="loaded_message">Loaded settings: %s</string>
 
