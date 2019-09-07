@@ -93,4 +93,8 @@ class Utilities {
     static float cm2px(float cm){
         return dp_to_px(cm * 160.0f / 2.54f);
     }
+
+    static long speed2dt(float speed) {
+        return Math.round(1000.0 * 60.0 / speed);
+    }
 }

@@ -106,7 +106,7 @@ public class MoveableButton extends View {
 
     private OnPropertiesChangedListener onPropertiesChangedListener = null;
 
-    MoveableButton(Context context, int normalColor, int highlightColor){
+    MoveableButton(Context context, int normalColor, int highlightColor, int volumeColor){
         super(context);
 
         ViewOutlineProvider outlineProvider = new ViewOutlineProvider() {
@@ -119,6 +119,7 @@ public class MoveableButton extends View {
         this.normalColor = normalColor;
         this.highlightColor = highlightColor;
         this.buttonColor = normalColor;
+        this.volumeColor = volumeColor;
 
         colorAnimation = ValueAnimator.ofArgb(normalColor, highlightColor, normalColor);
         rippleAnimation = ValueAnimator.ofFloat(0, 1);
@@ -126,8 +127,6 @@ public class MoveableButton extends View {
 
         volumePaint = new Paint();
         volumePaint.setAntiAlias(true);
-
-        volumeColor = Color.RED;
 
         backgroundPaint = new Paint();
         backgroundPaint.setAntiAlias(true);

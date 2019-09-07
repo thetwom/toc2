@@ -19,11 +19,7 @@
 
 package de.moekadu.metronome;
 
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -36,7 +32,6 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SeekBarPreference;
 
-import android.os.IBinder;
 import android.text.InputType;
 // import android.util.Log;
 import android.view.LayoutInflater;
@@ -210,7 +205,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         resetSettings.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {
-
+                assert getContext() != null;
                 AlertDialog.Builder builder = new AlertDialog.Builder(getContext())
                         .setTitle(R.string.reset_settings_prompt)
                         .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {

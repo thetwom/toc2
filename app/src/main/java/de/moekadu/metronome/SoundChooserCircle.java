@@ -48,6 +48,7 @@ public class SoundChooserCircle extends FrameLayout {
 
     private int normalButtonColor = Color.BLACK;
     private int highlightButtonColor = Color.GRAY;
+    private int volumeButtonColor = Color.RED;
 
      public SoundChooserCircle(Context context) {
         super(context);
@@ -147,7 +148,7 @@ public class SoundChooserCircle extends FrameLayout {
         TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.SoundChooserCircle);
         highlightButtonColor = ta.getColor(R.styleable.SoundChooserCircle_highlightColor, Color.BLUE);
         normalButtonColor = ta.getColor(R.styleable.SoundChooserCircle_normalColor, Color.BLACK);
-
+        volumeButtonColor = ta.getColor(R.styleable.SoundChooserCircle_volumeColor, Color.RED);
         ta.recycle();
     }
 
@@ -169,7 +170,7 @@ public class SoundChooserCircle extends FrameLayout {
 
             final int isound = i;
 //        MoveableButton button = new MoveableButton(this.context, normalButtonColor, highlightButtonColor);
-            final MoveableButton button = new MoveableButton(this.context, normalButtonColor, highlightButtonColor);
+            final MoveableButton button = new MoveableButton(this.context, normalButtonColor, highlightButtonColor, volumeButtonColor);
 
             button.setOnClickListener(new OnClickListener() {
                 @Override

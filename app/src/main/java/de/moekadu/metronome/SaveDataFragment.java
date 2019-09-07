@@ -20,7 +20,6 @@
 package de.moekadu.metronome;
 
 import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -55,8 +54,6 @@ public class SaveDataFragment extends Fragment {
     private int lastRemovedItemIndex = -1;
     private SavedItemDatabase.SavedItem lastRemovedItem = null;
 
-    private int deleteTextSize;
-
     private TextView noSavedItemsMessage = null;
 
     @Override
@@ -89,7 +86,7 @@ public class SaveDataFragment extends Fragment {
 
         final View view = inflater.inflate(R.layout.fragment_save_data, container, false);
 
-        deleteTextSize = Utilities.sp_to_px(18);
+//        deleteTextSize = Utilities.sp_to_px(18);
 
         noSavedItemsMessage = view.findViewById(R.id.noSavedItemsMessage);
         updateNoSavedItemsMessage();

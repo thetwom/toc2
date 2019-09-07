@@ -32,7 +32,6 @@ import androidx.annotation.Nullable;
 import android.os.SystemClock;
 import android.util.AttributeSet;
 // import android.util.Log;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewOutlineProvider;
@@ -235,8 +234,8 @@ public class SpeedPanel extends ControlPanel {
         float y = event.getY() - getCenterY();
 
         int radius = getRadius();
-        float circum = getRadius() * (float)Math.PI;
-        float factor = 20.0f;
+//        float circum = getRadius() * (float)Math.PI;
+//        float factor = 20.0f;
         int radiusXY = (int) Math.round(Math.sqrt(x*x + y*y));
 
         switch(action) {

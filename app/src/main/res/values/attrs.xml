@@ -23,6 +23,7 @@
     <attr name="normalColor" format="color" />
     <attr name="labelColor" format="color" />
     <attr name="highlightColor" format="color" />
+    <attr name="volumeColor" format="color" />
 
     <declare-styleable name="SpeedPanel">
         <attr name="normalColor" />
@@ -34,12 +35,17 @@
     <declare-styleable name="SoundChooser">
         <attr name="normalColor" />
         <attr name="highlightColor" />
+        <attr name="volumeColor"/>
     </declare-styleable>
 
 
     <declare-styleable name="SpeedIndicator">
         <attr name="normalColor" />
         <attr name="highlightColor" />
+    </declare-styleable>
+
+    <declare-styleable name="SpeedIndicator2">
+        <attr name="normalColor" />
     </declare-styleable>
 
     <declare-styleable name="PlayButton">
@@ -51,6 +57,7 @@
     <declare-styleable name="SoundChooserCircle">
         <attr name="normalColor" />
         <attr name="highlightColor" />
+        <attr name="volumeColor"/>
     </declare-styleable>
 
     <declare-styleable name="VolumeControl">
@@ -60,7 +67,8 @@
     </declare-styleable>
 
      <declare-styleable name="IconListVisualizer">
-        <attr name="normalColor" />
+         <attr name="normalColor" />
+         <attr name="volumeColor" />
     </declare-styleable>
 
     <declare-styleable name="SavedItemAttributes">

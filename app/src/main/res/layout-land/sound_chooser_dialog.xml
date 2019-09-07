@@ -43,6 +43,7 @@
         android:padding="8dp"
         app:highlightColor="?attr/colorSecondary"
         app:labelColor="?attr/colorOnBackground"
+        app:volumeColor="?attr/colorSecondary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/okbutton"
         app:layout_constraintStart_toEndOf="@id/volumeControl"

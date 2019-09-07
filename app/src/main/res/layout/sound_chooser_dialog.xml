@@ -44,6 +44,7 @@
         android:layout_marginStart="8dp"
         app:highlightColor="?attr/colorSecondary"
         app:labelColor="?attr/colorOnBackground"
+        app:volumeColor="?attr/colorSecondary"
         app:layout_constraintBottom_toTopOf="@id/okbutton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

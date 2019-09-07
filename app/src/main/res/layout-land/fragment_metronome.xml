@@ -67,22 +67,22 @@
         app:normalColor="?attr/colorBackgroundFloating"
         tools:layout_conversion_wrapHeight="577" />
 
-    <de.moekadu.metronome.SpeedIndicator
-        android:id="@+id/speedindicator"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:elevation="12dp"
-        android:padding="10dp"
-        app:highlightColor="?attr/colorSecondary"
-        app:labelColor="?attr/colorOnBackground"
-        app:layout_constraintBottom_toBottomOf="@id/speedpanel"
-        app:layout_constraintEnd_toEndOf="@id/speedpanel"
-        app:layout_constraintStart_toStartOf="@id/speedpanel"
-        app:layout_constraintTop_toTopOf="@id/speedpanel"
-        app:normalColor="?attr/colorBackgroundFloating"
-        tools:layout_conversion_wrapHeight="577" />
+<!--    <de.moekadu.metronome.SpeedIndicator-->
+<!--        android:id="@+id/speedindicator"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginStart="8dp"-->
+<!--        android:layout_marginEnd="8dp"-->
+<!--        android:elevation="12dp"-->
+<!--        android:padding="10dp"-->
+<!--        app:highlightColor="?attr/colorSecondary"-->
+<!--        app:labelColor="?attr/colorOnBackground"-->
+<!--        app:layout_constraintBottom_toBottomOf="@id/speedpanel"-->
+<!--        app:layout_constraintEnd_toEndOf="@id/speedpanel"-->
+<!--        app:layout_constraintStart_toStartOf="@id/speedpanel"-->
+<!--        app:layout_constraintTop_toTopOf="@id/speedpanel"-->
+<!--        app:normalColor="?attr/colorBackgroundFloating"-->
+<!--        tools:layout_conversion_wrapHeight="577" />-->
 
 
     <TextView
@@ -102,6 +102,19 @@
         tools:layout_conversion_wrapWidth="239"
         tools:ignore="HardcodedText" />
 
+
+    <de.moekadu.metronome.SpeedIndicator2
+        android:id="@+id/speedindicator2"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:elevation="10dp"
+        android:layout_marginBottom="3dp"
+        app:normalColor="?attr/colorSecondary"
+        app:layout_constraintBottom_toBottomOf="@id/soundchooser"
+        app:layout_constraintEnd_toEndOf="@id/soundchooser"
+        app:layout_constraintStart_toStartOf="@id/soundchooser"
+        />
+
     <de.moekadu.metronome.SoundChooser
         android:id="@+id/soundchooser"
         android:layout_width="0dp"
@@ -111,6 +124,7 @@
         android:layout_marginBottom="8dp"
         app:highlightColor="?attr/colorSecondary"
         app:normalColor="?attr/colorBackgroundFloating"
+        app:volumeColor="?attr/colorSecondary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/speedpanel"
         app:layout_constraintHorizontal_bias="0.5"

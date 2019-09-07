@@ -60,6 +60,7 @@
         android:padding="8dp"
         android:clipToPadding="false"
         app:normalColor="?attr/colorBackgroundFloating"
+        app:volumeColor="?attr/colorSecondary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/saved_item_speed"
         app:layout_constraintTop_toBottomOf="@id/saved_item_title"/>

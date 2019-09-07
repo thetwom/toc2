@@ -39,6 +39,7 @@ public class IconListVisualizer extends LinearLayout {
 
     private final ArrayList<MoveableButton> iconButtons = new ArrayList<>();
     private int normalColor;
+    private int volumeColor;
 
     public IconListVisualizer(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -58,6 +59,7 @@ public class IconListVisualizer extends LinearLayout {
 
         TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.IconListVisualizer);
         normalColor = ta.getColor(R.styleable.IconListVisualizer_normalColor, Color.WHITE);
+        volumeColor = ta.getColor(R.styleable.IconListVisualizer_volumeColor, Color.RED);
         ta.recycle();
 
         setShowDividers(LinearLayout.SHOW_DIVIDER_MIDDLE);
@@ -115,7 +117,7 @@ public class IconListVisualizer extends LinearLayout {
         iconButtons.clear();
 
         for(Bundle properties : icons){
-            MoveableButton button = new MoveableButton(getContext(), normalColor, normalColor);
+            MoveableButton button = new MoveableButton(getContext(), normalColor, normalColor, volumeColor);
 //            Bundle properties;
 //            properties = new Bundle();
 //            properties.putFloat("volume", 1.0f);

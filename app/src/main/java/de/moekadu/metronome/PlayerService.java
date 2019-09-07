@@ -39,17 +39,15 @@ import android.service.notification.StatusBarNotification;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import android.support.v4.media.MediaMetadataCompat;
-import androidx.media.app.NotificationCompat.MediaStyle;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import android.widget.RemoteViews;
-import android.widget.TextView;
 // import android.util.Log;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Objects;
 
 import static de.moekadu.metronome.App.CHANNEL_ID;
 
@@ -72,7 +70,9 @@ public class PlayerService extends Service {
 
     private MediaSessionCompat mediaSession = null;
     private final PlaybackStateCompat.Builder playbackStateBuilder = new PlaybackStateCompat.Builder();
+    private PlaybackStateCompat playbackState = playbackStateBuilder.build();
     private final MediaMetadataCompat.Builder mediaMetadataBuilder = new MediaMetadataCompat.Builder();
+    private MediaMetadataCompat metaData = mediaMetadataBuilder.build();
 
     private NotificationCompat.Builder notificationBuilder = null;
     private RemoteViews notificationView = null;
@@ -92,17 +92,18 @@ public class PlayerService extends Service {
         @Override
         public void run() {
             if (getState() == PlaybackStateCompat.STATE_PLAYING) {
+                long dt = Utilities.speed2dt(getSpeed());
 //                // Log.v("Metronome", "PlayerService:Runnable: currentTime="+System.currentTimeMillis() + ";  nextClick=" + syncKlickTime);
                 if(syncKlickTime > SystemClock.uptimeMillis()){
                     long nextKlickTime = syncKlickTime;
-                    if(syncKlickTime - SystemClock.uptimeMillis() < 0.5 * getDt())
-                        nextKlickTime += getDt();
+                    if(syncKlickTime - SystemClock.uptimeMillis() < 0.5 * dt)
+                        nextKlickTime += dt;
                     waitHandler.postAtTime(this, nextKlickTime);
                     syncKlickTime = -1;
                 }
                 else {
-                    waitHandler.postDelayed(this, getDt());
-//                     waitHandler.postAtTime(this, SystemClock.uptimeMillis() +getDt());
+                    waitHandler.postDelayed(this, dt);
+//                     waitHandler.postAtTime(this, SystemClock.uptimeMillis() + dt);
                 }
 
                 if (playListPosition >= playList.size())
@@ -118,10 +119,9 @@ public class PlayerService extends Service {
                 if (!Sounds.isMute(sound))
                     soundpool.play(soundHandles[sound], volume, volume, 1, 0, 1.0f);
 
-                playbackStateBuilder
-                        .setState(getState(), playListPosition, getSpeed())
-                        .build();
-                mediaSession.setPlaybackState(playbackStateBuilder.build());
+                playbackState = playbackStateBuilder.setState(getState(), playListPosition, getSpeed()).build();
+                mediaSession.setPlaybackState(playbackState);
+                //Log.v("Metronome", "positionindex: " + playbackState.getPosition()  + "     " + playListPosition);
 
                 playListPosition += 1;
 
@@ -206,7 +206,8 @@ public class PlayerService extends Service {
                 .setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, InitialValues.speed);
         //playbackStateBuilder.setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, speed);
 
-        mediaSession.setPlaybackState(playbackStateBuilder.build());
+        playbackState = playbackStateBuilder.build();
+        mediaSession.setPlaybackState(playbackState);
 
         //mediaMetadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, SoundProperties.createMetaDataString(playList));
         //mediaSession.setMetadata(mediaMetadataBuilder.build());
@@ -239,8 +240,8 @@ public class PlayerService extends Service {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener);
 
-        minimumSpeed = Float.parseFloat(sharedPreferences.getString("minimumspeed", Float.toString(InitialValues.minimumSpeed)));
-        maximumSpeed = Float.parseFloat(sharedPreferences.getString("maximumspeed", Float.toString(InitialValues.maximumSpeed)));
+        minimumSpeed = Float.parseFloat(Objects.requireNonNull(sharedPreferences.getString("minimumspeed", Float.toString(InitialValues.minimumSpeed))));
+        maximumSpeed = Float.parseFloat(Objects.requireNonNull(sharedPreferences.getString("maximumspeed", Float.toString(InitialValues.maximumSpeed))));
 //        speedIncrement = Float.parseFloat(sharedPreferences.getString("speedincrement", "1"));
         int speedIncrementIndex = sharedPreferences.getInt("speedincrement", InitialValues.speedIncrementIndex);
         speedIncrement = Utilities.speedIncrements[speedIncrementIndex];
@@ -356,10 +357,8 @@ public class PlayerService extends Service {
         if(speed > maximumSpeed + tolerance)
             speed -= speedIncrement;
 
-        playbackStateBuilder
-                .setState(getState(), PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, speed)
-                .build();
-        mediaSession.setPlaybackState(playbackStateBuilder.build());
+        playbackState = playbackStateBuilder.setState(getState(), PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, speed).build();
+        mediaSession.setPlaybackState(playbackState);
 
         if (notificationBuilder != null) {
 //            notificationBuilder.setContentText(getString(R.string.bpm, Utilities.getBpmString(getSpeed(), speedIncrement)));
@@ -396,17 +395,15 @@ public class PlayerService extends Service {
 
         playList = sounds;
         String soundString = SoundProperties.createMetaDataString(playList);
-        mediaMetadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, soundString);
-        mediaSession.setMetadata(mediaMetadataBuilder.build());
+        metaData = mediaMetadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, soundString).build();
+        mediaSession.setMetadata(metaData);
     }
 
     public void startPlay() {
         // Log.v("Metronome", "PlayerService:startPlay");
 
-        playbackStateBuilder
-                .setState(PlaybackStateCompat.STATE_PLAYING, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, getSpeed())
-                .build();
-        mediaSession.setPlaybackState(playbackStateBuilder.build());
+        playbackState = playbackStateBuilder.setState(PlaybackStateCompat.STATE_PLAYING, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, getSpeed()).build();
+        mediaSession.setPlaybackState(playbackState);
 
         startForeground(notificationID, createNotification());
 
@@ -417,10 +414,8 @@ public class PlayerService extends Service {
     public void stopPlay() {
         // Log.v("Metronome", "PlayerService:stopPlay");
 
-        playbackStateBuilder
-                .setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, getSpeed())
-                .build();
-        mediaSession.setPlaybackState(playbackStateBuilder.build());
+        playbackState = playbackStateBuilder.setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, getSpeed()).build();
+        mediaSession.setPlaybackState(playbackState);
 
         stopForeground(false);
 
@@ -457,23 +452,20 @@ public class PlayerService extends Service {
     }
 
     public PlaybackStateCompat getPlaybackState() {
-        return mediaSession.getController().getPlaybackState();
+
+        return playbackState;
     }
 
     public MediaMetadataCompat getMetaData() {
-        return mediaSession.getController().getMetadata();
-    }
-
-    private long getDt() {
-        return Math.round(1000.0 * 60.0 / mediaSession.getController().getPlaybackState().getPlaybackSpeed());
+        return metaData;
     }
 
     public float getSpeed() {
-        return mediaSession.getController().getPlaybackState().getPlaybackSpeed();
+        return playbackState.getPlaybackSpeed();
     }
 
-    private int getState() {
-        return mediaSession.getController().getPlaybackState().getState();
+    public int getState() {
+        return playbackState.getState();
     }
 
     public ArrayList<Bundle> getSound() {

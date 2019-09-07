@@ -29,7 +29,6 @@ import android.os.IBinder;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
 import androidx.preference.PreferenceManager;
 
 import android.support.v4.media.MediaMetadataCompat;
@@ -43,6 +42,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Vector;
 
 /**
 
@@ -51,7 +51,8 @@ public class MetronomeFragment extends Fragment {
 
     private TextView speedText;
     private PlayButton playButton;
-    private SpeedIndicator speedIndicator;
+//    private SpeedIndicator speedIndicator;
+    private SpeedIndicator2 speedIndicator2;
     private SoundChooser soundChooser;
     private boolean playerServiceBound = false;
     private ServiceConnection playerConnection = null;
@@ -59,6 +60,8 @@ public class MetronomeFragment extends Fragment {
     private Context playerContext;
     private SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener;
     private float speedIncrement = Utilities.speedIncrements[InitialValues.speedIncrementIndex];
+
+    private final Vector<Float> buttonPositions = new Vector<>();
 
     private final MediaControllerCompat.Callback mediaControllerCallback = new MediaControllerCompat.Callback() {
         @Override
@@ -108,7 +111,9 @@ public class MetronomeFragment extends Fragment {
 
         SpeedPanel speedPanel = view.findViewById(R.id.speedpanel);
 
-        speedIndicator = view.findViewById(R.id.speedindicator);
+//        speedIndicator = view.findViewById(R.id.speedindicator);
+        speedIndicator2 = view.findViewById(R.id.speedindicator2);
+
 
         speedPanel.setOnSpeedChangedListener(new SpeedPanel.SpeedChangedListener() {
             @Override
@@ -275,14 +280,20 @@ public class MetronomeFragment extends Fragment {
             playButton.changeStatus(PlayButton.STATUS_PLAYING, animate);
         }
         else if(state.getState() == PlaybackStateCompat.STATE_PAUSED){
-            speedIndicator.stopPlay();
+            speedIndicator2.stopPlay();
             playButton.changeStatus(PlayButton.STATUS_PAUSED, animate);
         }
         speedText.setText(getString(R.string.bpm, Utilities.getBpmString(state.getPlaybackSpeed(), speedIncrement)));
-        speedIndicator.setSpeed(state.getPlaybackSpeed());
+//        speedIndicator.setSpeed(state.getPlaybackSpeed());
+
         if(state.getPosition() != PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN){
             soundChooser.animateButton((int) state.getPosition());
-            speedIndicator.animatePosition();
+          //  speedIndicator.animatePosition();
+//            Log.v("Metronome","MetronomeFragment:updateView");
+//            float animStart = soundChooser.indexToPosX((int) state.getPosition());
+//            speedIndicator2.animate(animStart, animStart+soundChooser.getButtonWidth(),state.getPlaybackSpeed());
+
+            speedIndicator2.animate((int) state.getPosition(),state.getPlaybackSpeed());
         }
     }
 
@@ -315,6 +326,7 @@ public class MetronomeFragment extends Fragment {
                     playerServiceBound = true;
                     playerContext = context;
                     playerService.registerMediaControllerCallback(mediaControllerCallback);
+
                     updateView(playerService.getPlaybackState(), false);
                     updateView(playerService.getSound());
                 }
@@ -337,5 +349,16 @@ public class MetronomeFragment extends Fragment {
         if(playerServiceBound) {
             playerService.setSounds(sounds);
         }
+        updateSpeedIndicatorMarks();
+    }
+
+    private void updateSpeedIndicatorMarks() {
+         buttonPositions.clear();
+        float buttonWidth = soundChooser.getButtonWidth();
+        for(int ipos = 0; ipos < soundChooser.numSounds(); ++ipos){
+            buttonPositions.add(soundChooser.indexToPosX(ipos)+buttonWidth);
+        }
+        //buttonPositions.add(soundChooser.indexToPosX(sounds.size()));
+        speedIndicator2.setMarks(buttonPositions);
     }
 }

@@ -21,6 +21,7 @@ package de.moekadu.metronome;
 
 import android.os.Bundle;
 // import android.util.Log;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -75,7 +76,7 @@ public class SoundChooserDialog extends Fragment implements View.OnClickListener
                     activeButton.setProperties(bundle, false);
                     soundChooserCircle.setActiveSoundID(soundID);
                 }
-                if(playerService != null) {
+                if(playerService != null && playerService.getState() != PlaybackStateCompat.STATE_PLAYING) {
                     playerService.playSpecificSound(soundID, volumeControl.getVolume());
                 }
             }
@@ -91,7 +92,7 @@ public class SoundChooserDialog extends Fragment implements View.OnClickListener
                     bundle.putFloat("volume", volume);
                     activeButton.setProperties(bundle, false);
                 }
-                if(playerService != null) {
+                if(playerService != null && playerService.getState() != PlaybackStateCompat.STATE_PLAYING) {
                     playerService.playSpecificSound(soundChooserCircle.getCurrentSoundID(), volume);
                 }
             }
@@ -122,6 +123,5 @@ public class SoundChooserDialog extends Fragment implements View.OnClickListener
 
         if(volumeControl != null)
             volumeControl.setState(button.getProperties().getFloat("volume"));
-
     }
 }
