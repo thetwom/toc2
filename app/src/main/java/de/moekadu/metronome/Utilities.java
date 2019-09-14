@@ -97,4 +97,8 @@ class Utilities {
     static long speed2dt(float speed) {
         return Math.round(1000.0 * 60.0 / speed);
     }
+
+    static float dt2speed(long dt) {
+        return 60.0f * 1000.0f / dt;
+    }
 }

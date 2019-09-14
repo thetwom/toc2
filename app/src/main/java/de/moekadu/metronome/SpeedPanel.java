@@ -67,8 +67,16 @@ public class SpeedPanel extends ControlPanel {
     private final ValueAnimator changingSpeedAnimation = ValueAnimator.ofFloat(1, 1.7f);
     private float changingSpeedAnimationValue = 1.0f;
 
-    private int numTapInTimes = 3;
-    private long[] tapInTimes;
+//    private int numTapInTimes = 3;
+//    private long[] tapInTimes;
+
+    private long lastTap = 0;
+    private long predictNextTap = 0;
+    private int nTapSamples = 0;
+    private float facTapInfty = 0.15f;
+    private float maxTapErr = 0.3f;
+    private long tapDelay = 10;
+    private float dt;
 
     private float speedIncrement = Utilities.speedIncrements[InitialValues.speedIncrementIndex];
 
@@ -130,9 +138,6 @@ public class SpeedPanel extends ControlPanel {
         textColor = ta.getColor(R.styleable.SpeedPanel_textColor, Color.BLACK);
 
         ta.recycle();
-
-        tapInTimes = new long[numTapInTimes];
-        Arrays.fill(tapInTimes, -1);
     }
 
     @Override
@@ -246,9 +251,6 @@ public class SpeedPanel extends ControlPanel {
 
                 double angle = 180.0 * Math.atan2(y, x) / Math.PI;
                 if(angle > 60 && angle < 120) {
-//                    highlightTapIn = true;
-                    System.arraycopy(tapInTimes, 1, tapInTimes, 0, numTapInTimes-1);
-                    tapInTimes[numTapInTimes-1] = SystemClock.uptimeMillis();
                     evaluateTapInTimes();
                     tapInAnimation.start();
                 }
@@ -297,33 +299,40 @@ public class SpeedPanel extends ControlPanel {
         return true;
     }
 
-    private void evaluateTapInTimes(){
-        if(tapInTimes[numTapInTimes-1] == -1)
+    private void evaluateTapInTimes() {
+
+        long currentTap = SystemClock.uptimeMillis();
+        nTapSamples += 1;
+
+        float currentDt = currentTap - lastTap;
+        lastTap = currentTap;
+
+        if(nTapSamples == 1) {
+            dt = currentDt;
             return;
-
-        final double std_max = 0.2;
-        float mean = 0;
-        float std = 0;
-        for(int i = 1; i < numTapInTimes; ++i)
-            mean += tapInTimes[i] - tapInTimes[i-1];
-        mean /= numTapInTimes-1;
-
-        for(int i = 1; i < numTapInTimes; ++i) {
-            double dev = tapInTimes[i] - tapInTimes[i-1] - mean;
-            std += dev * dev;
         }
-        std = (float) Math.sqrt(std / (numTapInTimes-1)) / mean;
-        // Log.v("Metronome", "SpeedPanel:evaluateTapInTimes: speed=" + (float) (60.0f * 1000.0f / mean) + " ;  std="+std);
-        if(std <= std_max){
-            float speed = 60.0f * 1000.0f / mean;
 
-            int shiftMillis = -50; // Shift next klick time a little bit, since it feels more natural
-
-            if(speedChangedListener != null)
-                speedChangedListener.onAbsoluteSpeedChanged(speed,
-                        SystemClock.uptimeMillis() + tapInTimes[numTapInTimes-1] - tapInTimes[numTapInTimes-2]+shiftMillis);
+//        Log.v("Metronome", "SpeedPanel:computeSpeedFromTapIn:  err=" + ((currentDt - dt) / dt));
+        if(Math.abs(currentDt - dt) / dt > maxTapErr){
+            nTapSamples = 2;
         }
+
+        float fac = facTapInfty + (1.0f - facTapInfty) / (nTapSamples - 1);
+//        float fac = 1.0f;
+        dt = fac * currentDt + (1.0f - fac) * dt;
+
+//        float facT = facTapInfty + (1.0f - facTapInfty) / (nTapSamples - 1);
+
+        predictNextTap = Math.round(fac * (currentTap - predictNextTap) + predictNextTap + dt);
+//        Log.v("Metronome", "Speedpanel:computeSpeedFromTapIn:  fac=" + fac + "  dt=" + dt);
+
+        if(nTapSamples >= 3 && speedChangedListener != null) {
+            speedChangedListener.onAbsoluteSpeedChanged(Utilities.dt2speed(Math.round(dt)),
+                                                        Math.round(predictNextTap + tapDelay));
+        }
+
     }
+
 
     void setOnSpeedChangedListener(SpeedChangedListener listener){
         speedChangedListener = listener;
