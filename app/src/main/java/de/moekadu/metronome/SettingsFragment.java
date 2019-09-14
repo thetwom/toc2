@@ -246,6 +246,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 textView.setText(getString(R.string.about_message, getString(R.string.version)));
                 int pad = Math.round(Utilities.dp_to_px(20));
                 textView.setPadding(pad, pad, pad, pad);
+                assert getContext() != null;
                 AlertDialog.Builder builder = new AlertDialog.Builder(getContext())
                         .setTitle(R.string.about)
                         .setView(textView);

@@ -42,6 +42,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -51,8 +52,7 @@ public class MetronomeFragment extends Fragment {
 
     private TextView speedText;
     private PlayButton playButton;
-//    private SpeedIndicator speedIndicator;
-    private SpeedIndicator2 speedIndicator2;
+    private SpeedIndicator speedIndicator;
     private SoundChooser soundChooser;
     private boolean playerServiceBound = false;
     private ServiceConnection playerConnection = null;
@@ -111,8 +111,7 @@ public class MetronomeFragment extends Fragment {
 
         SpeedPanel speedPanel = view.findViewById(R.id.speedpanel);
 
-//        speedIndicator = view.findViewById(R.id.speedindicator);
-        speedIndicator2 = view.findViewById(R.id.speedindicator2);
+        speedIndicator = view.findViewById(R.id.speedindicator2);
 
 
         speedPanel.setOnSpeedChangedListener(new SpeedPanel.SpeedChangedListener() {
@@ -172,6 +171,7 @@ public class MetronomeFragment extends Fragment {
         soundChooser.setSoundChangedListener(new SoundChooser.SoundChangedListener() {
             @Override
             public void onSoundChanged(ArrayList<Bundle> sounds) {
+                Log.v("Metronome", "MetronomeFragment:onSoundChanged");
                 setNewSound(sounds);
             }
         });
@@ -280,20 +280,16 @@ public class MetronomeFragment extends Fragment {
             playButton.changeStatus(PlayButton.STATUS_PLAYING, animate);
         }
         else if(state.getState() == PlaybackStateCompat.STATE_PAUSED){
-            speedIndicator2.stopPlay();
+            speedIndicator.stopPlay();
             playButton.changeStatus(PlayButton.STATUS_PAUSED, animate);
         }
         speedText.setText(getString(R.string.bpm, Utilities.getBpmString(state.getPlaybackSpeed(), speedIncrement)));
-//        speedIndicator.setSpeed(state.getPlaybackSpeed());
 
         if(state.getPosition() != PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN){
-            soundChooser.animateButton((int) state.getPosition());
-          //  speedIndicator.animatePosition();
-//            Log.v("Metronome","MetronomeFragment:updateView");
-//            float animStart = soundChooser.indexToPosX((int) state.getPosition());
-//            speedIndicator2.animate(animStart, animStart+soundChooser.getButtonWidth(),state.getPlaybackSpeed());
+            float speed = state.getPlaybackSpeed();
+            soundChooser.animateButton((int) state.getPosition(), Utilities.speed2dt(speed));
 
-            speedIndicator2.animate((int) state.getPosition(),state.getPlaybackSpeed());
+            speedIndicator.animate((int) state.getPosition(), speed);
         }
     }
 
@@ -304,7 +300,7 @@ public class MetronomeFragment extends Fragment {
         updateView(sounds);
     }
 
-    private void updateView(ArrayList<Bundle> playList){
+    private void updateView(List<Bundle> playList){
         soundChooser.setSounds(playList);
     }
 
@@ -346,7 +342,9 @@ public class MetronomeFragment extends Fragment {
     }
 
     private void setNewSound(ArrayList<Bundle> sounds) {
+        Log.v("Metronome", "MetronomeFragment:setNewSounds");
         if(playerServiceBound) {
+            Log.v("Metronome", "MetronomeFragment:setNewSounds: Calling playerService.setSounds");
             playerService.setSounds(sounds);
         }
         updateSpeedIndicatorMarks();
@@ -359,6 +357,6 @@ public class MetronomeFragment extends Fragment {
             buttonPositions.add(soundChooser.indexToPosX(ipos)+buttonWidth);
         }
         //buttonPositions.add(soundChooser.indexToPosX(sounds.size()));
-        speedIndicator2.setMarks(buttonPositions);
+        speedIndicator.setMarks(buttonPositions);
     }
 }

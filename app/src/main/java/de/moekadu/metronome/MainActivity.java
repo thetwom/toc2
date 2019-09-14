@@ -33,6 +33,7 @@ import androidx.preference.PreferenceManager;
 
 import android.support.v4.media.MediaMetadataCompat;
 import android.text.InputType;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
@@ -50,7 +51,6 @@ public class MainActivity extends AppCompatActivity {
     // TODO: handle incorrect loads which could occur, when loading with newer version
     // TODO: Improve TapIn
     // TODO: nicer saved-item layout
-    // TODO: Blink duration of sound buttons should depend on speed
 
     private static FragmentManager fragManager;
 
@@ -247,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
 
                     item.bpm = playerFrag.getPlayerService().getSpeed();
                     item.playList = playerFrag.getPlayerService().getMetaData().getString(MediaMetadataCompat.METADATA_KEY_TITLE);
-
+                    Log.v("Metronome", item.playList);
                     if(item.title.length() > 200) {
                         item.title = item.title.substring(0, 200);
                         Toast.makeText(MainActivity.this, getString(R.string.max_allowed_characters, 200), Toast.LENGTH_SHORT).show();

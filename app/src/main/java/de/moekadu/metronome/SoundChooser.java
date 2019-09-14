@@ -27,11 +27,13 @@ import android.os.Bundle;
 import androidx.core.content.ContextCompat;
 import android.util.AttributeSet;
 // import android.util.Log;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class SoundChooser extends FrameLayout {
 
@@ -173,8 +175,11 @@ public class SoundChooser extends FrameLayout {
         button.setOnPropertiesChangedListener(new MoveableButton.OnPropertiesChangedListener() {
             @Override
             public void onPropertiesChanged(MoveableButton button) {
-                if(soundChangedListener != null)
+                Log.v("Metronome","SoundChooser:onPropertiesChanged");
+                if(soundChangedListener != null) {
+                    Log.v("Metronome","SoundChooser:onPropertiesChanged: Calling soundChangedListener");
                     soundChangedListener.onSoundChanged(getSounds());
+                }
             }
         });
 
@@ -369,7 +374,7 @@ public class SoundChooser extends FrameLayout {
         return buttons.size();
     }
 
-    public void setSounds(ArrayList<Bundle> sounds) {
+    public void setSounds(List<Bundle> sounds) {
         boolean soundChanged = false;
 
         for(int i = 0; i < sounds.size(); ++i){
@@ -407,9 +412,9 @@ public class SoundChooser extends FrameLayout {
         }
     }
 
-    public void animateButton(int buttonidx) {
+    public void animateButton(int buttonidx, long duration) {
         if(buttonidx >= 0 && buttonidx < buttons.size()){
-            buttons.get(buttonidx).animateColor();
+            buttons.get(buttonidx).animateColor(duration);
         }
     }
 }

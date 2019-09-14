@@ -22,7 +22,6 @@
     <color name="colorPrimary">#1A237E</color>
     <color name="myColorOnPrimary">#FFFFFF</color>
     <color name="colorSecondary">#E91E63</color>
-    <color name="colorAccent">#FF4081</color>
     <color name="colorMyBackground">#FFFFFF</color>
 
 </resources>

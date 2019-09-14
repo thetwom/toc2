@@ -26,25 +26,27 @@ final class Sounds {
 
     private final static class SoundInfo {
 
-        SoundInfo(int soundID, int nameID, int iconID){
-            this.soundID = soundID;
+        SoundInfo(int soundID44, int soundID48, int nameID, int iconID){
+            this.soundID44 = soundID44;
+            this.soundID48 = soundID48;
             this.nameID = nameID;
             this.iconID = iconID;
         }
-        final int soundID;
+        final int soundID44;
+        final int soundID48;
         final int nameID;
         final int iconID;
     }
 
     private final static SoundInfo[] sounds = {
             //new SoundInfo(R.raw.hhp_dry_a, R.string.hihat, R.drawable.ic_hihat),
-            new SoundInfo(R.raw.hihat, R.string.hihat, R.drawable.ic_hihat_note),
+            new SoundInfo(R.raw.hihat44, R.raw.hihat48, R.string.hihat, R.drawable.ic_hihat_note),
             //new SoundInfo(R.raw.sn_jazz_c, R.string.snare, R.drawable.ic_snare),
-            new SoundInfo(R.raw.snare, R.string.snare, R.drawable.ic_c_note),
-            new SoundInfo(R.raw.sticks, R.string.sticks, R.drawable.ic_c_note_rim),
-            new SoundInfo(R.raw.claves, R.string.claves, R.drawable.ic_gp_note),
-            new SoundInfo(R.raw.woodblock_high, R.string.woodblock, R.drawable.ic_ep_note),
-            new SoundInfo(R.raw.hihat, R.string.mute, R.drawable.ic_quarter_pause),
+            new SoundInfo(R.raw.snare44, R.raw.snare48, R.string.snare, R.drawable.ic_c_note),
+            new SoundInfo(R.raw.sticks44, R.raw.sticks48, R.string.sticks, R.drawable.ic_c_note_rim),
+            new SoundInfo(R.raw.claves44, R.raw.claves48, R.string.claves, R.drawable.ic_gp_note),
+            new SoundInfo(R.raw.woodblock_high44, R.raw.woodblock_high48, R.string.woodblock, R.drawable.ic_ep_note),
+            new SoundInfo(R.raw.hihat44, R.raw.hihat48, R.string.mute, R.drawable.ic_quarter_pause),
     };
 
 
@@ -64,9 +66,12 @@ final class Sounds {
     static int getNumSoundID() {
         return sounds.length;
     }
-    static int getSoundID(int id)
+    static int getSoundID(int id, int sampleRate)
     {
-        return sounds[id].soundID;
+        if(sampleRate == 44100)
+            return sounds[id].soundID44;
+        else
+            return sounds[id].soundID48;
     }
     static int getIconID(int id) {
         return sounds[id].iconID;

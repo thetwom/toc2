@@ -198,6 +198,8 @@ public class SaveDataFragment extends Fragment {
     }
 
     private void updateNoSavedItemsMessage() {
+        if(noSavedItemsMessage == null)
+            return;
         if(savedItemsAdapter.getItemCount() == 0){
             noSavedItemsMessage.setVisibility(View.VISIBLE);
         }

@@ -54,7 +54,6 @@
 
     <string name="undo">Undo</string>
     <string name="item_deleted">Item deleted</string>
-    <string name="delete">Delete</string>
 
     <string name="save_settings_dialog_title">Save current settings</string>
     <string name="save_name">Name</string>

@@ -28,6 +28,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.media.AudioManager;
 import android.media.SoundPool;
 import android.os.Binder;
 import android.os.Bundle;
@@ -38,6 +39,8 @@ import android.preference.PreferenceManager;
 import android.service.notification.StatusBarNotification;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.media.AudioManagerCompat;
+
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -47,6 +50,8 @@ import android.widget.RemoteViews;
 // import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 import static de.moekadu.metronome.App.CHANNEL_ID;
@@ -58,6 +63,8 @@ public class PlayerService extends Service {
     private static final String BROADCAST_PLAYERACTION = "toc.PlayerService.PLAYERACTION";
     private static final String PLAYERSTATE = "PLAYERSTATE";
     private static final String PLAYBACKSPEED = "PLAYBACKSPEED";
+
+    private static int nativeSampleRate = -1;
 
     private float minimumSpeed;
     private float maximumSpeed;
@@ -78,12 +85,12 @@ public class PlayerService extends Service {
     private RemoteViews notificationView = null;
 //    private TextView notificationSpeedText = null;
 
-    private final SoundPool soundpool = new SoundPool.Builder().setMaxStreams(2).build();
+    private final SoundPool soundpool = new SoundPool.Builder().setMaxStreams(3).build();
     private int[] soundHandles;
 
     private int playListPosition = 0;
 
-    private ArrayList<Bundle> playList;
+    private final ArrayList<Bundle> playList = new ArrayList<>();
 
     private SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener;
     private final Handler waitHandler = new Handler();
@@ -170,6 +177,11 @@ public class PlayerService extends Service {
         // Log.v("Metronome", "PlayerService::onCreate()");
         super.onCreate();
 
+        AudioManager audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
+        String sampleRateString = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
+        nativeSampleRate = Integer.parseInt(sampleRateString);
+        Log.v("Metronome", "PlayerService:onCreate: native sample rate: " + nativeSampleRate);
+
         IntentFilter filter = new IntentFilter(BROADCAST_PLAYERACTION);
         registerReceiver(actionReceiver, filter);
 
@@ -199,8 +211,8 @@ public class PlayerService extends Service {
             }
         });
 
-        mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
-                MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
+//        mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
+//                MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
 
         playbackStateBuilder.setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_PLAY_PAUSE)
                 .setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, InitialValues.speed);
@@ -266,7 +278,7 @@ public class PlayerService extends Service {
         int numSounds = Sounds.getNumSoundID();
         soundHandles = new int[numSounds];
         for (int i = 0; i < numSounds; ++i) {
-            int soundID = Sounds.getSoundID(i);
+            int soundID = Sounds.getSoundID(i, nativeSampleRate);
             soundHandles[i] = soundpool.load(this, soundID, 1);
         }
         return playerBinder;
@@ -388,13 +400,20 @@ public class PlayerService extends Service {
 //        mediaSession.setMetadata(mediaMetadataBuilder.build());
 //    }
 
-    public void setSounds(ArrayList<Bundle> sounds) {
+    public void setSounds(List<Bundle> sounds) {
+        Log.v("Metronome", "PlayerService:setSounds");
         // Do not do anything if we already have the correct sounds
-        if (SoundProperties.equal(sounds, playList))
+        if (SoundProperties.equal(sounds, playList)) {
+            Log.v("Metronome", "PlayerService:setSounds: new sounds are equal to old sounds");
             return;
+        }
 
-        playList = sounds;
+        playList.clear();
+        for(Bundle b : sounds)
+            playList.add(SoundProperties.deepCopy(b));
+//        playList = sounds;
         String soundString = SoundProperties.createMetaDataString(playList);
+        Log.v("Metronome", "PlayerService:setSounds: " + soundString);
         metaData = mediaMetadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, soundString).build();
         mediaSession.setMetadata(metaData);
     }
@@ -468,8 +487,8 @@ public class PlayerService extends Service {
         return playbackState.getState();
     }
 
-    public ArrayList<Bundle> getSound() {
-        return playList;
+    public List<Bundle> getSound() {
+        return Collections.unmodifiableList(playList);
     }
 
     private boolean setMinimumSpeed(float speed) {

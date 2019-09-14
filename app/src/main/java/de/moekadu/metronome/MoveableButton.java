@@ -32,6 +32,7 @@ import androidx.dynamicanimation.animation.SpringAnimation;
 import androidx.dynamicanimation.animation.SpringForce;
 import androidx.core.content.ContextCompat;
 
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -121,7 +122,7 @@ public class MoveableButton extends View {
         this.buttonColor = normalColor;
         this.volumeColor = volumeColor;
 
-        colorAnimation = ValueAnimator.ofArgb(normalColor, highlightColor, normalColor);
+        colorAnimation = ValueAnimator.ofArgb(highlightColor, normalColor);
         rippleAnimation = ValueAnimator.ofFloat(0, 1);
         rippleAnimation.setInterpolator(new LinearInterpolator());
 
@@ -283,7 +284,8 @@ public class MoveableButton extends View {
         this.onPropertiesChangedListener = onPropertiesChangedListener;
     }
 
-    public void animateColor() {
+    public void animateColor(long duration) {
+        colorAnimation.setDuration(duration);
         colorAnimation.start();
     }
 
@@ -333,9 +335,11 @@ public class MoveableButton extends View {
         properties.putAll(newProperties);
         icon = ContextCompat.getDrawable(getContext(), Sounds.getIconID(properties.getInt("soundid", 0)));
         invalidate();
-        if(onPropertiesChangedListener != null && !suppressOnPropertiesChangedListener)
+        if(onPropertiesChangedListener != null && !suppressOnPropertiesChangedListener) {
+            Log.v("Metronome", "MoveableButton:setProperties: calling onPropertiesChangedListener");
             onPropertiesChangedListener.onPropertiesChanged(this);
-//        // Log.v("Metronome", "Setting new button properties " + properties.getFloat("volume",-1));
+        }
+         Log.v("Metronome", "Setting new button properties " + properties.getFloat("volume",-1));
     }
 
     @SuppressWarnings("SameParameterValue")

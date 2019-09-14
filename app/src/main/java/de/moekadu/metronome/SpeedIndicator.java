@@ -1,22 +1,3 @@
-/*
- * Copyright 2019 Michael Moessner
- *
- * This file is part of Metronome.
- *
- * Metronome is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Metronome is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Metronome.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package de.moekadu.metronome;
 
 import android.animation.ValueAnimator;
@@ -25,35 +6,61 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.util.AttributeSet;
+import android.view.View;
 import android.view.animation.LinearInterpolator;
 
 import androidx.annotation.Nullable;
 
-public class SpeedIndicator extends ControlPanel {
+import java.util.Vector;
 
-    private Paint circlePaint;
+public class SpeedIndicator extends View {
 
-    private Path pathOuterCircle = null;
+    private final int defaultHeight = Math.round(Utilities.dp_to_px(4));
+    private final int defaultWidth = Math.round(Utilities.dp_to_px(100));
 
-    private int highlightColor;
-//    private int normalColor;
-//    private int labelColor;
+    private Paint paint = null;
 
-    private boolean stopped = true;
+    private int color = Color.BLACK;
+
+    private int positionIndex = 0;
     private float position = 0.0f;
-    private final int nPoints = 12;
-    private float speed = 100.0f;
+    private final ValueAnimator animatePosition = ValueAnimator.ofFloat(0.0f, 1.0f);
 
-    private final ValueAnimator animatePosition = ValueAnimator.ofFloat(0.0f, 360.0f / nPoints);
+    private final Vector<Float> markPositions = new Vector<>();
 
-    public SpeedIndicator(Context context, AttributeSet attrs) {
+    public SpeedIndicator(Context context) {
+        super(context);
+        init(context, null);
+    }
+
+    public SpeedIndicator(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         init(context, attrs);
+    }
 
-        animatePosition.setDuration(getDt(100.0f));
-        animatePosition.setInterpolator(new LinearInterpolator());
+    public SpeedIndicator(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        init(context, attrs);
+    }
+
+//    public SpeedIndicator(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+//        super(context, attrs, defStyleAttr, defStyleRes);
+//    }
+
+    private void init(Context context, @Nullable AttributeSet attrs) {
+
+        if (attrs != null) {
+            TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.SpeedIndicator);
+            color = ta.getColor(R.styleable.SpeedIndicator_normalColor, Color.BLACK);
+            ta.recycle();
+        }
+
+        paint = new Paint();
+        paint.setAntiAlias(true);
+        paint.setColor(color);
+        paint.setStyle(Paint.Style.FILL);
+
 
         animatePosition.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
@@ -62,78 +69,62 @@ public class SpeedIndicator extends ControlPanel {
                 invalidate();
             }
         });
-
+        animatePosition.setInterpolator(new LinearInterpolator());
     }
 
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+//        ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) getLayoutParams();
 
-    private long getDt(float speed) {
-        return Math.round(1000.0 * 60.0 / speed);
-    }
+        int desiredWidth = defaultWidth + getPaddingStart() + getPaddingEnd();
+        int desiredHeight = defaultHeight + getPaddingTop() + getPaddingBottom();
 
-    private void init(Context context, @Nullable AttributeSet attrs) {
-        circlePaint = new Paint();
-        circlePaint.setAntiAlias(true);
+        int width = resolveSize(desiredWidth, widthMeasureSpec);
+        int height = resolveSize(desiredHeight, heightMeasureSpec);
 
-        if (attrs == null)
-            return;
-
-        TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.SpeedIndicator);
-        highlightColor = ta.getColor(R.styleable.SpeedIndicator_highlightColor, Color.GRAY);
-//        normalColor = ta.getColor(R.styleable.SpeedPanel_normalColor, Color.GRAY);
-//        labelColor = ta.getColor(R.styleable.SpeedPanel_labelColor, Color.WHITE);
-
-        ta.recycle();
+        setMeasuredDimension(width, height);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        //float width = positionStart + (positionEnd-positionStart) * position;
+        float secEnd = positionIndex >= markPositions.size() ? 0 : markPositions.get(positionIndex);
+        float secStart = positionIndex-1 >= markPositions.size() || positionIndex == 0 ? 0 : markPositions.get(positionIndex-1);
+        float barEnd = secStart + (secEnd-secStart) * position;
 
-        int cx = getCenterX();
-        int cy = getCenterY();
+//        float end = markPositions[positionIndex]
 
-        float rad = 0.0f * getRadius() + 1.0f * getInnerRadius();
+//        Log.v("Metronome", "pos: " +position);
 
-        circlePaint.setColor(highlightColor);
-        circlePaint.setStrokeWidth(Utilities.dp_to_px(2));
-        circlePaint.setStyle(Paint.Style.FILL);
+        canvas.drawRect(0,0.0f*getHeight(), barEnd, 1.0f*getHeight(), paint);
 
-        if (pathOuterCircle == null)
-            pathOuterCircle = new Path();
-        pathOuterCircle.setFillType(Path.FillType.EVEN_ODD);
-
-        for (int i = 0; i < nPoints; ++i) {
-            double ang = (position + i * 360.0f / nPoints) * Math.PI / 180.0;
-            float pointSize = Utilities.dp_to_px(5);
-
-            double scaleDist = 7.0 * Math.PI / 180.0 * speed / 80.0;
-            if (ang < scaleDist && !stopped)
-                pointSize = pointSize * (1.0f + 4.0f * (float) Math.sin(ang / scaleDist * Math.PI));
-            //if(ang < scaleDist && !stopped)
-            //    pointSize = pointSize * (1.0f + 4.0f * (float) Math.cos(ang / scaleDist * Math.PI/2.0));
-            //if(ang > 2.0*Math.PI - scaleDist && !stopped)
-            //    pointSize = pointSize * (1.0f + 4.0f * (float) Math.cos((2.0*Math.PI - ang) / scaleDist * Math.PI/2.0));
-
-            //canvas.drawArc(cx - rad, cy - rad, cx + rad, cy + rad, -90.0f, position, false, circlePaint);
-            canvas.drawCircle(cx + rad * (float) Math.sin(ang), cy - rad * (float) Math.cos(ang), pointSize, circlePaint);
+//        Log.v("Metronome", "pos: "+ markPositions.size());
+        for(Float mark : markPositions){
+//            canvas.drawCircle(mark, getHeight()/2.0f, getHeight()/2.0f, markPaint);
+            canvas.drawRect(mark, 0, mark+getHeight(), getHeight(), paint);
         }
 
     }
 
-    public void stopPlay() {
-        animatePosition.pause();
-        position = 0.0f;
-        stopped = true;
-        invalidate();
-    }
+    public void animate(int positionIndex, float speed){
 
-    public void animatePosition() {
-        stopped = false;
+        this.positionIndex = positionIndex;
+        animatePosition.setDuration(Utilities.speed2dt(speed));
         animatePosition.start();
     }
 
-    public void setSpeed(float speed) {
-        animatePosition.setDuration(getDt(speed));
-        this.speed = speed;
+    public void setMarks(Vector<Float> positions){
+        markPositions.clear();
+        markPositions.addAll(positions);
+        invalidate();
+    }
+
+    public void stopPlay(){
+        animatePosition.pause();
+        position = 0.0f;
+        positionIndex = 0;
+        invalidate();
     }
 }

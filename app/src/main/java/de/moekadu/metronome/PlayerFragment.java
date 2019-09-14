@@ -31,11 +31,13 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 // import android.util.Log;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -49,7 +51,7 @@ public class PlayerFragment extends Fragment {
     private ServiceConnection playerConnection = null;
 
     private float speed = InitialValues.speed;
-    private ArrayList<Bundle> playList;
+    private List<Bundle> playList;
 
     public PlayerFragment() {
         // Required empty public constructor
@@ -127,6 +129,7 @@ public class PlayerFragment extends Fragment {
 
     @Override
     public void onStop() {
+        Log.v("Metronome", "PlayerFragment:onStop()");
         FragmentActivity context = getActivity();
         if(context != null)
         {

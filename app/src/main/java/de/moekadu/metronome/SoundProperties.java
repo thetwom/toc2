@@ -20,8 +20,10 @@
 package de.moekadu.metronome;
 
 import android.os.Bundle;
+import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.List;
 
 class SoundProperties {
 
@@ -40,7 +42,7 @@ class SoundProperties {
         return sounds;
     }
 
-    static public String createMetaDataString(ArrayList<Bundle> sounds){
+    static public String createMetaDataString(List<Bundle> sounds){
         StringBuilder mdata = new StringBuilder();
         for(Bundle b: sounds){
             int soundid = b.getInt("soundid", 0);
@@ -60,19 +62,36 @@ class SoundProperties {
         return true;
     }
 
-    static public boolean equal(ArrayList<Bundle> sounds1, ArrayList<Bundle> sounds2){
-        if(sounds1 == null && sounds2 == null)
+    static public Bundle deepCopy(Bundle sound) {
+        Bundle copy = new Bundle();
+        copy.putInt("soundid", sound.getInt("soundid"));
+        copy.putFloat("volume", sound.getFloat("volume"));
+        return copy;
+    }
+
+    static public boolean equal(List<Bundle> sounds1, List<Bundle> sounds2){
+        if(sounds1 == null && sounds2 == null) {
+//            Log.v("Metrononme", "SoundProperties:equal: sounds1 and sounds2 are null");
             return true;
+        }
 
-        if(sounds1 == null || sounds2 == null)
+        if(sounds1 == null || sounds2 == null) {
+//            Log.v("Metrononme", "SoundProperties:equal: Either sounds1 or sounds2 is null");
             return false;
+        }
 
-        if(sounds1.size() != sounds2.size())
+        if(sounds1.size() != sounds2.size()) {
+//            Log.v("Metrononme", "SoundProperties:equal: sounds1 and sounds2 have different size");
             return false;
+        }
 
-        for(int i = 0; i < sounds1.size(); ++i)
-            if(!equal(sounds1.get(i), sounds2.get(i)))
+        for(int i = 0; i < sounds1.size(); ++i) {
+//            Log.v("Metrononme", "SoundProperties:equal: " + sounds1.get(i).getInt("soundid") + "  " + sounds2.get(i).getInt("soundid") );
+            if (!equal(sounds1.get(i), sounds2.get(i))) {
+//                Log.v("Metrononme", "SoundProperties:equal: Sound " + i + " is different");
                 return false;
+            }
+        }
 
         return true;
     }

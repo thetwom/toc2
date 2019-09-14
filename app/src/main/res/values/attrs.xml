@@ -38,13 +38,7 @@
         <attr name="volumeColor"/>
     </declare-styleable>
 
-
     <declare-styleable name="SpeedIndicator">
-        <attr name="normalColor" />
-        <attr name="highlightColor" />
-    </declare-styleable>
-
-    <declare-styleable name="SpeedIndicator2">
         <attr name="normalColor" />
     </declare-styleable>
 
