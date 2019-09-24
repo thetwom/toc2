@@ -24,6 +24,7 @@
     <attr name="labelColor" format="color" />
     <attr name="highlightColor" format="color" />
     <attr name="volumeColor" format="color" />
+    <attr name="backgroundColor" format="color" />
 
     <declare-styleable name="SpeedPanel">
         <attr name="normalColor" />
@@ -58,6 +59,13 @@
         <attr name="normalColor" />
         <attr name="sliderColor" format="color" />
         <attr name="vertical" format="boolean" />
+    </declare-styleable>
+
+    <declare-styleable name="VolumeSliders">
+        <attr name="interactiveColor" format="color"/>
+        <attr name="elementBackgroundColor" format="color"/>
+        <attr name="onInteractiveColor" format="color"/>
+        <attr name="backgroundColor" />
     </declare-styleable>
 
      <declare-styleable name="IconListVisualizer">

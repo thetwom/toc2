@@ -49,8 +49,11 @@ public class MainActivity extends AppCompatActivity {
 
     // TODO: new app icon
     // TODO: handle incorrect loads which could occur, when loading with newer version
-    // TODO: Improve TapIn
     // TODO: nicer saved-item layout
+    // TODO: +- one step
+    // TODO: improved sound changing
+    // TODO: german locals
+    // TODO: understand why volumesliders, and soundchooser have a outer margin of 16px
 
     private static FragmentManager fragManager;
 

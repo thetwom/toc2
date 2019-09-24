@@ -400,6 +400,13 @@ public class PlayerService extends Service {
 //        mediaSession.setMetadata(mediaMetadataBuilder.build());
 //    }
 
+    private void updateMetadata() {
+        String soundString = SoundProperties.createMetaDataString(playList);
+//        Log.v("Metronome", "PlayerService:setSounds: " + soundString);
+        metaData = mediaMetadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, soundString).build();
+        mediaSession.setMetadata(metaData);
+    }
+
     public void setSounds(List<Bundle> sounds) {
         Log.v("Metronome", "PlayerService:setSounds");
         // Do not do anything if we already have the correct sounds
@@ -411,11 +418,28 @@ public class PlayerService extends Service {
         playList.clear();
         for(Bundle b : sounds)
             playList.add(SoundProperties.deepCopy(b));
+        updateMetadata();
 //        playList = sounds;
-        String soundString = SoundProperties.createMetaDataString(playList);
-        Log.v("Metronome", "PlayerService:setSounds: " + soundString);
-        metaData = mediaMetadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, soundString).build();
-        mediaSession.setMetadata(metaData);
+//        String soundString = SoundProperties.createMetaDataString(playList);
+//        Log.v("Metronome", "PlayerService:setSounds: " + soundString);
+//        metaData = mediaMetadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, soundString).build();
+//        mediaSession.setMetadata(metaData);
+    }
+
+    public void setVolume(int playListIndex, float volume) {
+        boolean volumeChanged = false;
+        if(playListIndex < playList.size()) {
+            Bundle b = playList.get(playListIndex);
+            float oldVolume = b.getFloat("volume");
+            if(Math.abs(volume-oldVolume) > 1e-8) {
+                b.putFloat("volume", volume);
+                volumeChanged = true;
+            }
+        }
+
+        if(volumeChanged) {
+            updateMetadata();
+        }
     }
 
     public void startPlay() {
@@ -516,6 +540,13 @@ public class PlayerService extends Service {
     private void setSpeedIncrement(float speedIncrement) {
         this.speedIncrement = speedIncrement;
         changeSpeed(getSpeed()); // Make sure that current speed fits speedIncrement
+    }
+
+    void playSpecificSound(int playListPosition) {
+        if(playListPosition >= playList.size())
+            return;
+        Bundle b = playList.get(playListPosition);
+        playSpecificSound(b.getInt("soundid"), b.getFloat("volume"));
     }
 
     void playSpecificSound(int sound, float volume) {

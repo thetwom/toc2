@@ -117,5 +117,22 @@
         tools:layout_conversion_wrapHeight="199"
         tools:layout_conversion_wrapWidth="1064" />
 
-
+    <de.moekadu.metronome.VolumeSliders
+        android:id="@+id/volume_sliders"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="0dp"
+        android:layout_marginEnd="0dp"
+        android:layout_marginBottom="0dp"
+        android:layout_marginTop="0dp"
+        android:padding="0dp"
+        android:backgroundTint="?attr/colorPrimary"
+        app:elementBackgroundColor="?attr/colorBackgroundFloating"
+        app:backgroundColor="?android:attr/colorBackground"
+        app:interactiveColor="?attr/colorPrimary"
+        app:layout_constraintBottom_toTopOf="@id/soundchooser"
+        app:layout_constraintTop_toTopOf="parent"
+         app:layout_constraintStart_toStartOf="@id/soundchooser"
+        app:layout_constraintEnd_toEndOf="@id/soundchooser"
+        />
 </androidx.constraintlayout.widget.ConstraintLayout>

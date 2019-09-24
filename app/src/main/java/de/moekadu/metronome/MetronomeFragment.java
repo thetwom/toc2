@@ -54,6 +54,8 @@ public class MetronomeFragment extends Fragment {
     private PlayButton playButton;
     private SpeedIndicator speedIndicator;
     private SoundChooser soundChooser;
+    private VolumeSliders volumeSliders;
+
     private boolean playerServiceBound = false;
     private ServiceConnection playerConnection = null;
     private PlayerService playerService;
@@ -62,6 +64,7 @@ public class MetronomeFragment extends Fragment {
     private float speedIncrement = Utilities.speedIncrements[InitialValues.speedIncrementIndex];
 
     private final Vector<Float> buttonPositions = new Vector<>();
+    private final Vector<Float> volumes = new Vector<>();
 
     private final MediaControllerCompat.Callback mediaControllerCallback = new MediaControllerCompat.Callback() {
         @Override
@@ -112,7 +115,7 @@ public class MetronomeFragment extends Fragment {
         SpeedPanel speedPanel = view.findViewById(R.id.speedpanel);
 
         speedIndicator = view.findViewById(R.id.speedindicator2);
-
+        volumeSliders = view.findViewById(R.id.volume_sliders);
 
         speedPanel.setOnSpeedChangedListener(new SpeedPanel.SpeedChangedListener() {
             @Override
@@ -176,6 +179,16 @@ public class MetronomeFragment extends Fragment {
             }
         });
 
+        volumeSliders.setVolumeChangedListener(new VolumeSliders.VolumeChangedListener() {
+            @Override
+            public void onVolumeChanged(int sliderIdx, float volume) {
+                if(playerServiceBound) {
+                    playerService.setVolume(sliderIdx, volume);
+                    if(playerService.getState() != PlaybackStateCompat.STATE_PLAYING)
+                        playerService.playSpecificSound(sliderIdx);
+                }
+            }
+        });
         sharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
             @Override
             public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
@@ -302,6 +315,7 @@ public class MetronomeFragment extends Fragment {
 
     private void updateView(List<Bundle> playList){
         soundChooser.setSounds(playList);
+        updateSpeedIndicatorMarksAndVolumeSliders();
     }
 
     private void bindService(final Context context) {
@@ -347,16 +361,27 @@ public class MetronomeFragment extends Fragment {
             Log.v("Metronome", "MetronomeFragment:setNewSounds: Calling playerService.setSounds");
             playerService.setSounds(sounds);
         }
-        updateSpeedIndicatorMarks();
+        updateSpeedIndicatorMarksAndVolumeSliders();
     }
 
-    private void updateSpeedIndicatorMarks() {
-         buttonPositions.clear();
+    private void updateSpeedIndicatorMarksAndVolumeSliders() {
+        buttonPositions.clear();
+        volumes.clear();
+
         float buttonWidth = soundChooser.getButtonWidth();
         for(int ipos = 0; ipos < soundChooser.numSounds(); ++ipos){
             buttonPositions.add(soundChooser.indexToPosX(ipos)+buttonWidth);
+            volumes.add(soundChooser.getButtonVolume(ipos));
         }
         //buttonPositions.add(soundChooser.indexToPosX(sounds.size()));
         speedIndicator.setMarks(buttonPositions);
+
+
+        for(int ipos = 0; ipos < soundChooser.numSounds(); ++ipos){
+            buttonPositions.set(ipos, buttonPositions.get(ipos) - buttonWidth / 2.0f);
+        }
+        volumeSliders.setTunersAt(buttonPositions, volumes);
+
     }
+
 }

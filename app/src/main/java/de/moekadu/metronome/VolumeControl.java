@@ -77,6 +77,9 @@ public class VolumeControl extends ViewGroup {
         }
     };
 
+//    public VolumeControl(Context context) {
+//        init(context, null);
+//    }
 
     public VolumeControl(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -89,12 +92,15 @@ public class VolumeControl extends ViewGroup {
         volDown = ContextCompat.getDrawable(context, R.drawable.ic_volume_down);
         volUp = ContextCompat.getDrawable(context, R.drawable.ic_volume_up);
 
-        TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.VolumeControl);
-        normalColor = ta.getColor(R.styleable.VolumeControl_normalColor, Color.WHITE);
-        sliderColor = ta.getColor(R.styleable.VolumeControl_sliderColor, Color.BLACK);
-        vertical = ta.getBoolean(R.styleable.VolumeControl_vertical, false);
+        if (attrs != null) {
+            TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.VolumeControl);
+            normalColor = ta.getColor(R.styleable.VolumeControl_normalColor, Color.WHITE);
+            sliderColor = ta.getColor(R.styleable.VolumeControl_sliderColor, Color.BLACK);
+            vertical = ta.getBoolean(R.styleable.VolumeControl_vertical, false);
+            ta.recycle();
+        }
 
-        ta.recycle();
+
 
     }
     @Override
@@ -264,5 +270,20 @@ public class VolumeControl extends ViewGroup {
 
     public void setOnVolumeChangedListener(OnVolumeChangedListener onVolumeChangedListener) {
         this.onVolumeChangedListener = onVolumeChangedListener;
+    }
+
+    public void setVertical(boolean vertical){
+        this.vertical = vertical;
+        invalidate();
+    }
+
+    public void setBackgroundColor(int color) {
+        normalColor = color;
+        invalidate();
+    }
+
+    public void setSliderColor(int color) {
+        sliderColor = color;
+        invalidate();
     }
 }

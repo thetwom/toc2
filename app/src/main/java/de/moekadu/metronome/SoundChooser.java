@@ -417,4 +417,8 @@ public class SoundChooser extends FrameLayout {
             buttons.get(buttonidx).animateColor(duration);
         }
     }
+
+    public float getButtonVolume(int buttonidx) {
+        return buttons.get(buttonidx).getProperties().getFloat("volume",0);
+    }
 }
