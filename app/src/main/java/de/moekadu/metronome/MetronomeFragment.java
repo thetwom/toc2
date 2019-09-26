@@ -94,6 +94,7 @@ public class MetronomeFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+//        Log.v("Metronome", "MetronomeFragment::onCreate");
         setHasOptionsMenu(true);
     }
 
@@ -174,7 +175,7 @@ public class MetronomeFragment extends Fragment {
         soundChooser.setSoundChangedListener(new SoundChooser.SoundChangedListener() {
             @Override
             public void onSoundChanged(ArrayList<Bundle> sounds) {
-                Log.v("Metronome", "MetronomeFragment:onSoundChanged");
+//                Log.v("Metronome", "MetronomeFragment:onSoundChanged");
                 setNewSound(sounds);
             }
         });
@@ -296,7 +297,10 @@ public class MetronomeFragment extends Fragment {
             speedIndicator.stopPlay();
             playButton.changeStatus(PlayButton.STATUS_PAUSED, animate);
         }
-        speedText.setText(getString(R.string.bpm, Utilities.getBpmString(state.getPlaybackSpeed(), speedIncrement)));
+
+        // We need this to avoid rare errors that there is no context
+        if(isAdded())
+            speedText.setText(getString(R.string.bpm, Utilities.getBpmString(state.getPlaybackSpeed(), speedIncrement)));
 
         if(state.getPosition() != PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN){
             float speed = state.getPlaybackSpeed();
@@ -356,9 +360,9 @@ public class MetronomeFragment extends Fragment {
     }
 
     private void setNewSound(ArrayList<Bundle> sounds) {
-        Log.v("Metronome", "MetronomeFragment:setNewSounds");
+//        Log.v("Metronome", "MetronomeFragment:setNewSounds");
         if(playerServiceBound) {
-            Log.v("Metronome", "MetronomeFragment:setNewSounds: Calling playerService.setSounds");
+//            Log.v("Metronome", "MetronomeFragment:setNewSounds: Calling playerService.setSounds");
             playerService.setSounds(sounds);
         }
         updateSpeedIndicatorMarksAndVolumeSliders();
@@ -378,7 +382,7 @@ public class MetronomeFragment extends Fragment {
 
 
         for(int ipos = 0; ipos < soundChooser.numSounds(); ++ipos){
-            buttonPositions.set(ipos, buttonPositions.get(ipos) - buttonWidth / 2.0f);
+            buttonPositions.set(ipos, buttonPositions.get(ipos) - buttonWidth / 2.0f + soundChooser.getLeft());
         }
         volumeSliders.setTunersAt(buttonPositions, volumes);
 

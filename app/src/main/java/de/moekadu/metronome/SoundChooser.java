@@ -90,7 +90,7 @@ public class SoundChooser extends FrameLayout {
     }
 
     private void init() {
-        // Log.v("Metronome", "SoundChooser:init");
+//        Log.v("Metronome", "SoundChooser:init" + getLeft());
 
         plusButton = createPlusButton();
     }
@@ -175,9 +175,9 @@ public class SoundChooser extends FrameLayout {
         button.setOnPropertiesChangedListener(new MoveableButton.OnPropertiesChangedListener() {
             @Override
             public void onPropertiesChanged(MoveableButton button) {
-                Log.v("Metronome","SoundChooser:onPropertiesChanged");
+//                Log.v("Metronome","SoundChooser:onPropertiesChanged");
                 if(soundChangedListener != null) {
-                    Log.v("Metronome","SoundChooser:onPropertiesChanged: Calling soundChangedListener");
+//                    Log.v("Metronome","SoundChooser:onPropertiesChanged: Calling soundChangedListener");
                     soundChangedListener.onSoundChanged(getSounds());
                 }
             }

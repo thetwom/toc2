@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        Log.v("Metronome", "MainActivity:onCreate");
         SharedPreferences sharedPreferences =
             PreferenceManager.getDefaultSharedPreferences(this /* Activity context */);
 
@@ -153,6 +153,7 @@ public class MainActivity extends AppCompatActivity {
                 setDisplayHomeButton();
             }
         });
+        Log.v("Metronome", "MainActivity:onCreate: end");
     }
 
 
@@ -227,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void saveCurrentSettings() {
-
+        Log.v("Metronome", "MainActivity:saveCurrentSettings");
         final EditText editText = new EditText(this);
 //        editText.setPadding(dp_to_px(8), dp_to_px(8), dp_to_px(8), dp_to_px(8));
         editText.setHint(R.string.save_name);
@@ -268,6 +269,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadSettings(SavedItemDatabase.SavedItem item) {
+        Log.v("Metronome", "MainActivity:loadSettings");
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String minimumSpeedString = sharedPreferences.getString("minimumspeed", Float.toString(InitialValues.minimumSpeed));
         assert minimumSpeedString != null;

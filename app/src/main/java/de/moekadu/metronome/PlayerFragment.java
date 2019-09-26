@@ -129,7 +129,7 @@ public class PlayerFragment extends Fragment {
 
     @Override
     public void onStop() {
-        Log.v("Metronome", "PlayerFragment:onStop()");
+//        Log.v("Metronome", "PlayerFragment:onStop()");
         FragmentActivity context = getActivity();
         if(context != null)
         {

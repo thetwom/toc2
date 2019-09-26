@@ -180,7 +180,7 @@ public class PlayerService extends Service {
         AudioManager audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
         String sampleRateString = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
         nativeSampleRate = Integer.parseInt(sampleRateString);
-        Log.v("Metronome", "PlayerService:onCreate: native sample rate: " + nativeSampleRate);
+//        Log.v("Metronome", "PlayerService:onCreate: native sample rate: " + nativeSampleRate);
 
         IntentFilter filter = new IntentFilter(BROADCAST_PLAYERACTION);
         registerReceiver(actionReceiver, filter);
@@ -408,10 +408,10 @@ public class PlayerService extends Service {
     }
 
     public void setSounds(List<Bundle> sounds) {
-        Log.v("Metronome", "PlayerService:setSounds");
+//        Log.v("Metronome", "PlayerService:setSounds");
         // Do not do anything if we already have the correct sounds
         if (SoundProperties.equal(sounds, playList)) {
-            Log.v("Metronome", "PlayerService:setSounds: new sounds are equal to old sounds");
+//            Log.v("Metronome", "PlayerService:setSounds: new sounds are equal to old sounds");
             return;
         }
 

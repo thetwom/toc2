@@ -52,7 +52,7 @@ public class VolumeSliders extends FrameLayout {
 
     public VolumeSliders(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-
+//        Log.v("Metronome", "VolumeSliders" + getLeft());
         if (attrs != null) {
             TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.VolumeSliders);
             interactiveColor = ta.getColor(R.styleable.VolumeSliders_interactiveColor, Color.BLACK);
@@ -95,8 +95,7 @@ public class VolumeSliders extends FrameLayout {
     @Nullable
     @Override
     protected Parcelable onSaveInstanceState() {
-        Log.v("Metrononme", "VolumeSliders:onSaveInstanceState");
-
+//        Log.v("Metronome", "VolumeSliders:onSaveInstanceState");
 
         Bundle bundle = new Bundle();
         bundle.putParcelable("superState", super.onSaveInstanceState());
@@ -106,8 +105,7 @@ public class VolumeSliders extends FrameLayout {
 
     @Override
     protected void onRestoreInstanceState(Parcelable state) {
-        Log.v("Metrononme", "VolumeSliders:onRestoreInstanceState " + (state instanceof Bundle));
-
+//        Log.v("Metronome", "VolumeSliders:onRestoreInstanceState " + (state instanceof Bundle));
 
         if (state instanceof Bundle) // implicit null check
         {
@@ -158,7 +156,7 @@ public class VolumeSliders extends FrameLayout {
         button.setPadding(pad, pad, pad, pad);
         button.setElevation(Utilities.dp_to_px(2));
 //        button.setTranslationX(elementPadding);
-        button.setTranslationX(0);
+        button.setTranslationX(Utilities.dp_to_px(4));
         button.setTranslationY(folded ? getFoldedButtonTop() : getUnfoldedButtonTop());
         button.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         button.setImageResource(folded ? R.drawable.ic_tune_arrow : R.drawable.ic_tune_arrow_down);
@@ -191,6 +189,7 @@ public class VolumeSliders extends FrameLayout {
         background.setTranslationY(folded ? getBottom() : getTop());
         background.setAlpha(0.7f);
         addView(background);
+        Log.v("Metrononme", "AAAAAAAAAAAAAAAAAAAAAA " + getLeft());
     }
 
     private float getUnfoldedButtonTop() {
@@ -270,6 +269,7 @@ public class VolumeSliders extends FrameLayout {
     }
 
     private VolumeControl createVolumeControl() {
+
         VolumeControl volumeControl = new VolumeControl(getContext(), null);
 //        volumeControl.setTranslationX(getLeft() + elementPadding);
         volumeControl.setTranslationY(getTunerTop());

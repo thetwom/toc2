@@ -205,7 +205,7 @@ public class MoveableButton extends View {
                             else if (dx * dx + dy * dy > resistanceDist * resistanceDist) {
                                 isMoving = true;
 //                                setElevation(10);
-                                setTranslationZ(Utilities.dp_to_px(4));
+                                setTranslationZ(Utilities.dp_to_px(18));
                                 if(positionChangedListener != null)
                                     positionChangedListener.onStartMoving(MoveableButton.this, getX(), getY());
                             }
@@ -336,10 +336,10 @@ public class MoveableButton extends View {
         icon = ContextCompat.getDrawable(getContext(), Sounds.getIconID(properties.getInt("soundid", 0)));
         invalidate();
         if(onPropertiesChangedListener != null && !suppressOnPropertiesChangedListener) {
-            Log.v("Metronome", "MoveableButton:setProperties: calling onPropertiesChangedListener");
+//            Log.v("Metronome", "MoveableButton:setProperties: calling onPropertiesChangedListener");
             onPropertiesChangedListener.onPropertiesChanged(this);
         }
-         Log.v("Metronome", "Setting new button properties " + properties.getFloat("volume",-1));
+//         Log.v("Metronome", "Setting new button properties " + properties.getFloat("volume",-1));
     }
 
     @SuppressWarnings("SameParameterValue")

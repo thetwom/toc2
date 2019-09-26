@@ -132,7 +132,7 @@
         app:interactiveColor="?attr/colorPrimary"
         app:layout_constraintBottom_toTopOf="@id/soundchooser"
         app:layout_constraintTop_toTopOf="parent"
-         app:layout_constraintStart_toStartOf="@id/soundchooser"
+         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="@id/soundchooser"
         />
 </androidx.constraintlayout.widget.ConstraintLayout>
