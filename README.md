@@ -9,11 +9,11 @@ Since I wanted to try app developing some day, I took this as a chance and creat
 
 This app provides basic functionality like:
 * Setting speed manually or by "tap in"
-* If you use "tap in" while the metronome is running, it the klicks should lock in to you taps.
-* Choose different sounds and individually choose the volume
+* If you use "tap in" while the metronome is running, the klicks should lock in to your taps.
+* Choose different sounds and individually adapt the volume
 * Save and load your current settings
-* It provides a light and a dark theme
-* Show a notification, which supports start and stop
+* Choose between light and dark theme
+* Show a notification, which supports "start" and "stop"
 
 # Help me improving the app
 
