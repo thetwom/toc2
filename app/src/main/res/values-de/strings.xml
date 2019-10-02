@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="about">Über</string>
+    <string name="about_message">Metronome app\nVersion: %s\nLizenz: GPLv3</string>
+    <string name="acknowledged">Verstanden</string>
+    <string name="action_settings">Einstellungen</string>
+    <string name="appearance">Erscheinungsbild</string>
+    <string name="dark_appearance">Dunkles Erscheinungsbild</string>
+    <string name="dark_appearance_short">Dunkel</string>
+    <string name="dismiss">Abbrechen</string>
+    <string name="done">Fertig</string>
+    <string name="inconsistent_increment">Gespeicherte Geschwindigkeit %s bpm kann durch die aktuelle Schrittweite %s bpm nicht aufgelöst werden.</string>
+    <string name="inconsistent_load_title">Inkonsistentes Auswahl</string>
+    <string name="inconsistent_summary">Bitte passe die Einstellungen an, wenn du deine Auswahl korrekt laden möchtest.</string>
+    <string name="item_deleted">Auswahl gelöscht</string>
+    <string name="light_appearance">Helles Erscheinungsbild</string>
+    <string name="light_appearance_short">Hell</string>
+    <string name="load_data">Daten laden</string>
+    <string name="loaded_message">Auswahl geladen: %s</string>
+    <string name="max_allowed_characters">Maximale Zeichenzahl: %d</string>
+    <string name="maximum_speed">Maximale Geschwindigkeit</string>
+    <string name="minimum_speed">Minimale Geschwindigkeit</string>
+    <string name="mute">stumm</string>
+    <string name="no">nein</string>
+    <string name="no_saved_items">Zur Zeit keine gespeicherten Einträge</string>
+    <string name="reset_all_settings">Alle Einstellungen zurücksetzen</string>
+    <string name="reset_settings_prompt">Möchtest du wirklich alle Einstellungen zurücksetzen?</string>
+    <string name="save">Speichern</string>
+    <string name="save_data">Einstellungen speichern</string>
+    <string name="save_name">Name</string>
+    <string name="save_settings_dialog_title">Aktuelle Einstellungen speichern</string>
+    <string name="saved_item_message">Aktuelle Einstellungen gespeichert: %s</string>
+    <string name="speed_sensitivity">Empfindlichkeit bei Geschwindigkeitsänderung</string>
+    <string name="speed_sensitivity_summary">Geschwindigkeitsschritte pro cm: %.1f</string>
+    <string name="speed_too_large">Gespeicherte Geschwindigkeit %s bpm ist größer als die maximale Geschwindigkeit %s bpm.</string>
+    <string name="speed_too_small">Gespeicherte Geschwindigkeit %s bpm ist kleiner als die minimale Geschwindigkeit %s.</string>
+    <string name="speedincrement">Geschwindigkeits-Schrittweite</string>
+    <string name="system_appearance">Erscheinungsbild folgt Systemeinstellungen</string>
+    <string name="system_appearance_short">Auto</string>
+    <string name="title">Titel</string>
+    <string name="undo">Rückgängig</string>
+    <string name="yes">ja</string>
+</resources>

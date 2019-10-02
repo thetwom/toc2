@@ -25,6 +25,8 @@ import android.graphics.Color;
 import android.os.Bundle;
 
 import androidx.core.content.ContextCompat;
+import androidx.dynamicanimation.animation.SpringForce;
+
 import android.util.AttributeSet;
 // import android.util.Log;
 import android.util.Log;
@@ -43,6 +45,13 @@ public class SoundChooser extends FrameLayout {
     private final int defaultButtonHeight = Math.round(Utilities.dp_to_px(70));
 
     final private ArrayList<MoveableButton> buttons = new ArrayList<>();
+    final private ArrayList<MoveableButton> soundChoices = new ArrayList<>();
+
+    private MoveableButton currentChoice = null;
+    private int soundBeforeMoving = 0;
+
+    private MoveableButton ghostWhenButtonMoves;
+
     private PlusButton plusButton;
 
     private int normalButtonColor = Color.BLACK;
@@ -93,6 +102,44 @@ public class SoundChooser extends FrameLayout {
 //        Log.v("Metronome", "SoundChooser:init" + getLeft());
 
         plusButton = createPlusButton();
+
+        ViewGroup viewGroup = (ViewGroup) this.getParent();
+        if (viewGroup == null)
+            return;
+
+        float buttonHeight = (getTop() - viewGroup.getTop() - spacing) / Sounds.getNumSoundID() - spacing;
+        float buttonWidth = Math.min(getButtonWidth(), buttonHeight);
+        MarginLayoutParams params = new MarginLayoutParams(Math.round(buttonWidth), Math.round(buttonHeight));
+
+        for(int isound = 0; isound < Sounds.getNumSoundID(); ++isound) {
+
+            MoveableButton choice = new MoveableButton(context, normalButtonColor, highlightButtonColor, volumeButtonColor);
+            Bundle properties = new Bundle();
+            properties.putFloat("volume", 0.0f);
+            properties.putInt("soundid", isound);
+            choice.setProperties(properties, true);
+            choice.setLayoutParams(params);
+            choice.setSpringStiffness(SpringForce.STIFFNESS_MEDIUM);
+            choice.setLockPosition(true);
+            choice.setVisibility(GONE);
+
+            viewGroup.addView(choice);
+            soundChoices.add(choice);
+
+//            choice.setTranslationY(getTop() - (isound+1) * (buttonHeight+spacing) - spacing);
+        }
+
+        ghostWhenButtonMoves = new MoveableButton(context, normalButtonColor, highlightButtonColor, volumeButtonColor);
+        ghostWhenButtonMoves.setBackground(null);
+        ghostWhenButtonMoves.setNoBackground(true);
+//        ghostWhenButtonMoves.setForeground(null);
+        ghostWhenButtonMoves.setVisibility(GONE);
+        Bundle ghostProperties = new Bundle();
+        ghostProperties.putFloat("volume", 0.0f);
+        ghostProperties.putInt("soundid", 0);
+        ghostWhenButtonMoves.setProperties(ghostProperties, false);
+        ghostWhenButtonMoves.setLockPosition(true);
+        viewGroup.addView(ghostWhenButtonMoves);
     }
 
     private void readAttributes(AttributeSet attrs){
@@ -147,26 +194,73 @@ public class SoundChooser extends FrameLayout {
         MoveableButton.PositionChangedListener positionChangedListener = new MoveableButton.PositionChangedListener() {
             @Override
             public void onPositionChanged(MoveableButton button, float posX, float posY) {
-                if (buttonOverPlusButton(posX, posY)) {
-//                if(plusButton.contains(posX, posY)) {
+
+                if(plusButton.contains(button.getCenterX(), button.getCenterY(), button.getWidth()/8.0f, plusButton.getHeight()/2.0f)) {
                     plusButton.setBackgroundColor(highlightButtonColor);
                 }
                 else {
                     plusButton.setBackground(null);
                 }
 
-                reorderButtons(button, posX);  // this means onSoundChangeListener must be called, which is done in "repositionButtons"
-                repositionButtons();
+                MoveableButton choice = buttonOverChoice(button);
+                if(choice != null && currentChoice != choice) {
+                    if(currentChoice != null)
+                        currentChoice.highlight(false);
+                    currentChoice = choice;
+                    currentChoice.highlight(true);
+                    Bundle properties = button.getProperties();
+                    properties.putInt("soundid", currentChoice.getProperties().getInt("soundid"));
+                    button.setProperties(properties, false);
+                    Bundle ghostProperties = ghostWhenButtonMoves.getProperties();
+                    ghostProperties.putInt("soundid", currentChoice.getProperties().getInt("soundid"));
+                    ghostWhenButtonMoves.setProperties(ghostProperties, true);
+                    return;
+                }
+//                else if(choice == null && currentChoice != null) {
+//                    currentChoice.highlight(false);
+//                    currentChoice = null;
+//                    Bundle properties = button.getProperties();
+//                    properties.putInt("soundid", soundBeforeMoving);
+//                    button.setProperties(properties, false);
+//                    Bundle ghostProperties = ghostWhenButtonMoves.getProperties();
+//                    ghostProperties.putInt("soundid", soundBeforeMoving);
+//                    ghostWhenButtonMoves.setProperties(ghostProperties, true);
+//                }
+
+                reorderButtons(button, posX);
             }
 
             @Override
             public void onStartMoving(MoveableButton button, float posX, float posY) {
+                soundBeforeMoving = button.getProperties().getInt("soundid");
+
+                Bundle ghostProperties = ghostWhenButtonMoves.getProperties();
+                ghostProperties.putInt("soundid", soundBeforeMoving);
+                ghostWhenButtonMoves.setProperties(ghostProperties, true);
+                ViewGroup.LayoutParams params = ghostWhenButtonMoves.getLayoutParams();
+                params.width = getButtonWidth();
+                params.height = getButtonHeight();
+                ghostWhenButtonMoves.setLayoutParams(params);
+                ghostWhenButtonMoves.setTranslationX(getX() + indexToPosX(buttons.indexOf(button)));
+                ghostWhenButtonMoves.setTranslationY(getY() + getPaddingTop());
+                ghostWhenButtonMoves.setVisibility(VISIBLE);
+
+                unfoldSoundChoicesOver(buttons.indexOf(button));
                 buttonStartsMoving(button, posX, posY);
             }
 
             @Override
             public void onEndMoving(MoveableButton button, float posX, float posY) {
                 buttonEndsMoving(button, posX, posY);
+                if(buttons.contains(button))
+                    foldSoundChoicesOver(buttons.indexOf(button));
+                else
+                    foldSoundChoicesOver(buttons.size()-1);
+                if(currentChoice != null) {
+                    currentChoice.highlight(false);
+                    currentChoice = null;
+                }
+                ghostWhenButtonMoves.setVisibility(GONE);
             }
         };
 
@@ -201,7 +295,7 @@ public class SoundChooser extends FrameLayout {
             buttons.get(i).setNewPosition(indexToPosX(i) + getX(), getPaddingTop() + getY());
         }
 
-        plusButton.reposition(indexToPosX(buttons.size()), getPaddingTop());
+        plusButton.reposition(indexToPosX(buttons.size()) + getX(), getPaddingTop() + getY());
 //        repositionPlusButton(indexToPosX(buttons.size()), getPaddingTop());
 
         if(soundChangedListener != null)
@@ -222,7 +316,10 @@ public class SoundChooser extends FrameLayout {
         params.topMargin = getPaddingTop();
         params.leftMargin = getPaddingLeft();
 
-        addView(button, params);
+        ViewGroup viewGroup = (ViewGroup) this.getParent();
+        assert viewGroup != null;
+
+        viewGroup.addView(button, params);
 
         button.setOnClickListener(new OnClickListener() {
             @Override
@@ -238,6 +335,7 @@ public class SoundChooser extends FrameLayout {
     }
 
     private void buttonStartsMoving(MoveableButton button, float posX, float posY) {
+//        Log.v("Metronome", "SoundChooser:buttonStartsMoving");
         plusButton.setImageResource(R.drawable.ic_delete);
     }
 
@@ -245,28 +343,13 @@ public class SoundChooser extends FrameLayout {
         plusButton.resetAppearance();
 //        plusButton.setBackground(null);
 
-        if (buttonOverPlusButton(posX, posY)) {
-            // TODO: Use contains function of plusButtion here, but therefore we might have to work on rawX, rawY
-//        if (plusButton.contains(posX, posY)) {
+        if (plusButton.contains(button.getCenterX(), button.getCenterY(), button.getWidth()/8.0f, plusButton.getHeight()/2.0f)) {
             buttons.remove(button);
             ViewGroup viewGroup = (ViewGroup) getParent();
             if (viewGroup != null)
                 viewGroup.removeView(button);  // this means onSoundChangeListener must be called, which is done in "repositionButtons"
             repositionButtons();
         }
-    }
-
-    private boolean buttonOverPlusButton(float posX, float posY) {
-        float absPosX = posX - getX();
-        float absPosY = posY - getY();
-
-        ViewGroup.LayoutParams params = plusButton.getLayoutParams();
-        float plusButtonWidth = params.width;
-        float plusButtonHeight = params.height;
-        return (absPosX < plusButton.getX() + plusButtonWidth - 0.5 * plusButtonWidth
-                && absPosX > plusButton.getX() - 0.5 * plusButtonWidth
-                && absPosY < plusButton.getY() + 1 * plusButtonHeight
-                && absPosY > plusButton.getY() - 1 * plusButtonHeight);
     }
 
     public float indexToPosX(int buttonIndex) {
@@ -289,15 +372,19 @@ public class SoundChooser extends FrameLayout {
         if (oldIdx == idxTheory)
             return;
 
-        float idxPosX = indexToPosX(idxTheory);
+        float idxPosX = indexToPosX(idxTheory) + getX();
         float buttonWidth = getButtonWidth();
         if (posX < idxPosX - 0.3 * buttonWidth || posX > idxPosX + 0.3 * buttonWidth)
             return;
 
-        // the next two command require to call the onSoundChangedListener, however, we assume that
-        // "repositionButtons" is called later on which calles the onSoundChangedListener for us.
+        ghostWhenButtonMoves.setTranslationX(idxPosX);
+
+        // the next two command require to call the onSoundChangedListener, however,
+        // "repositionButtons" is called afterwards which calls the onSoundChangedListener for us.
         buttons.remove(button);
         buttons.add(idxTheory, button);
+        repositionButtons();
+//        return true;
     }
 
     @Override
@@ -420,5 +507,67 @@ public class SoundChooser extends FrameLayout {
 
     public float getButtonVolume(int buttonidx) {
         return buttons.get(buttonidx).getProperties().getFloat("volume",0);
+    }
+
+    private float getChoiceButtonHeight() {
+        ViewGroup viewGroup = (ViewGroup) this.getParent();
+        if (viewGroup == null)
+            return defaultButtonHeight;
+        return (getTop() - viewGroup.getTop() - 3 * spacing) / Sounds.getNumSoundID() - spacing;
+    }
+
+    private float getChoiceButtonWidth() {
+        float buttonHeight = getChoiceButtonHeight();
+        return Math.min(getButtonWidth(), buttonHeight);
+    }
+
+    private void unfoldSoundChoicesOver(int buttonidx) {
+//        Log.v("Metronome", "SoundChooser:unfoldSoundChoicesOver : " + buttonidx + " " + soundChoices.size());
+        float bW = getChoiceButtonWidth();
+//        float posX = getX() + indexToPosX(buttonidx) + (getButtonWidth() - bW) / 2.0f;
+        float posX = getX() + indexToPosX(buttonidx+1) + spacing;
+        float offset = getChoiceButtonHeight() + spacing;
+        float posY0 = getPaddingTop() + getY() - 3*spacing;
+        float posY = posY0;
+        float posZ = Utilities.dp_to_px(24);
+
+        for(MoveableButton b : soundChoices) {
+            posY -= offset;
+            ViewGroup.LayoutParams params = b.getLayoutParams();
+            params.width = Math.round(bW);
+            b.setTranslationX(posX);
+            b.setTranslationY(posY0);
+            b.setVisibility(VISIBLE);
+            b.setNewPosition(posX, posY, posZ);
+        }
+    }
+
+    private void foldSoundChoicesOver(int buttonidx) {
+        float bW = getChoiceButtonWidth();
+        float posX = getX() + indexToPosX(buttonidx) + (getButtonWidth() - bW) / 2.0f;
+        float posY = getPaddingTop() + getY();
+        float posZ = Utilities.dp_to_px(0);
+
+        for(MoveableButton b : soundChoices) {
+            ViewGroup.LayoutParams params = b.getLayoutParams();
+            params.width = Math.round(bW);
+            b.setNewPosition(posX, posY, posZ);
+        }
+    }
+
+    private MoveableButton buttonOverChoice(MoveableButton button) {
+        float centerX = button.getCenterX();
+        float centerY = button.getCenterY();
+        if(centerY > getY())
+            return null;
+
+        float yTol = spacing / 2.0f;
+        for(MoveableButton choice : soundChoices) {
+//            float xTol = (button.getWidth() - choice.getWidth()) / 2.0f;
+            float xTol = getWidth();
+            if(choice.contains(centerX, centerY, xTol, yTol))
+                return choice;
+        }
+        return null;
     }
 }

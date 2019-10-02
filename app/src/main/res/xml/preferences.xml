@@ -24,8 +24,8 @@
     <ListPreference
       app:key="appearance"
       app:title="@string/appearance"
-      android:entries="@array/appearanceList"
-      android:entryValues="@array/appearanceValues"
+      android:entries="@array/appearanceValues"
+      android:entryValues="@array/appearanceList"
         android:dialogTitle="@string/appearance"
         android:defaultValue="auto"
     />

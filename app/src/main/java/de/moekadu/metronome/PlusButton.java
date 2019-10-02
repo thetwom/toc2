@@ -20,6 +20,8 @@
 package de.moekadu.metronome;
 
 import android.content.Context;
+import android.util.Log;
+import android.view.ViewGroup;
 
 import androidx.dynamicanimation.animation.DynamicAnimation;
 import androidx.dynamicanimation.animation.SpringAnimation;
@@ -58,16 +60,15 @@ public class PlusButton extends AppCompatImageButton {
     }
 
 //    boolean contains(float posX, float posY) {
-//        float absPosX = posX - getX();
-//        float absPosY = posY - getY();
-//
-//        ViewGroup.LayoutParams params = getLayoutParams();
-//        float buttonWidth = params.width;
-//        float buttonHeight = params.height;
-//        return (absPosX < getX() + buttonWidth - 0.5 * buttonWidth
-//                && absPosX > getX() - 0.5 * buttonWidth
-//                && absPosY < getY() + 1 * buttonHeight
-//                && absPosY > getY() - 1 * buttonHeight);
-//
+//         return contains(posX, posY, 0, 0);
 //    }
+
+    boolean contains(float posX, float posY, float xTol, float yTol) {
+
+//        Log.v("Metronome", "getTop()=" +getTop() + "  getY()="+getY()+" getWidth()="+getWidth()+ "  getHeight()="+getHeight() + " posX="+posX + " posY="+posY);
+        return (posX > getX()-xTol && posX < getX() + getWidth()+xTol
+                && posY > getY()-yTol && posY < getY() + getHeight() +yTol);
+
+
+    }
 }

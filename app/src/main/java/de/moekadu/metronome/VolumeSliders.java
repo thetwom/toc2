@@ -111,7 +111,7 @@ public class VolumeSliders extends FrameLayout {
         {
             Bundle bundle = (Bundle) state;
             folded = bundle.getBoolean("foldedState");
-            Log.v("Metronome", "Folded: " + folded);
+//            Log.v("Metronome", "Folded: " + folded);
             foldingValue = folded ? 0.0f : 1.0f;
             state = bundle.getParcelable("superState");
         }
@@ -189,7 +189,6 @@ public class VolumeSliders extends FrameLayout {
         background.setTranslationY(folded ? getBottom() : getTop());
         background.setAlpha(0.7f);
         addView(background);
-        Log.v("Metrononme", "AAAAAAAAAAAAAAAAAAAAAA " + getLeft());
     }
 
     private float getUnfoldedButtonTop() {

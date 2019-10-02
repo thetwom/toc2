@@ -1,0 +1,5 @@
+    Einfache Metronome App, die dich beim Proben unterstützt. Sie bietet grundlegende Funktionalität wie:
+    * Einstellung der Geschwindigkeit in "Schlägen pro Minute".
+    * Einstellung der Geschwindigkeit durch "tap in".
+    * Auswahl verschiedener Klänge.
+    * Speichern und Laden der aktuellen Einstellungen.

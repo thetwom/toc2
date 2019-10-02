@@ -261,7 +261,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     private String getAppearanceSummary() {
         final ListPreference listPreference = findPreference("appearance");
         assert listPreference != null;
-        CharSequence state = listPreference.getEntry();
+        CharSequence state = listPreference.getValue();
 
         if (state == null || state.equals("auto")) {
             return getString(R.string.system_appearance);

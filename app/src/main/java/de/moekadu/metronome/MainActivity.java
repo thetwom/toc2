@@ -51,9 +51,9 @@ public class MainActivity extends AppCompatActivity {
     // TODO: handle incorrect loads which could occur, when loading with newer version
     // TODO: nicer saved-item layout
     // TODO: +- one step
-    // TODO: improved sound changing
     // TODO: german locals
-    // TODO: understand why volumesliders, and soundchooser have a outer margin of 16px
+    // TODO: zoom in current button choice?
+    // TODO: sometimes, buttonchoices don't go fully into background
 
     private static FragmentManager fragManager;
 
@@ -74,18 +74,18 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.v("Metronome", "MainActivity:onCreate");
+//        Log.v("Metronome", "MainActivity:onCreate");
         SharedPreferences sharedPreferences =
             PreferenceManager.getDefaultSharedPreferences(this /* Activity context */);
 
-        String appearance = sharedPreferences.getString("appearance", getString(R.string.system_appearance_short));
+        String appearance = sharedPreferences.getString("appearance", "auto");
         assert appearance != null;
         int nightMode = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM;
 
-        if(appearance.equals(getString(R.string.dark_appearance_short))){
+        if(appearance.equals("dark")){
             nightMode = AppCompatDelegate.MODE_NIGHT_YES;
         }
-        else if(appearance.equals(getString(R.string.light_appearance_short))){
+        else if(appearance.equals("light")){
             nightMode = AppCompatDelegate.MODE_NIGHT_NO;
         }
 
@@ -153,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
                 setDisplayHomeButton();
             }
         });
-        Log.v("Metronome", "MainActivity:onCreate: end");
+//        Log.v("Metronome", "MainActivity:onCreate: end");
     }
 
 
@@ -228,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void saveCurrentSettings() {
-        Log.v("Metronome", "MainActivity:saveCurrentSettings");
+//        Log.v("Metronome", "MainActivity:saveCurrentSettings");
         final EditText editText = new EditText(this);
 //        editText.setPadding(dp_to_px(8), dp_to_px(8), dp_to_px(8), dp_to_px(8));
         editText.setHint(R.string.save_name);
@@ -251,7 +251,7 @@ public class MainActivity extends AppCompatActivity {
 
                     item.bpm = playerFrag.getPlayerService().getSpeed();
                     item.playList = playerFrag.getPlayerService().getMetaData().getString(MediaMetadataCompat.METADATA_KEY_TITLE);
-                    Log.v("Metronome", item.playList);
+//                    Log.v("Metronome", item.playList);
                     if(item.title.length() > 200) {
                         item.title = item.title.substring(0, 200);
                         Toast.makeText(MainActivity.this, getString(R.string.max_allowed_characters, 200), Toast.LENGTH_SHORT).show();
@@ -269,7 +269,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadSettings(SavedItemDatabase.SavedItem item) {
-        Log.v("Metronome", "MainActivity:loadSettings");
+//        Log.v("Metronome", "MainActivity:loadSettings");
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String minimumSpeedString = sharedPreferences.getString("minimumspeed", Float.toString(InitialValues.minimumSpeed));
         assert minimumSpeedString != null;

@@ -45,6 +45,7 @@ public class MoveableButton extends View {
     private final Paint volumePaint;
     private final int volumeColor;
 
+    private boolean noBackgroundFlag = false;
     private final Paint backgroundPaint;
     private final int normalColor;
     private final int highlightColor;
@@ -54,6 +55,7 @@ public class MoveableButton extends View {
 
     private float viewPosX = 0;
     private float viewPosY = 0;
+    private float viewPosZ = 0;
 
     private float viewPosStartX = 0;
     private float viewPosStartY = 0;
@@ -82,6 +84,11 @@ public class MoveableButton extends View {
          new SpringForce()
                  .setDampingRatio(SpringForce.DAMPING_RATIO_LOW_BOUNCY)
                  .setStiffness(SpringForce.STIFFNESS_HIGH));
+    private final SpringAnimation springAnimationZ = new SpringAnimation(this, DynamicAnimation.Z).setSpring(
+         new SpringForce()
+                 .setDampingRatio(SpringForce.DAMPING_RATIO_LOW_BOUNCY)
+                 .setStiffness(SpringForce.STIFFNESS_HIGH));
+
 
     private final ValueAnimator colorAnimation;
     private final ValueAnimator rippleAnimation;
@@ -97,20 +104,30 @@ public class MoveableButton extends View {
         void onEndMoving(MoveableButton button, float posX, float posY);
     }
 
+    public interface PositionAnimationListener {
+        void onAnimationStartListener(MoveableButton button);
+
+        void onAnimationEndListener(MoveableButton button);
+    }
+
     public interface OnPropertiesChangedListener {
         void onPropertiesChanged(MoveableButton button);
     }
 
     private PositionChangedListener positionChangedListener = null;
 
+    private PositionAnimationListener positionAnimationListener = null;
+
     private OnClickListener onClickListener = null;
 
     private OnPropertiesChangedListener onPropertiesChangedListener = null;
 
+    private ViewOutlineProvider outlineProvider;
+
     MoveableButton(Context context, int normalColor, int highlightColor, int volumeColor){
         super(context);
 
-        ViewOutlineProvider outlineProvider = new ViewOutlineProvider() {
+        outlineProvider = new ViewOutlineProvider() {
             @Override
             public void getOutline(View view, Outline outline) {
                 outline.setRoundRect(0, 0, getWidth(), getHeight(), cornerRadius);
@@ -132,8 +149,23 @@ public class MoveableButton extends View {
         backgroundPaint = new Paint();
         backgroundPaint.setAntiAlias(true);
 
-
         setElevation(Utilities.dp_to_px(8));
+
+        springAnimationX.addEndListener(new DynamicAnimation.OnAnimationEndListener() {
+            @Override
+            public void onAnimationEnd(DynamicAnimation animation, boolean canceled, float value, float velocity) {
+                if(positionAnimationListener != null && !springAnimationY.isRunning())
+                    positionAnimationListener.onAnimationEndListener(MoveableButton.this);
+            }
+        });
+        springAnimationY.addEndListener(new DynamicAnimation.OnAnimationEndListener() {
+            @Override
+            public void onAnimationEnd(DynamicAnimation animation, boolean canceled, float value, float velocity) {
+                if(positionAnimationListener != null & !springAnimationX.isRunning())
+                    positionAnimationListener.onAnimationEndListener(MoveableButton.this);
+            }
+        });
+
         colorAnimation.setDuration(400); // milliseconds
         colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
@@ -198,7 +230,7 @@ public class MoveableButton extends View {
                             if (positionChangedListener != null)
                                 positionChangedListener.onPositionChanged(MoveableButton.this, getX(), getY());
                         } else {
-                            final float resistanceDist = Utilities.dp_to_px(10);
+                            final float resistanceDist = Utilities.dp_to_px(1);
                             if(lockPosition){
                                 invalidate();
                             }
@@ -257,6 +289,7 @@ public class MoveableButton extends View {
     }
 
     void setNewPosition(float newX, float newY) {
+//        Log.v("Metronome", "MoveableButton:setNewPosition " + properties.getFloat("volume"));
         viewPosX = newX;
         viewPosY = newY;
 
@@ -274,10 +307,30 @@ public class MoveableButton extends View {
 
         springAnimationX.start();
         springAnimationY.start();
+
+        if(positionAnimationListener != null)
+            positionAnimationListener.onAnimationStartListener(this);
+    }
+
+    void setNewPosition(float newX, float newY, float newZ) {
+        viewPosZ = newZ;
+
+        setNewPosition(newX, newY);
+
+        int dz = Math.round(viewPosZ - getZ());
+        if(dz == 0)
+            return;
+
+        springAnimationZ.getSpring().setFinalPosition(viewPosZ);
+        springAnimationZ.start();
     }
 
     public void setOnPositionChangedListener(PositionChangedListener positionChangedListener){
         this.positionChangedListener = positionChangedListener;
+    }
+
+    public void setOnPositionAnimationListener(PositionAnimationListener positionAnimationListener){
+        this.positionAnimationListener = positionAnimationListener;
     }
 
     public void setOnPropertiesChangedListener(OnPropertiesChangedListener onPropertiesChangedListener){
@@ -295,7 +348,8 @@ public class MoveableButton extends View {
         backgroundPaint.setAlpha(1000);
         backgroundPaint.setColor(buttonColor);
         backgroundPaint.setStyle(Paint.Style.FILL);
-        canvas.drawRoundRect(0, 0, getWidth(), getHeight(), cornerRadius, cornerRadius, backgroundPaint);
+        if(!noBackgroundFlag)
+            canvas.drawRoundRect(0, 0, getWidth(), getHeight(), cornerRadius, cornerRadius, backgroundPaint);
 
         volumePaint.setColor(volumeColor);
         volumePaint.setStyle(Paint.Style.FILL);
@@ -346,4 +400,38 @@ public class MoveableButton extends View {
     void setLockPosition(boolean lock){
         lockPosition = lock;
     }
+
+    public void setSpringStiffness(float stiffness) {
+        springAnimationX.getSpring().setStiffness(stiffness);
+        springAnimationY.getSpring().setStiffness(stiffness);
+        springAnimationZ.getSpring().setStiffness(stiffness);
+    }
+
+    float getCenterX() {
+        return getX() + getWidth()/2.0f;
+    }
+
+    float getCenterY() {
+        return getY() + getHeight()/2.0f;
+    }
+
+    void setNoBackground(boolean flag) {
+        noBackgroundFlag = flag;
+        if(noBackgroundFlag)
+             setOutlineProvider(null);
+        else
+            setOutlineProvider(outlineProvider);
+        invalidate();
+    }
+
+//    boolean contains(float posX, float posY) {
+//         return contains(posX, posY, 0, 0);
+//    }
+
+    boolean contains(float posX, float posY, float xTol, float yTol) {
+
+        return (posX > getX()-xTol && posX < getX() + getWidth()+xTol
+                && posY > getY()-yTol && posY < getY() + getHeight() +yTol);
+    }
+
 }
