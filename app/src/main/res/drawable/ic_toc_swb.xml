@@ -1,43 +1,44 @@
-<!--
-  - Copyright 2019 Michael Moessner
-  -
-  - This file is part of Metronome.
-  -
-  - Metronome is free software: you can redistribute it and/or modify
-  - it under the terms of the GNU General Public License as published by
-  - the Free Software Foundation, either version 3 of the License, or
-  - (at your option) any later version.
-  -
-  - Metronome is distributed in the hope that it will be useful,
-  - but WITHOUT ANY WARRANTY; without even the implied warranty of
-  - MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  - GNU General Public License for more details.
-  -
-  - You should have received a copy of the GNU General Public License
-  - along with Metronome.  If not, see <http://www.gnu.org/licenses/>.
--->
-<vector android:height="24dp" android:viewportHeight="50"
-    android:viewportWidth="50" android:width="24dp" xmlns:android="http://schemas.android.com/apk/res/android">
-    <path android:fillColor="#00000000" android:fillType="evenOdd"
-        android:pathData="M24.9897,25.0771m-22.9038,0a22.9038,22.9038 0,1 1,45.8075 0a22.9038,22.9038 0,1 1,-45.8075 0"
-        android:strokeColor="#000000" android:strokeWidth="4.401"/>
-    <path android:fillColor="#00000000"
-        android:pathData="m33.1252,34.0583 l3.7747,4.4134"
-        android:strokeAlpha="1" android:strokeColor="#000000"
-        android:strokeLineCap="butt" android:strokeLineJoin="miter" android:strokeWidth="4.40100002"/>
-    <path android:fillColor="#00000000"
-        android:pathData="m12.787,10.9043 l4.0739,5.1052"
-        android:strokeAlpha="1" android:strokeColor="#000000"
-        android:strokeLineCap="butt" android:strokeLineJoin="miter" android:strokeWidth="4.40100002"/>
-    <path android:fillColor="#00000000" android:fillType="evenOdd"
-        android:pathData="M24.9897,25.0771m-11.7599,0a11.7599,11.7599 0,1 1,23.5197 0a11.7599,11.7599 0,1 1,-23.5197 0"
-        android:strokeColor="#000000" android:strokeWidth="4.401"/>
-    <path android:fillColor="#00000000"
-        android:pathData="m42.7178,23.4055c-0.5729,11.9382 -9.2748,19.5313 -20.0955,19.5252"
-        android:strokeAlpha="1" android:strokeColor="#000000"
-        android:strokeLineCap="butt" android:strokeLineJoin="miter" android:strokeWidth="4.40100002"/>
-    <path android:fillColor="#00000000"
-        android:pathData="M7.6486,19.6238C10.9654,12.3842 15.6027,8.9021 21.997,6.9708"
-        android:strokeAlpha="1" android:strokeColor="#000000"
-        android:strokeLineCap="butt" android:strokeLineJoin="miter" android:strokeWidth="4.40100002"/>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="50dp"
+    android:height="50dp"
+    android:viewportWidth="50"
+    android:viewportHeight="50">
+  <path
+      android:pathData="m31.1207,32.1874 l8.1416,9.5916"
+      android:strokeAlpha="1"
+      android:strokeLineJoin="miter"
+      android:strokeWidth="4.40100002"
+      android:fillColor="#00000000"
+      android:strokeColor="#000000"
+      android:strokeLineCap="butt"/>
+  <path
+      android:pathData="m10.4247,8.5419 l7.639,8.9375"
+      android:strokeAlpha="1"
+      android:strokeLineJoin="miter"
+      android:strokeWidth="4.40100002"
+      android:fillColor="#00000000"
+      android:strokeColor="#000000"
+      android:strokeLineCap="butt"/>
+  <path
+      android:pathData="M15.6353,25.0771a9.3544,9.2208 0,1 0,18.7089 0a9.3544,9.2208 0,1 0,-18.7089 0z"
+      android:strokeWidth="4.40100002"
+      android:fillColor="#00000000"
+      android:strokeColor="#000000"
+      android:fillType="evenOdd"/>
+  <path
+      android:pathData="M47.3291,22.2527C46.5054,34.9486 35.9602,47.1945 19.6741,47.3531"
+      android:strokeAlpha="1"
+      android:strokeLineJoin="miter"
+      android:strokeWidth="4.40100002"
+      android:fillColor="#00000000"
+      android:strokeColor="#000000"
+      android:strokeLineCap="butt"/>
+  <path
+      android:pathData="M4.4736,15.9196C7.7904,8.68 12.4277,5.198 18.822,3.2666"
+      android:strokeAlpha="1"
+      android:strokeLineJoin="miter"
+      android:strokeWidth="4.40100002"
+      android:fillColor="#00000000"
+      android:strokeColor="#000000"
+      android:strokeLineCap="butt"/>
 </vector>

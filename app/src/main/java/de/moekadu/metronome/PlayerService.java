@@ -63,6 +63,8 @@ public class PlayerService extends Service {
     private static final String BROADCAST_PLAYERACTION = "toc.PlayerService.PLAYERACTION";
     private static final String PLAYERSTATE = "PLAYERSTATE";
     private static final String PLAYBACKSPEED = "PLAYBACKSPEED";
+    private static final String INCREMENTSPEED = "INCREMENTSPEED";
+    private static final String DECREMENTSPEED = "DECREMENTSPEED";
 
     private static int nativeSampleRate = -1;
 
@@ -145,7 +147,7 @@ public class PlayerService extends Service {
     private final BroadcastReceiver actionReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            // Log.v("Metronome", "ActionReceiver:onReceive()");
+//            Log.v("Metronome", "ActionReceiver:onReceive()");
             Bundle extras = intent.getExtras();
             if (extras == null) {
                 return;
@@ -153,9 +155,19 @@ public class PlayerService extends Service {
 
             long myAction = extras.getLong(PLAYERSTATE, PlaybackStateCompat.STATE_NONE);
             float newSpeed = extras.getFloat(PLAYBACKSPEED, -1);
+            boolean incrementSpeed = extras.getBoolean(INCREMENTSPEED, false);
+            boolean decrementSpeed = extras.getBoolean(DECREMENTSPEED, false);
 
             if (newSpeed > 0) {
                 changeSpeed(newSpeed);
+            }
+
+            if (incrementSpeed) {
+                changeSpeed(getSpeed() + speedIncrement);
+            }
+
+            if (decrementSpeed) {
+                changeSpeed(getSpeed() - speedIncrement);
             }
 
             if (myAction == PlaybackStateCompat.ACTION_PLAY) {
@@ -332,7 +344,18 @@ public class PlayerService extends Service {
 //            controlAction = new NotificationCompat.Action(R.drawable.ic_play, "play", pIntent);
         }
 
-//
+        notificationView.setTextViewText(R.id.notification_button_p, "   + " + Utilities.getBpmString(speedIncrement,speedIncrement) + " ");
+        Intent incrIntent =  new Intent(BROADCAST_PLAYERACTION);
+        incrIntent.putExtra(PlayerService.INCREMENTSPEED, true);
+        PendingIntent pIncrIntent = PendingIntent.getBroadcast(this, notificationStateID+1, incrIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        notificationView.setOnClickPendingIntent(R.id.notification_button_p, pIncrIntent);
+
+        notificationView.setTextViewText(R.id.notification_button_m, " - " + Utilities.getBpmString(speedIncrement,speedIncrement) + "   ");
+        Intent decrIntent =  new Intent(BROADCAST_PLAYERACTION);
+        decrIntent.putExtra(PlayerService.DECREMENTSPEED, true);
+        PendingIntent pDecrIntent = PendingIntent.getBroadcast(this, notificationStateID+2, decrIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        notificationView.setOnClickPendingIntent(R.id.notification_button_m, pDecrIntent);
+
 //        // Clear actions: code copies from stackoverflow
 //        try {
 //            //Use reflection clean up old actions
@@ -464,6 +487,22 @@ public class PlayerService extends Service {
 
         waitHandler.removeCallbacksAndMessages(null);
 
+        updateNotification();
+//        // Update notification only if it still exists (check is necessary, when app is canceled)
+//        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+//        if (notificationManager == null)
+//            return;
+//
+//        StatusBarNotification[] notifications = notificationManager.getActiveNotifications();
+//        for (StatusBarNotification notification : notifications) {
+//            if (notification.getId() == notificationID) {
+//                // This is the line which updates the notification
+//                NotificationManagerCompat.from(this).notify(notificationID, createNotification());
+//            }
+//        }
+    }
+
+    private void updateNotification() {
         // Update notification only if it still exists (check is necessary, when app is canceled)
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         if (notificationManager == null)
@@ -540,6 +579,7 @@ public class PlayerService extends Service {
     private void setSpeedIncrement(float speedIncrement) {
         this.speedIncrement = speedIncrement;
         changeSpeed(getSpeed()); // Make sure that current speed fits speedIncrement
+        updateNotification();
     }
 
     void playSpecificSound(int playListPosition) {

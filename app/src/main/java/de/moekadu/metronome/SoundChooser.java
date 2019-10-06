@@ -316,6 +316,9 @@ public class SoundChooser extends FrameLayout {
         params.topMargin = getPaddingTop();
         params.leftMargin = getPaddingLeft();
 
+        button.setTranslationX(Math.round(indexToPosX(0)) + Math.round(getX()));
+        button.setTranslationY(getPaddingTop() + Math.round(getY()));
+
         ViewGroup viewGroup = (ViewGroup) this.getParent();
         assert viewGroup != null;
 

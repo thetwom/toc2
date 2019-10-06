@@ -47,13 +47,9 @@ import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
-    // TODO: new app icon
     // TODO: handle incorrect loads which could occur, when loading with newer version
     // TODO: nicer saved-item layout
-    // TODO: +- one step
-    // TODO: german locals
-    // TODO: zoom in current button choice?
-    // TODO: sometimes, buttonchoices don't go fully into background
+    // TODO: double/half speed?
 
     private static FragmentManager fragManager;
 

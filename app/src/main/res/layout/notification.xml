@@ -21,6 +21,7 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -43,12 +44,68 @@
         style="@style/TextAppearance.Compat.Notification"
         />
 
+    <Button
+        android:id="@+id/notification_button_p"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:minWidth="70dp"
+        android:minHeight="10dp"
+        android:textAlignment="viewEnd"
+        />
+
+
+    <TextView
+        android:id="@+id/notification_space_r"
+        android:layout_width="20dp"
+        android:layout_height="10dp"
+        android:layout_centerVertical="true"
+        android:layout_alignStart="@id/notification_button_p"
+        />
+    <TextView
+        android:id="@+id/notification_space_c"
+        android:layout_width="10dp"
+        android:layout_height="10dp"
+        android:layout_centerVertical="true"
+        android:layout_toStartOf="@id/notification_space_r"
+        />
+    <TextView
+        android:id="@+id/notification_space_l"
+        android:layout_width="20dp"
+        android:layout_height="10dp"
+        android:layout_centerVertical="true"
+        android:layout_toStartOf="@id/notification_space_c"
+        />
+
+    <!--        android:background="@null"-->
+    <!--        android:text="+1"-->
+    <!--        style="@style/TextAppearance.Compat.Notification.Title"-->
+    <!--        />-->
+
+    <Button
+        android:id="@+id/notification_button_m"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@id/notification_space_l"
+        android:layout_centerVertical="true"
+        android:minWidth="70dp"
+        android:minHeight="10dp"
+        android:textAlignment="viewStart"
+        />
+<!--        android:background="@null"-->
+<!--        android:text="-1"-->
+<!--        style="@style/TextAppearance.Compat.Notification.Title"-->
+<!--        tools:ignore="HardcodedText" />-->
+
     <ImageButton
         android:id="@+id/notification_button"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_alignParentEnd="true"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_centerVertical="true"
+        android:layout_alignStart="@id/notification_space_l"
         android:scaleType="fitCenter"
+        android:translationZ="20dp"
         android:background="@null"
         android:src="@drawable/ic_pause"
         />

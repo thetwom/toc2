@@ -21,13 +21,14 @@
     <string name="app_name" translatable="false">Metronome</string>
     <string name="action_settings">Settings</string>
 
-    <string name="hihat">hi-hat</string>
-    <string name="snare">snare</string>
-    <string name="sticks">sticks</string>
-    <string name="claves">claves</string>
-    <string name="woodblock">woodblock</string>
+    <string name="base" translatable="false">kick drum</string>
+    <string name="hihat" translatable="false">hi-hat</string>
+    <string name="snare" translatable="false">snare</string>
+    <string name="sticks" translatable="false">sticks</string>
+    <string name="claves" translatable="false">claves</string>
+    <string name="woodblock" translatable="false">woodblock</string>
     <string name="mute">mute</string>
-    <string name="bpm">%s bpm</string>
+    <string name="bpm" translatable="false">%s bpm</string>
 
     <string name="load_data">Load data</string>
     <string name="save_data">Save data</string>
@@ -66,7 +67,7 @@
 
     <string name="loaded_message">Loaded settings: %s</string>
 
-    <string name="tap_in">TAP IN</string>
+    <string name="tap_in" translatable="false">TAP IN</string>
 
     <string name="about_message">Metronome app\nVersion: %s\nLicense: GPLv3</string>
 
