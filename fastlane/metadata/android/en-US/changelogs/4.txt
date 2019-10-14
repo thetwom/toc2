@@ -1,0 +1,11 @@
+- Add +- one step choices to speed panel
+- Increment/decrement speed in notification
+- Reorder sounds so that the notes go from lowest to highest
+- Add kick drum sound
+- notification shows now buttons for + and - instead of just text
+- Modified app icon
+- Add 48kHz sounds, such that fast track mixer can be used on 48kHz devices
+- Improved TapIn-algorithm
+- Add volume sliders for setting volume of different sounds
+- Add German locals
+- Add new way to choose sounds
