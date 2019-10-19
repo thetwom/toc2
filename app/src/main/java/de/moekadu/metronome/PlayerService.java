@@ -330,14 +330,14 @@ public class PlayerService extends Service {
 //        NotificationCompat.Action controlAction;
         if (getState() == PlaybackStateCompat.STATE_PLAYING) {
             // Log.v("Metronome", "isplaying");
-             notificationView.setImageViewResource(R.id.notification_button, R.drawable.ic_pause);
+             notificationView.setImageViewResource(R.id.notification_button, R.drawable.ic_pause2);
             intent.putExtra(PlayerService.PLAYERSTATE, PlaybackStateCompat.ACTION_PAUSE);
             PendingIntent pIntent = PendingIntent.getBroadcast(this, notificationStateID, intent, PendingIntent.FLAG_UPDATE_CURRENT);
             notificationView.setOnClickPendingIntent(R.id.notification_button, pIntent);
 //            controlAction = new NotificationCompat.Action(R.drawable.ic_pause, "pause", pIntent);
         } else { // if(getState() == PlaybackStateCompat.STATE_PAUSED){
             // Log.v("Metronome", "ispaused");
-            notificationView.setImageViewResource(R.id.notification_button, R.drawable.ic_play);
+            notificationView.setImageViewResource(R.id.notification_button, R.drawable.ic_play2);
             intent.putExtra(PlayerService.PLAYERSTATE, PlaybackStateCompat.ACTION_PLAY);
             PendingIntent pIntent = PendingIntent.getBroadcast(this, notificationStateID, intent, PendingIntent.FLAG_UPDATE_CURRENT);
             notificationView.setOnClickPendingIntent(R.id.notification_button, pIntent);
@@ -348,13 +348,13 @@ public class PlayerService extends Service {
         Intent incrIntent =  new Intent(BROADCAST_PLAYERACTION);
         incrIntent.putExtra(PlayerService.INCREMENTSPEED, true);
         PendingIntent pIncrIntent = PendingIntent.getBroadcast(this, notificationStateID+1, incrIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        notificationView.setOnClickPendingIntent(R.id.notification_button_p, pIncrIntent);
+        notificationView.setOnClickPendingIntent(R.id.notification_button_p_toucharea, pIncrIntent);
 
         notificationView.setTextViewText(R.id.notification_button_m, " - " + Utilities.getBpmString(speedIncrement,speedIncrement) + "   ");
         Intent decrIntent =  new Intent(BROADCAST_PLAYERACTION);
         decrIntent.putExtra(PlayerService.DECREMENTSPEED, true);
         PendingIntent pDecrIntent = PendingIntent.getBroadcast(this, notificationStateID+2, decrIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        notificationView.setOnClickPendingIntent(R.id.notification_button_m, pDecrIntent);
+        notificationView.setOnClickPendingIntent(R.id.notification_button_m_toucharea, pDecrIntent);
 
 //        // Clear actions: code copies from stackoverflow
 //        try {

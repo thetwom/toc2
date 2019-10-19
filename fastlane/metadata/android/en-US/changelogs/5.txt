@@ -1,0 +1,2 @@
+- Layout of notification slighly changed
+- Fix: Choice buttons did not always disappear

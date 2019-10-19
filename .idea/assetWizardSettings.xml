@@ -129,12 +129,26 @@
                   <entry key="vectorAssetStep">
                     <value>
                       <PersistentState>
+                        <option name="children">
+                          <map>
+                            <entry key="clipartAsset">
+                              <value>
+                                <PersistentState>
+                                  <option name="values">
+                                    <map>
+                                      <entry key="url" value="jar:file:/snap/android-studio/80/android-studio/plugins/android/lib/android.jar!/images/material_design_icons/av/ic_pause_black_24dp.xml" />
+                                    </map>
+                                  </option>
+                                </PersistentState>
+                              </value>
+                            </entry>
+                          </map>
+                        </option>
                         <option name="values">
                           <map>
-                            <entry key="assetSourceType" value="FILE" />
                             <entry key="color" value="535353" />
-                            <entry key="outputName" value="ic_toc_swb" />
-                            <entry key="sourceFile" value="$USER_HOME$/icons/toc_swb2.svg" />
+                            <entry key="outputName" value="ic_pause2" />
+                            <entry key="sourceFile" value="$USER_HOME$/icons/play-button.svg" />
                           </map>
                         </option>
                       </PersistentState>

@@ -290,6 +290,10 @@ public class MoveableButton extends View {
 
     void setNewPosition(float newX, float newY) {
 //        Log.v("Metronome", "MoveableButton:setNewPosition " + properties.getFloat("volume"));
+
+        springAnimationX.cancel();
+        springAnimationY.cancel();
+
         viewPosX = newX;
         viewPosY = newY;
 
@@ -302,6 +306,8 @@ public class MoveableButton extends View {
         if(dx == 0 && dy == 0)
             return;
 
+
+
         springAnimationX.getSpring().setFinalPosition(viewPosX);
         springAnimationY.getSpring().setFinalPosition(viewPosY);
 
@@ -313,13 +319,15 @@ public class MoveableButton extends View {
     }
 
     void setNewPosition(float newX, float newY, float newZ) {
-        viewPosZ = newZ;
+        springAnimationZ.cancel();
 
         setNewPosition(newX, newY);
 
+        viewPosZ = newZ;
         int dz = Math.round(viewPosZ - getZ());
         if(dz == 0)
             return;
+
 
         springAnimationZ.getSpring().setFinalPosition(viewPosZ);
         springAnimationZ.start();

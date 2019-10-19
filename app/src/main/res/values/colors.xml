@@ -23,5 +23,5 @@
     <color name="myColorOnPrimary">#FFFFFF</color>
     <color name="colorSecondary">#E91E63</color>
     <color name="colorMyBackground">#FFFFFF</color>
-
+    <color name="notificationButtonColor">#2C5AA0</color>
 </resources>
