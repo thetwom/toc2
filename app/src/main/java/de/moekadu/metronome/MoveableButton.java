@@ -395,7 +395,7 @@ public class MoveableButton extends View {
     public void setProperties(Bundle newProperties, boolean suppressOnPropertiesChangedListener) {
 
         properties.putAll(newProperties);
-        icon = ContextCompat.getDrawable(getContext(), Sounds.getIconID(properties.getInt("soundid", 0)));
+        icon = ContextCompat.getDrawable(getContext(), Sounds.getIconID(properties.getInt("soundid", Sounds.defaultSound())));
         invalidate();
         if(onPropertiesChangedListener != null && !suppressOnPropertiesChangedListener) {
 //            Log.v("Metronome", "MoveableButton:setProperties: calling onPropertiesChangedListener");

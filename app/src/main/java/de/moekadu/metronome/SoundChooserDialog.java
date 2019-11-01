@@ -119,7 +119,7 @@ public class SoundChooserDialog extends Fragment implements View.OnClickListener
             return;
 
         if(soundChooserCircle != null)
-            soundChooserCircle.setActiveSoundID(button.getProperties().getInt("soundid", 0));
+            soundChooserCircle.setActiveSoundID(button.getProperties().getInt("soundid", Sounds.defaultSound()));
 
         if(volumeControl != null)
             volumeControl.setState(button.getProperties().getFloat("volume"));

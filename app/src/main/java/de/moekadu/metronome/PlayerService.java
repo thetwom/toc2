@@ -97,6 +97,15 @@ public class PlayerService extends Service {
     private SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener;
     private final Handler waitHandler = new Handler();
 
+    private final Handler delayedMetaUpdateHandler = new Handler();
+
+    private final Runnable delayedMetaUpdate = new Runnable() {
+        @Override
+        public void run() {
+            updateMetadata();
+        }
+    };
+
     private final Runnable klickAndWait = new Runnable() {
         @Override
         public void run() {
@@ -117,7 +126,7 @@ public class PlayerService extends Service {
 
                 if (playListPosition >= playList.size())
                     playListPosition = 0;
-                int sound = 0;
+                int sound = Sounds.defaultSound();
                 float volume = 1.0f;
 
                 if (playList.size() > 0) {
@@ -430,6 +439,12 @@ public class PlayerService extends Service {
         mediaSession.setMetadata(metaData);
     }
 
+    private void updateMetadataDelayed() {
+        int delayMillis = 5;
+        delayedMetaUpdateHandler.removeCallbacksAndMessages(null);
+        delayedMetaUpdateHandler.postDelayed(delayedMetaUpdate, delayMillis);
+    }
+
     public void setSounds(List<Bundle> sounds) {
 //        Log.v("Metronome", "PlayerService:setSounds");
         // Do not do anything if we already have the correct sounds
@@ -441,7 +456,9 @@ public class PlayerService extends Service {
         playList.clear();
         for(Bundle b : sounds)
             playList.add(SoundProperties.deepCopy(b));
-        updateMetadata();
+//        updateMetadata();
+        // Delay update a little, to avoid any feedback loop with updates of other instances
+        updateMetadataDelayed();
 //        playList = sounds;
 //        String soundString = SoundProperties.createMetaDataString(playList);
 //        Log.v("Metronome", "PlayerService:setSounds: " + soundString);
@@ -461,7 +478,9 @@ public class PlayerService extends Service {
         }
 
         if(volumeChanged) {
-            updateMetadata();
+//            updateMetadata();
+            // Delay update a little, to avoid any feedback loop with updates of other instances
+            updateMetadataDelayed();
         }
     }
 

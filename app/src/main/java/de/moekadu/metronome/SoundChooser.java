@@ -136,7 +136,7 @@ public class SoundChooser extends FrameLayout {
         ghostWhenButtonMoves.setVisibility(GONE);
         Bundle ghostProperties = new Bundle();
         ghostProperties.putFloat("volume", 0.0f);
-        ghostProperties.putInt("soundid", 0);
+        ghostProperties.putInt("soundid", Sounds.defaultSound());
         ghostWhenButtonMoves.setProperties(ghostProperties, false);
         ghostWhenButtonMoves.setLockPosition(true);
         viewGroup.addView(ghostWhenButtonMoves);
@@ -162,7 +162,7 @@ public class SoundChooser extends FrameLayout {
         if(buttons.isEmpty()) {
             properties = new Bundle();
             properties.putFloat("volume", 1.0f);
-            properties.putInt("soundid", 0);
+            properties.putInt("soundid", Sounds.defaultSound());
         }
         else {
             properties = buttons.get(buttons.size()-1).getProperties();

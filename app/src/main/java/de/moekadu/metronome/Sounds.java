@@ -64,6 +64,9 @@ final class Sounds {
         return names;
     }
 
+    static int defaultSound(){
+        return 3;
+    }
     static int getNumSoundID() {
         return sounds.length;
     }

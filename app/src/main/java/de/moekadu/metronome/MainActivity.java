@@ -50,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
     // TODO: handle incorrect loads which could occur, when loading with newer version
     // TODO: nicer saved-item layout
     // TODO: double/half speed?
+    // TODO: delete log messages?
 
     private static FragmentManager fragManager;
 
@@ -75,7 +76,6 @@ public class MainActivity extends AppCompatActivity {
             PreferenceManager.getDefaultSharedPreferences(this /* Activity context */);
 
         String appearance = sharedPreferences.getString("appearance", "auto");
-        assert appearance != null;
         int nightMode = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM;
 
         if(appearance.equals("dark")){

@@ -1,0 +1,3 @@
+- Allow Android 10 (API 29)
+- Improve layout that it looks better on tablets
+- Change default sound to more suitable choice

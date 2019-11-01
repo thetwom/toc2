@@ -70,8 +70,7 @@ public class PlayerFragment extends Fragment {
             // Log.v("Metronome", "PlayerFragment:onCreate : loading preferences");
             SharedPreferences preferences = context.getPreferences(Context.MODE_PRIVATE);
             speed = preferences.getFloat("speed", InitialValues.speed);
-            String soundString = preferences.getString("sound", "0");
-            assert soundString != null;
+            String soundString = preferences.getString("sound", Integer.toString(Sounds.defaultSound()));
             playList = SoundProperties.parseMetaDataString(soundString);
             if(playList.isEmpty()){
                 initializePlayList();
@@ -166,7 +165,7 @@ public class PlayerFragment extends Fragment {
     private void initializePlayList() {
         playList = new ArrayList<>();
         Bundle s = new Bundle();
-        s.putInt("soundid", 0);
+        s.putInt("soundid", Sounds.defaultSound());
         s.putFloat("volume", 1.0f);
         playList.add(s);
     }

@@ -1,3 +1,22 @@
+/*
+ * Copyright 2019 Michael Moessner
+ *
+ * This file is part of Metronome.
+ *
+ * Metronome is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Metronome is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Metronome.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package de.moekadu.metronome;
 
 import android.animation.ValueAnimator;
@@ -23,13 +42,17 @@ import java.util.Vector;
 public class VolumeSliders extends FrameLayout {
 
     private float defaultHeight = Utilities.dp_to_px(300);
-    private float desiredTunerHeight = Utilities.dp_to_px(200);
-    private float desiredTunerWidth = Utilities.dp_to_px(35);
-    private float tunerWidth = desiredTunerWidth;
+    private float tunerHeightPerc = 0.7f;
+    private float defaultTunerWidth = Utilities.dp_to_px(35);
+    private float tunerWidthPerc = 0.1f;
+    private float tunerWidth = defaultTunerWidth;
     private float buttonTunerSpacing = Utilities.dp_to_px(8);
     private float tunerSpacing = Utilities.dp_to_px(4);
     private float elementPadding = Utilities.dp_to_px(4);
-    private int buttonHeight = Math.round(Utilities.dp_to_px(40));
+    final private int minimumButtonHeight = Math.round(Utilities.dp_to_px(40));
+    private int buttonHeight = minimumButtonHeight;
+    final private int minimumButtonWidth = Math.round(Utilities.dp_to_px(70));
+    final private float buttonAspectRatio = 3.0f;
     private boolean folded = true;
     private float foldingValue = 0.0f;
 
@@ -150,7 +173,10 @@ public class VolumeSliders extends FrameLayout {
         });
 
 
-        MarginLayoutParams params = new MarginLayoutParams(Math.round(Utilities.dp_to_px(90)), buttonHeight);
+//        MarginLayoutParams params = new MarginLayoutParams(Math.round(Utilities.dp_to_px(90)), buttonHeight);
+        final float actualButtonWidth = Math.max(minimumButtonWidth, getWidth()/4.0f);
+        buttonHeight = Math.max(minimumButtonHeight, Math.round(actualButtonWidth / buttonAspectRatio));
+        MarginLayoutParams params = new MarginLayoutParams(Math.round(actualButtonWidth), buttonHeight);
         button.setLayoutParams(params);
         int pad = Math.round(Utilities.dp_to_px(0));
         button.setPadding(pad, pad, pad, pad);
@@ -159,7 +185,7 @@ public class VolumeSliders extends FrameLayout {
         button.setTranslationX(Utilities.dp_to_px(4));
         button.setTranslationY(folded ? getFoldedButtonTop() : getUnfoldedButtonTop());
         button.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        button.setImageResource(folded ? R.drawable.ic_tune_arrow : R.drawable.ic_tune_arrow_down);
+        button.setImageResource(folded ? R.drawable.ic_tune_arrow2 : R.drawable.ic_tune_arrow_down2);
         button.setColorFilter(onInteractiveColor);
 
         button.setOnClickListener(new OnClickListener() {
@@ -167,12 +193,12 @@ public class VolumeSliders extends FrameLayout {
             public void onClick(View v) {
                 if (folded) {
                     unfoldAnimator.start();
-                    button.setImageResource(R.drawable.ic_tune_arrow_down);
+                    button.setImageResource(R.drawable.ic_tune_arrow_down2);
                     folded = false;
                 }
                 else {
                     unfoldAnimator.reverse();
-                    button.setImageResource(R.drawable.ic_tune_arrow);
+                    button.setImageResource(R.drawable.ic_tune_arrow2);
                     folded = true;
                 }
             }
@@ -201,7 +227,9 @@ public class VolumeSliders extends FrameLayout {
 
     private float getTunerHeight() {
         float maxHeight = getHeight() - elementPadding - elementPadding - buttonHeight - buttonTunerSpacing;
-        return Math.min(maxHeight, desiredTunerHeight);
+        float defaultHeight = Math.min(maxHeight, getHeight() * tunerHeightPerc);
+//        return Math.min(maxHeight, desiredTunerHeight);
+        return Math.min(maxHeight, defaultHeight);
     }
 
     private float getUnfoldedTunerTop() {
@@ -217,10 +245,14 @@ public class VolumeSliders extends FrameLayout {
     }
 
     public void setTunersAt(Vector<Float> positions, Vector<Float> volume){
-        if(positions.size() < 2)
-            tunerWidth = desiredTunerWidth;
-        else
-            tunerWidth = Math.min(desiredTunerWidth, positions.get(1) - positions.get(0) - tunerSpacing);
+        if(positions.size() < 2) {
+//            tunerWidth = desiredTunerWidth;
+            tunerWidth = getWidth() * tunerWidthPerc;
+        }
+        else {
+//            tunerWidth = Math.min(desiredTunerWidth, positions.get(1) - positions.get(0) - tunerSpacing);
+            tunerWidth = Math.min(getWidth() * tunerWidthPerc, positions.get(1) - positions.get(0) - tunerSpacing);
+        }
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(Math.round(tunerWidth), Math.round(getTunerHeight()));
 
         if(BuildConfig.DEBUG && (positions.size() != volume.size()))

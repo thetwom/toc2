@@ -240,7 +240,8 @@ public class SpeedPanel extends ControlPanel {
 //        canvas.drawPath(tapInPath, circlePaint);
         circlePaint.setStyle(Paint.Style.FILL);
         circlePaint.setTextAlign(Paint.Align.CENTER);
-        final float tapInTextSize = Utilities.sp_to_px(22);
+//        final float tapInTextSize = Utilities.sp_to_px(22);
+        final float tapInTextSize = strokeWidth;
         circlePaint.setTextSize(tapInTextSize);
 
         circlePaint.setColor(textColor);
