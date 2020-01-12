@@ -6,6 +6,13 @@ Some time ago I was looking for open source metronome apps which could help me k
 Since I wanted to try app developing some day, I took this as a chance and created this (hopefully) simple app.
 
 
+[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
+     alt="Get it on F-Droid"
+     height="80">](https://f-droid.org/packages/de.moekadu.metronome/)
+[<img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png"
+     alt="Get it on Google Play"
+     height="80">](https://play.google.com/store/apps/details?id=de.moekadu.metronome)
+
 |![screenshot-0](https://github.com/thetwom/toc2/blob/master/fastlane/metadata/android/en-US/images/phoneScreenshots/00.png) |![screenshot-1](https://github.com/thetwom/toc2/blob/master/fastlane/metadata/android/en-US/images/phoneScreenshots/01.png)  |![screenshot-2](https://github.com/thetwom/toc2/blob/master/fastlane/metadata/android/en-US/images/phoneScreenshots/02.png) |![screenshot-3](https://github.com/thetwom/toc2/blob/master/fastlane/metadata/android/en-US/images/phoneScreenshots/03.png) |![screenshot-4](https://github.com/thetwom/toc2/blob/master/fastlane/metadata/android/en-US/images/phoneScreenshots/04.png)
 |---|---|---|---|---|
 
