@@ -40,4 +40,6 @@
     <string name="title">Titel</string>
     <string name="undo">Rückgängig</string>
     <string name="yes">ja</string>
+
+    <string name="keep_screen_on">Bildschirm immer an</string>
 </resources>

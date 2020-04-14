@@ -1,0 +1,2 @@
+- Add option to keep screen on
+- Improve timing, yet it is not perfect

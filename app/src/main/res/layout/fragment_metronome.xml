@@ -26,6 +26,16 @@
     tools:context=".MetronomeFragment">
     <!--tools:context=".MainActivity"-->
 
+    <TextView
+        android:id="@+id/wakeup_error"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:text="wakeup error: 0 ms"
+        android:visibility="invisible"
+        />
+
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/upper_guideline"
         android:layout_width="wrap_content"

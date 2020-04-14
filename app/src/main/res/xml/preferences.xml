@@ -58,6 +58,12 @@
         <!--app:title="test"-->
         <!--/>-->
 
+    <SwitchPreferenceCompat
+        app:key="screenon"
+        app:title="@string/keep_screen_on"
+        app:defaultValue="false"
+        />
+
     <Preference
         app:key="setdefault"
         app:title="@string/reset_all_settings"

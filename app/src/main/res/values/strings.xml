@@ -81,4 +81,6 @@
     <string name="inconsistent_summary">\nChange your settings if you want to load the item correctly.</string>
     <string name="acknowledged">Acknowledged</string>
 
+    <string name="keep_screen_on">Keep screen on</string>
+
 </resources>

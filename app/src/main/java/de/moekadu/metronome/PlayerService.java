@@ -75,6 +75,11 @@ public class PlayerService extends Service {
 
     private long syncKlickTime = -1;
 
+    private long nextExpectedKlickTime = -1;
+    private int numPostRunnables = 50;
+    private long nextExpectedWakeupTime = 0;
+    private long maxWakeupError = 0;
+
     private final int notificationID = 3252;
 
     private MediaSessionCompat mediaSession = null;
@@ -109,18 +114,34 @@ public class PlayerService extends Service {
     private final Runnable klickAndWait = new Runnable() {
         @Override
         public void run() {
+            long currentTime = SystemClock.uptimeMillis();
+            long allowedToEarlyMillis = 2;
+            if(nextExpectedKlickTime > 0 && nextExpectedKlickTime > currentTime  + allowedToEarlyMillis)
+                return;
+
+            long wakeupError = currentTime - nextExpectedWakeupTime;
+            maxWakeupError = Math.max(maxWakeupError, Math.abs(wakeupError));
+//            Log.v("Metronome", "PlayerService:Runnable: wakeupError=" + wakeupError);
             if (getState() == PlaybackStateCompat.STATE_PLAYING) {
                 long dt = Utilities.speed2dt(getSpeed());
 //                // Log.v("Metronome", "PlayerService:Runnable: currentTime="+System.currentTimeMillis() + ";  nextClick=" + syncKlickTime);
-                if(syncKlickTime > SystemClock.uptimeMillis()){
+                if(syncKlickTime > currentTime){
                     long nextKlickTime = syncKlickTime;
-                    if(syncKlickTime - SystemClock.uptimeMillis() < 0.5 * dt)
+                    if(syncKlickTime - currentTime < 0.5 * dt)
                         nextKlickTime += dt;
-                    waitHandler.postAtTime(this, nextKlickTime);
+                    nextExpectedWakeupTime = nextKlickTime;
+                    nextExpectedKlickTime = nextKlickTime;
+                    waitHandler.removeCallbacksAndMessages(null);
+                    for(int i = numPostRunnables-1; i >= 0; --i )
+                        waitHandler.postAtTime(this, nextKlickTime - i);
                     syncKlickTime = -1;
                 }
                 else {
-                    waitHandler.postDelayed(this, dt);
+                    nextExpectedWakeupTime = currentTime + dt;
+                    nextExpectedKlickTime = currentTime + dt;
+                    waitHandler.removeCallbacksAndMessages(null);
+                    for(int i = numPostRunnables-1; i >= 0; --i)
+                        waitHandler.postDelayed(this, dt - i);
 //                     waitHandler.postAtTime(this, SystemClock.uptimeMillis() + dt);
                 }
 
@@ -493,7 +514,12 @@ public class PlayerService extends Service {
         startForeground(notificationID, createNotification());
 
         playListPosition = 0;
-        waitHandler.post(klickAndWait);
+        maxWakeupError = 0;
+        nextExpectedWakeupTime = SystemClock.uptimeMillis() + numPostRunnables;
+        nextExpectedKlickTime = SystemClock.uptimeMillis() + numPostRunnables;
+        for(int i = 0; i < numPostRunnables; ++i)
+            waitHandler.postDelayed(klickAndWait, i);
+        //waitHandler.post(klickAndWait);
     }
 
     public void stopPlay() {
@@ -611,6 +637,10 @@ public class PlayerService extends Service {
     void playSpecificSound(int sound, float volume) {
         if (!Sounds.isMute(sound))
             soundpool.play(soundHandles[sound], volume, volume, 1, 0, 1.0f);
+    }
+
+    long getWakeupError() {
+        return maxWakeupError;
     }
 
     static public void sendPlayIntent(Context context){

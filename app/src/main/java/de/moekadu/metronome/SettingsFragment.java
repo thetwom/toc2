@@ -31,6 +31,7 @@ import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SeekBarPreference;
+import androidx.preference.SwitchPreferenceCompat;
 
 import android.text.InputType;
 // import android.util.Log;
@@ -41,6 +42,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 //import android.widget.EditText;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -199,6 +201,24 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             }
         });
 
+        SwitchPreferenceCompat screenOnPreference = findPreference("screenon");
+        if(screenOnPreference == null)
+            throw new RuntimeException("Screen-on preference not available");
+        screenOnPreference.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                boolean screenOn = (boolean) newValue;
+                MainActivity act = (MainActivity) getActivity();
+                if (act != null) {
+                    if (screenOn)
+                        act.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                    else
+                        act.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                }
+                return true;
+            }
+        });
+
         Preference resetSettings = findPreference("setdefault");
         if(resetSettings == null)
             throw new RuntimeException("Set default preference not available");
@@ -223,6 +243,9 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
                                 appearance.setValue("auto");
                                 appearance.getOnPreferenceChangeListener().onPreferenceChange(appearance, "auto");
+
+                                screenOnPreference.setChecked(false);
+                                screenOnPreference.getOnPreferenceChangeListener().onPreferenceChange(screenOnPreference, false);
                             }
                         })
                         .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {

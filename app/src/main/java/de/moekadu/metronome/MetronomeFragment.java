@@ -50,6 +50,7 @@ import java.util.Vector;
  */
 public class MetronomeFragment extends Fragment {
 
+    private TextView wakeupErrorText;
     private TextView speedText;
     private PlayButton playButton;
     private SpeedIndicator speedIndicator;
@@ -113,6 +114,8 @@ public class MetronomeFragment extends Fragment {
 
         speedText = view.findViewById(R.id.speedtext);
 
+        wakeupErrorText = view.findViewById(R.id.wakeup_error);
+
         SpeedPanel speedPanel = view.findViewById(R.id.speedpanel);
 
         speedIndicator = view.findViewById(R.id.speedindicator2);
@@ -143,6 +146,7 @@ public class MetronomeFragment extends Fragment {
             public void onPause() {
                 // Log.v("Metronome", "playButton:onPause()");
                 playerService.stopPlay();
+                wakeupErrorText.setText("wakeup error: " + playerService.getWakeupError() + " ms");
             }
 
             @Override
