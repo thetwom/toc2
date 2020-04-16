@@ -119,8 +119,12 @@ public class PlayerService extends Service {
             if(nextExpectedKlickTime > 0 && nextExpectedKlickTime > currentTime  + allowedToEarlyMillis)
                 return;
 
-            long wakeupError = currentTime - nextExpectedWakeupTime;
-            maxWakeupError = Math.max(maxWakeupError, Math.abs(wakeupError));
+            // don't consider errors for the first klick.
+            if(nextExpectedWakeupTime > 0) {
+                long wakeupError = currentTime - nextExpectedWakeupTime;
+                maxWakeupError = Math.max(maxWakeupError, Math.abs(wakeupError));
+            }
+
 //            Log.v("Metronome", "PlayerService:Runnable: wakeupError=" + wakeupError);
             if (getState() == PlaybackStateCompat.STATE_PLAYING) {
                 long dt = Utilities.speed2dt(getSpeed());
@@ -155,8 +159,7 @@ public class PlayerService extends Service {
                     volume = playList.get(playListPosition).getFloat("volume");
                 }
 
-                if (!Sounds.isMute(sound))
-                    soundpool.play(soundHandles[sound], volume, volume, 1, 0, 1.0f);
+                soundpool.play(soundHandles[sound], volume, volume, 1, 0, 1.0f);
 
                 playbackState = playbackStateBuilder.setState(getState(), playListPosition, getSpeed()).build();
                 mediaSession.setPlaybackState(playbackState);
@@ -222,7 +225,7 @@ public class PlayerService extends Service {
         AudioManager audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
         String sampleRateString = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
         nativeSampleRate = Integer.parseInt(sampleRateString);
-//        Log.v("Metronome", "PlayerService:onCreate: native sample rate: " + nativeSampleRate);
+        Log.v("Metronome", "PlayerService:onCreate: native sample rate: " + nativeSampleRate);
 
         IntentFilter filter = new IntentFilter(BROADCAST_PLAYERACTION);
         registerReceiver(actionReceiver, filter);
@@ -515,10 +518,16 @@ public class PlayerService extends Service {
 
         playListPosition = 0;
         maxWakeupError = 0;
-        nextExpectedWakeupTime = SystemClock.uptimeMillis() + numPostRunnables;
-        nextExpectedKlickTime = SystemClock.uptimeMillis() + numPostRunnables;
-        for(int i = 0; i < numPostRunnables; ++i)
-            waitHandler.postDelayed(klickAndWait, i);
+
+        // play some muted sound to "wake up" the sound pool
+        playSpecificSound(0,0f);
+        // delay the start by about 200ms such the the sound pool is hopefully awake
+        long startPlayDelay = 200;
+
+        nextExpectedWakeupTime = 0;
+        nextExpectedKlickTime = SystemClock.uptimeMillis() + startPlayDelay;
+
+        waitHandler.postDelayed(klickAndWait, startPlayDelay);
         //waitHandler.post(klickAndWait);
     }
 
@@ -635,8 +644,7 @@ public class PlayerService extends Service {
     }
 
     void playSpecificSound(int sound, float volume) {
-        if (!Sounds.isMute(sound))
-            soundpool.play(soundHandles[sound], volume, volume, 1, 0, 1.0f);
+        soundpool.play(soundHandles[sound], volume, volume, 1, 0, 1.0f);
     }
 
     long getWakeupError() {

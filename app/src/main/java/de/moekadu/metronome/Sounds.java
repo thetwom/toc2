@@ -47,7 +47,7 @@ final class Sounds {
             //new SoundInfo(R.raw.hhp_dry_a, R.string.hihat, R.drawable.ic_hihat),
             new SoundInfo(R.raw.hihat44, R.raw.hihat48, R.string.hihat, R.drawable.ic_hihat_note),
             //new SoundInfo(R.raw.sn_jazz_c, R.string.snare, R.drawable.ic_snare),
-            new SoundInfo(R.raw.hihat44, R.raw.hihat48, R.string.mute, R.drawable.ic_quarter_pause),
+            new SoundInfo(R.raw.mute44, R.raw.mute48, R.string.mute, R.drawable.ic_quarter_pause),
     };
 
 
@@ -79,13 +79,5 @@ final class Sounds {
     }
     static int getIconID(int id) {
         return sounds[id].iconID;
-    }
-
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    static boolean isMute(int id) {
-        //noinspection RedundantIfStatement
-        if(sounds[id].iconID == R.drawable.ic_quarter_pause)
-            return true;
-        return false;
     }
 }
