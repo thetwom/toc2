@@ -77,6 +77,15 @@ final class Sounds {
         else
             return sounds[id].soundID48;
     }
+
+    static int[] getSoundIDs(int sampleRate) {
+        int[] soundIDs = new int[sounds.length];
+
+        for(int i = 0; i < sounds.length; ++i)   {
+            soundIDs[i] = getSoundID(i, sampleRate);
+        }
+        return  soundIDs;
+    }
     static int getIconID(int id) {
         return sounds[id].iconID;
     }
