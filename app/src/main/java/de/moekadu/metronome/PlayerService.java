@@ -35,7 +35,7 @@ import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
+import androidx.preference.PreferenceManager;
 import android.service.notification.StatusBarNotification;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
