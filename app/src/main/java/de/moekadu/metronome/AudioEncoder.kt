@@ -108,9 +108,10 @@ fun audioToPCM(id : Int, context : Context) : FloatArray {
     mediaExtractor.release()
     codec.release()
 
+    val channelCountInv = 1.0f / channelCount
     for(i in result.indices)
-        result[i] = 0.5f * result[i] / 32768.0f //peak * peakValue
-    val peak = result.max() ?: 0f
+        result[i] = channelCountInv * result[i] / 32768.0f //peak * peakValue
+    // val peak = result.max() ?: 0f
     // Log.v("AudioMixer", "AudioEncoder.decode: peak value = $peak")
     return result
 }

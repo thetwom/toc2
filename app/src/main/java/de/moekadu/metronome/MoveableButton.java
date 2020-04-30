@@ -74,7 +74,7 @@ public class MoveableButton extends View {
 
     private Drawable icon = null;
 
-    private final Bundle properties = new Bundle();
+    private final AudioMixer.PlayListItem properties = new AudioMixer.PlayListItem(Sounds.defaultSound(), 1.0f, -1, null);
 
     private final SpringAnimation springAnimationX = new SpringAnimation(this, DynamicAnimation.X).setSpring(
          new SpringForce()
@@ -361,7 +361,7 @@ public class MoveableButton extends View {
 
         volumePaint.setColor(volumeColor);
         volumePaint.setStyle(Paint.Style.FILL);
-        float volume = properties.getFloat("volume", 1.0f);
+        float volume = properties.getVolume();
         canvas.drawRect(getWidth()-Utilities.dp_to_px(2),(getHeight()-2*cornerRadius)*(1.0f-volume)+cornerRadius,getWidth(),
                 getHeight()-cornerRadius, volumePaint);
 
@@ -388,14 +388,14 @@ public class MoveableButton extends View {
         invalidate();
     }
 
-    public Bundle getProperties(){
+    public AudioMixer.PlayListItem getProperties(){
         return properties;
     }
 
-    public void setProperties(Bundle newProperties, boolean suppressOnPropertiesChangedListener) {
+    public void setProperties(AudioMixer.PlayListItem newProperties, boolean suppressOnPropertiesChangedListener) {
 
-        properties.putAll(newProperties);
-        icon = ContextCompat.getDrawable(getContext(), Sounds.getIconID(properties.getInt("soundid", Sounds.defaultSound())));
+        properties.set(newProperties);
+        icon = ContextCompat.getDrawable(getContext(), Sounds.getIconID(properties.getTrackIndex()));
         invalidate();
         if(onPropertiesChangedListener != null && !suppressOnPropertiesChangedListener) {
 //            Log.v("Metronome", "MoveableButton:setProperties: calling onPropertiesChangedListener");

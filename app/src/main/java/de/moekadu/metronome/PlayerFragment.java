@@ -31,13 +31,9 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 // import android.util.Log;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -51,7 +47,7 @@ public class PlayerFragment extends Fragment {
     private ServiceConnection playerConnection = null;
 
     private float speed = InitialValues.speed;
-    private List<Bundle> playList;
+    private AudioMixer.PlayListItem[] playList;
 
     public PlayerFragment() {
         // Required empty public constructor
@@ -71,8 +67,8 @@ public class PlayerFragment extends Fragment {
             SharedPreferences preferences = context.getPreferences(Context.MODE_PRIVATE);
             speed = preferences.getFloat("speed", InitialValues.speed);
             String soundString = preferences.getString("sound", Integer.toString(Sounds.defaultSound()));
-            playList = SoundProperties.parseMetaDataString(soundString);
-            if(playList.isEmpty()){
+            playList = SoundProperties.Companion.parseMetaDataString(soundString);
+            if(playList.length == 0){
                 initializePlayList();
             }
 
@@ -142,7 +138,7 @@ public class PlayerFragment extends Fragment {
             }
 
             editor.putFloat("speed", speed);
-            String metaDataString = SoundProperties.createMetaDataString(playList);
+            String metaDataString = SoundProperties.Companion.createMetaDataString(playList);
             // Log.v("Metronome", "PlayerFragment:onStop : saving meta data: " + metaDataString);
             editor.putString("sound", metaDataString);
             editor.apply();
@@ -163,11 +159,9 @@ public class PlayerFragment extends Fragment {
     }
 
     private void initializePlayList() {
-        playList = new ArrayList<>();
-        Bundle s = new Bundle();
-        s.putInt("soundid", Sounds.defaultSound());
-        s.putFloat("volume", 1.0f);
-        playList.add(s);
+        playList = new AudioMixer.PlayListItem[1];
+        AudioMixer.PlayListItem s = new AudioMixer.PlayListItem(Sounds.defaultSound(), 1.0f, -1f, null);
+        playList[0] = s;
     }
 
     PlayerService getPlayerService() {

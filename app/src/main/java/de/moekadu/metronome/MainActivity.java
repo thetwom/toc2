@@ -33,7 +33,6 @@ import androidx.preference.PreferenceManager;
 
 import android.support.v4.media.MediaMetadataCompat;
 import android.text.InputType;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
@@ -275,10 +274,8 @@ public class MainActivity extends AppCompatActivity {
 //        Log.v("Metronome", "MainActivity:loadSettings");
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String minimumSpeedString = sharedPreferences.getString("minimumspeed", Float.toString(InitialValues.minimumSpeed));
-        assert minimumSpeedString != null;
         float minimumSpeed = Float.parseFloat(minimumSpeedString);
         String maximumSpeedString = sharedPreferences.getString("maximumspeed", Float.toString(InitialValues.maximumSpeed));
-        assert maximumSpeedString != null;
         float maximumSpeed = Float.parseFloat(maximumSpeedString);
         int speedIncrementIndex = sharedPreferences.getInt("speedincrement", InitialValues.speedIncrementIndex);
         float speedIncrement = Utilities.speedIncrements[speedIncrementIndex];
@@ -304,10 +301,8 @@ public class MainActivity extends AppCompatActivity {
             builder.show();
         }
 
-
-
         playerFrag.getPlayerService().changeSpeed(item.bpm);
-        playerFrag.getPlayerService().setSounds(SoundProperties.parseMetaDataString(item.playList));
+        playerFrag.getPlayerService().setSounds(SoundProperties.Companion.parseMetaDataString(item.playList));
         Toast.makeText(this, getString(R.string.loaded_message, item.title), Toast.LENGTH_SHORT).show();
     }
 

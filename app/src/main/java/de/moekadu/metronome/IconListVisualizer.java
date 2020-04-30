@@ -35,7 +35,7 @@ import java.util.ArrayList;
 public class IconListVisualizer extends LinearLayout {
 
     //    private ArrayList<Integer> icons;
-    private ArrayList<Bundle> icons;
+    private AudioMixer.PlayListItem[] icons = null;
 
     private final ArrayList<MoveableButton> iconButtons = new ArrayList<>();
     private int normalColor;
@@ -67,7 +67,7 @@ public class IconListVisualizer extends LinearLayout {
         setDividerDrawable(ContextCompat.getDrawable(context, R.drawable.empty_divider));
 
 //        setBackgroundColor(R.color.colorAccent);
-        icons = new ArrayList<>();
+        //icons = new ArrayList<>();
 
 //        getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
 //            @Override
@@ -92,8 +92,10 @@ public class IconListVisualizer extends LinearLayout {
 //        });
 //    }
 
-    public void setIcons(ArrayList<Bundle> icons) {
-        this.icons = new ArrayList<>(icons);
+    public void setIcons(AudioMixer.PlayListItem[] icons) {
+        this.icons = new AudioMixer.PlayListItem[icons.length];
+        for(int i = 0; i < icons.length; ++i)
+            this.icons[i] = icons[i].clone();
 
         getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
             @Override
@@ -107,16 +109,19 @@ public class IconListVisualizer extends LinearLayout {
 
     private void drawIcons() {
 
-        int maxButtonWidth = Math.round((getWidth() - getPaddingLeft() - getPaddingRight() - (icons.size()-1) * Utilities.dp_to_px(2)) / (float) icons.size());
-        int defaultButtonWidth = getHeight() - getPaddingTop() - getPaddingBottom();
-        int buttonWidth = Math.min(maxButtonWidth, defaultButtonWidth);
-
         for (MoveableButton button : iconButtons) {
             removeView(button);
         }
         iconButtons.clear();
 
-        for(Bundle properties : icons){
+        if(icons == null)
+            return;
+
+        int maxButtonWidth = Math.round((getWidth() - getPaddingLeft() - getPaddingRight() - (icons.length-1) * Utilities.dp_to_px(2)) / (float) icons.length);
+        int defaultButtonWidth = getHeight() - getPaddingTop() - getPaddingBottom();
+        int buttonWidth = Math.min(maxButtonWidth, defaultButtonWidth);
+
+        for(AudioMixer.PlayListItem properties : icons){
             MoveableButton button = new MoveableButton(getContext(), normalColor, normalColor, volumeColor);
 //            Bundle properties;
 //            properties = new Bundle();

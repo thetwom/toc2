@@ -181,10 +181,7 @@ public class SoundChooserCircle extends FrameLayout {
                 }
             });
 
-            Bundle properties;
-            properties = new Bundle();
-            properties.putFloat("volume", 0.0f);
-            properties.putInt("soundid", isound);
+            AudioMixer.PlayListItem properties = new AudioMixer.PlayListItem(isound, 0.0f, -1.0f, null);
 //            button.setScaleType(ImageView.ScaleType.FIT_CENTER);
 
             button.setProperties(properties, false);
@@ -215,7 +212,7 @@ public class SoundChooserCircle extends FrameLayout {
          if(buttons.isEmpty())
              return;
          for(MoveableButton b : buttons){
-             int bSoundID = b.getProperties().getInt("soundid");
+             int bSoundID = b.getProperties().getTrackIndex();
              if(soundID == bSoundID)
                  b.highlight(true);
              else

@@ -22,20 +22,16 @@ package de.moekadu.metronome;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Color;
-import android.os.Bundle;
 
-import androidx.core.content.ContextCompat;
 import androidx.dynamicanimation.animation.SpringForce;
 
 import android.util.AttributeSet;
 // import android.util.Log;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class SoundChooser extends FrameLayout {
 
@@ -67,7 +63,7 @@ public class SoundChooser extends FrameLayout {
     private SoundChangedListener soundChangedListener = null;
 
     public interface SoundChangedListener {
-        void onSoundChanged(ArrayList<Bundle> sounds);
+        void onSoundChanged(AudioMixer.PlayListItem[] sounds);
     }
 
     public SoundChooser(Context context) {
@@ -114,9 +110,7 @@ public class SoundChooser extends FrameLayout {
         for(int isound = 0; isound < Sounds.getNumSoundID(); ++isound) {
 
             MoveableButton choice = new MoveableButton(context, normalButtonColor, highlightButtonColor, volumeButtonColor);
-            Bundle properties = new Bundle();
-            properties.putFloat("volume", 0.0f);
-            properties.putInt("soundid", isound);
+            AudioMixer.PlayListItem properties = new AudioMixer.PlayListItem(isound, 0.0f, -1.0f, null);
             choice.setProperties(properties, true);
             choice.setLayoutParams(params);
             choice.setSpringStiffness(SpringForce.STIFFNESS_MEDIUM);
@@ -134,9 +128,7 @@ public class SoundChooser extends FrameLayout {
         ghostWhenButtonMoves.setNoBackground(true);
 //        ghostWhenButtonMoves.setForeground(null);
         ghostWhenButtonMoves.setVisibility(GONE);
-        Bundle ghostProperties = new Bundle();
-        ghostProperties.putFloat("volume", 0.0f);
-        ghostProperties.putInt("soundid", Sounds.defaultSound());
+        AudioMixer.PlayListItem ghostProperties = new AudioMixer.PlayListItem(Sounds.defaultSound(), 0.0f, -1.0f, null);
         ghostWhenButtonMoves.setProperties(ghostProperties, false);
         ghostWhenButtonMoves.setLockPosition(true);
         viewGroup.addView(ghostWhenButtonMoves);
@@ -158,11 +150,9 @@ public class SoundChooser extends FrameLayout {
     private MoveableButton createButton(int pos) {
         MoveableButton button = new MoveableButton(this.context, normalButtonColor, highlightButtonColor, volumeButtonColor);
 //        button.setId(View.generateViewId());
-        Bundle properties;
+        AudioMixer.PlayListItem properties;
         if(buttons.isEmpty()) {
-            properties = new Bundle();
-            properties.putFloat("volume", 1.0f);
-            properties.putInt("soundid", Sounds.defaultSound());
+            properties = new AudioMixer.PlayListItem(Sounds.defaultSound(), 1.0f, -1.0f, null);
         }
         else {
             properties = buttons.get(buttons.size()-1).getProperties();
@@ -208,11 +198,11 @@ public class SoundChooser extends FrameLayout {
                         currentChoice.highlight(false);
                     currentChoice = choice;
                     currentChoice.highlight(true);
-                    Bundle properties = button.getProperties();
-                    properties.putInt("soundid", currentChoice.getProperties().getInt("soundid"));
+                    AudioMixer.PlayListItem properties = button.getProperties();
+                    properties.setTrackIndex(currentChoice.getProperties().getTrackIndex());
                     button.setProperties(properties, false);
-                    Bundle ghostProperties = ghostWhenButtonMoves.getProperties();
-                    ghostProperties.putInt("soundid", currentChoice.getProperties().getInt("soundid"));
+                    AudioMixer.PlayListItem ghostProperties = ghostWhenButtonMoves.getProperties();
+                    ghostProperties.setTrackIndex(currentChoice.getProperties().getTrackIndex());
                     ghostWhenButtonMoves.setProperties(ghostProperties, true);
                     return;
                 }
@@ -232,10 +222,10 @@ public class SoundChooser extends FrameLayout {
 
             @Override
             public void onStartMoving(MoveableButton button, float posX, float posY) {
-                soundBeforeMoving = button.getProperties().getInt("soundid");
+                soundBeforeMoving = button.getProperties().getTrackIndex();
 
-                Bundle ghostProperties = ghostWhenButtonMoves.getProperties();
-                ghostProperties.putInt("soundid", soundBeforeMoving);
+                AudioMixer.PlayListItem ghostProperties = ghostWhenButtonMoves.getProperties();
+                ghostProperties.setTrackIndex(soundBeforeMoving);
                 ghostWhenButtonMoves.setProperties(ghostProperties, true);
                 ViewGroup.LayoutParams params = ghostWhenButtonMoves.getLayoutParams();
                 params.width = getButtonWidth();
@@ -453,10 +443,11 @@ public class SoundChooser extends FrameLayout {
         this.soundChangedListener = soundChangedListener;
     }
 
-    private ArrayList<Bundle> getSounds() {
-        ArrayList<Bundle> sounds = new ArrayList<>();
-        for(MoveableButton b : buttons)
-            sounds.add(b.getProperties());
+    private AudioMixer.PlayListItem[] getSounds() {
+        AudioMixer.PlayListItem[] sounds = new AudioMixer.PlayListItem[buttons.size()];
+        for(int i = 0; i < buttons.size(); ++i) { //MoveableButton b : buttons)
+            sounds[i] = buttons.get(i).getProperties();
+        }
         return sounds;
     }
 
@@ -464,31 +455,31 @@ public class SoundChooser extends FrameLayout {
         return buttons.size();
     }
 
-    public void setSounds(List<Bundle> sounds) {
+    public void setSounds(AudioMixer.PlayListItem[] sounds) {
         boolean soundChanged = false;
 
-        for(int i = 0; i < sounds.size(); ++i){
+        for(int i = 0; i < sounds.length; ++i){
 
             if(i < buttons.size()){
                 MoveableButton b = buttons.get(i);
 
-                if(!SoundProperties.equal(b.getProperties(), sounds.get(i))){
-                    b.setProperties(sounds.get(i), true);
+                if(!SoundProperties.Companion.trackIndexAndVolumeEqual(b.getProperties(), sounds[i])){
+                    b.setProperties(sounds[i], true);
                     soundChanged = true;
                 }
             }
             else {
                 MoveableButton b = createButton(i);
                 assert b != null;
-                if(!SoundProperties.equal(b.getProperties(), sounds.get(i)))
-                    b.setProperties(sounds.get(i), true);
+                if(!SoundProperties.Companion.trackIndexAndVolumeEqual(b.getProperties(), sounds[i]))
+                    b.setProperties(sounds[i], true);
 //                b.setProperties(sounds.get(i));
                 buttons.add(i, b);
                 soundChanged = true;
             }
         }
 
-        while(buttons.size() > sounds.size()) {
+        while(buttons.size() > sounds.length) {
             MoveableButton b = buttons.get(buttons.size() - 1);
             buttons.remove(b);
             ViewGroup viewGroup = (ViewGroup) getParent();
@@ -509,7 +500,7 @@ public class SoundChooser extends FrameLayout {
     }
 
     public float getButtonVolume(int buttonidx) {
-        return buttons.get(buttonidx).getProperties().getFloat("volume",0);
+        return buttons.get(buttonidx).getProperties().getVolume();
     }
 
     private float getChoiceButtonHeight() {

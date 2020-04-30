@@ -35,7 +35,7 @@ class InfiniteCircularBuffer<Type>(initialCapacity : Int = 1, private val init :
 
     operator fun get(i : Int) : Type {
         // Log.v("AudioMixer", "InfiniteCircularBuffer.get : i=$i, indexStart=$indexStart, indexEnd=$indexEnd")
-        require(i >= indexStart && i < indexEnd)
+        require(i in indexStart until indexEnd)
         @Suppress("UNCHECKED_CAST")
         return data[i % data.size] as Type
     }

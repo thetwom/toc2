@@ -71,9 +71,9 @@ public class SoundChooserDialog extends Fragment implements View.OnClickListener
             @Override
             public void onSoundIDChanged(int soundID) {
                 if(activeButton != null) {
-                    Bundle bundle = new Bundle();
-                    bundle.putInt("soundid", soundID);
-                    activeButton.setProperties(bundle, false);
+                    AudioMixer.PlayListItem properties = activeButton.getProperties();
+                    properties.setTrackIndex(soundID);
+                    activeButton.setProperties(properties, false);
                     soundChooserCircle.setActiveSoundID(soundID);
                 }
                 if(playerService != null && playerService.getState() != PlaybackStateCompat.STATE_PLAYING) {
@@ -88,9 +88,9 @@ public class SoundChooserDialog extends Fragment implements View.OnClickListener
             @Override
             public void onVolumeChanged(float volume) {
                 if(activeButton != null) {
-                    Bundle bundle = new Bundle();
-                    bundle.putFloat("volume", volume);
-                    activeButton.setProperties(bundle, false);
+                    AudioMixer.PlayListItem properties = activeButton.getProperties();
+                    properties.setVolume(volume);
+                    activeButton.setProperties(properties, false);
                 }
                 if(playerService != null && playerService.getState() != PlaybackStateCompat.STATE_PLAYING) {
                     playerService.playSpecificSound(soundChooserCircle.getCurrentSoundID(), volume);
@@ -119,9 +119,9 @@ public class SoundChooserDialog extends Fragment implements View.OnClickListener
             return;
 
         if(soundChooserCircle != null)
-            soundChooserCircle.setActiveSoundID(button.getProperties().getInt("soundid", Sounds.defaultSound()));
+            soundChooserCircle.setActiveSoundID(button.getProperties().getTrackIndex());
 
         if(volumeControl != null)
-            volumeControl.setState(button.getProperties().getFloat("volume"));
+            volumeControl.setState(button.getProperties().getVolume());
     }
 }

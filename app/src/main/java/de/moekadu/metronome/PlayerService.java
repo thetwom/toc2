@@ -35,12 +35,10 @@ import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.service.notification.StatusBarNotification;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
-import androidx.media.AudioManagerCompat;
 
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -52,9 +50,6 @@ import android.widget.RemoteViews;
 
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 
 import static de.moekadu.metronome.App.CHANNEL_ID;
@@ -76,13 +71,6 @@ public class PlayerService extends Service {
 
     private float speedIncrement;
 
-//    private long syncKlickTime = -1;
-
-//    private long nextExpectedKlickTime = -1;
-//    private int numPostRunnables = 50;
-//    private long nextExpectedWakeupTime = 0;
-    private long maxWakeupError = 0;
-
     private final int notificationID = 3252;
 
     private MediaSessionCompat mediaSession = null;
@@ -102,7 +90,6 @@ public class PlayerService extends Service {
 
 //    private int playListPosition = 0;
 
-    private final ArrayList<Bundle> playList = new ArrayList<>();
     private AudioMixer.PlayListItem[] playListMixer = new AudioMixer.PlayListItem[0];
 
     private SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener;
@@ -117,65 +104,6 @@ public class PlayerService extends Service {
         }
     };
 
-//    private final Runnable klickAndWait = new Runnable() {
-//        @Override
-//        public void run() {
-//            long currentTime = SystemClock.uptimeMillis();
-//            long allowedToEarlyMillis = 2;
-//            if(nextExpectedKlickTime > 0 && nextExpectedKlickTime > currentTime  + allowedToEarlyMillis)
-//                return;
-//
-//            // don't consider errors for the first klick.
-//            if(nextExpectedWakeupTime > 0) {
-//                long wakeupError = currentTime - nextExpectedWakeupTime;
-//                maxWakeupError = Math.max(maxWakeupError, Math.abs(wakeupError));
-//            }
-//
-////            Log.v("Metronome", "PlayerService:Runnable: wakeupError=" + wakeupError);
-//            if (getState() == PlaybackStateCompat.STATE_PLAYING) {
-//                long dt = Utilities.speed2dt(getSpeed());
-////                // Log.v("Metronome", "PlayerService:Runnable: currentTime="+System.currentTimeMillis() + ";  nextClick=" + syncKlickTime);
-//                if(syncKlickTime > currentTime){
-//                    long nextKlickTime = syncKlickTime;
-//                    if(syncKlickTime - currentTime < 0.5 * dt)
-//                        nextKlickTime += dt;
-//                    nextExpectedWakeupTime = nextKlickTime;
-//                    nextExpectedKlickTime = nextKlickTime;
-//                    waitHandler.removeCallbacksAndMessages(null);
-//                    for(int i = numPostRunnables-1; i >= 0; --i )
-//                        waitHandler.postAtTime(this, nextKlickTime - i);
-//                    syncKlickTime = -1;
-//                }
-//                else {
-//                    nextExpectedWakeupTime = currentTime + dt;
-//                    nextExpectedKlickTime = currentTime + dt;
-//                    waitHandler.removeCallbacksAndMessages(null);
-//                    for(int i = numPostRunnables-1; i >= 0; --i)
-//                        waitHandler.postDelayed(this, dt - i);
-////                     waitHandler.postAtTime(this, SystemClock.uptimeMillis() + dt);
-//                }
-//
-//                if (playListPosition >= playList.size())
-//                    playListPosition = 0;
-//                int sound = Sounds.defaultSound();
-//                float volume = 1.0f;
-//
-//                if (playList.size() > 0) {
-//                    sound = playList.get(playListPosition).getInt("soundid");
-//                    volume = playList.get(playListPosition).getFloat("volume");
-//                }
-//
-//                soundpool.play(soundHandles[sound], volume, volume, 1, 0, 1.0f);
-//
-//                playbackState = playbackStateBuilder.setState(getState(), playListPosition, getSpeed()).build();
-//                mediaSession.setPlaybackState(playbackState);
-//                //Log.v("Metronome", "positionindex: " + playbackState.getPosition()  + "     " + playListPosition);
-//
-//                playListPosition += 1;
-//
-//            }
-//        }
-//    };
 
     class PlayerBinder extends Binder {
         PlayerService getService() {
@@ -238,13 +166,13 @@ public class PlayerService extends Service {
             @Override
             public void onTrackStarted(@Nullable Object objectReference) {
                 int pos = 0;
-                for(int i = 0; i < playList.size(); ++i) {
-                    if (playList.get(i) == objectReference) {
+                for(int i = 0; i < playListMixer.length; ++i) {
+                    if (playListMixer[i] == objectReference) {
                         pos = i;
                         break;
                     }
                 }
-                if(pos < playList.size()) {
+                if(pos < playListMixer.length) {
                     playbackState = playbackStateBuilder.setState(getState(), pos, getSpeed()).build();
                     mediaSession.setPlaybackState(playbackState);
                 }
@@ -297,12 +225,10 @@ public class PlayerService extends Service {
             public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
                 if(key.equals("minimumspeed")){
                     String newMinimumSpeed = sharedPreferences.getString("minimumspeed", Float.toString(InitialValues.minimumSpeed));
-                    assert newMinimumSpeed != null;
                     setMinimumSpeed(Float.parseFloat(newMinimumSpeed));
                 }
                 else if(key.equals("maximumspeed")){
                     String newMaximumSpeed = sharedPreferences.getString("maximumspeed", Float.toString(InitialValues.maximumSpeed));
-                    assert newMaximumSpeed != null;
                     setMaximumSpeed(Float.parseFloat(newMaximumSpeed));
                 }
                 else if(key.equals("speedincrement")){
@@ -446,7 +372,7 @@ public class PlayerService extends Service {
         if(speed > maximumSpeed + tolerance)
             speed -= speedIncrement;
 
-        copyPlayListToAudioMixer();
+        setMissingMembersAndCopyPlayListToAudioMixer();
 
         playbackState = playbackStateBuilder.setState(getState(), PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, speed).build();
         mediaSession.setPlaybackState(playbackState);
@@ -467,22 +393,9 @@ public class PlayerService extends Service {
         changeSpeed(newSpeed);
     }
 
-    //public void changeSound(int activeSound){
-    //    this.activeSound = activeSound;
-    //}
-
-    /// Delete this function
-//    public void changeSound(int[] newPlayList){
-//        playList = newPlayList;
-//        String soundString = SoundProperties.createMetaDataString(newPlayList);
-//        mediaMetadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, soundString);
-//        mediaSession.setMetadata(mediaMetadataBuilder.build());
-//    }
-
     private void updateMetadata() {
-        String soundString = SoundProperties.createMetaDataString(playList);
-//        Log.v("Metronome", "PlayerService:setSounds: " + soundString);
-        metaData = mediaMetadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, soundString).build();
+        String playListString = SoundProperties.Companion.createMetaDataString(playListMixer);
+        metaData = mediaMetadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, playListString).build();
         mediaSession.setMetadata(metaData);
     }
 
@@ -492,18 +405,22 @@ public class PlayerService extends Service {
         delayedMetaUpdateHandler.postDelayed(delayedMetaUpdate, delayMillis);
     }
 
-    public void setSounds(List<Bundle> sounds) {
-//        Log.v("Metronome", "PlayerService:setSounds");
+    public void setSounds(AudioMixer.PlayListItem[] sounds) {
+        Log.v("Metronome", "PlayerService:setSounds");
+
         // Do not do anything if we already have the correct sounds
-        if (SoundProperties.equal(sounds, playList)) {
+        if (SoundProperties.Companion.trackIndexAndVolumeEqual(sounds, playListMixer)) {
 //            Log.v("Metronome", "PlayerService:setSounds: new sounds are equal to old sounds");
             return;
         }
 
-        playList.clear();
-        for(Bundle b : sounds)
-            playList.add(SoundProperties.deepCopy(b));
-        copyPlayListToAudioMixer();
+        playListMixer = new AudioMixer.PlayListItem[sounds.length];
+
+        for(int i = 0; i < sounds.length; ++i)
+            playListMixer[i] = sounds[i].clone();
+
+        setMissingMembersAndCopyPlayListToAudioMixer();
+
 //        updateMetadata();
         // Delay update a little, to avoid any feedback loop with updates of other instances
         updateMetadataDelayed();
@@ -516,17 +433,16 @@ public class PlayerService extends Service {
 
     public void setVolume(int playListIndex, float volume) {
         boolean volumeChanged = false;
-        if(playListIndex < playList.size()) {
-            Bundle b = playList.get(playListIndex);
-            float oldVolume = b.getFloat("volume");
+        if(playListIndex < playListMixer.length) {
+            float oldVolume = playListMixer[playListIndex].getVolume();
             if(Math.abs(volume-oldVolume) > 1e-8) {
-                b.putFloat("volume", volume);
                 volumeChanged = true;
+                playListMixer[playListIndex].setVolume(volume);
             }
         }
 
         if(volumeChanged) {
-            copyPlayListToAudioMixer();
+            setMissingMembersAndCopyPlayListToAudioMixer();
 //            updateMetadata();
             // Delay update a little, to avoid any feedback loop with updates of other instances
             updateMetadataDelayed();
@@ -541,19 +457,6 @@ public class PlayerService extends Service {
 
         startForeground(notificationID, createNotification());
 
-        // playListPosition = 0;
-        // maxWakeupError = 0;
-
-        // play some muted sound to "wake up" the sound pool
-        // playSpecificSound(0,0f);
-        // delay the start by about 200ms such the the sound pool is hopefully awake
-        // long startPlayDelay = 200;
-
-        // nextExpectedWakeupTime = 0;
-        // nextExpectedKlickTime = SystemClock.uptimeMillis() + startPlayDelay;
-
-        // waitHandler.postDelayed(klickAndWait, startPlayDelay);
-        //waitHandler.post(klickAndWait);
         audioMixer.start();
     }
 
@@ -599,13 +502,9 @@ public class PlayerService extends Service {
     }
 
     public void syncKlickWithUptimeMillis(long time) {
-        audioMixer.synchronizeTime(time, Utilities.speed2dt(getSpeed()) / 1000.0f);
-
-//        if(getState() == PlaybackStateCompat.STATE_PLAYING) {
-//            syncKlickTime = time;
-//            waitHandler.removeCallbacksAndMessages(null);
-//            waitHandler.postAtTime(klickAndWait, time);
-//        }
+        if(getState() == PlaybackStateCompat.STATE_PLAYING) {
+            audioMixer.synchronizeTime(time, Utilities.speed2dt(getSpeed()) / 1000.0f);
+        }
     }
 
     public void registerMediaControllerCallback(MediaControllerCompat.Callback callback) {
@@ -633,8 +532,8 @@ public class PlayerService extends Service {
         return playbackState.getState();
     }
 
-    public List<Bundle> getSound() {
-        return Collections.unmodifiableList(playList);
+    public AudioMixer.PlayListItem[] getSound() {
+        return playListMixer;
     }
 
     private boolean setMinimumSpeed(float speed) {
@@ -666,53 +565,26 @@ public class PlayerService extends Service {
     }
 
     void playSpecificSound(int playListPosition) {
-        if(playListPosition >= playList.size())
+        if(playListPosition >= playListMixer.length)
             return;
-        Bundle b = playList.get(playListPosition);
-        playSpecificSound(b.getInt("soundid"), b.getFloat("volume"));
+        playSpecificSound(playListMixer[playListPosition].getTrackIndex(), playListMixer[playListPosition].getVolume());
     }
 
     void playSpecificSound(int sound, float volume) {
         soundpool.play(soundHandles[sound], volume, volume, 1, 0, 1.0f);
     }
 
-    long getWakeupError() {
-        return maxWakeupError;
-    }
+    private void setMissingMembersAndCopyPlayListToAudioMixer() {
+        float duration = Utilities.speed2dt(getSpeed()) / 1000.0f;
 
-    private void copyPlayListToAudioMixer() {
-        float speed = Utilities.speed2dt(getSpeed()) / 1000.0f;
-
-        if(playList.size() == 0) {
-            if(playListMixer.length != 1) {
-                playListMixer = new AudioMixer.PlayListItem[1];
-                playListMixer[0] = new AudioMixer.PlayListItem(Sounds.defaultSound(), 1.0f, speed, null);
-            }
-            else {
-                AudioMixer.PlayListItem mixerItem = playListMixer[0];
-                mixerItem.setDuration(speed);
-                mixerItem.setVolume(1.0f);
-                mixerItem.setTrackIndex(Sounds.defaultSound());
-                mixerItem.setObjectReference(null);
-            }
+        if(playListMixer.length == 0) {
+            playListMixer = new AudioMixer.PlayListItem[1];
+            playListMixer[0] = new AudioMixer.PlayListItem(Sounds.defaultSound(), 1.0f, duration, playListMixer[0]);
         }
         else {
-            if (playListMixer.length != playList.size()) {
-                playListMixer = new AudioMixer.PlayListItem[playList.size()];
-                for (int i = 0; i < playList.size(); ++i) {
-                    Bundle b = playList.get(i);
-                    playListMixer[i] = new AudioMixer.PlayListItem(b.getInt("soundid"), b.getFloat("volume"), speed, b);
-                }
-            }
-            else {
-                for (int i = 0; i < playList.size(); ++i) {
-                    Bundle b = playList.get(i);
-                    AudioMixer.PlayListItem mixerItem = playListMixer[i];
-                    mixerItem.setDuration(speed);
-                    mixerItem.setVolume(b.getFloat("volume"));
-                    mixerItem.setTrackIndex(b.getInt("soundid"));
-                    mixerItem.setObjectReference(b);
-                }
+            for (AudioMixer.PlayListItem playListItem : playListMixer) {
+                playListItem.setDuration(duration);
+                playListItem.setObjectReference(playListItem);
             }
         }
         audioMixer.setPlayList(playListMixer);

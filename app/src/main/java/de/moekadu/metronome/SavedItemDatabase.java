@@ -21,7 +21,6 @@ package de.moekadu.metronome;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Bundle;
 // import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -88,7 +87,7 @@ public class SavedItemDatabase extends RecyclerView.Adapter<SavedItemDatabase.Vi
         speedView.setText(holder.view.getContext().getString(R.string.bpm, Utilities.getBpmString(item.bpm)));
 
         IconListVisualizer iconListVisualizer = holder.view.findViewById(R.id.saved_item_sounds);
-        ArrayList<Bundle> metaData = SoundProperties.parseMetaDataString(item.playList);
+        AudioMixer.PlayListItem[] metaData = SoundProperties.Companion.parseMetaDataString(item.playList);
         iconListVisualizer.setIcons(metaData);
 
 
@@ -173,9 +172,7 @@ public class SavedItemDatabase extends RecyclerView.Adapter<SavedItemDatabase.Vi
         String dataString = preferences.getString("savedDatabase", "");
 
         // Log.v("Metronome", "SavedItemFragment:loadData: " + dataString);
-        if(dataString == null)
-            return;
-        else if(dataString.equals(""))
+        if(dataString.equals(""))
             return;
 
         if(dataString.length() < 50)

@@ -35,14 +35,11 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 // import android.util.Log;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Vector;
 
 /**
@@ -146,7 +143,6 @@ public class MetronomeFragment extends Fragment {
             public void onPause() {
                 // Log.v("Metronome", "playButton:onPause()");
                 playerService.stopPlay();
-                wakeupErrorText.setText("wakeup error: " + playerService.getWakeupError() + " ms");
             }
 
             @Override
@@ -178,7 +174,7 @@ public class MetronomeFragment extends Fragment {
 
         soundChooser.setSoundChangedListener(new SoundChooser.SoundChangedListener() {
             @Override
-            public void onSoundChanged(ArrayList<Bundle> sounds) {
+            public void onSoundChanged(AudioMixer.PlayListItem[] sounds) {
 //                Log.v("Metronome", "MetronomeFragment:onSoundChanged");
                 setNewSound(sounds);
             }
@@ -317,11 +313,11 @@ public class MetronomeFragment extends Fragment {
     private void updateView(MediaMetadataCompat metadata){
         String soundString = metadata.getString(MediaMetadataCompat.METADATA_KEY_TITLE);
         // Log.v("Metronome", "MetronomeFragment : updateView : parsing metadata : " + soundString);
-        ArrayList<Bundle> sounds = SoundProperties.parseMetaDataString(soundString);
+        AudioMixer.PlayListItem[] sounds = SoundProperties.Companion.parseMetaDataString(soundString);
         updateView(sounds);
     }
 
-    private void updateView(List<Bundle> playList){
+    private void updateView(AudioMixer.PlayListItem[] playList){
         soundChooser.setSounds(playList);
         updateSpeedIndicatorMarksAndVolumeSliders();
     }
@@ -363,7 +359,7 @@ public class MetronomeFragment extends Fragment {
         }
     }
 
-    private void setNewSound(ArrayList<Bundle> sounds) {
+    private void setNewSound(AudioMixer.PlayListItem[] sounds) {
 //        Log.v("Metronome", "MetronomeFragment:setNewSounds");
         if(playerServiceBound) {
 //            Log.v("Metronome", "MetronomeFragment:setNewSounds: Calling playerService.setSounds");
