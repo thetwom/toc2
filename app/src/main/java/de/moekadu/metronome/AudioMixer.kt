@@ -1,3 +1,22 @@
+/*
+ * Copyright 2019 Michael Moessner
+ *
+ * This file is part of Metronome.
+ *
+ * Metronome is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Metronome is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Metronome.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package de.moekadu.metronome
 
 import android.content.Context
@@ -6,24 +25,25 @@ import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
 import android.os.SystemClock
-import android.util.Log
 import java.lang.RuntimeException
 import kotlin.math.*
 
-fun AudioMixer.createAvailableTracks(availableTrackRessources: IntArray, context: Context) : Array<FloatArray> {
-    return Array(availableTrackRessources.size) {
-        i -> audioToPCM(availableTrackRessources[i], context)
+class AudioMixer (availableTrackResources : IntArray, context: Context, maximumLatency : Float = 250.0f) {
+    companion object {
+        fun createAvailableTracks(availableTrackResources: IntArray, context: Context) : Array<FloatArray> {
+            return Array(availableTrackResources.size) {
+                i -> audioToPCM(availableTrackResources[i], context)
+            }
+        }
+
+//        fun getMaximumTrackLength(tracks : Array<FloatArray>) : Int {
+//            var maxLength = 0
+//            for (t in tracks)
+//                maxLength = max(maxLength, t.size)
+//            return maxLength
+//        }
     }
-}
 
-fun AudioMixer.getMaximumTrackLength(tracks : Array<FloatArray>) : Int {
-    var maxLength = 0
-    for (t in tracks)
-        maxLength = max(maxLength, t.size)
-    return maxLength
-}
-
-class AudioMixer (availableTrackRessources : IntArray, context: Context, maximumLatency : Float = 250.0f) {
 
     /// Device sample rate
     private val nativeSampleRate = AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC)
@@ -63,7 +83,7 @@ class AudioMixer (availableTrackRessources : IntArray, context: Context, maximum
         .build()
 
     /// These are all available tracks which we can play, samples are stored as as FloatArrays
-    private val availableTracks = createAvailableTracks(availableTrackRessources, context)
+    private val availableTracks = createAvailableTracks(availableTrackResources, context)
 
     /// Class which stores tracks which are queued for the playing
     /**
@@ -123,7 +143,7 @@ class AudioMixer (availableTrackRessources : IntArray, context: Context, maximum
     /// Frame when next playlist item starts playing
     private var nextTrackFrame = 0
 
-    /// Required infomation for handling the notifications when a playlist item starts
+    /// Required information for handling the notifications when a playlist item starts
     /**
      * @param frameWhenPlaylistItemStarts Frame when we have to notify that the
      *   playlist item starts
@@ -154,7 +174,7 @@ class AudioMixer (availableTrackRessources : IntArray, context: Context, maximum
     }
 
     /// Variable which tells us if our player is running.
-    var isPlaying = false
+    private var isPlaying = false
 
     /// Start playing
     fun start() {
@@ -306,7 +326,7 @@ class AudioMixer (availableTrackRessources : IntArray, context: Context, maximum
             val sampleStart = queuedItem.nextSampleToMix
             val startDelay = queuedItem.startDelay
             val volume = queuedItem.volume
-//            Log.v("AudioMixer", "AudioMixer:mixAndQueueTracks : itrack = $i, trackIndex=$trackIndex, startDelay=$startDelay")
+//            Log.v("AudioMixer", "AudioMixer:mixAndQueueTracks : iTrack = $i, trackIndex=$trackIndex, startDelay=$startDelay")
             val trackSamples = availableTracks[trackIndex]
 
             val numSamplesToWrite = min(trackSamples.size - sampleStart, audioBufferUpdatePeriod - startDelay)

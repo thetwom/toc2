@@ -1,15 +1,29 @@
+/*
+ * Copyright 2019 Michael Moessner
+ *
+ * This file is part of Metronome.
+ *
+ * Metronome is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Metronome is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Metronome.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package de.moekadu.metronome
 
 import android.content.Context
-import android.content.res.AssetFileDescriptor
 import android.media.*
-import android.util.Log
 import java.lang.RuntimeException
 import java.nio.ByteOrder
 import kotlin.math.ceil
-import kotlin.math.log10
-import kotlin.math.max
-import kotlin.system.measureNanoTime
 
 fun audioToPCM(id : Int, context : Context) : FloatArray {
 
@@ -18,7 +32,7 @@ fun audioToPCM(id : Int, context : Context) : FloatArray {
     mediaExtractor.setDataSource(sampleFD.fileDescriptor, sampleFD.startOffset, sampleFD.length)
     val format = mediaExtractor.getTrackFormat(0)
 
-    val mime = format.getString(MediaFormat.KEY_MIME)
+//    val mime = format.getString(MediaFormat.KEY_MIME)
     val sampleRate = format.getInteger(MediaFormat.KEY_SAMPLE_RATE)
     val duration = format.getLong(MediaFormat.KEY_DURATION)
     val channelCount = format.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
@@ -27,7 +41,7 @@ fun audioToPCM(id : Int, context : Context) : FloatArray {
 
     // Log.v("AudioMixer", "AudioEncoder.decode: MIME TYPE: $mime")
     // Log.v("AudioMixer", "AudioEncoder.decode: duration $duration")
-    // Log.v("AudioMixer", "AudioEncoder.decode: samplerate = $sampleRate")
+    // Log.v("AudioMixer", "AudioEncoder.decode: sampleRate = $sampleRate")
     // Log.v("AudioMixer", "AudioEncoder.decode: channel count $channelCount")
     // Log.v("AudioMixer", "AudioEncoder.decode: track count: " + mediaExtractor.trackCount)
     // Log.v("AudioMixer", "AudioEncoder.decode: media codec name: $mediaCodecName")
@@ -66,7 +80,7 @@ fun audioToPCM(id : Int, context : Context) : FloatArray {
             mediaExtractor.advance()
         }
 
-        // we are done decoding and can not read our resulst
+        // we are done decoding and can now read our result
         var outputBufferIndex = codec.dequeueOutputBuffer(bufferInfo, 200000)
 
         // sometimes this output format changed appears, then we have to try again to get

@@ -1,10 +1,26 @@
+/*
+ * Copyright 2019 Michael Moessner
+ *
+ * This file is part of Metronome.
+ *
+ * Metronome is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Metronome is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Metronome.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package de.moekadu.metronome
 
-import android.util.Log
-
-
 class InfiniteCircularBuffer<Type>(initialCapacity : Int = 1, private val init : () -> Type) {
-    var data = Array<Any?>(initialCapacity) {init()}
+    private var data = Array<Any?>(initialCapacity) {init()}
     var indexStart = 0
         private set
     var indexEnd = 0
@@ -44,9 +60,9 @@ class InfiniteCircularBuffer<Type>(initialCapacity : Int = 1, private val init :
         return get(indexStart)
     }
 
-    fun last() : Type {
-        return get(indexEnd-1)
-    }
+//    fun last() : Type {
+//        return get(indexEnd-1)
+//    }
 
     fun pop() : Type {
         val value = get(indexStart)
