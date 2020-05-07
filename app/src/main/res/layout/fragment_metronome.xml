@@ -65,14 +65,10 @@
         android:layout_marginBottom="8dp"
         android:elevation="8dp"
         android:padding="10dp"
-        app:highlightColor="?attr/colorSecondary"
-        app:labelColor="?attr/colorPrimary"
         app:layout_constraintBottom_toTopOf="@id/lower_guideline"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/upper_guideline"
-        app:normalColor="?attr/colorBackgroundFloating"
-        app:textColor="?attr/colorPrimary"
         tools:layout_conversion_wrapHeight="577"
         tools:layout_conversion_wrapWidth="577" />
 
@@ -85,13 +81,10 @@
         android:layout_marginEnd="0dp"
         android:elevation="9dp"
         android:padding="10dp"
-        app:highlightColor="?attr/colorSecondary"
-        app:labelColor="?attr/colorOnBackground"
         app:layout_constraintBottom_toBottomOf="@id/speedpanel"
         app:layout_constraintEnd_toEndOf="@id/speedpanel"
         app:layout_constraintStart_toStartOf="@id/speedpanel"
         app:layout_constraintTop_toTopOf="@id/speedpanel"
-        app:normalColor="?attr/colorBackgroundFloating"
         tools:layout_conversion_wrapHeight="577" />
 
 
@@ -157,9 +150,6 @@
         android:layout_marginTop="0dp"
         android:padding="0dp"
         android:backgroundTint="?attr/colorPrimary"
-        app:elementBackgroundColor="?attr/colorBackgroundFloating"
-        app:backgroundColor="?android:attr/colorBackground"
-        app:interactiveColor="?attr/colorPrimary"
         app:layout_constraintBottom_toTopOf="@id/soundchooser"
         app:layout_constraintTop_toTopOf="parent"
          app:layout_constraintStart_toStartOf="parent"

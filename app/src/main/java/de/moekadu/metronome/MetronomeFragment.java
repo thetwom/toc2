@@ -118,7 +118,7 @@ public class MetronomeFragment extends Fragment {
         speedIndicator = view.findViewById(R.id.speedindicator2);
         volumeSliders = view.findViewById(R.id.volume_sliders);
 
-        speedPanel.setOnSpeedChangedListener(new SpeedPanel.SpeedChangedListener() {
+        speedPanel.setSpeedChangedListener(new SpeedPanel.SpeedChangedListener() {
             @Override
             public void onSpeedChanged(float dSpeed) {
                 if (playerServiceBound) {
@@ -137,7 +137,7 @@ public class MetronomeFragment extends Fragment {
 
         playButton = view.findViewById(R.id.playbutton);
 
-        playButton.setOnButtonClickedListener(new PlayButton.ButtonClickedListener() {
+        playButton.setButtonClickedListener(new PlayButton.ButtonClickedListener() {
 
             @Override
             public void onPause() {

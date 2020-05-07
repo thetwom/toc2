@@ -20,13 +20,15 @@
 package de.moekadu.metronome
 
 import android.content.Context
+import android.graphics.Color
 import android.util.AttributeSet
 import android.view.View
 
 import kotlin.math.*
 
-open class ControlPanel(context : Context, attrs : AttributeSet?)
-    : View(context, attrs) {
+open class ControlPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
+   : View(context, attrs, defStyleAttr) {
+
     private val innerRadiusRatio = 0.62f
 
     val radius : Int
@@ -49,6 +51,23 @@ open class ControlPanel(context : Context, attrs : AttributeSet?)
         get() {
             return height / 2
         }
+
+    var textColor = Color.BLACK
+    var labelColor = Color.BLACK
+    var highlightColor = Color.RED
+
+    constructor(context: Context, attrs: AttributeSet? = null) : this(context, attrs, R.attr.controlPanelStyle)
+
+    init {
+        attrs?.let {
+            val ta = context.obtainStyledAttributes(attrs, R.styleable.ControlPanel, defStyleAttr, R.style.ControlPanelStyle)
+            textColor = ta.getColor(R.styleable.ControlPanel_textColor, textColor)
+            labelColor = ta.getColor(R.styleable.ControlPanel_labelColor, labelColor)
+            highlightColor = ta.getColor(R.styleable.ControlPanel_highlightColor, highlightColor)
+
+            ta.recycle()
+        }
+    }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
 

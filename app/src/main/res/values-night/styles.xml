@@ -26,13 +26,10 @@
         <item name="colorSecondary">@color/colorSecondary</item>
         <item name="colorOnPrimary">@color/myColorOnPrimary</item>
         <item name="android:colorBackground">@color/colorMyBackground</item>
-
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
-        <!--
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
-        -->
+
+        <item name="controlPanelStyle">@style/ControlPanelStyle</item>
+        <item name="volumeSlidersStyle">@style/VolumeSlidersStyle</item>
     </style>
 
 

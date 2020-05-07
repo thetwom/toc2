@@ -29,7 +29,9 @@
         <item name="colorOnPrimary">@color/myColorOnPrimary</item>
         <item name="android:colorBackground">@color/colorMyBackground</item>
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
-    </style>
 
+        <item name="controlPanelStyle">@style/ControlPanelStyle</item>
+        <item name="volumeSlidersStyle">@style/VolumeSlidersStyle</item>
+    </style>
 
 </resources>

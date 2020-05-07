@@ -19,19 +19,32 @@
 -->
 
 <resources>
+    <declare-styleable name="CustomTheme">
+        <attr name="controlPanelStyle" format="reference"/>
+        <attr name="volumeSlidersStyle" format="reference"/>
+    </declare-styleable>
+
 
     <attr name="normalColor" format="color" />
     <attr name="labelColor" format="color" />
     <attr name="highlightColor" format="color" />
     <attr name="volumeColor" format="color" />
     <attr name="backgroundColor" format="color" />
+    <attr name="textColor" format="color" />
 
-    <declare-styleable name="SpeedPanel">
-        <attr name="normalColor" />
+    <declare-styleable name="ControlPanel">
         <attr name="labelColor" />
         <attr name="highlightColor" />
-        <attr name="textColor" format="color" />
+        <attr name="textColor"/>
     </declare-styleable>
+
+<!--    <item name="android:background">?attr/colorBackgroundFloating</item>-->
+    <style name="ControlPanelStyle">
+        <item name="android:backgroundTint">?attr/colorBackgroundFloating</item>
+        <item name="labelColor">?attr/colorPrimary</item>
+        <item name="highlightColor">?attr/colorSecondary</item>
+        <item name="textColor">?attr/colorPrimary</item>
+    </style>
 
     <declare-styleable name="SoundChooser">
         <attr name="normalColor" />
@@ -65,10 +78,17 @@
         <attr name="interactiveColor" format="color"/>
         <attr name="elementBackgroundColor" format="color"/>
         <attr name="onInteractiveColor" format="color"/>
-        <attr name="backgroundColor" />
+        <attr name="backgroundColor"/>
     </declare-styleable>
 
-     <declare-styleable name="IconListVisualizer">
+    <style name="VolumeSlidersStyle">
+        <item name="elementBackgroundColor">?attr/colorBackgroundFloating</item>
+        <item name="interactiveColor">?attr/colorPrimary</item>
+        <item name="onInteractiveColor">?attr/colorOnPrimary</item>
+        <item name="backgroundColor">?android:attr/colorBackground</item>
+    </style>
+
+    <declare-styleable name="IconListVisualizer">
          <attr name="normalColor" />
          <attr name="volumeColor" />
     </declare-styleable>
