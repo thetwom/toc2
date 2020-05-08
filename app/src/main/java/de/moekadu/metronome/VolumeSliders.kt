@@ -245,8 +245,10 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                 newVC.translationY = tunerTop
                 val currentIdx = volumeControls.size - 1
 
-                newVC.setOnVolumeChangedListener {
-                    v -> volumeChangedListener?.onVolumeChanged(currentIdx, v)
+                newVC.onVolumeChangedListener = object : VolumeControl.OnVolumeChangedListener {
+                    override fun onVolumeChanged(volume: Float) {
+                        volumeChangedListener?.onVolumeChanged(currentIdx, volume)
+                    }
                 }
 
                 vC = newVC
@@ -258,7 +260,7 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
             vC.translationX = positions[i] - tunerWidth/2.0f
             vC.visibility = VISIBLE
-            vC.setState(volume[i])
+            vC.volume = volume[i]
             vC.layoutParams = params
 
             if(addToView)
@@ -272,9 +274,10 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         val volumeControl = VolumeControl(context, null)
         volumeControl.translationY = tunerTop
         volumeControl.elevation = Utilities.dp_to_px(2f)
-        volumeControl.setVertical(true)
-        volumeControl.setBackgroundColor(elementBackgroundColor)
-        volumeControl.setSliderColor(interactiveColor)
+        volumeControl.vertical = true
+        volumeControl.backgroundSurfaceColor = elementBackgroundColor
+        volumeControl.sliderColor = interactiveColor
+        volumeControl.iconColor = onInteractiveColor
         val params = MarginLayoutParams(tunerWidth.roundToInt(), tunerHeight.roundToInt())
         volumeControl.setPadding(0,0,0,0)
         volumeControl.layoutParams = params

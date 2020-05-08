@@ -22,6 +22,7 @@
     <declare-styleable name="CustomTheme">
         <attr name="controlPanelStyle" format="reference"/>
         <attr name="volumeSlidersStyle" format="reference"/>
+        <attr name="volumeControlStyle" format="reference"/>
     </declare-styleable>
 
 
@@ -69,10 +70,18 @@
     </declare-styleable>
 
     <declare-styleable name="VolumeControl">
-        <attr name="normalColor" />
         <attr name="sliderColor" format="color" />
+        <attr name="iconColor" format="color" />
+        <attr name="backgroundColor"/>
         <attr name="vertical" format="boolean" />
     </declare-styleable>
+    
+    <style name="VolumeControlStyle">
+        <item name="sliderColor">?attr/colorPrimary</item>
+        <item name="iconColor">?attr/colorOnPrimary</item>
+        <item name="backgroundColor">?attr/colorBackgroundFloating</item>
+        <item name="vertical">true</item>
+    </style>
 
     <declare-styleable name="VolumeSliders">
         <attr name="interactiveColor" format="color"/>

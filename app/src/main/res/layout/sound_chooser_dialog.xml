@@ -63,8 +63,6 @@
         android:paddingRight="5dp"
         android:paddingTop="10dp"
         android:paddingBottom="10dp"
-        app:normalColor="?attr/colorBackgroundFloating"
-        app:sliderColor="?attr/colorPrimary"
         app:vertical="false"
         app:layout_constraintHeight_percent="0.1"
         app:layout_constraintTop_toTopOf="parent"
