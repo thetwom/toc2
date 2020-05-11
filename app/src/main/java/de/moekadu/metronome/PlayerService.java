@@ -235,7 +235,7 @@ public class PlayerService extends Service {
 //                    String newSpeedIncrement = sharedPreferences.getString("speedincrement", "1");
                     int newSpeedIncrementIndex = sharedPreferences.getInt("speedincrement", InitialValues.speedIncrementIndex);
 //                    assert newSpeedIncrement != null;
-                    float newSpeedIncrement = Utilities.speedIncrements[newSpeedIncrementIndex];
+                    float newSpeedIncrement = Utilities.Companion.getSpeedIncrements()[newSpeedIncrementIndex];
                     setSpeedIncrement(newSpeedIncrement);
                 }
             }
@@ -248,7 +248,7 @@ public class PlayerService extends Service {
         maximumSpeed = Float.parseFloat(Objects.requireNonNull(sharedPreferences.getString("maximumspeed", Float.toString(InitialValues.maximumSpeed))));
 //        speedIncrement = Float.parseFloat(sharedPreferences.getString("speedincrement", "1"));
         int speedIncrementIndex = sharedPreferences.getInt("speedincrement", InitialValues.speedIncrementIndex);
-        speedIncrement = Utilities.speedIncrements[speedIncrementIndex];
+        speedIncrement = Utilities.Companion.getSpeedIncrements()[speedIncrementIndex];
 //        Log.v("Metronome", "PlayerService:onCreate: speedIncrement=" + speedIncrement);
     }
 
@@ -302,7 +302,7 @@ public class PlayerService extends Service {
                     .setCustomContentView(notificationView);
                     //.setStyle(new MediaStyle().setMediaSession(mediaSession.getSessionToken()).setShowActionsInCompactView(0));
         }
-        notificationView.setTextViewText(R.id.notification_speedtext, getString(R.string.bpm, Utilities.getBpmString(getSpeed(), speedIncrement)));
+        notificationView.setTextViewText(R.id.notification_speedtext, getString(R.string.bpm, Utilities.Companion.getBpmString(getSpeed(), speedIncrement)));
 
         Intent intent = new Intent(BROADCAST_PLAYERACTION);
         final int notificationStateID = 3214;
@@ -324,13 +324,13 @@ public class PlayerService extends Service {
 //            controlAction = new NotificationCompat.Action(R.drawable.ic_play, "play", pIntent);
         }
 
-        notificationView.setTextViewText(R.id.notification_button_p, "   + " + Utilities.getBpmString(speedIncrement,speedIncrement) + " ");
+        notificationView.setTextViewText(R.id.notification_button_p, "   + " + Utilities.Companion.getBpmString(speedIncrement,speedIncrement) + " ");
         Intent incrIntent =  new Intent(BROADCAST_PLAYERACTION);
         incrIntent.putExtra(PlayerService.INCREMENTSPEED, true);
         PendingIntent pIncrIntent = PendingIntent.getBroadcast(this, notificationStateID+1, incrIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         notificationView.setOnClickPendingIntent(R.id.notification_button_p_toucharea, pIncrIntent);
 
-        notificationView.setTextViewText(R.id.notification_button_m, " - " + Utilities.getBpmString(speedIncrement,speedIncrement) + "   ");
+        notificationView.setTextViewText(R.id.notification_button_m, " - " + Utilities.Companion.getBpmString(speedIncrement,speedIncrement) + "   ");
         Intent decrIntent =  new Intent(BROADCAST_PLAYERACTION);
         decrIntent.putExtra(PlayerService.DECREMENTSPEED, true);
         PendingIntent pDecrIntent = PendingIntent.getBroadcast(this, notificationStateID+2, decrIntent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -379,7 +379,7 @@ public class PlayerService extends Service {
 
         if (notificationBuilder != null) {
 //            notificationBuilder.setContentText(getString(R.string.bpm, Utilities.getBpmString(getSpeed(), speedIncrement)));
-            notificationView.setTextViewText(R.id.notification_speedtext, getString(R.string.bpm, Utilities.getBpmString(getSpeed(), speedIncrement)));
+            notificationView.setTextViewText(R.id.notification_speedtext, getString(R.string.bpm, Utilities.Companion.getBpmString(getSpeed(), speedIncrement)));
             NotificationManagerCompat.from(this).notify(notificationID, notificationBuilder.build());
         }
     }
@@ -503,7 +503,7 @@ public class PlayerService extends Service {
 
     public void syncKlickWithUptimeMillis(long time) {
         if(getState() == PlaybackStateCompat.STATE_PLAYING) {
-            audioMixer.synchronizeTime(time, Utilities.speed2dt(getSpeed()) / 1000.0f);
+            audioMixer.synchronizeTime(time, Utilities.Companion.speed2dt(getSpeed()) / 1000.0f);
         }
     }
 
@@ -575,7 +575,7 @@ public class PlayerService extends Service {
     }
 
     private void setMissingMembersAndCopyPlayListToAudioMixer() {
-        float duration = Utilities.speed2dt(getSpeed()) / 1000.0f;
+        float duration = Utilities.Companion.speed2dt(getSpeed()) / 1000.0f;
 
         if(playListMixer.length == 0) {
             playListMixer = new AudioMixer.PlayListItem[1];

@@ -71,7 +71,7 @@ open class ControlPanel(context : Context, attrs : AttributeSet?, defStyleAttr: 
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
 
-        val desiredSize = (Utilities.dp_to_px(200f) + (max(paddingBottom + paddingTop,
+        val desiredSize = (Utilities.dp2px(200f) + (max(paddingBottom + paddingTop,
                 paddingLeft + paddingRight))).roundToInt()
 
         val widthMode = MeasureSpec.getMode(widthMeasureSpec)

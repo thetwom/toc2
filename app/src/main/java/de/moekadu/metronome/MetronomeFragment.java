@@ -59,7 +59,7 @@ public class MetronomeFragment extends Fragment {
     private PlayerService playerService;
     private Context playerContext;
     private SharedPreferences.OnSharedPreferenceChangeListener sharedPreferenceChangeListener;
-    private float speedIncrement = Utilities.speedIncrements[InitialValues.speedIncrementIndex];
+    private float speedIncrement = Utilities.Companion.getSpeedIncrements()[InitialValues.speedIncrementIndex];
 
     private final Vector<Float> buttonPositions = new Vector<>();
     private final Vector<Float> volumes = new Vector<>();
@@ -197,23 +197,23 @@ public class MetronomeFragment extends Fragment {
                 if(key.equals("speedincrement")){
                     int newSpeedIncrementIndex = sharedPreferences.getInt("speedincrement", InitialValues.speedIncrementIndex);
 //                    assert newSpeedIncrement != null;
-                    speedIncrement = Utilities.speedIncrements[newSpeedIncrementIndex];
+                    speedIncrement = Utilities.Companion.getSpeedIncrements()[newSpeedIncrementIndex];
                     speedPanel.setSpeedIncrement(speedIncrement);
                 }
                 else if(key.equals("speedsensitivity")){
-                    float newSpeedSensitivity = sharedPreferences.getInt("speedsensitivity", Math.round(Utilities.sensitivity2percentage(InitialValues.speedSensitivity)));
-                    speedPanel.setSensitivity(Utilities.percentage2sensitivity(newSpeedSensitivity));
+                    float newSpeedSensitivity = sharedPreferences.getInt("speedsensitivity", Math.round(Utilities.Companion.sensitivity2percentage(InitialValues.speedSensitivity)));
+                    speedPanel.setSensitivity(Utilities.Companion.percentage2sensitivity(newSpeedSensitivity));
                 }
             }
         };
         assert getContext() != null;
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
         int speedIncrementIndex = sharedPreferences.getInt("speedincrement", InitialValues.speedIncrementIndex);
-        speedIncrement = Utilities.speedIncrements[speedIncrementIndex];
+        speedIncrement = Utilities.Companion.getSpeedIncrements()[speedIncrementIndex];
         speedPanel.setSpeedIncrement(speedIncrement);
 
-        float speedSensitivity = sharedPreferences.getInt("speedsensitivity", Math.round(Utilities.sensitivity2percentage(InitialValues.speedSensitivity)));
-        speedPanel.setSensitivity(Utilities.percentage2sensitivity(speedSensitivity));
+        float speedSensitivity = sharedPreferences.getInt("speedsensitivity", Math.round(Utilities.Companion.sensitivity2percentage(InitialValues.speedSensitivity)));
+        speedPanel.setSensitivity(Utilities.Companion.percentage2sensitivity(speedSensitivity));
 
         return view;
     }
@@ -300,11 +300,11 @@ public class MetronomeFragment extends Fragment {
 
         // We need this to avoid rare errors that there is no context
         if(isAdded())
-            speedText.setText(getString(R.string.bpm, Utilities.getBpmString(state.getPlaybackSpeed(), speedIncrement)));
+            speedText.setText(getString(R.string.bpm, Utilities.Companion.getBpmString(state.getPlaybackSpeed(), speedIncrement)));
 
         if(state.getPosition() != PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN){
             float speed = state.getPlaybackSpeed();
-            soundChooser.animateButton((int) state.getPosition(), Utilities.speed2dt(speed));
+            soundChooser.animateButton((int) state.getPosition(), Utilities.Companion.speed2dt(speed));
 
             speedIndicator.animate((int) state.getPosition(), speed);
         }

@@ -84,7 +84,7 @@ public class SavedItemDatabase extends RecyclerView.Adapter<SavedItemDatabase.Vi
         titleView.setText(item.title);
         dateView.setText(item.date + "\n" + item.time);
 //        dateView.setText("23.03.2019\n23:43");
-        speedView.setText(holder.view.getContext().getString(R.string.bpm, Utilities.getBpmString(item.bpm)));
+        speedView.setText(holder.view.getContext().getString(R.string.bpm, Utilities.Companion.getBpmString(item.bpm)));
 
         IconListVisualizer iconListVisualizer = holder.view.findViewById(R.id.saved_item_sounds);
         AudioMixer.PlayListItem[] metaData = SoundProperties.Companion.parseMetaDataString(item.playList);

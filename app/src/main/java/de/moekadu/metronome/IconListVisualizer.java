@@ -117,7 +117,7 @@ public class IconListVisualizer extends LinearLayout {
         if(icons == null)
             return;
 
-        int maxButtonWidth = Math.round((getWidth() - getPaddingLeft() - getPaddingRight() - (icons.length-1) * Utilities.dp_to_px(2)) / (float) icons.length);
+        int maxButtonWidth = Math.round((getWidth() - getPaddingLeft() - getPaddingRight() - (icons.length-1) * Utilities.Companion.dp2px(2)) / (float) icons.length);
         int defaultButtonWidth = getHeight() - getPaddingTop() - getPaddingBottom();
         int buttonWidth = Math.min(maxButtonWidth, defaultButtonWidth);
 

@@ -37,8 +37,8 @@ public class SoundChooser extends FrameLayout {
 
     final private Context context;
 
-    private final float spacing = Utilities.dp_to_px(2);
-    private final int defaultButtonHeight = Math.round(Utilities.dp_to_px(70));
+    private final float spacing = Utilities.Companion.dp2px(2);
+    private final int defaultButtonHeight = Math.round(Utilities.Companion.dp2px(70));
 
     final private ArrayList<MoveableButton> buttons = new ArrayList<>();
     final private ArrayList<MoveableButton> soundChoices = new ArrayList<>();
@@ -169,7 +169,7 @@ public class SoundChooser extends FrameLayout {
         // button.setBackgroundColor(ContextCompat.getColor(context, R.color.colorPrimary));
 
         button.setLayoutParams(params);
-        int pad = Math.round(Utilities.dp_to_px(5));
+        int pad = Math.round(Utilities.Companion.dp2px(5));
         button.setPadding(pad, pad, pad, pad);
 
         ViewGroup viewGroup = (ViewGroup) this.getParent();
@@ -523,7 +523,7 @@ public class SoundChooser extends FrameLayout {
         float offset = getChoiceButtonHeight() + spacing;
         float posY0 = getPaddingTop() + getY() - 3*spacing;
         float posY = posY0;
-        float posZ = Utilities.dp_to_px(24);
+        float posZ = Utilities.Companion.dp2px(24);
 
         for(MoveableButton b : soundChoices) {
             posY -= offset;
@@ -540,7 +540,7 @@ public class SoundChooser extends FrameLayout {
         float bW = getChoiceButtonWidth();
         float posX = getX() + indexToPosX(buttonidx) + (getButtonWidth() - bW) / 2.0f;
         float posY = getPaddingTop() + getY();
-        float posZ = Utilities.dp_to_px(0);
+        float posZ = Utilities.Companion.dp2px(0);
 
         for(MoveableButton b : soundChoices) {
             ViewGroup.LayoutParams params = b.getLayoutParams();

@@ -51,7 +51,7 @@ public class MoveableButton extends View {
     private final int highlightColor;
     private int buttonColor;
 
-    private final int cornerRadius = Math.round(Utilities.dp_to_px(4));
+    private final int cornerRadius = Math.round(Utilities.Companion.dp2px(4));
 
     private float viewPosX = 0;
     private float viewPosY = 0;
@@ -149,7 +149,7 @@ public class MoveableButton extends View {
         backgroundPaint = new Paint();
         backgroundPaint.setAntiAlias(true);
 
-        setElevation(Utilities.dp_to_px(8));
+        setElevation(Utilities.Companion.dp2px(8));
 
         springAnimationX.addEndListener(new DynamicAnimation.OnAnimationEndListener() {
             @Override
@@ -230,14 +230,14 @@ public class MoveableButton extends View {
                             if (positionChangedListener != null)
                                 positionChangedListener.onPositionChanged(MoveableButton.this, getX(), getY());
                         } else {
-                            final float resistanceDist = Utilities.dp_to_px(1);
+                            final float resistanceDist = Utilities.Companion.dp2px(1);
                             if(lockPosition){
                                 invalidate();
                             }
                             else if (dx * dx + dy * dy > resistanceDist * resistanceDist) {
                                 isMoving = true;
 //                                setElevation(10);
-                                setTranslationZ(Utilities.dp_to_px(18));
+                                setTranslationZ(Utilities.Companion.dp2px(18));
                                 if(positionChangedListener != null)
                                     positionChangedListener.onStartMoving(MoveableButton.this, getX(), getY());
                             }
@@ -362,7 +362,7 @@ public class MoveableButton extends View {
         volumePaint.setColor(volumeColor);
         volumePaint.setStyle(Paint.Style.FILL);
         float volume = properties.getVolume();
-        canvas.drawRect(getWidth()-Utilities.dp_to_px(2),(getHeight()-2*cornerRadius)*(1.0f-volume)+cornerRadius,getWidth(),
+        canvas.drawRect(getWidth()-Utilities.Companion.dp2px(2),(getHeight()-2*cornerRadius)*(1.0f-volume)+cornerRadius,getWidth(),
                 getHeight()-cornerRadius, volumePaint);
 
         if(icon != null) {
@@ -376,7 +376,7 @@ public class MoveableButton extends View {
         if(rippleStatus < 1){
             backgroundPaint.setColor(Color.BLACK);
             backgroundPaint.setAlpha(Math.round((1-rippleStatus) * 100));
-            canvas.drawCircle(localTouchPosX, localTouchPosY, Utilities.dp_to_px(30) + rippleStatus*getWidth(), backgroundPaint);
+            canvas.drawCircle(localTouchPosX, localTouchPosY, Utilities.Companion.dp2px(30) + rippleStatus*getWidth(), backgroundPaint);
         }
     }
 

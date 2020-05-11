@@ -37,8 +37,8 @@ import kotlin.math.roundToInt
 class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     : ViewGroup(context, attrs, defStyleAttr) {
 
-    private val defaultWidth = (Utilities.dp_to_px(60f)).roundToInt()
-    private val defaultLength = (Utilities.dp_to_px(300f)).roundToInt()
+    private val defaultWidth = (Utilities.dp2px(60f)).roundToInt()
+    private val defaultLength = (Utilities.dp2px(300f)).roundToInt()
     private val rectInt = Rect()
     private val rect = RectF()
     private val rectPos = RectF()
@@ -96,7 +96,7 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             }
         }
 
-    private val iSpace = Utilities.dp_to_px(2f)
+    private val iSpace = Utilities.dp2px(2f)
     var volume : Float = 0f
         set(value) {
             field = value
@@ -114,7 +114,7 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     private val outlineProvider = object : ViewOutlineProvider() {
         override fun getOutline(view: View?, outline: Outline) {
             val iWid = movableHeight
-            val cornerRad = Utilities.dp_to_px(iWid)
+            val cornerRad = Utilities.dp2px(iWid)
             rectInt.set(paddingLeft, paddingTop, width - paddingRight,height - paddingBottom)
             outline.setRoundRect(rectInt, cornerRad)
         }
@@ -176,7 +176,7 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 
         val iLen = movableLength
         val iWid = movableHeight
-        val cornerRad = Utilities.dp_to_px(iWid)
+        val cornerRad = Utilities.dp2px(iWid)
 
         contourPaint.isAntiAlias = true
 

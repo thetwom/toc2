@@ -35,8 +35,8 @@ import java.util.Vector;
 
 public class SpeedIndicator extends View {
 
-    private final int defaultHeight = Math.round(Utilities.dp_to_px(4));
-    private final int defaultWidth = Math.round(Utilities.dp_to_px(100));
+    private final int defaultHeight = Math.round(Utilities.Companion.dp2px(4));
+    private final int defaultWidth = Math.round(Utilities.Companion.dp2px(100));
 
     private Paint paint = null;
 
@@ -130,7 +130,7 @@ public class SpeedIndicator extends View {
     public void animate(int positionIndex, float speed){
 
         this.positionIndex = positionIndex;
-        animatePosition.setDuration(Utilities.speed2dt(speed));
+        animatePosition.setDuration(Utilities.Companion.speed2dt(speed));
         animatePosition.start();
     }
 

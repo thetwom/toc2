@@ -105,33 +105,33 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         speedIncrement.setUpdatesContinuously(true);
         speedIncrement.setSeekBarIncrement(1);
         speedIncrement.setMin(0);
-        speedIncrement.setMax(Utilities.speedIncrements.length-1);
-        if(Utilities.speedIncrements.length > speedIncrement.getValue()) {
-            float speedIncrementValue = Utilities.speedIncrements[speedIncrement.getValue()];
-            speedIncrement.setSummary(getString(R.string.bpm, Utilities.getBpmString(speedIncrementValue, speedIncrementValue)));
+        speedIncrement.setMax(Utilities.Companion.getSpeedIncrements().length-1);
+        if(Utilities.Companion.getSpeedIncrements().length > speedIncrement.getValue()) {
+            float speedIncrementValue = Utilities.Companion.getSpeedIncrements()[speedIncrement.getValue()];
+            speedIncrement.setSummary(getString(R.string.bpm, Utilities.Companion.getBpmString(speedIncrementValue, speedIncrementValue)));
         }
         speedIncrement.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 int incrementIndex = (int) newValue;
-                if(incrementIndex < Utilities.speedIncrements.length) {
-                    float speedIncrementValue = Utilities.speedIncrements[incrementIndex];
-                    speedIncrement.setSummary(getString(R.string.bpm, Utilities.getBpmString(speedIncrementValue, speedIncrementValue)));
+                if(incrementIndex < Utilities.Companion.getSpeedIncrements().length) {
+                    float speedIncrementValue = Utilities.Companion.getSpeedIncrements()[incrementIndex];
+                    speedIncrement.setSummary(getString(R.string.bpm, Utilities.Companion.getBpmString(speedIncrementValue, speedIncrementValue)));
                 }
                 return true;
             }
         });
-        float speedIncrementValue = Utilities.speedIncrements[speedIncrement.getValue()];
+        float speedIncrementValue = Utilities.Companion.getSpeedIncrements()[speedIncrement.getValue()];
 
         final SeekBarPreference speedSensitivity = findPreference("speedsensitivity");
         assert speedSensitivity != null;
         speedSensitivity.setUpdatesContinuously(true);
-        speedSensitivity.setSummary(getString(R.string.speed_sensitivity_summary, Utilities.percentage2sensitivity(speedSensitivity.getValue())));
+        speedSensitivity.setSummary(getString(R.string.speed_sensitivity_summary, Utilities.Companion.percentage2sensitivity(speedSensitivity.getValue())));
         speedSensitivity.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 int percentage = (int) newValue;
-                float sensitivity = Utilities.percentage2sensitivity(percentage);
+                float sensitivity = Utilities.Companion.percentage2sensitivity(percentage);
                 speedSensitivity.setSummary(getString(R.string.speed_sensitivity_summary, sensitivity));
                 return true;
             }
@@ -142,7 +142,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         if(minimumSpeed.getText() == null)
             minimumSpeed.setText(Float.toString(InitialValues.minimumSpeed));
 
-        minimumSpeed.setSummary(getString(R.string.bpm, Utilities.getBpmString(Float.parseFloat(minimumSpeed.getText()), speedIncrementValue)));
+        minimumSpeed.setSummary(getString(R.string.bpm, Utilities.Companion.getBpmString(Float.parseFloat(minimumSpeed.getText()), speedIncrementValue)));
         minimumSpeed.setOnBindEditTextListener(new EditTextPreference.OnBindEditTextListener() {
             @Override
             public void onBindEditText(@NonNull EditText editText) {
@@ -156,7 +156,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             maximumSpeed.setText(Float.toString(InitialValues.maximumSpeed));
 //        maximumSpeed.setDefaultValue(Float.toString(InitialValues.maximumSpeed));
 
-        maximumSpeed.setSummary(getString(R.string.bpm, Utilities.getBpmString(Float.parseFloat(maximumSpeed.getText()), speedIncrementValue)));
+        maximumSpeed.setSummary(getString(R.string.bpm, Utilities.Companion.getBpmString(Float.parseFloat(maximumSpeed.getText()), speedIncrementValue)));
         maximumSpeed.setOnBindEditTextListener(new EditTextPreference.OnBindEditTextListener() {
             @Override
             public void onBindEditText(@NonNull EditText editText) {
@@ -171,7 +171,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                     float speed = Float.parseFloat((String) newValue);
                     float maxSpeed = Float.parseFloat(maximumSpeed.getText());
                     if(speed < maxSpeed){
-                        minimumSpeed.setSummary(getString(R.string.bpm, Utilities.getBpmString(speed)));
+                        minimumSpeed.setSummary(getString(R.string.bpm, Utilities.Companion.getBpmString(speed)));
                         return true;
                     }
                     else{
@@ -190,7 +190,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                     // if(playerService.setMaximumSpeed(speed)){
                     float minSpeed = Float.parseFloat(minimumSpeed.getText());
                     if(speed > minSpeed){
-                        maximumSpeed.setSummary(getString(R.string.bpm, Utilities.getBpmString(speed)));
+                        maximumSpeed.setSummary(getString(R.string.bpm, Utilities.Companion.getBpmString(speed)));
                         return true;
                     }
                     else{
@@ -267,7 +267,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             public boolean onPreferenceClick(Preference preference) {
                 TextView textView = new TextView(getContext());
                 textView.setText(getString(R.string.about_message, getString(R.string.version)));
-                int pad = Math.round(Utilities.dp_to_px(20));
+                int pad = Math.round(Utilities.Companion.dp2px(20));
                 textView.setPadding(pad, pad, pad, pad);
                 assert getContext() != null;
                 AlertDialog.Builder builder = new AlertDialog.Builder(getContext())

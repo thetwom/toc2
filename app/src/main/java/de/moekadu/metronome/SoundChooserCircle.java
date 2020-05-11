@@ -84,7 +84,7 @@ public class SoundChooserCircle extends FrameLayout {
 
         //int desiredWidth = Integer.MAX_VALUE;
         //int desiredHeight = Integer.MIN_VALUE;
-        int desiredSize = Math.round(Utilities.dp_to_px(500) + (Math.max(getPaddingBottom()+getPaddingTop(), getPaddingLeft()+getPaddingRight())));
+        int desiredSize = Math.round(Utilities.Companion.dp2px(500) + (Math.max(getPaddingBottom()+getPaddingTop(), getPaddingLeft()+getPaddingRight())));
 
         int widthMode = MeasureSpec.getMode(widthMeasureSpec);
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);
@@ -189,7 +189,7 @@ public class SoundChooserCircle extends FrameLayout {
             button.setLayoutParams(params);
             button.setElevation(24);
 
-            int pad = Math.round(Utilities.dp_to_px(5));
+            int pad = Math.round(Utilities.Companion.dp2px(5));
             button.setPadding(pad, pad, pad, pad);
 
             viewGroup.addView(button);

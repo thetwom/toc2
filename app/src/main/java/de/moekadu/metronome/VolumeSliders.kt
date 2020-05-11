@@ -39,17 +39,17 @@ import kotlin.math.roundToInt
 class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
     : FrameLayout(context, attrs, defStyleAttr){
 
-    private val defaultHeight = Utilities.dp_to_px(300f)
+    private val defaultHeight = Utilities.dp2px(300f)
     private val tunerHeightPercent = 0.7f
-    private val defaultTunerWidth = Utilities.dp_to_px(35f)
+    private val defaultTunerWidth = Utilities.dp2px(35f)
     private val tunerWidthPercent = 0.1f
     private var tunerWidth = defaultTunerWidth
-    private val buttonTunerSpacing = Utilities.dp_to_px(8f)
-    private val tunerSpacing = Utilities.dp_to_px(4f)
-    private val elementPadding = Utilities.dp_to_px(4f)
-    private val minimumButtonHeight = (Utilities.dp_to_px(40f)).roundToInt()
+    private val buttonTunerSpacing = Utilities.dp2px(8f)
+    private val tunerSpacing = Utilities.dp2px(4f)
+    private val elementPadding = Utilities.dp2px(4f)
+    private val minimumButtonHeight = (Utilities.dp2px(40f)).roundToInt()
     private var buttonHeight = minimumButtonHeight
-    private val minimumButtonWidth = (Utilities.dp_to_px(70f)).roundToInt()
+    private val minimumButtonWidth = (Utilities.dp2px(70f)).roundToInt()
     private val buttonAspectRatio = 3.0f
     private var folded = true
     private var foldingValue = 0.0f
@@ -170,7 +170,7 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     }
 
     fun init() {
-        translationZ = Utilities.dp_to_px(24f)
+        translationZ = Utilities.dp2px(24f)
 
         unfoldAnimator.addUpdateListener { animation ->
             foldingValue = animation.animatedValue as Float
@@ -186,10 +186,10 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         buttonHeight = max(minimumButtonHeight, (actualButtonWidth / buttonAspectRatio).roundToInt())
         val params = MarginLayoutParams(actualButtonWidth.roundToInt(), buttonHeight)
         button?.layoutParams = params
-        val pad = (Utilities.dp_to_px(0f)).roundToInt()
+        val pad = (Utilities.dp2px(0f)).roundToInt()
         button?.setPadding(pad, pad, pad, pad)
-        button?.elevation = Utilities.dp_to_px(2f)
-        button?.translationX = Utilities.dp_to_px(4f)
+        button?.elevation = Utilities.dp2px(2f)
+        button?.translationX = Utilities.dp2px(4f)
         button?.translationY = if(folded) foldedButtonTop else unfoldedButtonTop
         button?.scaleType = ImageView.ScaleType.CENTER_INSIDE
         button?.setImageResource(if(folded) R.drawable.ic_tune_arrow2 else R.drawable.ic_tune_arrow_down2)
@@ -273,7 +273,7 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
         val volumeControl = VolumeControl(context, null)
         volumeControl.translationY = tunerTop
-        volumeControl.elevation = Utilities.dp_to_px(2f)
+        volumeControl.elevation = Utilities.dp2px(2f)
         volumeControl.vertical = true
         volumeControl.backgroundSurfaceColor = elementBackgroundColor
         volumeControl.sliderColor = interactiveColor
