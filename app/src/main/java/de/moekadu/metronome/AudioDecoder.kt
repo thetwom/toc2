@@ -63,7 +63,7 @@ fun audioToPCM(id : Int, context : Context) : FloatArray {
     while (true) {
 
         // get input buffer index and then the input buffer itself
-        val inputBufferIndex = codec.dequeueInputBuffer(300000)
+        val inputBufferIndex = codec.dequeueInputBuffer(5000000)
         if (inputBufferIndex < 0) {
             throw RuntimeException("AudioEncoder.decode: failed to get input buffer index")
         }
@@ -83,13 +83,13 @@ fun audioToPCM(id : Int, context : Context) : FloatArray {
         }
 
         // we are done decoding and can now read our result
-        var outputBufferIndex = codec.dequeueOutputBuffer(bufferInfo, 200000)
+        var outputBufferIndex = codec.dequeueOutputBuffer(bufferInfo, 5000000)
 
         // sometimes this output format changed appears, then we have to try again to get
         // the output buffer index again
         if (outputBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
             // Log.v("AudioMixer", "AudioEncoder.decode: output format changed")
-            outputBufferIndex = codec.dequeueOutputBuffer(bufferInfo, 200000)
+            outputBufferIndex = codec.dequeueOutputBuffer(bufferInfo, 5000000)
         }
 
         // if something fails ....
