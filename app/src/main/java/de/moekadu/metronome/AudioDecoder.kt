@@ -24,6 +24,8 @@ import android.media.*
 import java.lang.RuntimeException
 import java.nio.ByteOrder
 import kotlin.math.ceil
+import kotlin.math.max
+import kotlin.math.roundToInt
 
 fun audioToPCM(id : Int, context : Context) : FloatArray {
 
@@ -46,7 +48,7 @@ fun audioToPCM(id : Int, context : Context) : FloatArray {
     // Log.v("AudioMixer", "AudioEncoder.decode: track count: " + mediaExtractor.trackCount)
     // Log.v("AudioMixer", "AudioEncoder.decode: media codec name: $mediaCodecName")
 
-    val result = FloatArray((ceil((duration * sampleRate).toDouble() / 1000000.0)).toInt()) { 0f }
+    var result = FloatArray((ceil((duration * sampleRate).toDouble() / 1000000.0)).toInt()) { 0f }
     // Log.v("AudioMixer", "AudioEncoder.decode: result.size = " + result.size)
 
     val codec = MediaCodec.createByCodecName(mediaCodecName)
@@ -110,7 +112,17 @@ fun audioToPCM(id : Int, context : Context) : FloatArray {
         // returned later. We want to have mono output stream, so we add different channel
         // to the same index.
         while (shortBuffer.position() < shortBuffer.limit()) {
-            result[numSamples / channelCount] += shortBuffer.get().toFloat()
+            val pos = numSamples / channelCount
+
+            // extend size of output array if decoder gave us a too short duration
+            if(pos >= result.size) {
+                val newSize = max(result.size + 1000, (1.5*result.size).roundToInt())
+                val extendedResult = FloatArray(newSize) {0.0f}
+                result.copyInto(extendedResult)
+                result = extendedResult
+            }
+
+            result[pos] += shortBuffer.get().toFloat()
             ++numSamples
         }
 
