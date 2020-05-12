@@ -61,8 +61,8 @@ class AudioMixer (availableTrackResources : IntArray, context: Context, maximumL
      */
     private val audioBufferUpdatePeriod = floor(maximumLatencyInFrames / 2.0f).toInt()
 
-    /// Buffer size of Audio Track in bytes
-    private val audioTrackBufferSize = max(minBufferSize, 4*maximumLatencyInFrames)
+    /// Buffer size of Audio Track in bytes (the factor for is because the size of 1 float is 4 bytes)
+    private val audioTrackBufferSize = max(minBufferSize, 4 * 2 * audioBufferUpdatePeriod)
 
     /// The playing audio track itself
     private val player = AudioTrack.Builder()
@@ -192,21 +192,22 @@ class AudioMixer (availableTrackResources : IntArray, context: Context, maximumL
 
         player.flush()
 
-       // Log.v("AudioMixer", "AudioMixer: start")
+        // Log.v("AudioMixer", "AudioMixer: start")
+        // Log.v("AudioMixer", "AudioMixer:start : minimumBufferSize=$minBufferSize , periodicBaseSize: ${4 * 2 * audioBufferUpdatePeriod}")
         player.play()
 
         player.positionNotificationPeriod = audioBufferUpdatePeriod
 
+        // Log.v("AudioMixer", "AudioMixer:start, positionPeriod = $audioBufferUpdatePeriod")
+
         // queue the track which start playing during the first audioBufferUpdatePeriod frames and play them
-        queueNextTracks()
-
-        mixAndPlayQueuedTracks()
-
         // since the first periodic update is not at frame zero , we have to queue the next tracks already here
-        queueNextTracks()
-        mixAndPlayQueuedTracks()
+        for(i in 0 .. 1) {
+            queueNextTracks()
+            mixAndPlayQueuedTracks()
+        }
 
-        //Log.v("AudioMixer", "AudioMixer: start, first marker = ${player.notificationMarkerPosition}")
+        // Log.v("AudioMixer", "AudioMixer: start, first marker = ${player.notificationMarkerPosition}")
 
         isPlaying = true
     }
@@ -265,7 +266,7 @@ class AudioMixer (availableTrackResources : IntArray, context: Context, maximumL
         player.setPlaybackPositionUpdateListener(object : AudioTrack.OnPlaybackPositionUpdateListener {
 
             override fun onMarkerReached(track: AudioTrack?) {
-               // Log.v("AudioMixer", "AudioMixer: onMarkerReached, headPos=${track?.playbackHeadPosition}")
+//                Log.v("AudioMixer", "AudioMixer: onMarkerReached, headPos=${track?.playbackHeadPosition}")
                 val markerAndPosition = markers.pop()
 //                Log.v("AudioMixer", "AudioMixer: onMarkerReached, nextMarker=${markerAndPosition.nextTrackPosition}")
                 val objectReference = markerAndPosition.objectReferenceOfPlaylistItem
@@ -278,6 +279,7 @@ class AudioMixer (availableTrackResources : IntArray, context: Context, maximumL
             }
 
             override fun onPeriodicNotification(track: AudioTrack?) {
+//                Log.v("AudioMixer", "AudioMixer: onPeriodicNotification")
                 if(track != null) {
                     queueNextTracks()
                     mixAndPlayQueuedTracks()
@@ -352,7 +354,7 @@ class AudioMixer (availableTrackResources : IntArray, context: Context, maximumL
                 break
         }
         val numWrite = player.write(mixingBuffer, 0, mixingBuffer.size, AudioTrack.WRITE_NON_BLOCKING)
-
+//        Log.v("AudioMixer", "AudioMixer:mixAndQueueTracks : wrote $numWrite to audioTrack")
         if(numWrite != mixingBuffer.size)
             throw RuntimeException("Nonblocking write of ${mixingBuffer.size} samples to AudioTrack not possible")
     }
