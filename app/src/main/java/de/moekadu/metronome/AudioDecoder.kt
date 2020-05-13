@@ -24,8 +24,6 @@ import android.media.*
 import java.lang.RuntimeException
 import java.nio.ByteOrder
 import kotlin.math.ceil
-import kotlin.math.max
-import kotlin.math.roundToInt
 
 fun audioToPCM(id : Int, context : Context) : FloatArray {
 
@@ -34,12 +32,12 @@ fun audioToPCM(id : Int, context : Context) : FloatArray {
     mediaExtractor.setDataSource(sampleFD.fileDescriptor, sampleFD.startOffset, sampleFD.length)
     val format = mediaExtractor.getTrackFormat(0)
 
-//    val mime = format.getString(MediaFormat.KEY_MIME)
+    val mime = format.getString(MediaFormat.KEY_MIME)
     val sampleRate = format.getInteger(MediaFormat.KEY_SAMPLE_RATE)
     val duration = format.getLong(MediaFormat.KEY_DURATION)
     val channelCount = format.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
-    val mediaCodecList = MediaCodecList(MediaCodecList.REGULAR_CODECS)
-    val mediaCodecName = mediaCodecList.findDecoderForFormat(format)
+    // val mediaCodecList = MediaCodecList(MediaCodecList.REGULAR_CODECS)
+    // val mediaCodecName = mediaCodecList.findDecoderForFormat(format)
 
     // Log.v("AudioMixer", "AudioEncoder.decode: MIME TYPE: $mime")
     // Log.v("AudioMixer", "AudioEncoder.decode: duration $duration")
@@ -51,7 +49,11 @@ fun audioToPCM(id : Int, context : Context) : FloatArray {
     var result = FloatArray((ceil((duration * sampleRate).toDouble() / 1000000.0)).toInt()) { 0f }
     // Log.v("AudioMixer", "AudioEncoder.decode: result.size = " + result.size)
 
-    val codec = MediaCodec.createByCodecName(mediaCodecName)
+    // val codec = MediaCodec.createByCodecName(mediaCodecName)
+    if(mime == null) {
+        throw RuntimeException("AudioDecoder: no mime type")
+    }
+    val codec = MediaCodec.createDecoderByType(mime)
 
     codec.configure(format, null, null, 0)
     codec.start()
@@ -59,80 +61,99 @@ fun audioToPCM(id : Int, context : Context) : FloatArray {
     mediaExtractor.selectTrack(0)
     var numSamples = 0
     val bufferInfo = MediaCodec.BufferInfo()
+    val timeOutUs = 5000L
+    var sawOutputEOS = false
+    var sawInputEOS = false
+    var numNoOutput = 0
 
-    while (true) {
+    while (!sawOutputEOS) {
 
-        // get input buffer index and then the input buffer itself
-        val inputBufferIndex = codec.dequeueInputBuffer(5000000)
-        if (inputBufferIndex < 0) {
-            throw RuntimeException("AudioEncoder.decode: failed to get input buffer index")
-        }
+        if(!sawInputEOS) {
+            // get input buffer index and then the input buffer itself
+            val inputBufferIndex = codec.dequeueInputBuffer(timeOutUs)
 
-        val inputBuffer = codec.getInputBuffer(inputBufferIndex)
-            ?: throw RuntimeException("AudioEncoder.decode: failed to acquire input buffer")
+            if (inputBufferIndex >= 0) {
 
-        // write the next bunch of data from our media file to the input buffer
-        val sampleSize = mediaExtractor.readSampleData(inputBuffer, 0)
+                val inputBuffer = codec.getInputBuffer(inputBufferIndex)
+                        ?: throw RuntimeException("AudioDecoder: failed to get input buffer index")
 
-        // queue the input buffer such that the codec can decode it
-        if (sampleSize < 0) {
-            codec.queueInputBuffer(inputBufferIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
-        } else {
-            codec.queueInputBuffer(inputBufferIndex, 0, sampleSize, mediaExtractor.sampleTime, 0)
-            mediaExtractor.advance()
+                // write the next bunch of data from our media file to the input buffer
+                var sampleSize = mediaExtractor.readSampleData(inputBuffer, 0)
+
+                var presentationTimeUs = 0L
+                var eosFlag = 0
+
+                if (sampleSize < 0) {
+                    sawInputEOS = true
+                    eosFlag = MediaCodec.BUFFER_FLAG_END_OF_STREAM
+                    sampleSize = 0
+                }
+                else {
+                    presentationTimeUs = mediaExtractor.sampleTime
+                }
+
+                // queue the input buffer such that the codec can decode it
+                codec.queueInputBuffer(
+                    inputBufferIndex,
+                    0,
+                    sampleSize,
+                    presentationTimeUs,
+                    eosFlag
+                )
+
+                if (!sawInputEOS)
+                mediaExtractor.advance()
+            }
         }
 
         // we are done decoding and can now read our result
-        var outputBufferIndex = codec.dequeueOutputBuffer(bufferInfo, 5000000)
+        val outputBufferIndex = codec.dequeueOutputBuffer(bufferInfo, timeOutUs)
 
-        // sometimes this output format changed appears, then we have to try again to get
-        // the output buffer index again
-        if (outputBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-            // Log.v("AudioMixer", "AudioEncoder.decode: output format changed")
-            outputBufferIndex = codec.dequeueOutputBuffer(bufferInfo, 5000000)
-        }
+        if(outputBufferIndex >= 0) {
+            // finally get our output data and create a view to a short buffer which is the
+            // standard data type for 16bit audio
+            val outputBuffer = codec.getOutputBuffer(outputBufferIndex)
+                ?: throw RuntimeException("AudioDecoder: cannot acquire output buffer")
 
-        // if something fails ....
-        if (outputBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-            // Log.v("AudioMixer", "AudioEncoder.decode: output format changed")
-            throw RuntimeException("Cannot acquire valid output buffer index")
-        } else if (outputBufferIndex == MediaCodec.INFO_TRY_AGAIN_LATER) {
-            // Log.v("AudioMixer", "AudioEncoder.decode: try again later")
-            throw RuntimeException("Cannot acquire valid output buffer index")
-        }
+            val shortBuffer = outputBuffer.order(ByteOrder.nativeOrder()).asShortBuffer()
 
-        // finally get our output data and create a view to a short buffer which is the
-        // standard data type for 16bit audio
-        val outputBuffer = codec.getOutputBuffer(outputBufferIndex)
-            ?: throw RuntimeException("Cannot acquire output buffer")
+            // convert the short data to floats and store it to the result-array which will be
+            // returned later. We want to have mono output stream, so we add different channel
+            // to the same index.
+            while (shortBuffer.position() < shortBuffer.limit()) {
+                val pos = numSamples / channelCount
 
-        val shortBuffer = outputBuffer.order(ByteOrder.nativeOrder()).asShortBuffer()
+                // extend size of output array if decoder gave us a too short duration
+                if(pos >= result.size) {
+                    // linear growth should be ok if the decoder info is not completely off
+                    val newSize = result.size + 1000
+                    val extendedResult = FloatArray(newSize) {0.0f}
+                    result.copyInto(extendedResult)
+                    result = extendedResult
+                }
 
-        // convert the short data to floats and store it to the result-array which will be
-        // returned later. We want to have mono output stream, so we add different channel
-        // to the same index.
-        while (shortBuffer.position() < shortBuffer.limit()) {
-            val pos = numSamples / channelCount
-
-            // extend size of output array if decoder gave us a too short duration
-            if(pos >= result.size) {
-                val newSize = max(result.size + 1000, (1.5*result.size).roundToInt())
-                val extendedResult = FloatArray(newSize) {0.0f}
-                result.copyInto(extendedResult)
-                result = extendedResult
+                result[pos] += shortBuffer.get().toFloat()
+                ++numSamples
             }
 
-            result[pos] += shortBuffer.get().toFloat()
-            ++numSamples
-        }
+            codec.releaseOutputBuffer(outputBufferIndex, false)
 
-        codec.releaseOutputBuffer(outputBufferIndex, false)
-        if ((bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) == MediaCodec.BUFFER_FLAG_END_OF_STREAM)
-            break
+            if ((bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0)
+                sawOutputEOS = true
+            numNoOutput = 0
+        }
+        else {
+            ++numNoOutput
+            if(numNoOutput > 50) {
+                throw RuntimeException("AudioDecoder: Somehow we do not get output data from the codec")
+            }
+        }
     }
 
     mediaExtractor.release()
+    codec.stop()
     codec.release()
+    sampleFD.close()
 
     val channelCountInv = 1.0f / channelCount
     for(i in result.indices)
@@ -141,4 +162,3 @@ fun audioToPCM(id : Int, context : Context) : FloatArray {
     // Log.v("AudioMixer", "AudioEncoder.decode: peak value = $peak")
     return result
 }
-
