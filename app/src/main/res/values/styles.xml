@@ -33,6 +33,7 @@
         <item name="controlPanelStyle">@style/ControlPanelStyle</item>
         <item name="volumeSlidersStyle">@style/VolumeSlidersStyle</item>
         <item name="volumeControlStyle">@style/VolumeControlStyle</item>
+        <item name="tickVisualizerStyle">@style/TickVisualizerStyle</item>
     </style>
 
 </resources>

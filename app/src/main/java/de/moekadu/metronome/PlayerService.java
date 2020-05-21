@@ -372,10 +372,10 @@ public class PlayerService extends Service {
         if(speed > maximumSpeed + tolerance)
             speed -= speedIncrement;
 
-        setMissingMembersAndCopyPlayListToAudioMixer();
-
         playbackState = playbackStateBuilder.setState(getState(), PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, speed).build();
         mediaSession.setPlaybackState(playbackState);
+
+        setMissingMembersAndCopyPlayListToAudioMixer();
 
         if (notificationBuilder != null) {
 //            notificationBuilder.setContentText(getString(R.string.bpm, Utilities.getBpmString(getSpeed(), speedIncrement)));
@@ -406,7 +406,7 @@ public class PlayerService extends Service {
     }
 
     public void setSounds(AudioMixer.PlayListItem[] sounds) {
-        Log.v("Metronome", "PlayerService:setSounds");
+//        Log.v("Metronome", "PlayerService:setSounds");
 
         // Do not do anything if we already have the correct sounds
         if (SoundProperties.Companion.trackIndexAndVolumeEqual(sounds, playListMixer)) {
@@ -501,7 +501,7 @@ public class PlayerService extends Service {
         }
     }
 
-    public void syncKlickWithUptimeMillis(long time) {
+    public void syncClickWithUptimeMillis(long time) {
         if(getState() == PlaybackStateCompat.STATE_PLAYING) {
             audioMixer.synchronizeTime(time, Utilities.Companion.speed2dt(getSpeed()) / 1000.0f);
         }
@@ -576,7 +576,7 @@ public class PlayerService extends Service {
 
     private void setMissingMembersAndCopyPlayListToAudioMixer() {
         float duration = Utilities.Companion.speed2dt(getSpeed()) / 1000.0f;
-
+//        Log.v("Metronome", "PlayerService.setMissingMembersAndCopyPlayListToAudioMixer: duration = " +duration + " speed= " + getSpeed());
         if(playListMixer.length == 0) {
             playListMixer = new AudioMixer.PlayListItem[1];
             playListMixer[0] = new AudioMixer.PlayListItem(Sounds.defaultSound(), 1.0f, duration, playListMixer[0]);

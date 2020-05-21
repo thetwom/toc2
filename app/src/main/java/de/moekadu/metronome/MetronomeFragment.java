@@ -50,7 +50,8 @@ public class MetronomeFragment extends Fragment {
     private TextView wakeupErrorText;
     private TextView speedText;
     private PlayButton playButton;
-    private SpeedIndicator speedIndicator;
+//    private SpeedIndicator speedIndicator;
+    private TickVisualizer tickVisualizer;
     private SoundChooser soundChooser;
     private VolumeSliders volumeSliders;
 
@@ -115,8 +116,9 @@ public class MetronomeFragment extends Fragment {
 
         SpeedPanel speedPanel = view.findViewById(R.id.speedpanel);
 
-        speedIndicator = view.findViewById(R.id.speedindicator2);
+//        speedIndicator = view.findViewById(R.id.speedindicator2);
         volumeSliders = view.findViewById(R.id.volume_sliders);
+        tickVisualizer = view.findViewById(R.id.tickvisualizer);
 
         speedPanel.setSpeedChangedListener(new SpeedPanel.SpeedChangedListener() {
             @Override
@@ -130,7 +132,7 @@ public class MetronomeFragment extends Fragment {
             public void onAbsoluteSpeedChanged(float newSpeed, long nextKlickTimeInMillis) {
                 if (playerServiceBound) {
                     playerService.changeSpeed(newSpeed);
-                    playerService.syncKlickWithUptimeMillis(nextKlickTimeInMillis);
+                    playerService.syncClickWithUptimeMillis(nextKlickTimeInMillis);
                 }
             }
         });
@@ -294,7 +296,8 @@ public class MetronomeFragment extends Fragment {
             playButton.changeStatus(PlayButton.STATUS_PLAYING, animate);
         }
         else if(state.getState() == PlaybackStateCompat.STATE_PAUSED){
-            speedIndicator.stopPlay();
+//            speedIndicator.stopPlay();
+            tickVisualizer.stop();
             playButton.changeStatus(PlayButton.STATUS_PAUSED, animate);
         }
 
@@ -306,7 +309,8 @@ public class MetronomeFragment extends Fragment {
             float speed = state.getPlaybackSpeed();
             soundChooser.animateButton((int) state.getPosition(), Utilities.Companion.speed2dt(speed));
 
-            speedIndicator.animate((int) state.getPosition(), speed);
+//            speedIndicator.animate((int) state.getPosition(), speed);
+            tickVisualizer.tick(Utilities.Companion.speed2dt(speed));
         }
     }
 
@@ -378,7 +382,7 @@ public class MetronomeFragment extends Fragment {
             volumes.add(soundChooser.getButtonVolume(ipos));
         }
         //buttonPositions.add(soundChooser.indexToPosX(sounds.size()));
-        speedIndicator.setMarks(buttonPositions);
+//        speedIndicator.setMarks(buttonPositions);
 
 
         for(int ipos = 0; ipos < soundChooser.numSounds(); ++ipos){

@@ -23,6 +23,7 @@
         <attr name="controlPanelStyle" format="reference"/>
         <attr name="volumeSlidersStyle" format="reference"/>
         <attr name="volumeControlStyle" format="reference"/>
+        <attr name="tickVisualizerStyle" format="reference"/>
     </declare-styleable>
 
 
@@ -45,6 +46,14 @@
         <item name="labelColor">?attr/colorPrimary</item>
         <item name="highlightColor">?attr/colorSecondary</item>
         <item name="textColor">?attr/colorPrimary</item>
+    </style>
+
+    <declare-styleable name="TickVisualizer" parent="ControlPanel">
+        <attr name="pointSize" format="dimension"/>
+    </declare-styleable>
+
+    <style name="TickVisualizerStyle" parent="ControlPanelStyle">
+        <item name="pointSize">10dp</item>
     </style>
 
     <declare-styleable name="SoundChooser">
