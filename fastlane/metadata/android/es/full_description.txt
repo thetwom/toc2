@@ -1,0 +1,5 @@
+    Una simple aplicación de Metrónomo que te apoya durante los ensayos. Ofrece una funcionalidad básica como:
+    * Ajustando la velocidad en "pulsaciones por minuto".
+    * Ajustando la velocidad por "tap in".
+    * Selección de diferentes sonidos.
+    * Guardando y cargando la configuración actual.
