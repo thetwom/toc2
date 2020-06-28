@@ -39,15 +39,15 @@ final class Sounds {
     }
 
     private final static SoundInfo[] sounds = {
-            new SoundInfo(R.raw.base44, R.raw.base48, R.string.base, R.drawable.ic_a_note),
-            new SoundInfo(R.raw.snare44, R.raw.snare48, R.string.snare, R.drawable.ic_c_note),
-            new SoundInfo(R.raw.sticks44, R.raw.sticks48, R.string.sticks, R.drawable.ic_c_note_rim),
-            new SoundInfo(R.raw.woodblock_high44, R.raw.woodblock_high48, R.string.woodblock, R.drawable.ic_ep_note),
-            new SoundInfo(R.raw.claves44, R.raw.claves48, R.string.claves, R.drawable.ic_gp_note),
+            new SoundInfo(R.raw.base44_wav, R.raw.base48_wav, R.string.base, R.drawable.ic_a_note),
+            new SoundInfo(R.raw.snare44_wav, R.raw.snare48_wav, R.string.snare, R.drawable.ic_c_note),
+            new SoundInfo(R.raw.sticks44_wav, R.raw.sticks48_wav, R.string.sticks, R.drawable.ic_c_note_rim),
+            new SoundInfo(R.raw.woodblock_high44_wav, R.raw.woodblock_high48_wav, R.string.woodblock, R.drawable.ic_ep_note),
+            new SoundInfo(R.raw.claves44_wav, R.raw.claves48_wav, R.string.claves, R.drawable.ic_gp_note),
             //new SoundInfo(R.raw.hhp_dry_a, R.string.hihat, R.drawable.ic_hihat),
-            new SoundInfo(R.raw.hihat44, R.raw.hihat48, R.string.hihat, R.drawable.ic_hihat_note),
+            new SoundInfo(R.raw.hihat44_wav, R.raw.hihat48_wav, R.string.hihat, R.drawable.ic_hihat_note),
             //new SoundInfo(R.raw.sn_jazz_c, R.string.snare, R.drawable.ic_snare),
-            new SoundInfo(R.raw.mute44, R.raw.mute48, R.string.mute, R.drawable.ic_quarter_pause),
+            new SoundInfo(R.raw.mute44_wav, R.raw.mute48_wav, R.string.mute, R.drawable.ic_quarter_pause),
     };
 
 

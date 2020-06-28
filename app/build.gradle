@@ -8,8 +8,8 @@ android {
         applicationId "de.moekadu.metronome"
         minSdkVersion 23
         targetSdkVersion 29
-        versionCode 18
-        versionName "1.6.4"
+        versionCode 19
+        versionName "1.6.5"
         resValue "string", "version", "${versionName}"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

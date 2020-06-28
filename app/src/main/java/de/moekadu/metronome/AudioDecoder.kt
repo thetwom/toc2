@@ -22,8 +22,29 @@ package de.moekadu.metronome
 import android.content.Context
 import android.media.*
 import java.lang.RuntimeException
+import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.ceil
+
+fun waveToPCM(id : Int, context: Context) : FloatArray {
+    val inputStream = context.resources.openRawResource(id)
+    val outputArray = ArrayList<Float>()
+
+    inputStream.skip(44)
+    val buffer = ByteArray(1024)
+    val byteBuffer = ByteBuffer.wrap(buffer)
+    byteBuffer.order(ByteOrder.LITTLE_ENDIAN)
+
+    var numRead = 1
+    while(numRead > 0) {
+        numRead = inputStream.read(buffer)
+        for(i in 0 until numRead step 2) {
+            outputArray.add(byteBuffer.getShort(i).toFloat() / 32768.0f)
+        }
+    }
+    return outputArray.toFloatArray()
+}
+
 
 fun audioToPCM(id : Int, context : Context) : FloatArray {
 

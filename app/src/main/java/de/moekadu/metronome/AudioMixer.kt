@@ -32,7 +32,8 @@ class AudioMixer (availableTrackResources : IntArray, context: Context, maximumL
     companion object {
         fun createAvailableTracks(availableTrackResources: IntArray, context: Context) : Array<FloatArray> {
             return Array(availableTrackResources.size) {
-                i -> audioToPCM(availableTrackResources[i], context)
+                // i -> audioToPCM(availableTrackResources[i], context)
+                i -> waveToPCM(availableTrackResources[i], context)
             }
         }
 
@@ -43,7 +44,6 @@ class AudioMixer (availableTrackResources : IntArray, context: Context, maximumL
 //            return maxLength
 //        }
     }
-
 
     /// Device sample rate
     private val nativeSampleRate = AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC)
