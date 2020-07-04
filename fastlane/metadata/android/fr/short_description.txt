@@ -1,0 +1,1 @@
+Application simple de métronome, pour garder le tempo pendant le travail de la musique.
