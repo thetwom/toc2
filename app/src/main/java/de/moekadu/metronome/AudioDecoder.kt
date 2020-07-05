@@ -26,6 +26,14 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.ceil
 
+/// Read wave file to float buffer
+/**
+ * @note Only single channel wave files are supported with 44byte header. This can e.g. created
+ * with ffmpeg -i "mute44.flac" -f wav -bitexact -acodec pcm_s16le -ac 1 mute44_wav.wav
+ * @param id Resource id of wave file
+ * @param context Context needed to get resources
+ * @return FloatArray with content of wave file
+ */
 fun waveToPCM(id : Int, context: Context) : FloatArray {
     val inputStream = context.resources.openRawResource(id)
     val outputArray = ArrayList<Float>()
