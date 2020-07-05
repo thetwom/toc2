@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">Métronome</string>
+<!--    <string name="app_name" translatable="false">Métronome</string>-->
     <string name="action_settings">Configuration</string>
 
-    <string name="base" translatable="false">grosse caisse</string>
-    <string name="hihat" translatable="false">charleston</string>
-    <string name="snare" translatable="false">caisse claire</string>
-    <string name="sticks" translatable="false">baguettes</string>
-    <string name="claves" translatable="false">claves</string>
-    <string name="woodblock" translatable="false">woodblock</string>
+<!--    <string name="base" translatable="false">grosse caisse</string>-->
+<!--    <string name="hihat" translatable="false">charleston</string>-->
+<!--    <string name="snare" translatable="false">caisse claire</string>-->
+<!--    <string name="sticks" translatable="false">baguettes</string>-->
+<!--    <string name="claves" translatable="false">claves</string>-->
+<!--    <string name="woodblock" translatable="false">woodblock</string>-->
     <string name="mute">muet</string>
-    <string name="bpm" translatable="false">%s bpm</string>
+<!--    <string name="bpm" translatable="false">%s bpm</string>-->
 
     <string name="load_data">Charger un réglage</string>
     <string name="save_data">Sauver le réglage</string>
@@ -32,7 +32,7 @@
     <string name="maximum_speed">Tempo maximum</string>
 
     <string name="reset_all_settings">Réinitialiser la configuration</string>
-    <string name="reset_settings_prompt">Souhaitez-vous vraiment revenir à la configuration d'origine ?</string>
+    <string name="reset_settings_prompt">Souhaitez-vous vraiment revenir à la configuration d\'origine ?</string>
     <string name="about">A propos</string>
 
     <string name="undo">Annuler</string>
@@ -40,16 +40,16 @@
 
     <string name="save_settings_dialog_title">Sauver le réglage actuel</string>
     <string name="save_name">Nom</string>
-    <string name="saved_item_message">Réglage actuel sauvé : %s</string>
+    <string name="saved_item_message">Réglage actuel sauvé: %s</string>
     <string name="save">Sauver</string>
     <string name="dismiss">Annuler</string>
-    <string name="max_allowed_characters">Nombre de caractères maximum : %d</string>
+    <string name="max_allowed_characters">Nombre de caractères maximum: %d</string>
 
     <string name="no_saved_items">Aucun réglage sauvé pour le moment</string>
 
-    <string name="loaded_message">Réglage chargé : %s</string>
+    <string name="loaded_message">Réglage chargé: %s</string>
 
-    <string name="tap_in" translatable="false">TAP IN</string>
+<!--    <string name="tap_in" translatable="false">TAP IN</string>-->
 
     <string name="about_message">Metronome app\nVersion: %s\nLicense: GPLv3</string>
 
@@ -58,11 +58,11 @@
 
     <string name="speed_too_small">Le tempo du réglage %s bpm est en dessous du tempo minimum configuré %s bpm.\n</string>
     <string name="speed_too_large">Le tempo du réglage %s bpm est au dessus du tempo maximum configuré %s bpm.\n</string>
-    <string name="inconsistent_increment">Le tempo du réglage %s bpm n'est pas compatible avec l'incrémentation configurée %s bpm.\n</string>
+    <string name="inconsistent_increment">Le tempo du réglage %s bpm n\'est pas compatible avec l\'incrémentation configurée %s bpm.</string>
     <string name="inconsistent_load_title">Chargement incorrect</string>
-    <string name="inconsistent_summary">\Modifiez votre configuration si vous voulez charger le réglage correctement.</string>
+    <string name="inconsistent_summary">Modifiez votre configuration si vous voulez charger le réglage correctement.</string>
     <string name="acknowledged">Vu</string>
 
-    <string name="keep_screen_on">Garder l'écran allumé</string>
+    <string name="keep_screen_on">Garder l\'écran allumé</string>
 
 </resources>
