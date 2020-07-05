@@ -26,7 +26,7 @@
     <string name="system_appearance_short">Auto</string>
 
     <string name="speed_sensitivity">Sensibilité du sélecteur de tempo</string>
-    <string name="speed_sensitivity_summary">Nombre de crans par cm: %.1f</string>
+    <string name="speed_sensitivity_summary">Nombre de crans par cm\u00A0: %.1f</string>
     <string name="speedincrement">Incrémentation du tempo</string>
     <string name="minimum_speed">Tempo minimum</string>
     <string name="maximum_speed">Tempo maximum</string>
@@ -40,18 +40,18 @@
 
     <string name="save_settings_dialog_title">Sauver le réglage actuel</string>
     <string name="save_name">Nom</string>
-    <string name="saved_item_message">Réglage actuel sauvé: %s</string>
+    <string name="saved_item_message">Réglage actuel sauvé\u00A0: %s</string>
     <string name="save">Sauver</string>
     <string name="dismiss">Annuler</string>
-    <string name="max_allowed_characters">Nombre de caractères maximum: %d</string>
+    <string name="max_allowed_characters">Nombre de caractères maximum\u00A0: %d</string>
 
     <string name="no_saved_items">Aucun réglage sauvé pour le moment</string>
 
-    <string name="loaded_message">Réglage chargé: %s</string>
+    <string name="loaded_message">Réglage chargé\u00A0: %s</string>
 
 <!--    <string name="tap_in" translatable="false">TAP IN</string>-->
 
-    <string name="about_message">Metronome app\nVersion: %s\nLicense: GPLv3</string>
+    <string name="about_message">Metronome app\nVersion\u00A0: %s\nLicense\u00A0: GPLv3</string>
 
     <string name="yes">oui</string>
     <string name="no">non</string>
