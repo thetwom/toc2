@@ -22,6 +22,7 @@ package de.moekadu.metronome
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Color
+import android.graphics.Rect
 import android.os.Bundle
 import android.os.Parcelable
 import android.util.AttributeSet
@@ -42,7 +43,7 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     private val defaultHeight = Utilities.dp2px(300f)
     private val tunerHeightPercent = 0.7f
     private val defaultTunerWidth = Utilities.dp2px(35f)
-    private val tunerWidthPercent = 0.1f
+//    private val tunerWidthPercent = 0.1f
     private var tunerWidth = defaultTunerWidth
     private val buttonTunerSpacing = Utilities.dp2px(8f)
     private val tunerSpacing = Utilities.dp2px(4f)
@@ -63,6 +64,7 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     private var onInteractiveColor = Color.WHITE
     private var elementBackgroundColor = Color.WHITE
     private var surfaceBackgroundColor = Color.WHITE
+    private var belowSliderColor =  Color.WHITE
 
     private val unfoldAnimator = ValueAnimator.ofFloat(0f, 1f)
 
@@ -111,11 +113,12 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     init {
 //        Log.v("Metronome", "VolumeSliders" + getLeft());
         attrs?.let {
-            val ta = context.obtainStyledAttributes(attrs, R.styleable.VolumeSliders, defStyleAttr, R.style.VolumeSlidersStyle)
+            val ta = context.obtainStyledAttributes(attrs, R.styleable.VolumeSliders, defStyleAttr, R.style.Widget_AppTheme_VolumeSlidersStyle)
             interactiveColor = ta.getColor(R.styleable.VolumeSliders_interactiveColor, interactiveColor)
             onInteractiveColor = ta.getColor(R.styleable.VolumeSliders_onInteractiveColor, onInteractiveColor)
             elementBackgroundColor = ta.getColor(R.styleable.VolumeSliders_elementBackgroundColor, elementBackgroundColor)
             surfaceBackgroundColor = ta.getColor(R.styleable.VolumeSliders_backgroundColor, surfaceBackgroundColor)
+            belowSliderColor = ta.getColor(R.styleable.VolumeControl_belowSliderColor, belowSliderColor)
             ta.recycle()
         }
         button = ImageButton(context, attrs)
@@ -219,35 +222,32 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         addView(background)
     }
 
-    fun setTunersAt(positions : Vector<Float>, volume : Vector<Float>) {
-        tunerWidth = if(positions.size < 2) {
-            width * tunerWidthPercent
-        }
-        else {
-            min(width * tunerWidthPercent, positions[1] - positions[0] - tunerSpacing)
-        }
+    fun setTunersAt(boundingBoxes : Array<Rect>, volumes : ArrayList<Float>) {
+        require(boundingBoxes.size == volumes.size)
+        tunerWidth = Float.MAX_VALUE
+        for(box in boundingBoxes)
+            tunerWidth = min(box.width() - tunerSpacing, tunerWidth)
+
+        tunerWidth = min(tunerHeight / 7f, tunerWidth)
+
         val params = LayoutParams(tunerWidth.roundToInt(), tunerHeight.roundToInt())
 
-        if(BuildConfig.DEBUG && (positions.size != volume.size))
-            throw AssertionError("positions and volumeControls have different size")
-
-        for(i in positions.size until volumeControls.size) {
+        for(i in boundingBoxes.size until volumeControls.size) {
             val vC = volumeControls[i]
             vC.visibility = GONE
         }
 
-        for(i in 0 until positions.size) {
+        for(i in boundingBoxes.indices) {
             var vC : VolumeControl?
             var addToView = false
             if(volumeControls.size <= i) {
                 val newVC = createVolumeControl()
                 volumeControls.add(newVC)
                 newVC.translationY = tunerTop
-                val currentIdx = volumeControls.size - 1
 
                 newVC.onVolumeChangedListener = object : VolumeControl.OnVolumeChangedListener {
                     override fun onVolumeChanged(volume: Float) {
-                        volumeChangedListener?.onVolumeChanged(currentIdx, volume)
+                        volumeChangedListener?.onVolumeChanged(i, volume)
                     }
                 }
 
@@ -258,15 +258,14 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                 vC = volumeControls[i]
             }
 
-            vC.translationX = positions[i] - tunerWidth/2.0f
+            vC.translationX = boundingBoxes[i].centerX() - tunerWidth/2.0f - left - translationX
             vC.visibility = VISIBLE
-            vC.volume = volume[i]
+            vC.volume = volumes[i]
             vC.layoutParams = params
 
             if(addToView)
                 addView(vC)
         }
-
     }
 
     private fun createVolumeControl() : VolumeControl {
@@ -278,6 +277,7 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         volumeControl.backgroundSurfaceColor = elementBackgroundColor
         volumeControl.sliderColor = interactiveColor
         volumeControl.iconColor = onInteractiveColor
+        volumeControl.belowSliderColor = belowSliderColor
         val params = MarginLayoutParams(tunerWidth.roundToInt(), tunerHeight.roundToInt())
         volumeControl.setPadding(0,0,0,0)
         volumeControl.layoutParams = params

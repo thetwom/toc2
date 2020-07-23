@@ -30,14 +30,12 @@ import kotlin.math.*
 
 class AudioMixer (val context: Context) {
     companion object {
-        fun createAvailableTracks(context: Context, sampleRate: Int): Array<FloatArray> {
-            return Array(Sounds.getNumSoundID()) {
-                // i -> audioToPCM(availableTrackResources[i], context)
-                i ->
-                waveToPCM(Sounds.getSoundID(i, sampleRate), context)
+        fun createNoteSamples(context: Context) : Array<FloatArray> {
+            return Array(getNumAvailableNotes()) {
+                // i -> audioToPCM(audioResourceIds[i], context)
+                i -> waveToPCM(getNoteAudioResourceID(i), context)
             }
         }
-
 
 //        fun getMaximumTrackLength(tracks : Array<FloatArray>) : Int {
 //            var maxLength = 0
@@ -57,21 +55,21 @@ class AudioMixer (val context: Context) {
     /// The playing audio track itself
     private var player : AudioTrack? = null
 
-    /// These are all available tracks which we can play, samples are stored as as FloatArrays
-    private var availableTracks = Array(0) { FloatArray(0)}
+    /// These are the samples for all available notes which we can play, samples are stored as as FloatArrays
+    private var noteSamples = Array(0) { FloatArray(0)}
 
     /// Class which stores tracks which are queued for the playing
     /**
-     * @param trackIndex Track index in #availableTracks
-     * @param nextSampleToMix Next track sample list which goes into our mixer
+     * @param nodeId Note index in #availableNotes
+     * @param nextSampleToMix Index of next sample inside the audio file which goes into our mixer
      * @param startDelay wait this number of frames until passing the track to our mixer
      * @param volume Track volume
      *   starts in this many frames.
      */
-    class QueuedTracks(var trackIndex : Int = 0, var nextSampleToMix : Int = 0, var startDelay : Int = 0, var volume : Float = 0f)
+    class QueuedNotes(var nodeId : Int = 0, var nextSampleToMix : Int = 0, var startDelay : Int = 0, var volume : Float = 0f)
 
     /// List of tracks which are currently queued for playing.
-    private val queuedTracks = InfiniteCircularBuffer(32) {QueuedTracks()}
+    private val queuedNotes = InfiniteCircularBuffer(32) {QueuedNotes()}
 
     /// Total number of frames for which we queued track for playing. Is zeroed when player starts.
     private var queuedFrames = 0
@@ -79,73 +77,74 @@ class AudioMixer (val context: Context) {
     /// Mixing buffer where we mix our audio
     private var mixingBuffer = FloatArray(0)
 
-    /// Item in the playlist.
-    /**
-     * @param trackIndex Track index in #availableTracks
-     * @param volume Track volume
-     * @param duration Time in seconds until the next track starts playing
-     * @param objectReference Some reference which is passed to the callback function, when this
-     *   item starts playing.
-     */
-    class PlayListItem (var trackIndex : Int, var volume : Float, var duration : Float, var objectReference : Any?) {
-        fun clone() : PlayListItem {
-            return PlayListItem(trackIndex, volume, duration, objectReference)
-        }
-        fun set(value : PlayListItem) {
-            trackIndex = value.trackIndex
-            volume = value.volume
-            duration = value.duration
-            objectReference = value.objectReference
-        }
-    }
+//    /// Item in the playlist.
+//    /**
+//     * @param trackIndex Track index in #availableTracks
+//     * @param volume Track volume
+//     * @param duration Time in seconds until the next track starts playing
+//     * @param objectReference Some reference which is passed to the callback function, when this
+//     *   item starts playing.
+//     */
+//    class PlayListItem (var trackIndex : Int, var volume : Float, var duration : Float, var objectReference : Any?) {
+//        fun clone() : PlayListItem {
+//            return PlayListItem(trackIndex, volume, duration, objectReference)
+//        }
+//        fun set(value : PlayListItem) {
+//            trackIndex = value.trackIndex
+//            volume = value.volume
+//            duration = value.duration
+//            objectReference = value.objectReference
+//        }
+//    }
 
     /// Playlist with tracks which are played in a loop
-    var playList = Array(0) {PlayListItem(0, 0f, 0f, null)}
-        set(newPlayList) {
-            require(newPlayList.isNotEmpty()) {"The play list size must be at least 1"}
-            if (field.size == newPlayList.size) {
+    var noteList = NoteList()
+        set(newNoteList) {
+            require(newNoteList.isNotEmpty()) {"The note list size must be at least 1"}
+            if (field.size == newNoteList.size) {
                 for(i in field.indices)
-                    field[i].set(newPlayList[i])
+                    field[i] = newNoteList[i]
             }
             else {
-                field = Array(newPlayList.size) { i -> newPlayList[i].clone() }
+                field.clear()
+                field.addAll(newNoteList)
             }
         }
 
     /// Index of next playlist item which will be queued for playing
-    private var nextPlaylistIndex = 0
+    private var nextNoteListIndex = 0
 
-    /// Frame when next playlist item starts playing
-    private var nextTrackFrame = 0
+    /// Frame when next note list item starts playing
+    private var nextNoteFrame = 0
 
     /// Required information for handling the notifications when a playlist item starts
     /**
-     * @param frameWhenPlaylistItemStarts Frame when we have to notify that the
+     * @param frameWhenNoteListItemStarts Frame when we have to notify that the
      *   playlist item starts
-     * @param objectReferenceOfPlaylistItem Object reference which is passed to the callback
+     * @param noteListItem Object which is passed to the callback
      *   when the playlist item starts playing.
      */
-    class MarkerPositionAndObject (var frameWhenPlaylistItemStarts : Int = 0,
-                                   var objectReferenceOfPlaylistItem : Any? = null)
+    class MarkerPositionAndNote (var frameWhenNoteListItemStarts : Int = 0,
+                                 var noteListItem : NoteListItem? = null)
 
     /// Markers where we call a listener
-    private val markers = InfiniteCircularBuffer(32) { MarkerPositionAndObject() }
+    private val markers = InfiniteCircularBuffer(32) { MarkerPositionAndNote() }
 
-    /// Interface for listener which is used when a new playlist item starts
-    interface TrackStartedListener {
+    /// Interface for listener which is used when a new note list item starts
+    interface NoteStartedListener {
         /// Callback function which is called when a playlist item starts
         /**
-         * @param objectReference reference which is stored within the playlist item.
+         * @param noteListItem note list item which is started.
          */
-        fun onTrackStarted(objectReference: Any?)
+        fun onNoteStarted(noteListItem: NoteListItem?)
     }
 
     /// Callback when a track starts
-    private var trackStartedListener : TrackStartedListener ?= null
+    private var noteStartedListener : NoteStartedListener ?= null
 
     /// Set listener which is called, when a track starts
-    fun setTrackStartedListener(trackStartedListener: TrackStartedListener?) {
-        this.trackStartedListener = trackStartedListener
+    fun setNoteStartedListener(noteStartedListener: NoteStartedListener?) {
+        this.noteStartedListener = noteStartedListener
     }
 
     /// Variable which tells us if our player is running.
@@ -153,14 +152,14 @@ class AudioMixer (val context: Context) {
 
     /// Start playing
     fun start() {
-        require(playList.isNotEmpty()) {"Playlist must not be empty"}
+        require(noteList.isNotEmpty()) {"Note list must not be empty"}
         stop()
 
         val sampleRate = AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC)
         val bufferSize = 2 * AudioTrack.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_FLOAT)
         /// Division by 4 since this is frames (float) and the buffer size is in bytes
         audioBufferUpdatePeriod = floor(bufferSize / 4f  / 2.0f).toInt()
-        availableTracks = createAvailableTracks(context, sampleRate)
+        noteSamples = createNoteSamples(context)
         mixingBuffer = FloatArray(audioBufferUpdatePeriod)
 
         player = AudioTrack.Builder()
@@ -186,20 +185,19 @@ class AudioMixer (val context: Context) {
 //                Log.v("AudioMixer", "AudioMixer: onMarkerReached, headPos=${track?.playbackHeadPosition}")
                 val markerAndPosition = markers.pop()
 //                Log.v("AudioMixer", "AudioMixer: onMarkerReached, nextMarker=${markerAndPosition.nextTrackPosition}")
-                val objectReference = markerAndPosition.objectReferenceOfPlaylistItem
-                trackStartedListener?.onTrackStarted(objectReference)
+                noteStartedListener?.onNoteStarted(markerAndPosition.noteListItem)
 
                 if(markers.size > 0) {
                     val nextMarker = markers.first()
-                    track?.notificationMarkerPosition = nextMarker.frameWhenPlaylistItemStarts
+                    track?.notificationMarkerPosition = nextMarker.frameWhenNoteListItemStarts
                 }
             }
 
             override fun onPeriodicNotification(track: AudioTrack?) {
 //                Log.v("AudioMixer", "AudioMixer: onPeriodicNotification")
                 if(track != null) {
-                    queueNextTracks()
-                    mixAndPlayQueuedTracks()
+                    queueNextNotes()
+                    mixAndPlayQueuedNotes()
                 }
             }
         })
@@ -207,12 +205,12 @@ class AudioMixer (val context: Context) {
         player?.playbackHeadPosition = 0
         markers.clear()
 
-        queuedTracks.clear()
+        queuedNotes.clear()
         queuedFrames = 0
 
-        // lets add a delay for the first track to play to avoid playing artifacts
-        nextTrackFrame = audioBufferUpdatePeriod
-        nextPlaylistIndex = 0
+        // lets add a delay for the first note to play to avoid playing artifacts
+        nextNoteFrame = audioBufferUpdatePeriod
+        nextNoteListIndex = 0
 
         player?.flush()
 
@@ -227,12 +225,11 @@ class AudioMixer (val context: Context) {
         // queue the track which start playing during the first audioBufferUpdatePeriod frames and play them
         // since the first periodic update is not at frame zero , we have to queue the next tracks already here
         for(i in 0 .. 1) {
-            queueNextTracks()
-            mixAndPlayQueuedTracks()
+            queueNextNotes()
+            mixAndPlayQueuedNotes()
         }
 
         // Log.v("AudioMixer", "AudioMixer: start, first marker = ${player.notificationMarkerPosition}")
-
         isPlaying = true
     }
 
@@ -247,7 +244,7 @@ class AudioMixer (val context: Context) {
         isPlaying = false
     }
 
-    /// Synchronize first beat to playlist to given time and beat duration
+    /// Synchronize first beat to note list to given time and beat duration
     /**
      * @param referenceTime Time in uptime millis (from call to SystemClock.uptimeMillis()
      *   to which the first beat should be synchronized
@@ -263,79 +260,79 @@ class AudioMixer (val context: Context) {
             val referenceTimeInFrames = currentTimeInFrames + (referenceTime - currentTimeMillis).toInt() * audioTrack.sampleRate / 1000
             val beatDurationInFrames = (beatDuration * audioTrack.sampleRate).roundToInt()
 
-            if (nextPlaylistIndex >= playList.size)
-                nextPlaylistIndex = 0
+            if (nextNoteListIndex >= noteList.size)
+                nextNoteListIndex = 0
 
-            var referenceTimeForNextPlaylistItem = referenceTimeInFrames
-            for (i in 0 until nextPlaylistIndex)
-                referenceTimeForNextPlaylistItem += (playList[i].duration * audioTrack.sampleRate).roundToInt()
+            var referenceTimeForNextNoteListItem = referenceTimeInFrames
+            for (i in 0 until nextNoteListIndex)
+                referenceTimeForNextNoteListItem += (noteList[i].duration * audioTrack.sampleRate).roundToInt()
 
             // remove multiples of beat duration from our reference, so that it is always smaller than the nextTrackFrame
-            if (referenceTimeForNextPlaylistItem > 0)
-                referenceTimeForNextPlaylistItem -= (referenceTimeForNextPlaylistItem / beatDurationInFrames) * (beatDurationInFrames + 1)
-            require(referenceTimeForNextPlaylistItem <= nextTrackFrame)
+            if (referenceTimeForNextNoteListItem > 0)
+                referenceTimeForNextNoteListItem -= (referenceTimeForNextNoteListItem / beatDurationInFrames) * (beatDurationInFrames + 1)
+            require(referenceTimeForNextNoteListItem <= nextNoteFrame)
 
-            val correctedNextFrameIndex = (referenceTimeForNextPlaylistItem +
-                    ((nextTrackFrame - referenceTimeForNextPlaylistItem).toFloat()
+            val correctedNextFrameIndex = (referenceTimeForNextNoteListItem +
+                    ((nextNoteFrame - referenceTimeForNextNoteListItem).toFloat()
                             / beatDurationInFrames).roundToInt()
                     * beatDurationInFrames)
             // Log.v("AudioMixer", "AudioMixer.synchronizeTime : correctedNextFrame=$correctedNextFrameIndex, nextTrackFrame=$nextTrackFrame")
-            nextTrackFrame = correctedNextFrameIndex
+            nextNoteFrame = correctedNextFrameIndex
         }
     }
 
-    private fun queueNextTracks() {
+    private fun queueNextNotes() {
 //        Log.v("AudioMixer", "AudioMixer:queueNextTracks")
         player?.let { audioTrack ->
-            while (nextTrackFrame < queuedFrames + audioBufferUpdatePeriod) {
-                if (nextPlaylistIndex >= playList.size)
-                    nextPlaylistIndex = 0
+            while (nextNoteFrame < queuedFrames + audioBufferUpdatePeriod) {
+                if (nextNoteListIndex >= noteList.size)
+                    nextNoteListIndex = 0
 //            Log.v("AudioMixer", "AudioMixer:queueNextTracks nextPlaylistIndex=$nextPlaylistIndex")
-                val track = playList[nextPlaylistIndex]
+                val noteListItem = noteList[nextNoteListIndex]
 
-                val queueItem = queuedTracks.add()
-                queueItem.trackIndex = track.trackIndex
-                queueItem.startDelay = max(0, nextTrackFrame - queuedFrames)
-                queueItem.nextSampleToMix = 0
-                queueItem.volume = track.volume
+                val queuedNote = queuedNotes.add()
+                queuedNote.nodeId = noteListItem.id
+                queuedNote.startDelay = max(0, nextNoteFrame - queuedFrames)
+                queuedNote.nextSampleToMix = 0
+                queuedNote.volume = noteListItem.volume
 
-                nextTrackFrame += (track.duration * audioTrack.sampleRate).roundToInt()
+                nextNoteFrame += (noteListItem.duration * audioTrack.sampleRate).roundToInt()
 
                 val nextMarker = markers.add()
-                nextMarker.frameWhenPlaylistItemStarts = nextTrackFrame
-                nextMarker.objectReferenceOfPlaylistItem = track.objectReference
+                nextMarker.frameWhenNoteListItemStarts = nextNoteFrame
+                nextMarker.noteListItem = noteListItem
 
                 if (markers.size == 1)
-                    audioTrack.notificationMarkerPosition = queuedFrames + queueItem.startDelay
+                    audioTrack.notificationMarkerPosition = queuedFrames + queuedNote.startDelay
 
-                ++nextPlaylistIndex
+                ++nextNoteListIndex
             }
             queuedFrames += audioBufferUpdatePeriod
         }
     }
 
-    private fun mixAndPlayQueuedTracks() {
+    private fun mixAndPlayQueuedNotes() {
 //        Log.v("AudioMixer", "AudioMixer:mixAndQueueTracks")
         mixingBuffer.fill(0.0f)
 
-        for (i in queuedTracks.indexStart until queuedTracks.indexEnd) {
+        for (i in queuedNotes.indexStart until queuedNotes.indexEnd) {
 
-            val queuedItem = queuedTracks[i]
+            val queuedItem = queuedNotes[i]
 
-            val trackIndex = queuedItem.trackIndex
+            val noteId = queuedItem.nodeId
             val sampleStart = queuedItem.nextSampleToMix
             val startDelay = queuedItem.startDelay
             val volume = queuedItem.volume
 //            Log.v("AudioMixer", "AudioMixer:mixAndQueueTracks : iTrack = $i, trackIndex=$trackIndex, startDelay=$startDelay")
-            val trackSamples = availableTracks[trackIndex]
+            val samples = noteSamples[noteId]
 
-            val numSamplesToWrite = min(trackSamples.size - sampleStart, audioBufferUpdatePeriod - startDelay)
+            val numSamplesToWrite = min(samples.size - sampleStart, audioBufferUpdatePeriod - startDelay)
             val sampleEnd = sampleStart + numSamplesToWrite
 //            Log.v("AudioMixer", "AudioMixer:mixAndQueueTracks : sampleStart=$sampleStart, sampleEnd=$sampleEnd, sampleSize=${trackSamples.size}")
 
             var j = startDelay
             for(k in sampleStart until sampleEnd) {
-                mixingBuffer[j] = mixingBuffer[j] + volume * trackSamples[k]
+                mixingBuffer[j] = mixingBuffer[j] + volume * samples[k]
                 ++j
             }
 
@@ -343,11 +340,11 @@ class AudioMixer (val context: Context) {
             queuedItem.nextSampleToMix = sampleEnd
         }
 
-        while(queuedTracks.size > 0) {
-            val queuedItem = queuedTracks.first()
-            val numSamples = availableTracks[queuedItem.trackIndex].size
+        while(queuedNotes.size > 0) {
+            val queuedItem = queuedNotes.first()
+            val numSamples = noteSamples[queuedItem.nodeId].size
             if (queuedItem.nextSampleToMix >= numSamples)
-                queuedTracks.pop()
+                queuedNotes.pop()
             else
                 break
         }

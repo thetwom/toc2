@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt">
+
+    <aapt:attr name="android:drawable">
+        <vector
+            android:height="200dp"
+            android:width="80dp"
+            android:viewportHeight="50"
+            android:viewportWidth="20">
+
+            <group
+                android:name="pause"
+                android:pivotX="10"
+                android:pivotY="25">
+                <path
+                    android:fillColor="#FF000000"
+                    android:pathData="m9.3629,13.3173c0,0 4.507,4.8058 4.4768,6.5946 -0.0302,1.7889 -4.4229,2.709 -4.4197,3.9217 0.0031,1.2127 4.9543,6.188 4.9543,6.188l-0.735,0.7016c0,0 -4.4266,-2.6059 -5.4456,-1.47 -1.019,1.1359 1.0414,4.9266 1.0414,4.9266l-0.7073,0.3854c0,0 -2.8933,-6.4269 -2.2384,-7.2497 0.6549,-0.8228 4.1399,0.4549 5.475,0.9672 -2.1963,-2.7916 -5.2666,-2.8958 -5.3383,-5.1824 -0.0716,-2.2866 4.6321,-3.1284 4.6741,-4.4042 0.1002,-3.0402 -2.2718,-4.9111 -2.2718,-4.9111z" />
+            </group>
+        </vector>
+    </aapt:attr>
+
+    <target android:name="pause">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="500"
+                android:valueFrom="1.0"
+                android:valueTo="1.0"
+                android:interpolator="@android:interpolator/linear_out_slow_in">
+
+                <propertyValuesHolder android:propertyName="scaleX">
+                    <keyframe android:fraction="0.0"
+                        android:value="1.0"/>
+                    <keyframe android:fraction="0.5"
+                        android:value="1.7"/>
+                    <keyframe android:fraction="1.0"
+                        android:value="1.0"/>
+                </propertyValuesHolder>
+                <propertyValuesHolder android:propertyName="scaleY">
+                    <keyframe android:fraction="0.0"
+                        android:value="1.0"/>
+                    <keyframe android:fraction="0.5"
+                        android:value="1.7"/>
+                    <keyframe android:fraction="1.0"
+                        android:value="1.0"/>
+                </propertyValuesHolder>
+            </objectAnimator>
+        </aapt:attr>
+    </target>
+</animated-vector>

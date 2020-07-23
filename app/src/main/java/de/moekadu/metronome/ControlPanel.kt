@@ -60,7 +60,7 @@ open class ControlPanel(context : Context, attrs : AttributeSet?, defStyleAttr: 
 
     init {
         attrs?.let {
-            val ta = context.obtainStyledAttributes(attrs, R.styleable.ControlPanel, defStyleAttr, R.style.ControlPanelStyle)
+            val ta = context.obtainStyledAttributes(attrs, R.styleable.ControlPanel, defStyleAttr, R.style.Widget_AppTheme_ControlPanelStyle)
             textColor = ta.getColor(R.styleable.ControlPanel_textColor, textColor)
             labelColor = ta.getColor(R.styleable.ControlPanel_labelColor, labelColor)
             highlightColor = ta.getColor(R.styleable.ControlPanel_highlightColor, highlightColor)

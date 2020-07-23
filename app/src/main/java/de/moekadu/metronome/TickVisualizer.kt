@@ -21,7 +21,7 @@ class TickVisualizer(context : Context, attrs : AttributeSet?, defStyleAttr: Int
 
     init {
         attrs?.let {
-            val ta = context.obtainStyledAttributes(attrs, R.styleable.TickVisualizer, defStyleAttr, R.style.TickVisualizerStyle)
+            val ta = context.obtainStyledAttributes(attrs, R.styleable.TickVisualizer, defStyleAttr, R.style.Widget_AppTheme_TickVisualizerStyle)
             pointSize = ta.getDimension(R.styleable.TickVisualizer_pointSize, pointSize)
             ta.recycle()
         }

@@ -45,17 +45,21 @@ class MainActivity : AppCompatActivity() {
     // TODO: double/half speed?
     // TODO: delete log messages?
 
+    // TODO: when volume sliders are shown and a note is added/removed, animate the sliders to fit then new note setup
+    // TODO: test different device formats
+    // TODO: static soundchooser layout in landscape could be improved
+
     companion object {
         private const val METRONOME_FRAGMENT_TAG = "metronomeFragment"
         private const val PLAYER_FRAGMENT_TAG = "playerFragment"
         private const val SETTINGS_FRAGMENT_TAG = "settingsFragment"
-        private const val SOUND_CHOOSER_FRAGMENT_TAG = "soundChooserDialog"
+//        private const val SOUND_CHOOSER_FRAGMENT_TAG = "soundChooserDialog"
         private const val SAVE_DATA_FRAGMENT_TAG = "saveDataFragment"
     }
 
     private var playerFrag : PlayerFragment? = null
     private var settingsFrag : SettingsFragment? = null
-    private var soundChooserDialog : SoundChooserDialog? = null
+    // private var soundChooserDialog : SoundChooserDialog? = null
     private var saveDataFragment : SaveDataFragment? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -105,25 +109,27 @@ class MainActivity : AppCompatActivity() {
             settingsFrag = SettingsFragment()
         }
 
-        soundChooserDialog = supportFragmentManager.findFragmentByTag(SOUND_CHOOSER_FRAGMENT_TAG) as SoundChooserDialog?
-        if(soundChooserDialog == null) {
-            soundChooserDialog = SoundChooserDialog()
-            soundChooserDialog?.let {
-                supportFragmentManager.beginTransaction()
-                        .add(R.id.dialogframe, it, SOUND_CHOOSER_FRAGMENT_TAG)
-                        .detach(it)
-                        .commit()
-            }
-        }
-        soundChooserDialog?.setOnBackgroundClickedListener { unloadSoundChooserDialog() }
+//        soundChooserDialog = supportFragmentManager.findFragmentByTag(SOUND_CHOOSER_FRAGMENT_TAG) as SoundChooserDialog?
+//        if(soundChooserDialog == null) {
+//            soundChooserDialog = SoundChooserDialog()
+//            soundChooserDialog?.let {
+//                supportFragmentManager.beginTransaction()
+//                        .add(R.id.dialogframe, it, SOUND_CHOOSER_FRAGMENT_TAG)
+//                        .detach(it)
+//                        .commit()
+//            }
+//        }
+//        soundChooserDialog?.setOnBackgroundClickedListener { unloadSoundChooserDialog() }
 
         saveDataFragment = supportFragmentManager.findFragmentByTag(SAVE_DATA_FRAGMENT_TAG) as SaveDataFragment?
         if(saveDataFragment == null) {
             saveDataFragment = SaveDataFragment()
         }
-        saveDataFragment?.setOnItemClickedListener { item, _ ->
-            loadSettings(item)
-            supportFragmentManager.popBackStack()
+        saveDataFragment?.onItemClickedListener = object : SavedItemDatabase.OnItemClickedListener {
+            override fun onItemClicked(item: SavedItemDatabase.SavedItem, position: Int) {
+                loadSettings(item)
+                supportFragmentManager.popBackStack()
+            }
         }
 
         if(supportFragmentManager.fragments.size == 0)
@@ -135,10 +141,10 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    override fun onPause() {
-        unloadSoundChooserDialog()
-        super.onPause()
-    }
+//    override fun onPause() {
+////        unloadSoundChooserDialog()
+//        super.onPause()
+//    }
 
     override fun onSupportNavigateUp() : Boolean{
         supportFragmentManager.popBackStack()
@@ -198,22 +204,22 @@ class MainActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    fun loadSoundChooserDialog(button : MoveableButton, playerService : PlayerService) {
-        soundChooserDialog?.let {
-            it.setStatus(button, playerService)
-            supportFragmentManager.beginTransaction()
-                    .attach(it)
-                    .commit()
-        }
-    }
-
-    private fun unloadSoundChooserDialog(){
-        soundChooserDialog?.let {
-            supportFragmentManager.beginTransaction()
-                    .detach(it)
-                    .commit()
-        }
-    }
+//    fun loadSoundChooserDialog(button : MoveableButton, playerService : PlayerService) {
+//        soundChooserDialog?.let {
+//            it.setStatus(button, playerService)
+//            supportFragmentManager.beginTransaction()
+//                    .attach(it)
+//                    .commit()
+//        }
+//    }
+//
+//    private fun unloadSoundChooserDialog(){
+//        soundChooserDialog?.let {
+//            supportFragmentManager.beginTransaction()
+//                    .detach(it)
+//                    .commit()
+//        }
+//    }
 
     @SuppressLint("SimpleDateFormat")
     private fun saveCurrentSettings() {
@@ -237,7 +243,8 @@ class MainActivity : AppCompatActivity() {
                     item.time = timeFormat.format(date)
 
                     item.bpm = playerFrag?.playerService?.speed ?: InitialValues.speed
-                    item.playList = playerFrag?.playerService?.metaData?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
+                    //item.noteList = playerFrag?.playerService?.metaData?.getString(MediaMetadataCompat.METADATA_KEY_TITLE) ?: ""
+                    item.noteList = SoundProperties.createMetaDataString(playerFrag?.playerService?.noteList)
                     //                    Log.v("Metronome", item.playList);
                     if (item.title.length > 200) {
                         item.title = item.title.substring(0, 200)
@@ -275,8 +282,8 @@ class MainActivity : AppCompatActivity() {
             builder.show()
         }
 
-        playerFrag?.playerService?.changeSpeed(item.bpm)
-        playerFrag?.playerService?.setSounds(SoundProperties.parseMetaDataString(item.playList))
+        playerFrag?.playerService?.speed = item.bpm
+        playerFrag?.playerService?.noteList = SoundProperties.parseMetaDataString(item.noteList)
         Toast.makeText(this, getString(R.string.loaded_message, item.title), Toast.LENGTH_SHORT).show()
     }
 }

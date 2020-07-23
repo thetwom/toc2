@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt">
+
+    <aapt:attr name="android:drawable">
+        <vector
+            android:height="200dp"
+            android:width="80dp"
+            android:viewportHeight="50"
+            android:viewportWidth="20">
+
+            <group
+                android:name="note_head"
+                android:pivotX="6"
+                android:pivotY="21.782">
+                <path
+                    android:fillColor="#FF000000"
+                    android:pathData="M14.1564,18.4112a3.4697,4.8805 61.6557,1 0,-8.1809 5.2719a3.4697,4.8805 61.6557,1 0,8.1809 -5.2719z"/>
+            </group>
+            <group
+                android:name="note_line"
+                android:pivotX="6"
+                android:pivotY="21.782">
+                <path
+                    android:pathData="M6,46.1703V21.782"
+                    android:strokeColor="#000000"
+                    android:strokeWidth="1"/>
+            </group>
+        </vector>
+    </aapt:attr>
+
+    <target android:name="note_head">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="500"
+                android:valueFrom="1.0"
+                android:valueTo="1.0"
+                android:interpolator="@android:interpolator/linear_out_slow_in">
+
+                <propertyValuesHolder android:propertyName="scaleX">
+                    <keyframe android:fraction="0.0"
+                        android:value="1.0"/>
+                    <keyframe android:fraction="0.5"
+                        android:value="1.7"/>
+                    <keyframe android:fraction="1.0"
+                        android:value="1.0"/>
+                </propertyValuesHolder>
+                <propertyValuesHolder android:propertyName="scaleY">
+                    <keyframe android:fraction="0.0"
+                        android:value="1.0"/>
+                    <keyframe android:fraction="0.5"
+                        android:value="1.7"/>
+                    <keyframe android:fraction="1.0"
+                        android:value="1.0"/>
+                </propertyValuesHolder>
+            </objectAnimator>
+        </aapt:attr>
+    </target>
+</animated-vector>

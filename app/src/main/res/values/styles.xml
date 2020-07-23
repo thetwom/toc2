@@ -19,21 +19,182 @@
 
 <resources>
 
+
+
     <!-- Base application theme. -->
     <!-- <style name="AppTheme" parent="Theme.MaterialComponents.Light.DarkActionBar"> -->
-    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
         <!-- Customize your theme here. -->
 
         <item name="colorPrimary">@color/colorPrimary</item>
+
         <item name="colorSecondary">@color/colorSecondary</item>
         <item name="colorOnPrimary">@color/myColorOnPrimary</item>
         <item name="android:colorBackground">@color/colorMyBackground</item>
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
 
-        <item name="controlPanelStyle">@style/ControlPanelStyle</item>
-        <item name="volumeSlidersStyle">@style/VolumeSlidersStyle</item>
-        <item name="volumeControlStyle">@style/VolumeControlStyle</item>
-        <item name="tickVisualizerStyle">@style/TickVisualizerStyle</item>
+            <item name="colorPrimaryTransparent">@color/myColorPrimaryTransparent</item>
+
+        <item name="controlPanelStyle">@style/Widget.AppTheme.ControlPanelStyle</item>
+        <item name="volumeSlidersStyle">@style/Widget.AppTheme.VolumeSlidersStyle</item>
+        <item name="volumeControlStyle">@style/Widget.AppTheme.VolumeControlStyle</item>
+        <item name="tickVisualizerStyle">@style/Widget.AppTheme.TickVisualizerStyle</item>
     </style>
+
+    <declare-styleable name="CustomTheme">
+        <attr name="controlPanelStyle" format="reference"/>
+        <attr name="volumeSlidersStyle" format="reference"/>
+        <attr name="volumeControlStyle" format="reference"/>
+        <attr name="tickVisualizerStyle" format="reference"/>
+        <attr name="noteViewStyle" format="reference"/>
+        <attr name="soundChooserStyle" format="reference"/>
+    </declare-styleable>
+
+    <attr name="normalColor" format="color" />
+    <attr name="labelColor" format="color" />
+    <attr name="highlightColor" format="color" />
+    <attr name="volumeColor" format="color" />
+    <attr name="backgroundColor" format="color" />
+    <attr name="textColor" format="color" />
+
+    <declare-styleable name="ControlPanel">
+        <attr name="labelColor" />
+        <attr name="highlightColor" />
+        <attr name="textColor"/>
+    </declare-styleable>
+
+    <!--    <item name="android:background">?attr/colorBackgroundFloating</item>-->
+    <style name="Widget.AppTheme.ControlPanelStyle" parent="">
+        <item name="android:backgroundTint">?attr/colorBackgroundFloating</item>
+        <item name="labelColor">?attr/colorPrimary</item>
+        <item name="highlightColor">?attr/colorSecondary</item>
+        <item name="textColor">?attr/colorPrimary</item>
+    </style>
+
+    <declare-styleable name="TickVisualizer" parent="ControlPanel">
+        <attr name="pointSize" format="dimension"/>
+    </declare-styleable>
+
+    <style name="Widget.AppTheme.TickVisualizerStyle" parent="Widget.AppTheme.ControlPanelStyle">
+        <item name="pointSize">10dp</item>
+    </style>
+
+    <declare-styleable name="NoteView">
+        <attr name="lineColor" format="color"/>
+        <attr name="noteColor" format="color"/>
+        <attr name="noteHighlightColor" format="color"/>
+        <attr name="volumeStrokeWidth" format="dimension"/>
+        <attr name="volumeColor"/>
+    </declare-styleable>
+
+    <style name="Widget.AppTheme.NoteViewStyle" parent="">
+        <item name="lineColor">?attr/colorOnBackground</item>
+        <item name="noteColor">?attr/colorPrimary</item>
+        <item name="noteHighlightColor">?attr/colorSecondary</item>
+        <item name="volumeStrokeWidth">1.5dp</item>
+        <item name="volumeColor">?attr/colorPrimaryTransparent</item>
+    </style>
+
+    <declare-styleable name="SoundChooser">
+        <attr name="lineColor"/>
+        <attr name="noteColor"/>
+        <attr name="noteHighlightColor"/>
+        <attr name="minimumDeleteButtonHeight" format="dimension"/>
+        <attr name="elementElevation" format="dimension"/>
+        <attr name="activeElementTranslationZ" format="dimension"/>
+        <attr name="activeTranslationZ" format="dimension"/>
+        <attr name="elementPadding" format="dimension"/>
+        <attr name="volumeStrokeWidth"/>
+        <attr name="volumeColor"/>
+        <attr name="volumeControlBackgroundColor" format="color"/>
+        <attr name="volumeControlSliderColor" format="color"/>
+        <attr name="volumeControlOnSliderColor" format="color"/>
+        <attr name="volumeControlBelowSliderColor" format="color"/>
+        <attr name="backgroundViewColor" format="color"/>
+    </declare-styleable>
+
+    <style name="Widget.AppTheme.SoundChooserStyle" parent="">
+        <item name="lineColor">?attr/colorOnBackground</item>
+        <item name="noteColor">?attr/colorPrimary</item>
+        <item name="noteHighlightColor">?attr/colorSecondary</item>
+        <item name="minimumDeleteButtonHeight">50dp</item>
+        <item name="elementElevation">5dp</item>
+        <item name="activeElementTranslationZ">10dp</item>
+        <item name="activeTranslationZ">30dp</item>
+        <item name="elementPadding">4dp</item>
+        <item name="volumeStrokeWidth">1.5dp</item>
+        <item name="volumeColor">?attr/colorPrimaryTransparent</item>
+        <item name="volumeControlBackgroundColor">?attr/colorBackgroundFloating</item>
+        <item name="volumeControlSliderColor">?attr/colorPrimary</item>
+        <item name="volumeControlBelowSliderColor">?attr/colorPrimaryTransparent</item>
+        <item name="volumeControlOnSliderColor">?attr/colorOnPrimary</item>
+        <item name="backgroundViewColor">?android:colorBackground</item>
+    </style>
+
+
+    <declare-styleable name="SoundChooserOld">
+        <attr name="normalColor" />
+        <attr name="highlightColor" />
+        <attr name="volumeColor"/>
+    </declare-styleable>
+
+    <declare-styleable name="SpeedIndicator">
+        <attr name="normalColor" />
+    </declare-styleable>
+
+    <declare-styleable name="PlayButton">
+        <attr name="normalColor" />
+        <attr name="labelColor" />
+        <attr name="highlightColor" />
+    </declare-styleable>
+
+    <declare-styleable name="SoundChooserCircle">
+        <attr name="normalColor" />
+        <attr name="highlightColor" />
+        <attr name="volumeColor"/>
+    </declare-styleable>
+
+    <declare-styleable name="VolumeControl">
+        <attr name="sliderColor" format="color" />
+        <attr name="iconColor" format="color" />
+        <attr name="belowSliderColor" format="color"/>
+        <attr name="backgroundColor"/>
+        <attr name="vertical" format="boolean" />
+    </declare-styleable>
+
+    <style name="Widget.AppTheme.VolumeControlStyle" parent="">
+        <item name="sliderColor">?attr/colorPrimary</item>
+        <item name="iconColor">?attr/colorOnPrimary</item>
+        <item name="belowSliderColor">?attr/colorPrimaryTransparent</item>
+        <item name="backgroundColor">?attr/colorBackgroundFloating</item>
+        <item name="vertical">true</item>
+    </style>
+
+    <declare-styleable name="VolumeSliders">
+        <attr name="interactiveColor" format="color"/>
+        <attr name="elementBackgroundColor" format="color"/>
+        <attr name="onInteractiveColor" format="color"/>
+        <attr name="belowSliderColor"/>
+        <attr name="backgroundColor"/>
+    </declare-styleable>
+
+    <style name="Widget.AppTheme.VolumeSlidersStyle" parent="">
+        <item name="elementBackgroundColor">?attr/colorBackgroundFloating</item>
+        <item name="interactiveColor">?attr/colorPrimary</item>
+        <item name="onInteractiveColor">?attr/colorOnPrimary</item>
+        <item name="backgroundColor">?android:attr/colorBackground</item>
+        <item name="belowSliderColor">?attr/colorPrimaryTransparent</item>
+    </style>
+
+    <declare-styleable name="IconListVisualizer">
+        <attr name="normalColor" />
+        <attr name="volumeColor" />
+    </declare-styleable>
+
+    <declare-styleable name="SavedItemAttributes">
+        <attr name="deleteColor" format="color"/>
+        <attr name="onDeleteColor" format="color"/>
+        <attr name="seperatorColor" format="color"/>
+    </declare-styleable>
 
 </resources>

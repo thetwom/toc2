@@ -29,8 +29,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import de.moekadu.metronome.AudioMixer.PlayListItem
-
 
 /**
  * The fragment which stays alive even if the activity restarts
@@ -44,7 +42,7 @@ class PlayerFragment : Fragment() {
     private var playerConnection: ServiceConnection? = null
 
     private var speed = InitialValues.speed
-    private var playList: Array<PlayListItem> = Array(1) {PlayListItem(Sounds.defaultSound(), 1.0f, -1f, null)}
+    private var noteList = NoteList()
 
     override fun onCreate(savedInstanceState : Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,10 +56,10 @@ class PlayerFragment : Fragment() {
             // Log.v("Metronome", "PlayerFragment:onCreate : loading preferences");
             val preferences = context.getPreferences(Context.MODE_PRIVATE)
             speed = preferences.getFloat("speed", InitialValues.speed)
-            val soundString = preferences.getString("sound", Sounds.defaultSound().toString()) ?: Sounds.defaultSound().toString()
-            playList = SoundProperties.parseMetaDataString(soundString)
-            if(playList.isEmpty()){
-                playList = Array(1) {PlayListItem(Sounds.defaultSound(), 1.0f, -1f, null)}
+            val soundString = preferences.getString("sound", defaultNote.toString()) ?: defaultNote.toString()
+            noteList = SoundProperties.parseMetaDataString(soundString)
+            if(noteList.isEmpty()){
+                noteList.add(NoteListItem(defaultNote, 1.0f, 1f))
             }
 
             bindService(context.applicationContext)
@@ -80,8 +78,8 @@ class PlayerFragment : Fragment() {
                     val binder = service as PlayerService.PlayerBinder
                     playerService = binder.service
                     playerContext = context
-                    playerService?.changeSpeed(speed)
-                    playerService?.setSounds(playList)
+                    playerService?.speed = speed
+                    playerService?.noteList = noteList
                 }
 
                 override fun onServiceDisconnected(name: ComponentName?) {
@@ -113,10 +111,10 @@ class PlayerFragment : Fragment() {
             val editor = preferences.edit()
             //editor.putInt("speed", speed);
             speed = playerService?.playbackState?.playbackSpeed ?: InitialValues.speed
-            playerService?.sound?.let { playList = it }
+            playerService?.noteList?.let { noteList = it }
 
             editor.putFloat("speed", speed)
-            val metaDataString = SoundProperties.createMetaDataString(playList)
+            val metaDataString = SoundProperties.createMetaDataString(noteList)
             // Log.v("Metronome", "PlayerFragment:onStop : saving meta data: " + metaDataString)
             editor.putString("sound", metaDataString)
             editor.apply()

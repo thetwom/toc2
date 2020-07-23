@@ -1,0 +1,21 @@
+<vector android:height="200dp"
+    android:width="200dp"
+    android:viewportHeight="50"
+    android:viewportWidth="50"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <path android:pathData="M0,24.9435h50"
+        android:strokeColor="#000000"
+        android:strokeWidth="0.7"/>
+    <path android:pathData="M0,40.4451h50"
+        android:strokeColor="#000000"
+        android:strokeWidth="0.7"/>
+    <path android:pathData="M0,9.4419h50"
+        android:strokeColor="#000000"
+        android:strokeWidth="0.7"/>
+    <path android:pathData="M0,32.6943h50"
+        android:strokeColor="#000000"
+        android:strokeWidth="0.7"/>
+    <path android:pathData="M0,17.1927h50"
+        android:strokeColor="#000000"
+        android:strokeWidth="0.7"/>
+</vector>

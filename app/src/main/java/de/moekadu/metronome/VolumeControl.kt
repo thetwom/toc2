@@ -20,13 +20,12 @@
 package de.moekadu.metronome
 
 import android.content.Context
+import android.content.res.Resources
 import android.graphics.*
-import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
-import android.view.ViewGroup
 import android.view.ViewOutlineProvider
 import androidx.core.content.ContextCompat
 import kotlin.math.max
@@ -35,17 +34,22 @@ import kotlin.math.roundToInt
 
 
 class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
-    : ViewGroup(context, attrs, defStyleAttr) {
+    : View(context, attrs, defStyleAttr) {
 
     private val defaultWidth = (Utilities.dp2px(60f)).roundToInt()
     private val defaultLength = (Utilities.dp2px(300f)).roundToInt()
     private val rectInt = Rect()
     private val rect = RectF()
-    private val rectPos = RectF()
+    private val rectSlider = RectF()
+    private val rectZeroToSlider = RectF()
 
-    private var volMute: Drawable? = null
-    private var volDown: Drawable? = null
-    private var volUp: Drawable? = null
+    private val sliderDrawable = ContextCompat.getDrawable(context, R.drawable.volume_control_slider)
+   // private val sliderDrawable = GradientDrawable()
+   // private var sliderColorStateList = ContextCompat.getColorStateList(context, R.color.done_button_background) as ColorStateList
+
+    private val volMute = ContextCompat.getDrawable(context, R.drawable.ic_volume_mute)
+    private var volDown = ContextCompat.getDrawable(context, R.drawable.ic_volume_down)
+    private var volUp = ContextCompat.getDrawable(context, R.drawable.ic_volume_up)
 
     var backgroundSurfaceColor = Color.WHITE
         set(value) {
@@ -65,6 +69,12 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             volDown?.colorFilter = PorterDuffColorFilter(value, PorterDuff.Mode.SRC_ATOP)
             volUp?.colorFilter = PorterDuffColorFilter(value, PorterDuff.Mode.SRC_ATOP)
             volMute?.colorFilter = PorterDuffColorFilter(value, PorterDuff.Mode.SRC_ATOP)
+            invalidate()
+        }
+
+    var belowSliderColor : Int = Color.WHITE
+        set(value) {
+            field = value
             invalidate()
         }
 
@@ -114,7 +124,7 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     private val outlineProvider = object : ViewOutlineProvider() {
         override fun getOutline(view: View?, outline: Outline) {
             val iWid = movableHeight
-            val cornerRad = Utilities.dp2px(iWid)
+            val cornerRad = 0.5f * iWid
             rectInt.set(paddingLeft, paddingTop, width - paddingRight,height - paddingBottom)
             outline.setRoundRect(rectInt, cornerRad)
         }
@@ -127,33 +137,32 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 
         attrs?.let {
             val ta = context.obtainStyledAttributes(attrs, R.styleable.VolumeControl,
-                    defStyleAttr, R.style.VolumeControlStyle)
+                    defStyleAttr, R.style.Widget_AppTheme_VolumeControlStyle)
             iconColor = ta.getColor(R.styleable.VolumeControl_iconColor, iconColor)
             sliderColor = ta.getColor(R.styleable.VolumeControl_sliderColor, sliderColor)
             backgroundSurfaceColor = ta.getColor(R.styleable.VolumeControl_backgroundColor, backgroundSurfaceColor)
+            belowSliderColor = ta.getColor(R.styleable.VolumeControl_belowSliderColor, belowSliderColor)
             vertical = ta.getBoolean(R.styleable.VolumeControl_vertical, vertical)
             ta.recycle()
         }
 
-        volMute = ContextCompat.getDrawable(context, R.drawable.ic_volume_mute)
-        volDown = ContextCompat.getDrawable(context, R.drawable.ic_volume_down)
-        volUp = ContextCompat.getDrawable(context, R.drawable.ic_volume_up)
         volMute?.colorFilter = PorterDuffColorFilter(iconColor, PorterDuff.Mode.SRC_ATOP)
         volDown?.colorFilter = PorterDuffColorFilter(iconColor, PorterDuff.Mode.SRC_ATOP)
         volUp?.colorFilter = PorterDuffColorFilter(iconColor, PorterDuff.Mode.SRC_ATOP)
+        foreground = sliderDrawable
     }
 
-    override fun onLayout(changed : Boolean, l : Int, t : Int, r : Int, b : Int) {
-
-    }
+//    override fun onLayout(changed : Boolean, l : Int, t : Int, r : Int, b : Int) {
+//
+//    }
 
     override fun onMeasure(widthMeasureSpec : Int, heightMeasureSpec : Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
 
-        val layoutParams = layoutParams as MarginLayoutParams
+        //val layoutParams = layoutParams as MarginLayoutParams
 
-        var desiredWidth = layoutParams.leftMargin + layoutParams.rightMargin
-        var desiredHeight = layoutParams.topMargin + layoutParams.bottomMargin
+        var desiredWidth = 0 // layoutParams.leftMargin + layoutParams.rightMargin
+        var desiredHeight = 0 //layoutParams.topMargin + layoutParams.bottomMargin
 
         if(vertical) {
             desiredWidth += defaultWidth
@@ -171,12 +180,16 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         setMeasuredDimension(width, height)
     }
 
-    override fun dispatchDraw(canvas : Canvas) {
-        super.dispatchDraw(canvas)
+    //override fun dispatchDraw(canvas : Canvas) {
+    //    super.dispatchDraw(canvas)
+
+    override fun onDrawForeground(canvas: Canvas?) {
+        if(canvas == null)
+            return
 
         val iLen = movableLength
         val iWid = movableHeight
-        val cornerRad = Utilities.dp2px(iWid)
+        val cornerRad = 0.5f * iWid
 
         contourPaint.isAntiAlias = true
 
@@ -184,10 +197,12 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                 (width - paddingRight).toFloat(), (height - paddingBottom).toFloat())
 
         if(vertical) {
-            rectPos.set(centerX - iWid / 2.0f, centerY - iLen / 2.0f, centerX + iWid / 2.0f, centerY + iLen / 2.0f)
+            rectSlider.set(centerX - iWid / 2.0f, centerY - iLen / 2.0f, centerX + iWid / 2.0f, centerY + iLen / 2.0f)
+            rectZeroToSlider.set(centerX - iWid / 2.0f, centerY, centerX + iWid / 2.0f, height - iSpace - paddingBottom)
         }
         else {
-            rectPos.set(centerX - iLen / 2.0f, centerY - iWid / 2.0f, centerX + iLen / 2.0f, centerY + iWid / 2.0f)
+            rectSlider.set(centerX - iLen / 2.0f, centerY - iWid / 2.0f, centerX + iLen / 2.0f, centerY + iWid / 2.0f)
+            rectZeroToSlider.set(paddingLeft + iSpace, centerY - iWid / 2.0f, centerX, centerY + iWid / 2.0f)
         }
 
         contourPaint.color = backgroundSurfaceColor
@@ -196,8 +211,16 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         canvas.drawRoundRect(rect, cornerRad, cornerRad, contourPaint)
 
         contourPaint.style = Paint.Style.FILL
-        contourPaint.color = sliderColor
-        canvas.drawRoundRect(rectPos, cornerRad, cornerRad, contourPaint)
+        contourPaint.color = belowSliderColor
+//        contourPaint.alpha = 50
+        canvas.drawRoundRect(rectZeroToSlider, cornerRad, cornerRad, contourPaint)
+
+        //sliderDrawable.cornerRadius = cornerRad
+        //sliderDrawable.color = sliderColorStateList
+        sliderDrawable?.setBounds(rectSlider.left.roundToInt(), rectSlider.top.roundToInt(), rectSlider.right.roundToInt(), rectSlider.bottom.roundToInt())
+        //sliderDrawable?.draw(canvas)
+
+        super.onDrawForeground(canvas)
 
         var icon = volUp
         if(volume < 0.01) {
@@ -219,8 +242,19 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         val y = event.y
 
         when (action) {
+            MotionEvent.ACTION_DOWN -> {
+                sliderDrawable?.state = intArrayOf(android.R.attr.state_pressed)
+                invalidate()
+            }
+            MotionEvent.ACTION_UP -> {
+                sliderDrawable?.state = intArrayOf()
+                invalidate()
+            }
+        }
+
+        when (action) {
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
-//                Log.v("Metronome", "VolumeControl.onTouchEvent : ACTION_MOVE")
+                Log.v("Metronome", "VolumeControl.onTouchEvent : ACTION_MOVE")
                 var newVolume = if (vertical)
                     1.0f - dxToDxPos(y - movableLength / 2.0f)
                 else
@@ -229,11 +263,15 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                 newVolume = min(1.0f, newVolume)
                 newVolume = max(0.0f, newVolume)
                 volume = newVolume
+                isPressed = true
+                //sliderDrawableRipple.state = intArrayOf(android.R.attr.state_pressed, android.R.attr.state_enabled)
                 return true
             }
             MotionEvent.ACTION_UP -> {
 //                Log.v("Metronome", "VolumeControl.onTouchEvent : ACTION_UP")
                 onVolumeChangedListener?.onVolumeChanged(volume)
+                //sliderDrawableRipple.state = intArrayOf()
+                isPressed = false
                 return true
             }
         }
