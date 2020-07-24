@@ -25,6 +25,7 @@ import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
 import android.os.SystemClock
+import android.util.Log
 import java.lang.RuntimeException
 import kotlin.math.*
 
@@ -36,13 +37,6 @@ class AudioMixer (val context: Context) {
                 i -> waveToPCM(getNoteAudioResourceID(i), context)
             }
         }
-
-//        fun getMaximumTrackLength(tracks : Array<FloatArray>) : Int {
-//            var maxLength = 0
-//            for (t in tracks)
-//                maxLength = max(maxLength, t.size)
-//            return maxLength
-//        }
     }
 
     /// Period in audio frames when we ask for new data in the audio buffer
@@ -77,27 +71,7 @@ class AudioMixer (val context: Context) {
     /// Mixing buffer where we mix our audio
     private var mixingBuffer = FloatArray(0)
 
-//    /// Item in the playlist.
-//    /**
-//     * @param trackIndex Track index in #availableTracks
-//     * @param volume Track volume
-//     * @param duration Time in seconds until the next track starts playing
-//     * @param objectReference Some reference which is passed to the callback function, when this
-//     *   item starts playing.
-//     */
-//    class PlayListItem (var trackIndex : Int, var volume : Float, var duration : Float, var objectReference : Any?) {
-//        fun clone() : PlayListItem {
-//            return PlayListItem(trackIndex, volume, duration, objectReference)
-//        }
-//        fun set(value : PlayListItem) {
-//            trackIndex = value.trackIndex
-//            volume = value.volume
-//            duration = value.duration
-//            objectReference = value.objectReference
-//        }
-//    }
-
-    /// Playlist with tracks which are played in a loop
+    ///  Note list with tracks which are played in a loop
     var noteList = NoteList()
         set(newNoteList) {
             require(newNoteList.isNotEmpty()) {"The note list size must be at least 1"}

@@ -35,7 +35,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import kotlin.math.roundToInt
@@ -46,7 +45,6 @@ import kotlin.math.roundToInt
  */
 class MetronomeFragment : Fragment() {
 
-    //    private TextView wakeupErrorText;
     private var speedText: TextView? = null
     private var playButton: PlayButton? = null
     private var noteView : NoteView? = null
@@ -89,22 +87,7 @@ class MetronomeFragment : Fragment() {
     private var sharedPreferenceChangeListener: OnSharedPreferenceChangeListener? = null
     private var speedIncrement = Utilities.speedIncrements[InitialValues.speedIncrementIndex]
 
-    // private final Vector<Float> buttonPositions = new Vector<>();
     private val volumes = ArrayList<Float>()
-
-//    private val mediaControllerCallback = object : MediaControllerCompat.Callback() {
-//        override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
-//            super.onPlaybackStateChanged(state)
-//            if(state != null)
-//                updateView(state, true)
-//        }
-//
-//        override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-//            super.onMetadataChanged(metadata)
-//            if(metadata != null)
-//                updateView(metadata)
-//        }
-//    }
 
     private val playerServiceStatusChangedListener = object : PlayerService.StatusChangedListener {
         override fun onNoteListChanged(noteList: NoteList) {
@@ -215,9 +198,6 @@ class MetronomeFragment : Fragment() {
                 }
             }
         }
-//        plusButton?.setBackgroundResource(R.drawable.ic_notelines)
-//        plusButton?.backgroundTintList = context?.let { ContextCompat.getColorStateList(it, R.color.plus_button_lines) }
-        //plusButton?.background = resources.getDrawable(R.drawable.ic_notelines, null)
 
         soundChooser = view.findViewById(R.id.sound_chooser)
 
@@ -261,33 +241,6 @@ class MetronomeFragment : Fragment() {
                 }
             }
         }
-
-
-//        soundChooser.setButtonClickedListener(new SoundChooserOld.ButtonClickedListener() {
-//            @Override
-//            public void onButtonClicked(MoveableButton button) {
-//                MainActivity act = (MainActivity) getActivity();
-//                assert act != null;
-//                act.loadSoundChooserDialog(button, playerService);
-////                SoundChooserDialog soundChooserDialog = new SoundChooserDialog(act, button.getProperties());
-////                soundChooserDialog.setNewButtonPropertiesListener(new SoundChooserDialog.NewButtonPropertiesListener() {
-////                    @Override
-////                    public void onNewButtonProperties(Bundle properties) {
-////                        // Log.v("Metronome", "Setting new button properties ");
-////                        button.setProperties(properties);
-////                        setNewSound(soundChooser.getSounds());
-////                    }
-////                });
-//            }
-//        });
-
-//        soundChooser.setSoundChangedListener(new SoundChooserOld.SoundChangedListener() {
-//            @Override
-//            public void onSoundChanged(ArrayList<NoteListItem> sounds) {
-////                Log.v("Metronome", "MetronomeFragment:onSoundChanged");
-//                setNewSound(sounds);
-//            }
-//        });
 
         volumeSliders?.volumeChangedListener = object : VolumeSliders.VolumeChangedListener {
             override fun onVolumeChanged(sliderIdx: Int, volume: Float) {
@@ -363,32 +316,6 @@ class MetronomeFragment : Fragment() {
         super.onSaveInstanceState(outState)
     }
 
-//    override fun onDestroyView() {
-//        // Log.v("Metronome", "MetronomeFragment:onDestroyView")
-//        //if(playerServiceBound)
-//        // unbindPlayerService()
-//        super.onDestroyView()
-//    }
-
-//    override fun onDestroy() {
-//        // Log.v("Metronome", "MetronomeFragment:onDestroy")
-//        // if(playerServiceBound)
-//        //  unbindPlayerService()
-//        super.onDestroy()
-//    }
-
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        int id = item.getItemId();
-//        if(id == R.id.action_settings){
-//            if(onFragmentInteractionListener != null) {
-//                onFragmentInteractionListener.onSettingsClicked();
-//                return true;
-//            }
-//        }
-//        return super.onOptionsItemSelected(item);
-//    }
-
     private fun unbindPlayerService() {
         if (playerService == null)
             return
@@ -411,9 +338,6 @@ class MetronomeFragment : Fragment() {
                 }
             }
             true // we have to add this true to since the "let" expects a return value
-//            // We need this to avoid rare errors that there is no context
-//            if (isAdded)
-//                speedText?.text = getString(R.string.bpm, Utilities.getBpmString(playerService.speed, speedIncrement))
         }
 
         playerService?.let {
@@ -423,36 +347,6 @@ class MetronomeFragment : Fragment() {
             speedText?.text = getString(R.string.bpm, Utilities.getBpmString(it.speed, speedIncrement))
         }
     }
-
-//    private fun updateView(state : PlaybackStateCompat, animate : Boolean) {
-//        if(state.state == PlaybackStateCompat.STATE_PLAYING){
-//            playButton?.changeStatus(PlayButton.STATUS_PLAYING, animate)
-//        }
-//        else if(state.state == PlaybackStateCompat.STATE_PAUSED){
-////            speedIndicator.stopPlay();
-//            tickVisualizer?.stop()
-//            playButton?.changeStatus(PlayButton.STATUS_PAUSED, animate)
-//        }
-//
-//        // We need this to avoid rare errors that there is no context
-//        if(isAdded)
-//            speedText?.text = getString(R.string.bpm, Utilities.getBpmString(state.playbackSpeed, speedIncrement))
-//
-//        if(state.position != PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN){
-//            val speed = state.playbackSpeed
-//            soundChooser.animateButton(state.position, Utilities.speed2dt(speed))
-//
-////            speedIndicator.animate((int) state.getPosition(), speed);
-//            tickVisualizer?.tick(Utilities.speed2dt(speed))
-//        }
-//    }
-//
-//    private fun updateView(metadata : MediaMetadataCompat) {
-//        val soundString = metadata.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
-//        // Log.v("Metronome", "MetronomeFragment : updateView : parsing metadata : " + soundString)
-//        val noteList = SoundProperties.parseMetaDataString(soundString)
-//        updateSpeedIndicatorMarksAndVolumeSliders()
-//    }
 
     private fun bindService(context : Context?) {
         if(context == null)
@@ -469,10 +363,8 @@ class MetronomeFragment : Fragment() {
                     val binder = service as PlayerService.PlayerBinder
                     playerService = binder.service
                     playerContext = context
-                    // playerService?.registerMediaControllerCallback(mediaControllerCallback)
                     playerService?.registerStatusChangedListener(playerServiceStatusChangedListener)
 
-                    //updateView(playerService!!.playbackState, false)
                     updateView()
                     updateSpeedIndicatorMarksAndVolumeSliders()
 
@@ -488,7 +380,6 @@ class MetronomeFragment : Fragment() {
 
                 override fun onServiceDisconnected(name: ComponentName?) {
                     // Log.v("Metronome", "PlayerService:onServiceDisconnected")
-                    //playerService?.unregisterMediaControllerCallback(mediaControllerCallback)
                     playerService?.unregisterStatusChangedListener(playerServiceStatusChangedListener)
                     playerService = null
                     playerContext = null
@@ -499,15 +390,6 @@ class MetronomeFragment : Fragment() {
             context.bindService(serviceIntent, playerConnection as ServiceConnection, Context.BIND_AUTO_CREATE)
         }
     }
-
-//    private fun setNewSound(noteList: NoteList) {
-////        Log.v("Metronome", "MetronomeFragment:setNewSounds")
-//        if(playerServiceBound) {
-////            Log.v("Metronome", "MetronomeFragment:setNewSounds: Calling playerService.setSounds")
-//            playerService.noteList = noteList
-//        }
-//        updateSpeedIndicatorMarksAndVolumeSliders()
-//    }
 
     /// Apply note list to audio mixer and call noteListChangedListeners
     /**
@@ -542,18 +424,9 @@ class MetronomeFragment : Fragment() {
 
         volumes.clear()
 
-        //val buttonWidth = noteBoxes[0].width()
         for(i in noteList.indices)
             volumes.add(noteList[i].volume)
 
-        //buttonPositions.add(soundChooser.indexToPosX(sounds.size()));
-//        speedIndicator.setMarks(buttonPositions);
-
-//        for(int ipos = 0; ipos < soundChooser.numSounds(); ++ipos){
-//            buttonPositions.set(ipos, buttonPositions.get(ipos) - buttonWidth / 2.0f + soundChooser.getLeft());
-//        }
         volumeSliders?.setTunersAt(noteBoxes, volumes)
-
     }
-
 }

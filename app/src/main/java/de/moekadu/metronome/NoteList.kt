@@ -53,7 +53,7 @@ val availableNotes = arrayOf(
 
 fun getNumAvailableNotes() = availableNotes.size
 
-val defaultNote = 3
+const val defaultNote = 3
 
 fun getNoteAudioResourceID(index : Int) = when(AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC)) {
     48000 -> availableNotes[index].audio48ResourceID

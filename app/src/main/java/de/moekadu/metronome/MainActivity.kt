@@ -48,6 +48,7 @@ class MainActivity : AppCompatActivity() {
     // TODO: when volume sliders are shown and a note is added/removed, animate the sliders to fit then new note setup
     // TODO: test different device formats
     // TODO: static soundchooser layout in landscape could be improved
+    // TODO: notification play button should have the same color as the text
 
     companion object {
         private const val METRONOME_FRAGMENT_TAG = "metronomeFragment"
@@ -109,18 +110,6 @@ class MainActivity : AppCompatActivity() {
             settingsFrag = SettingsFragment()
         }
 
-//        soundChooserDialog = supportFragmentManager.findFragmentByTag(SOUND_CHOOSER_FRAGMENT_TAG) as SoundChooserDialog?
-//        if(soundChooserDialog == null) {
-//            soundChooserDialog = SoundChooserDialog()
-//            soundChooserDialog?.let {
-//                supportFragmentManager.beginTransaction()
-//                        .add(R.id.dialogframe, it, SOUND_CHOOSER_FRAGMENT_TAG)
-//                        .detach(it)
-//                        .commit()
-//            }
-//        }
-//        soundChooserDialog?.setOnBackgroundClickedListener { unloadSoundChooserDialog() }
-
         saveDataFragment = supportFragmentManager.findFragmentByTag(SAVE_DATA_FRAGMENT_TAG) as SaveDataFragment?
         if(saveDataFragment == null) {
             saveDataFragment = SaveDataFragment()
@@ -139,12 +128,6 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.addOnBackStackChangedListener { setDisplayHomeButton() }
 //        Log.v("Metronome", "MainActivity:onCreate: end");
     }
-
-
-//    override fun onPause() {
-////        unloadSoundChooserDialog()
-//        super.onPause()
-//    }
 
     override fun onSupportNavigateUp() : Boolean{
         supportFragmentManager.popBackStack()
@@ -187,39 +170,11 @@ class MainActivity : AppCompatActivity() {
             R.id.action_save -> {
                 saveCurrentSettings()
             }
-//        else if(id == R.id.test_setting) {
-//            fragManager.beginTransaction()
-//                    .attach(soundChooserDialog)
-//                    //.replace(R.id.dialogframe, soundChooserDialog, soundChooserDialogNewTag)
-//                    .commit();
-//        }
         }
-//        else if(id == R.id.test_setting) {
-//            fragManager.beginTransaction()
-//                    .attach(soundChooserDialog)
-//                    //.replace(R.id.dialogframe, soundChooserDialog, soundChooserDialogNewTag)
-//                    .commit();
-//        }
 
         return super.onOptionsItemSelected(item)
     }
 
-//    fun loadSoundChooserDialog(button : MoveableButton, playerService : PlayerService) {
-//        soundChooserDialog?.let {
-//            it.setStatus(button, playerService)
-//            supportFragmentManager.beginTransaction()
-//                    .attach(it)
-//                    .commit()
-//        }
-//    }
-//
-//    private fun unloadSoundChooserDialog(){
-//        soundChooserDialog?.let {
-//            supportFragmentManager.beginTransaction()
-//                    .detach(it)
-//                    .commit()
-//        }
-//    }
 
     @SuppressLint("SimpleDateFormat")
     private fun saveCurrentSettings() {

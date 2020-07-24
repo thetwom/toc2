@@ -25,8 +25,6 @@ import kotlin.math.roundToInt
 open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
     : View(context, attrs, defStyleAttr) {
 
-    // private val volumePaintAlpha = 30
-
     var lineColor : Int = Color.BLACK
         set(value) {
             field = value
@@ -50,9 +48,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         set(value) {
             field = value
             volumePaint.color = value
-            // volumePaint.alpha = volumePaintAlpha
         }
-
 
     private val lineDrawable = ContextCompat.getDrawable(context, R.drawable.ic_notelines)?.apply { mutate() }
 
@@ -112,10 +108,8 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         }
 
         fun draw(canvas : Canvas) {
-            val currentBounds = drawable?.bounds
-            if (currentBounds == null)
-                return
-//            val volumePosX = min(currentBounds.centerX() + 0.2f * currentBounds.height() - 0.5f * volumePaintStrokeWidth,
+            val currentBounds = drawable?.bounds ?: return
+            //            val volumePosX = min(currentBounds.centerX() + 0.2f * currentBounds.height() - 0.5f * volumePaintStrokeWidth,
 //            currentBounds.centerX() + 0.5f * (noteWidth - volumePaintStrokeWidth))
             val volumeMax = currentBounds.top + 0.19f * currentBounds.height()
             val volumeMin = volumeMax + 0.62f * currentBounds.height()
@@ -276,10 +270,8 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         }
 
         volumePaint.strokeWidth = volumePaintStrokeWidth
-        // volumePaint.style = Paint.Style.STROKE
         volumePaint.style = Paint.Style.FILL
         volumePaint.color = volumePaintColor
-        // volumePaint.alpha = volumePaintAlpha
 
         viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
@@ -413,7 +405,6 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             } else {
                 noteToAdd.update()
                 this.notes.add(noteToAdd)
-                // this.notes[i].drawableID = getNoteDrawableResourceID(noteToAdd.note.id)
                 this.notes[i].animateToTarget(animationDuration)
 //                if(notes.size >= 2)
 //                    Log.v("Notes", "NoteView:setNotes : notes[$i]note.id=${noteToAdd.note.id}")
@@ -441,11 +432,6 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                 if (!n.animationIsRunning)
                     n.animateToTarget(0L)
             }
-//            for (n in temporaryNotes) {
-//                n.computeTargetBounds()
-//                if (!n.animationIsRunning)
-//                    n.animateToTarget(0L)
-//            }
             lastDrawingRect.set(currentDrawingRect)
         }
     }

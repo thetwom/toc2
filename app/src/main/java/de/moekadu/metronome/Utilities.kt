@@ -81,15 +81,19 @@ class Utilities {
 
         fun getBpmString(bpm: Float, speedIncrement: Float): String {
             val tolerance = 1e-6f
-            val digits = if (abs(speedIncrement - 0.125f) < tolerance) {
-                3
-            } else if (abs(speedIncrement - 0.25f) < tolerance) {
-                2
-            } else if (abs(speedIncrement - 0.5f) < tolerance) {
-                1
-            }
-            else {
-                0
+            val digits = when {
+                abs(speedIncrement - 0.125f) < tolerance -> {
+                    3
+                }
+                abs(speedIncrement - 0.25f) < tolerance -> {
+                    2
+                }
+                abs(speedIncrement - 0.5f) < tolerance -> {
+                    1
+                }
+                else -> {
+                    0
+                }
             }
 
             bpmFormat.minimumFractionDigits = digits

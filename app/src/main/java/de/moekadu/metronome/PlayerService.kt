@@ -115,11 +115,9 @@ class PlayerService : Service() {
     private val playbackStateBuilder = PlaybackStateCompat.Builder()
     var playbackState: PlaybackStateCompat = playbackStateBuilder.build()
         private set
-    private val mediaMetadataBuilder = MediaMetadataCompat.Builder()
+
     private var notificationView : RemoteViews? = null
     private var notificationBuilder : NotificationCompat.Builder? = null
-
-    //    private TextView notificationSpeedText = null
 
     /// Sound pool which is used for playing sample sounds when selected in the sound chooser.
     private val soundPool = SoundPool.Builder().setMaxStreams(3).build()
@@ -143,7 +141,6 @@ class PlayerService : Service() {
             applyNoteList(instancesChangedFlag)
         }
 
-
     /// This is a copy of the note list which items are only owned by this service.
     /**
      * This allows to check if something changed when the note list ist checked
@@ -151,7 +148,7 @@ class PlayerService : Service() {
     private val noteListCopy = NoteList()
 
     private var sharedPreferenceChangeListener: OnSharedPreferenceChangeListener? = null
-    
+
     inner class PlayerBinder : Binder() {
         val service
             get() = this@PlayerService
@@ -178,11 +175,9 @@ class PlayerService : Service() {
 
             if (myAction == PlaybackStateCompat.ACTION_PLAY) {
                 // Log.v("Metronome", "ActionReceiver:onReceive : set state to playing");
-                //mediaSession.controller?.transportControls?.play()
                 startPlay()
             } else if (myAction == PlaybackStateCompat.ACTION_PAUSE) {
                 // Log.v("Metronome", "ActionReceiver:onReceive : set state to pause");
-                //mediaSession.controller?.transportControls?.pause()
                 stopPlay()
             }
         }
@@ -200,19 +195,6 @@ class PlayerService : Service() {
             override fun onNoteStarted(noteListItem: NoteListItem?) {
                 if(noteListItem != null)
                     statusChangedListeners.forEach {s -> s.onNoteStarted(noteListItem)}
-
-//                var pos = 0
-//                for(i in noteList.indices) {
-//                    if (noteList[i] == noteListItem) {
-//                        pos = i
-//                        break
-//                    }
-//                }
-//
-//                if(pos < noteList.size) {
-//                    playbackState = playbackStateBuilder.setState(state, pos.toLong(), speed).build()
-//                    mediaSession.setPlaybackState(playbackState)
-//                }
             }
         })
 
@@ -251,18 +233,11 @@ class PlayerService : Service() {
             }
         })
 
-//        mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
-//                MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
-
         playbackStateBuilder.setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE or PlaybackStateCompat.ACTION_PLAY_PAUSE)
                 .setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, InitialValues.speed)
-        //playbackStateBuilder.setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, speed);
 
         playbackState = playbackStateBuilder.build()
         mediaSession?.setPlaybackState(playbackState)
-
-        //mediaMetadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, SoundProperties.createMetaDataString(playList));
-        //mediaSession.setMetadata(mediaMetadataBuilder.build());
 
         mediaSession?.isActive = true
 
@@ -335,7 +310,6 @@ class PlayerService : Service() {
         val intent = Intent(BROADCAST_PLAYERACTION)
         val notificationStateID = 3214
 
-//        NotificationCompat.Action controlAction;
         if (state == PlaybackStateCompat.STATE_PLAYING) {
             // Log.v("Metronome", "isplaying");
              notificationView?.setImageViewResource(R.id.notification_button, R.drawable.ic_pause2)
@@ -362,22 +336,6 @@ class PlayerService : Service() {
         decrIntent.putExtra(DECREMENTSPEED, true)
         val pDecrIntent = PendingIntent.getBroadcast(this, notificationStateID+2, decrIntent, PendingIntent.FLAG_UPDATE_CURRENT)
         notificationView?.setOnClickPendingIntent(R.id.notification_button_m_toucharea, pDecrIntent)
-
-//        // Clear actions: code copies from stackoverflow
-//        try {
-//            //Use reflection clean up old actions
-//            Field f = notificationBuilder.getClass().getDeclaredField("mActions");
-//            f.setAccessible(true);
-//            f.set(notificationBuilder, new ArrayList<NotificationCompat.Action>());
-//        } catch (NoSuchFieldException e) {
-//            // no field
-//        } catch (IllegalAccessException e) {
-//            // wrong types
-//        }
-//
-//        notificationBuilder.addAction(controlAction);
-//
-//        notificationBuilder.setContentText(getString(R.string.bpm, Utilities.getBpmString(getSpeed(), speedIncrement)));
 
         return notificationBuilder?.build()
     }
@@ -413,76 +371,13 @@ class PlayerService : Service() {
     val state
         get() = playbackState.state
 
-//    fun changeSpeed(speed : Float) {
-//
-//        val tolerance = 1.0e-6f
-//        var newSpeed = speed
-//        newSpeed = min(newSpeed, maximumSpeed)
-//        newSpeed = max(newSpeed, minimumSpeed)
-//        // Make speed match the increment
-//        newSpeed = (newSpeed / speedIncrement).roundToInt() * speedIncrement
-//
-//        if (abs(getSpeed() - newSpeed) < tolerance)
-//            return
-//
-//        if(newSpeed < minimumSpeed - tolerance)
-//            newSpeed += speedIncrement
-//        if(newSpeed > maximumSpeed + tolerance)
-//            newSpeed -= speedIncrement
-//
-//        playbackState = playbackStateBuilder.setState(getState(), PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, newSpeed).build()
-//        mediaSession.setPlaybackState(playbackState)
-//
-//        setMissingMembersAndCopyPlayListToAudioMixer()
-//
-////            notificationBuilder.setContentText(getString(R.string.bpm, Utilities.getBpmString(getSpeed(), speedIncrement)));
-//        notificationView.setTextViewText(R.id.notification_speedtext, getString(R.string.bpm, Utilities.getBpmString(getSpeed(), speedIncrement)))
-//        NotificationManagerCompat.from(this).notify(notificationID, notificationBuilder.build())
-//    }
 
     fun addValueToSpeed(dSpeed : Float) {
         var newSpeed = speed + dSpeed
-//        newSpeed = Math.min(newSpeed, MainActivity.SPEED_MAX);
-//        newSpeed = Math.max(newSpeed, MainActivity.SPEED_MIN);
         newSpeed = min(newSpeed, maximumSpeed)
         newSpeed = max(newSpeed, minimumSpeed)
         speed = newSpeed
     }
-
-//    private fun updateMetadata() {
-//        val noteListString = SoundProperties.createMetaDataString(noteList)
-//        metaData = mediaMetadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, noteListString).build()
-//        mediaSession.setMetadata(metaData)
-//    }
-
-//    private fun updateMetadataDelayed() {
-//        val delayMillis = 5L
-//        delayedMetaUpdateHandler.removeCallbacksAndMessages(null)
-//        delayedMetaUpdateHandler.postDelayed(delayedMetaUpdate, delayMillis)
-//    }
-
-//    fun setSounds(sounds : NoteList) {
-////        Log.v("Metronome", "PlayerService:setSounds");
-//
-//        // Do not do anything if we already have the correct sounds
-//        if (SoundProperties.noteIdAndVolumeEqual(sounds, noteList)) {
-////            Log.v("Metronome", "PlayerService:setSounds: new sounds are equal to old sounds");
-//            return
-//        }
-//        noteList.clear()
-//        noteList.addAll(sounds)
-//
-//        setMissingMembersAndCopyPlayListToAudioMixer()
-//
-////        updateMetadata();
-//        // Delay update a little, to avoid any feedback loop with updates of other instances
-//        updateMetadataDelayed()
-////        playList = sounds;
-////        String soundString = SoundProperties.createMetaDataString(playList);
-////        Log.v("Metronome", "PlayerService:setSounds: " + soundString);
-////        metaData = mediaMetadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, soundString).build();
-////        mediaSession.setMetadata(metaData);
-//    }
 
      fun setVolume(noteListIndex : Int, volume : Float) {
          var volumeChanged = false
@@ -498,9 +393,6 @@ class PlayerService : Service() {
          if(volumeChanged) {
              setNoteListInAudioMixer()
              statusChangedListeners.forEach {s -> s.onNoteListChanged(noteList)}
-//            updateMetadata();
-             // Delay update a little, to avoid any feedback loop with updates of other instances
-//             updateMetadataDelayed()
          }
      }
 
@@ -528,18 +420,6 @@ class PlayerService : Service() {
 
         statusChangedListeners.forEach {s -> s.onPause()}
         updateNotification()
-//        // Update notification only if it still exists (check is necessary, when app is canceled)
-//        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-//        if (notificationManager == null)
-//            return;
-//
-//        StatusBarNotification[] notifications = notificationManager.getActiveNotifications();
-//        for (StatusBarNotification notification : notifications) {
-//            if (notification.getId() == notificationID) {
-//                // This is the line which updates the notification
-//                NotificationManagerCompat.from(this).notify(notificationID, createNotification());
-//            }
-//        }
     }
 
     private fun updateNotification() {

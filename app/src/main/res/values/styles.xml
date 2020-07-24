@@ -41,22 +41,6 @@
         <item name="tickVisualizerStyle">@style/Widget.AppTheme.TickVisualizerStyle</item>
     </style>
 
-    <declare-styleable name="CustomTheme">
-        <attr name="controlPanelStyle" format="reference"/>
-        <attr name="volumeSlidersStyle" format="reference"/>
-        <attr name="volumeControlStyle" format="reference"/>
-        <attr name="tickVisualizerStyle" format="reference"/>
-        <attr name="noteViewStyle" format="reference"/>
-        <attr name="soundChooserStyle" format="reference"/>
-    </declare-styleable>
-
-    <attr name="normalColor" format="color" />
-    <attr name="labelColor" format="color" />
-    <attr name="highlightColor" format="color" />
-    <attr name="volumeColor" format="color" />
-    <attr name="backgroundColor" format="color" />
-    <attr name="textColor" format="color" />
-
     <declare-styleable name="ControlPanel">
         <attr name="labelColor" />
         <attr name="highlightColor" />
@@ -80,10 +64,10 @@
     </style>
 
     <declare-styleable name="NoteView">
-        <attr name="lineColor" format="color"/>
-        <attr name="noteColor" format="color"/>
-        <attr name="noteHighlightColor" format="color"/>
-        <attr name="volumeStrokeWidth" format="dimension"/>
+        <attr name="lineColor"/>
+        <attr name="noteColor"/>
+        <attr name="noteHighlightColor"/>
+        <attr name="volumeStrokeWidth"/>
         <attr name="volumeColor"/>
     </declare-styleable>
 
@@ -99,18 +83,18 @@
         <attr name="lineColor"/>
         <attr name="noteColor"/>
         <attr name="noteHighlightColor"/>
-        <attr name="minimumDeleteButtonHeight" format="dimension"/>
-        <attr name="elementElevation" format="dimension"/>
-        <attr name="activeElementTranslationZ" format="dimension"/>
-        <attr name="activeTranslationZ" format="dimension"/>
-        <attr name="elementPadding" format="dimension"/>
+        <attr name="minimumDeleteButtonHeight"/>
+        <attr name="elementElevation"/>
+        <attr name="activeElementTranslationZ"/>
+        <attr name="activeTranslationZ"/>
+        <attr name="elementPadding"/>
         <attr name="volumeStrokeWidth"/>
         <attr name="volumeColor"/>
-        <attr name="volumeControlBackgroundColor" format="color"/>
-        <attr name="volumeControlSliderColor" format="color"/>
-        <attr name="volumeControlOnSliderColor" format="color"/>
-        <attr name="volumeControlBelowSliderColor" format="color"/>
-        <attr name="backgroundViewColor" format="color"/>
+        <attr name="volumeControlBackgroundColor"/>
+        <attr name="volumeControlSliderColor"/>
+        <attr name="volumeControlOnSliderColor"/>
+        <attr name="volumeControlBelowSliderColor"/>
+        <attr name="backgroundViewColor"/>
     </declare-styleable>
 
     <style name="Widget.AppTheme.SoundChooserStyle" parent="">
@@ -131,35 +115,18 @@
         <item name="backgroundViewColor">?android:colorBackground</item>
     </style>
 
-
-    <declare-styleable name="SoundChooserOld">
-        <attr name="normalColor" />
-        <attr name="highlightColor" />
-        <attr name="volumeColor"/>
-    </declare-styleable>
-
-    <declare-styleable name="SpeedIndicator">
-        <attr name="normalColor" />
-    </declare-styleable>
-
     <declare-styleable name="PlayButton">
-        <attr name="normalColor" />
-        <attr name="labelColor" />
-        <attr name="highlightColor" />
-    </declare-styleable>
-
-    <declare-styleable name="SoundChooserCircle">
-        <attr name="normalColor" />
-        <attr name="highlightColor" />
-        <attr name="volumeColor"/>
+        <attr name="normalColor"/>
+        <attr name="labelColor"/>
+        <attr name="highlightColor"/>
     </declare-styleable>
 
     <declare-styleable name="VolumeControl">
-        <attr name="sliderColor" format="color" />
-        <attr name="iconColor" format="color" />
-        <attr name="belowSliderColor" format="color"/>
+        <attr name="sliderColor"/>
+        <attr name="iconColor"/>
+        <attr name="belowSliderColor"/>
         <attr name="backgroundColor"/>
-        <attr name="vertical" format="boolean" />
+        <attr name="vertical"/>
     </declare-styleable>
 
     <style name="Widget.AppTheme.VolumeControlStyle" parent="">
@@ -171,9 +138,9 @@
     </style>
 
     <declare-styleable name="VolumeSliders">
-        <attr name="interactiveColor" format="color"/>
-        <attr name="elementBackgroundColor" format="color"/>
-        <attr name="onInteractiveColor" format="color"/>
+        <attr name="interactiveColor"/>
+        <attr name="elementBackgroundColor"/>
+        <attr name="onInteractiveColor"/>
         <attr name="belowSliderColor"/>
         <attr name="backgroundColor"/>
     </declare-styleable>
@@ -186,15 +153,10 @@
         <item name="belowSliderColor">?attr/colorPrimaryTransparent</item>
     </style>
 
-    <declare-styleable name="IconListVisualizer">
-        <attr name="normalColor" />
-        <attr name="volumeColor" />
-    </declare-styleable>
-
     <declare-styleable name="SavedItemAttributes">
-        <attr name="deleteColor" format="color"/>
-        <attr name="onDeleteColor" format="color"/>
-        <attr name="seperatorColor" format="color"/>
+        <attr name="deleteColor"/>
+        <attr name="onDeleteColor"/>
+        <attr name="seperatorColor"/>
     </declare-styleable>
 
 </resources>

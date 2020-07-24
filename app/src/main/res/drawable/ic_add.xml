@@ -4,6 +4,6 @@
         android:viewportWidth="30.0"
         android:viewportHeight="30.0">
     <path
-        android:fillColor="@color/plus_button_icon"
+        android:fillColor="#FFFFFFFF"
         android:pathData="M22,16h-6v6h-2v-6H8v-2h6V8h2v6h6v2z"/>
 </vector>

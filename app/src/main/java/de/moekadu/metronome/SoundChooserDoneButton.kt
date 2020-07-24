@@ -44,7 +44,7 @@ class SoundChooserDoneButton(context : Context) : androidx.appcompat.widget.AppC
     }
 
     init {
-        text = "Done"
+        text = context.getString(R.string.done)
         setBackgroundResource(R.drawable.done_button_background)
         //setBackgroundResource(R.drawable.delete_button_background)
         setTextColor(ContextCompat.getColorStateList(context, R.color.done_button_text))

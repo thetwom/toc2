@@ -1,4 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <attr name="colorPrimaryTransparent" format="color"/>
+
+    <attr name="controlPanelStyle" format="reference"/>
+    <attr name="volumeSlidersStyle" format="reference"/>
+    <attr name="volumeControlStyle" format="reference"/>
+    <attr name="tickVisualizerStyle" format="reference"/>
+    <attr name="noteViewStyle" format="reference"/>
+    <attr name="soundChooserStyle" format="reference"/>
+
+
+    <attr name="normalColor" format="color" />
+    <attr name="labelColor" format="color" />
+    <attr name="highlightColor" format="color" />
+    <attr name="volumeColor" format="color" />
+    <attr name="backgroundColor" format="color" />
+    <attr name="textColor" format="color" />
+     <attr name="lineColor" format="color"/>
+    <attr name="noteColor" format="color"/>
+    <attr name="noteHighlightColor" format="color"/>
+    <attr name="volumeControlBackgroundColor" format="color"/>
+    <attr name="volumeControlSliderColor" format="color"/>
+    <attr name="volumeControlOnSliderColor" format="color"/>
+    <attr name="volumeControlBelowSliderColor" format="color"/>
+    <attr name="backgroundViewColor" format="color"/>
+    <attr name="sliderColor" format="color" />
+    <attr name="iconColor" format="color" />
+    <attr name="belowSliderColor" format="color"/>
+    <attr name="interactiveColor" format="color"/>
+    <attr name="elementBackgroundColor" format="color"/>
+    <attr name="onInteractiveColor" format="color"/>
+    <attr name="deleteColor" format="color"/>
+    <attr name="onDeleteColor" format="color"/>
+    <attr name="seperatorColor" format="color"/>
+
+    <attr name="minimumDeleteButtonHeight" format="dimension"/>
+    <attr name="elementElevation" format="dimension"/>
+    <attr name="activeElementTranslationZ" format="dimension"/>
+    <attr name="activeTranslationZ" format="dimension"/>
+    <attr name="elementPadding" format="dimension"/>
+    <attr name="volumeStrokeWidth" format="dimension"/>
+
+    <attr name="vertical" format="boolean" />
 </resources>

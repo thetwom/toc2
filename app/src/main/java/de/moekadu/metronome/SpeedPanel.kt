@@ -38,8 +38,8 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     private val circlePaint = Paint()
 
     private var integratedDistance = 0f
-    private var previous_x = 0f
-    private var previous_y = 0f
+    private var previousX = 0f
+    private var previousY = 0f
 
     private val pathOuterCircle = Path()
     private val tapInPath = Path()
@@ -262,20 +262,20 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                 backToZeroAnimationValue = 1.0f
                 stepCounter = 0f
                 integratedDistance = 0.0f
-                previous_x = x
-                previous_y = y
+                previousX = x
+                previousY = y
 
                 invalidate()
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
-                val dx = x -previous_x
-                val dy = y -previous_y
+                val dx = x -previousX
+                val dy = y -previousY
 
                 val dSpeed = - (dx * y - dy * x) / sqrt(x * x + y * y)
                 integratedDistance += dSpeed
-                previous_x = x
-                previous_y = y
+                previousX = x
+                previousY = y
                 val speedSteps = sensitivity * Utilities.px2cm(integratedDistance)
 
                 if (changingSpeed) {
