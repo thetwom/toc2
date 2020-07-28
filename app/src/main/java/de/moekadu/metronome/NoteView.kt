@@ -9,14 +9,14 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.drawable.Animatable
-import android.graphics.drawable.AnimationDrawable
-import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewTreeObserver
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -50,7 +50,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             volumePaint.color = value
         }
 
-    private val lineDrawable = ContextCompat.getDrawable(context, R.drawable.ic_notelines)?.apply { mutate() }
+    private val lineDrawable = AppCompatResources.getDrawable(context, R.drawable.ic_notelines)?.apply { mutate() }
 
     private val lastDrawingRect = Rect()
     private val currentDrawingRect = Rect()
@@ -75,13 +75,13 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         private var drawableID = getNoteDrawableResourceID(note.id)
             set(value) {
                 if (field != value) {
-                    drawable = resources.getDrawable(value, null)
+                    drawable = AppCompatResources.getDrawable(context, value)?.apply { mutate() }
                     highlight = highlight // reset highlight color on drawable /
                 }
                 field = value
             }
 
-        var drawable = ContextCompat.getDrawable(context, getNoteDrawableResourceID(note.id))?.apply { mutate() }
+        var drawable = AppCompatResources.getDrawable(context, getNoteDrawableResourceID(note.id))?.apply { mutate() }
             private set
 
         init {
@@ -119,9 +119,11 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             val noteTotalWidth = (width - paddingLeft - paddingRight) / max(numNotes.toFloat(), 1.0f)
             val noteTotalLeft = currentBounds.centerX() - 0.5f * noteTotalWidth
             val noteTotalRight = currentBounds.centerX() + 0.5f * noteTotalWidth
-            canvas.drawRect(noteTotalLeft, volumeMin, noteTotalRight, volumeNow, volumePaint)
+            canvas.drawRect(noteTotalLeft, volumeNow, noteTotalRight, volumeMin, volumePaint)
+//            Log.v("Metronome", "NoteView.Note.draw(), volumeMin=$volumeMin, volumeNow=$volumeNow, noteTotalLeft=$noteTotalLeft, noteTotalRight=$noteTotalRight")
 //            Log.v("Metronome", "NoteView.Note.draw(), note.id=${note.id}, bounds=$currentBounds")
             drawable?.draw(canvas)
+
         }
 
         fun emerge(duration : Long) {
@@ -373,11 +375,13 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     }
 
     fun animateNote(note: NoteListItem?) {
+        Log.v("Metronome", "NoteView:animateNote : note.id=${note?.id}")
         for (n in notes)
             if (n.note === note) {
-                val drawable = n.drawable as Animatable
-                drawable.stop()
-                drawable.start()
+                Log.v("Metronome", "NoteView:animateNote : found note  to animate")
+                val drawable = n.drawable as Animatable?
+                drawable?.stop()
+                drawable?.start()
             }
     }
 

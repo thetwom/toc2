@@ -270,15 +270,14 @@ class AudioMixer (val context: Context) {
                 queuedNote.nextSampleToMix = 0
                 queuedNote.volume = noteListItem.volume
 
-                nextNoteFrame += (noteListItem.duration * audioTrack.sampleRate).roundToInt()
-
-                val nextMarker = markers.add()
-                nextMarker.frameWhenNoteListItemStarts = nextNoteFrame
-                nextMarker.noteListItem = noteListItem
+                val queuedNoteMarker = markers.add()
+                queuedNoteMarker.frameWhenNoteListItemStarts = nextNoteFrame
+                queuedNoteMarker.noteListItem = noteListItem
 
                 if (markers.size == 1)
-                    audioTrack.notificationMarkerPosition = queuedFrames + queuedNote.startDelay
+                    audioTrack.notificationMarkerPosition = queuedNoteMarker.frameWhenNoteListItemStarts
 
+                nextNoteFrame += (noteListItem.duration * audioTrack.sampleRate).roundToInt()
                 ++nextNoteListIndex
             }
             queuedFrames += audioBufferUpdatePeriod

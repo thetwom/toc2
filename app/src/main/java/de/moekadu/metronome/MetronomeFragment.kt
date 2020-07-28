@@ -166,6 +166,7 @@ class MetronomeFragment : Fragment() {
                 if(note != null) {
                     soundChooser?.activate(note, noteIndex, noteBoundingBoxes)
                     noteView?.highlightNote(note, true)
+                    //noteView?.animateNote(note)
                 }
                 return false
             }

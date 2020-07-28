@@ -7,9 +7,29 @@ import kotlin.math.roundToInt
 
 class SoundChooserControlButton(context: Context) : NoteView(context) {
 
-    private val animatorListener = object : Animator.AnimatorListener {
+    private val positionAnimatorListener = object : Animator.AnimatorListener {
         override fun onAnimationEnd(animation: Animator?) {
-            if(!positionAnimator.isRunning && !vanishAnimator.isRunning && !animateZ.isRunning)
+            if(!vanishAnimator.isRunning && !animateZ.isRunning)
+                allAnimationsEndListener?.onAnimationEnd()
+        }
+        override fun onAnimationCancel(animation: Animator?) {}
+        override fun onAnimationStart(animation: Animator?) {}
+        override fun onAnimationRepeat(animation: Animator?) {}
+    }
+
+    private val animateZAnimatorListener = object : Animator.AnimatorListener {
+        override fun onAnimationEnd(animation: Animator?) {
+            if(!vanishAnimator.isRunning && !positionAnimator.isRunning)
+                allAnimationsEndListener?.onAnimationEnd()
+        }
+        override fun onAnimationCancel(animation: Animator?) {}
+        override fun onAnimationStart(animation: Animator?) {}
+        override fun onAnimationRepeat(animation: Animator?) {}
+    }
+
+    private val vanishAnimatorListener = object : Animator.AnimatorListener {
+        override fun onAnimationEnd(animation: Animator?) {
+            if(!animateZ.isRunning && !positionAnimator.isRunning)
                 allAnimationsEndListener?.onAnimationEnd()
         }
         override fun onAnimationCancel(animation: Animator?) {}
@@ -52,9 +72,9 @@ class SoundChooserControlButton(context: Context) : NoteView(context) {
             translationY = currentBounds.top.toFloat()
         }
 
-        vanishAnimator.addListener(animatorListener)
-        positionAnimator.addListener(animatorListener)
-        animateZ.addListener(animatorListener)
+        vanishAnimator.addListener(vanishAnimatorListener)
+        positionAnimator.addListener(positionAnimatorListener)
+        animateZ.addListener(animateZAnimatorListener)
     }
 
     fun setSize(newWidth : Int, newHeight : Int) {

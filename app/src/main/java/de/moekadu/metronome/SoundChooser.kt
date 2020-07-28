@@ -49,8 +49,8 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
     private val toleranceInDp = 2f
     private val tolerance = toleranceInDp * Resources.getSystem().displayMetrics.density
 
-    private val verticalSpacingInDp = 1f
-    private val verticalSpacing = verticalSpacingInDp * Resources.getSystem().displayMetrics.density
+    private val choiceButtonSpacingInDp = 2f
+    private val choiceButtonSpacing = choiceButtonSpacingInDp * Resources.getSystem().displayMetrics.density
 
     private var volumePaintColor = Color.BLACK
     private var volumePaintStrokeWidth = 10f
@@ -213,7 +213,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
                     this@SoundChooser.note?.let {
                         stateChangedListener?.onNoteChanged(it, c.noteID)
                     }
-                    // show new choice in out moving button
+                    // show new choice in our moving button
                     buttonNoteList.clear()
                     buttonNoteList.addAll(controlButton.noteList)
                     buttonNoteList[0].id = c.noteID
@@ -345,6 +345,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
 
         controlButton.allAnimationsEndListener = object : SoundChooserControlButton.AllAnimationsEndListener {
             override fun onAnimationEnd() {
+                Log.v("Metronome", "SoundChooser.deactivate.controlButton.onAnimationEnd")
                 visibility = View.INVISIBLE
                 translationZ = 0f
 
@@ -436,10 +437,10 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         choiceStatus = CHOICE_DYNAMIC
 
         // compute size of largest box
-        val choicesTop = verticalSpacing + deleteButton.height + elementPadding
+        val choicesTop = deleteButtonTop + deleteButton.height + elementPadding
         choicesBottom = Int.MAX_VALUE
         for(box in boundingBoxes)
-            choicesBottom = min(choicesBottom, box.top)
+            choicesBottom = min(choicesBottom, box.top - elementPadding.roundToInt())
         val verticalSpace = choicesBottom - choicesTop
         
         var normalizedSize = activeVerticalRatios[0]
@@ -472,7 +473,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
 
     private fun repositionDynamicChoices() {
         // always update horizontal position to be left of our button
-        val choiceLeft = (controlButton.right + controlButton.translationX + verticalSpacing).roundToInt()
+        val choiceLeft = (controlButton.right + controlButton.translationX + elementPadding).roundToInt()
         for(i in choiceButtons.indices) {
             val c = choiceButtons[i]
             c.left = choiceLeft
@@ -540,21 +541,21 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
                         extendedAnimationDuration = 200L
                     }
 
-                    val newHeight = (activeVerticalLargestBoxHeight * sizeRatio).roundToInt() - verticalSpacing.toInt()
+                    val newHeight = (activeVerticalLargestBoxHeight * sizeRatio).roundToInt() - choiceButtonSpacing.toInt()
                     val newWidth = (controlButton.width * newHeight / controlButton.height.toFloat()).toInt()
                     c.top = (currentPosition - newHeight).roundToInt()
                     c.width = newWidth
                     c.height = newHeight
 
-                    currentPosition -= newHeight.toFloat() + verticalSpacing
+                    currentPosition -= newHeight.toFloat() + choiceButtonSpacing
 
                     c.animateToTarget(80L + extendedAnimationDuration)
                 }
 
                 activeVerticalBottom =
-                    (choiceButtons[activeVerticalIndex].top + choiceButtons[activeVerticalIndex].height + verticalSpacing).roundToInt()
+                    (choiceButtons[activeVerticalIndex].top + choiceButtons[activeVerticalIndex].height + choiceButtonSpacing).roundToInt()
                 activeVerticalTop =
-                    (choiceButtons[activeVerticalIndex].top - verticalSpacing).roundToInt()
+                    (choiceButtons[activeVerticalIndex].top - choiceButtonSpacing).roundToInt()
             }
         }
     }
@@ -581,69 +582,77 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
 
     private fun updateStaticChoices(animationDuration : Long) {
         val choicesTop = deleteButtonHeight + 2 * elementPadding
-        var choicesBottom = boundingBoxesTop - elementPadding
-        if(!volumeControlOrientationVertical)
-            choicesBottom -= volumeControlWidth + 2 * elementPadding
+        val choicesBottom = doneButtonTop - 2 * elementPadding - volumeControlHeight
         val spaceY = choicesBottom - choicesTop
         val cY = 0.5f * (choicesTop + choicesBottom)
 
-        val choicesLeft = elementPadding
-        var choicesRight = width - 2 * elementPadding
-        if (volumeControlOrientationVertical)
-            choicesRight -= volumeControlWidth + elementPadding
-        val spaceX = choicesRight - choicesLeft
-        val cX = 0.5f * (choicesLeft + choicesRight)
+        doneButton.setCenter(elementPadding + 0.5f * doneButtonWidth, doneButtonTop + 0.5f * doneButtonHeight)
+        doneButton.emerge(doneButtonWidth, doneButtonHeight, animationDuration)
 
-        val radOuter = 0.5f * min(spaceX, spaceY)
+//        val choicesLeft = elementPadding
+//        val choicesRight = width - 2 * elementPadding
+//        val spaceX = choicesRight - choicesLeft
+//        val cX = 0.5f * (choicesLeft + choicesRight)
 
-        val choiceButtonDiagonal = 2.0f * PI * radOuter / (choiceButtons.size + PI.toFloat())
-        val choiceButtonSize = choiceButtonDiagonal / 2.0f.pow(0.5f)
-        val circleRadius = radOuter - 0.5f * choiceButtonDiagonal
+        // val radOuter = 0.5f * min(spaceX, spaceY)
 
-        doneButton.setCenter(cX, cY)
-        doneButton.emerge(((2 * circleRadius - choiceButtonDiagonal) / 1.41f).roundToInt(), ((2 * circleRadius - choiceButtonDiagonal) / 1.41f).roundToInt(), animationDuration)
+        //val choiceButtonDiagonal = 2.0f * PI * radOuter / (choiceButtons.size + PI.toFloat())
+        //val choiceButtonSize = choiceButtonDiagonal / 2.0f.pow(0.5f)
+        //val circleRadius = radOuter - 0.5f * choiceButtonDiagonal
+        val buttonSize = choiceButtonSize
+        val nC = numCols
+        val buttonsTop = choiceButtonsTop
+        val buttonsLeft = choiceButtonsLeft
+        Log.v("Metronome", "SoundChooser.activateStaticChoices: buttonSize = $buttonSize, buttonsTop = $buttonsTop, buttonsLeft = $buttonsLeft")
+        var iCol = 0
+        var iRow = 0
 
-        val dPhi = 2.0f * PI.toFloat() / choiceButtons.size
-        Log.v("Notes", "SoundChooser.activateStaticChoices: radOuter = $radOuter, circleRadius = $circleRadius")
+//        val dPhi = 2.0f * PI.toFloat() / choiceButtons.size
+//        Log.v("Notes", "SoundChooser.activateStaticChoices: radOuter = $radOuter, circleRadius = $circleRadius")
 
         for(i in choiceButtons.indices) {
-            val buttonAngle = i * dPhi
-
-            val buttonCX = cX + circleRadius * cos(buttonAngle)
-            val buttonCY = cY + circleRadius * sin(buttonAngle)
+//            val buttonAngle = i * dPhi
+//
+//            val buttonCX = cX + circleRadius * cos(buttonAngle)
+//            val buttonCY = cY + circleRadius * sin(buttonAngle)
             val c = choiceButtons[i]
 
-            var choiceButtonModifiedSize = choiceButtonSize
+//            var choiceButtonModifiedSize = choiceButtonSize
 
             if(c.noteID == controlButton.noteList[0].id) {
                 c.button.highlightNote(0, true)
             }
             else {
                 c.button.highlightNote(0, false)
-                choiceButtonModifiedSize *= 1.0 // 0.85
+//                choiceButtonModifiedSize *= 1.0 // 0.85
             }
             c.button.visibility = View.VISIBLE
-            c.top = (buttonCY - 0.5f * choiceButtonModifiedSize).roundToInt()
-            c.left = (buttonCX - 0.5f * choiceButtonModifiedSize).roundToInt()
-            c.width = choiceButtonModifiedSize.roundToInt()
-            c.height = choiceButtonModifiedSize.roundToInt()
+
+            c.top = (buttonsTop + iRow * (choiceButtonSpacing + buttonSize) - choiceButtonSpacing).roundToInt()
+            c.left = (buttonsLeft + iCol * (choiceButtonSpacing + buttonSize) - choiceButtonSpacing).roundToInt()
+            c.width = buttonSize.roundToInt()
+            c.height = buttonSize.roundToInt()
+
+            iCol += 1
+            if(iCol == nC) {
+                iCol = 0
+                iRow += 1
+            }
+//            c.top = (buttonCY - 0.5f * choiceButtonModifiedSize).roundToInt()
+//            c.left = (buttonCX - 0.5f * choiceButtonModifiedSize).roundToInt()
+//            c.width = choiceButtonModifiedSize.roundToInt()
+//            c.height = choiceButtonModifiedSize.roundToInt()
             c.animateToTarget(animationDuration)
         }
 
         val volumeControlParams = volumeControl.layoutParams
-        volumeControlParams.height = if(volumeControlOrientationVertical) volumeControlLength else volumeControlWidth
-        volumeControlParams.width =  if(volumeControlOrientationVertical) volumeControlWidth else volumeControlLength
+        volumeControlParams.height = volumeControlHeight
+        volumeControlParams.width =  volumeControlLength
         volumeControl.layoutParams = volumeControlParams
-        if(volumeControlOrientationVertical) {
-            volumeControl.translationX = width - volumeControlWidth - elementPadding
-            volumeControl.translationY = deleteButtonHeight + 2 * elementPadding
-            volumeControl.vertical = true
-        }
-        else {
-            volumeControl.translationX = elementPadding
-            volumeControl.translationY = boundingBoxesTop - elementPadding - volumeControlWidth
-            volumeControl.vertical = false
-        }
+        volumeControl.translationX = elementPadding
+        volumeControl.translationY = doneButtonTop - elementPadding - volumeControlHeight
+        volumeControl.vertical = false
+
         if(volumeControl.alpha == 0f)
             volumeControl.animate().setDuration(animationDuration).alpha(1.0f)
         volumeControl.visibility = View.VISIBLE
@@ -667,33 +676,104 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
 
     private val deleteButtonHeight : Int
         get() {
-            val freeSpaceAboveBoxes = boundingBoxesTop - elementPadding - verticalSpacing
+            val freeSpaceAboveBoxes = boundingBoxesTop - 2 *  elementPadding
             return min(boundingBoxesHeight / 1.5f, freeSpaceAboveBoxes / 4.0f).roundToInt()
         }
 
-    private val volumeControlOrientationVertical : Boolean
-        get() {
-            val freeSpaceWidth = width - 2 * elementPadding
-            val freeSpaceHeight = boundingBoxesTop - elementPadding - 2 * verticalSpacing - deleteButtonHeight
-            return freeSpaceHeight < freeSpaceWidth
-        }
+    private val deleteButtonTop
+        get() = elementPadding
 
-    private val volumeControlWidth : Int
+    private val doneButtonHeight
+        get() = deleteButtonHeight
+
+    private val doneButtonWidth
+        get() = (width - 2 * elementPadding).roundToInt()
+
+    private val doneButtonTop
+        get() = boundingBoxesTop - elementPadding - doneButtonHeight
+
+//    private val volumeControlOrientationVertical : Boolean
+//        get() {
+//            val freeSpaceWidth = width - 2 * elementPadding
+//            val freeSpaceHeight = boundingBoxesTop - elementPadding - 2 * verticalSpacing - deleteButtonHeight
+//            return freeSpaceHeight < freeSpaceWidth
+//        }
+
+    private val volumeControlHeight : Int
         get() {
-            val freeSpace = if (volumeControlOrientationVertical)
-                width - 2 * elementPadding
-            else
-                boundingBoxesTop - 3 * elementPadding - deleteButtonHeight
-            var w = min(freeSpace / 4.0f, boundingBoxesHeight / 3.0f)
+            val freeSpace = doneButtonTop - deleteButtonTop - deleteButtonHeight - 2 * elementPadding
+            var w = min(freeSpace / 3.0f, boundingBoxesHeight / 3.0f)
             w = min(0.2f * volumeControlLength, w)
             return w.roundToInt()
         }
 
-    private val volumeControlLength : Int
+    private val volumeControlTop
+        get() = doneButtonTop - elementPadding - volumeControlHeight
+
+    private val volumeControlLength
+        get() = (width - 2 * elementPadding).roundToInt()
+
+    private val choiceButtonSpaceWidth
+        get() = (width - 2 * elementPadding).roundToInt()
+
+    private val choiceButtonSpaceHeight
+        get() = volumeControlTop - deleteButtonTop - deleteButtonHeight - 2 * elementPadding
+
+    private val choiceButtonSpaceLeft
+        get() = elementPadding
+
+    private val choiceButtonSpaceTop
+        get() = deleteButtonTop + deleteButtonHeight + elementPadding
+
+    private val numCols : Int
         get() {
-            return if (volumeControlOrientationVertical)
-                (boundingBoxesTop - 3 * elementPadding - deleteButtonHeight).roundToInt()
-            else
-                (width - 2 * elementPadding).roundToInt()
+            val aspect = choiceButtonSpaceWidth / choiceButtonSpaceHeight
+            var bestColRowAspect = Float.MAX_VALUE
+            var bestNumCols = 0
+            for(cols in 1 .. getNumAvailableNotes()) {
+                val rows = ceil(getNumAvailableNotes().toFloat() / cols.toFloat())
+                val colRowAspect = cols.toFloat() / rows
+                if(abs(colRowAspect - aspect) < abs(bestColRowAspect - aspect)) {
+                    bestNumCols = cols
+                    bestColRowAspect = colRowAspect
+                }
+            }
+            return bestNumCols
+        }
+
+    private val numRows : Int
+        get() {
+            val nC = numCols
+//            Log.v("Metronome", "SoundChooser.numRows: nC=$nC, numNotes=${getNumAvailableNotes()}")
+            return ceil(getNumAvailableNotes().toFloat() / nC.toFloat()).toInt()
+        }
+
+    private val choiceButtonSize : Float
+        get() {
+            val nR = numRows
+            val nC = numCols
+
+            val s = min(
+                    (choiceButtonSpaceWidth + choiceButtonSpacing) / nC.toFloat() - choiceButtonSpacing,
+                    (choiceButtonSpaceHeight + choiceButtonSpacing) / nR.toFloat() - choiceButtonSpacing
+            )
+            return min(s, boundingBoxesHeight.toFloat())
+        }
+
+    private val choiceButtonsLeft : Float
+        get() {
+            val nC = numCols
+            val buttonSize = choiceButtonSize
+            val choiceButtonsTotalWidth = nC * buttonSize + (nC - 1) * choiceButtonSpacing
+            return choiceButtonSpaceLeft + 0.5f * (choiceButtonSpaceWidth - choiceButtonsTotalWidth)
+        }
+
+    private val choiceButtonsTop : Float
+        get() {
+            val nR = numRows
+            val buttonSize = choiceButtonSize
+            val choiceButtonsTotalHeight = nR * buttonSize + (nR - 1) * choiceButtonSpacing
+            Log.v("Metronome", "SoundChooser.choiceButtonsTop: choiceButtonSpaceHeight = $choiceButtonSpaceHeight, choiceButtonsTotalHeight = $choiceButtonsTotalHeight, nR = $nR, buttonSize = $buttonSize")
+            return choiceButtonSpaceTop + 0.5f * (choiceButtonSpaceHeight - choiceButtonsTotalHeight)
         }
 }
