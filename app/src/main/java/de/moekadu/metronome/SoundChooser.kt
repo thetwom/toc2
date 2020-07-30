@@ -90,11 +90,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
             val ta = context.obtainStyledAttributes(attrs, R.styleable.SoundChooser,
                 defStyleAttr, R.style.Widget_AppTheme_SoundChooserStyle)
 
-            controlButton.lineColor = ta.getColor(R.styleable.SoundChooser_lineColor, controlButton.lineColor)
-//            val lc = ta.getColor(R.styleable.SoundChooser_lineColor, Color.GREEN)
 //            Log.v("Metronome", "SoundChooser.init: lineColor: $lc, white: ${Color.WHITE}")
-            controlButton.noteColor = ta.getColor(R.styleable.SoundChooser_noteColor, controlButton.noteColor)
-            controlButton.noteHighlightColor = ta.getColor(R.styleable.SoundChooser_noteHighlightColor, controlButton.noteHighlightColor)
             minimumDeleteButtonHeight = ta.getDimension(R.styleable.SoundChooser_minimumDeleteButtonHeight, minimumDeleteButtonHeight)
             elementElevation = ta.getDimension(R.styleable.SoundChooser_elementElevation, elementElevation)
             activeElementTranslationZ = ta.getDimension(R.styleable.SoundChooser_activeElementTranslationZ, activeElementTranslationZ)
@@ -111,8 +107,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         }
 
 //        controlButton.setBackgroundColor(Color.GREEN)
-        controlButton.volumePaintStrokeWidth = volumePaintStrokeWidth
-        controlButton.volumePaintColor = volumePaintColor
+        controlButton.volumeColor = volumePaintColor
         addView(controlButton)
 
         addView(deleteButton)
@@ -194,10 +189,9 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         }
 
         for(c in choiceButtons) {
-            c.button.lineColor = controlButton.lineColor
-            c.button.noteColor = controlButton.noteColor
-            c.button.noteHighlightColor = controlButton.noteHighlightColor
             c.button.elevation = elementElevation
+            c.button.volumeColor = volumePaintColor
+
             addView(c.button)
             c.button.visibility = View.GONE
             c.button.onClickListener = object : NoteView.OnClickListener {

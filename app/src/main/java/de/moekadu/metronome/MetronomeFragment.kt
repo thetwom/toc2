@@ -206,7 +206,7 @@ class MetronomeFragment : Fragment() {
             override fun onPositionChanged(note : NoteListItem, boxIndex: Int) {
                 noteList.removeNote(note)
                 noteList.add(boxIndex, note)
-                applyNoteList(false)
+                applyNoteList(true)
             }
 
             override fun onNoteDeleted(note: NoteListItem) {

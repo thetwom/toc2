@@ -33,7 +33,7 @@
         <item name="android:colorBackground">@color/colorMyBackground</item>
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
 
-            <item name="colorPrimaryTransparent">@color/myColorPrimaryTransparent</item>
+            <item name="colorPrimaryFaint">@color/myColorPrimaryFaint</item>
 
         <item name="controlPanelStyle">@style/Widget.AppTheme.ControlPanelStyle</item>
         <item name="volumeSlidersStyle">@style/Widget.AppTheme.VolumeSlidersStyle</item>
@@ -64,19 +64,11 @@
     </style>
 
     <declare-styleable name="NoteView">
-        <attr name="lineColor"/>
-        <attr name="noteColor"/>
-        <attr name="noteHighlightColor"/>
-        <attr name="volumeStrokeWidth"/>
         <attr name="volumeColor"/>
     </declare-styleable>
 
     <style name="Widget.AppTheme.NoteViewStyle" parent="">
-        <item name="lineColor">?attr/colorOnBackground</item>
-        <item name="noteColor">?attr/colorPrimary</item>
-        <item name="noteHighlightColor">?attr/colorSecondary</item>
-        <item name="volumeStrokeWidth">1.5dp</item>
-        <item name="volumeColor">?attr/colorPrimaryTransparent</item>
+        <item name="volumeColor">?attr/colorPrimaryFaint</item>
     </style>
 
     <declare-styleable name="SoundChooser">
@@ -107,10 +99,10 @@
         <item name="activeTranslationZ">30dp</item>
         <item name="elementPadding">4dp</item>
         <item name="volumeStrokeWidth">1.5dp</item>
-        <item name="volumeColor">?attr/colorPrimaryTransparent</item>
+        <item name="volumeColor">?attr/colorPrimaryFaint</item>
         <item name="volumeControlBackgroundColor">?attr/colorBackgroundFloating</item>
         <item name="volumeControlSliderColor">?attr/colorPrimary</item>
-        <item name="volumeControlBelowSliderColor">?attr/colorPrimaryTransparent</item>
+        <item name="volumeControlBelowSliderColor">?attr/colorPrimaryFaint</item>
         <item name="volumeControlOnSliderColor">?attr/colorOnPrimary</item>
         <item name="backgroundViewColor">?android:colorBackground</item>
     </style>
@@ -132,7 +124,7 @@
     <style name="Widget.AppTheme.VolumeControlStyle" parent="">
         <item name="sliderColor">?attr/colorPrimary</item>
         <item name="iconColor">?attr/colorOnPrimary</item>
-        <item name="belowSliderColor">?attr/colorPrimaryTransparent</item>
+        <item name="belowSliderColor">?attr/colorPrimaryFaint</item>
         <item name="backgroundColor">?attr/colorBackgroundFloating</item>
         <item name="vertical">true</item>
     </style>
@@ -150,7 +142,7 @@
         <item name="interactiveColor">?attr/colorPrimary</item>
         <item name="onInteractiveColor">?attr/colorOnPrimary</item>
         <item name="backgroundColor">?android:attr/colorBackground</item>
-        <item name="belowSliderColor">?attr/colorPrimaryTransparent</item>
+        <item name="belowSliderColor">?attr/colorPrimaryFaint</item>
     </style>
 
     <declare-styleable name="SavedItemAttributes">

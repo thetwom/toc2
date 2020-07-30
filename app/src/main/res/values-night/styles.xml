@@ -28,7 +28,7 @@
         <item name="android:colorBackground">@color/colorMyBackground</item>
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
 
-        <item name="colorPrimaryTransparent">@color/myColorPrimaryTransparent</item>
+        <item name="colorPrimaryFaint">@color/myColorPrimaryFaint</item>
 
         <item name="controlPanelStyle">@style/Widget.AppTheme.ControlPanelStyle</item>
         <item name="volumeSlidersStyle">@style/Widget.AppTheme.VolumeSlidersStyle</item>

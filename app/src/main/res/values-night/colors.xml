@@ -20,7 +20,7 @@
 
 <resources>
     <color name="colorPrimary">#1E88E5</color>
-    <color name="myColorPrimaryTransparent">#801E88E5</color>
+    <color name="myColorPrimaryFaint">#052F55</color>
     <color name="myColorOnPrimary">#FFFFFF</color>
     <color name="colorSecondary">#E91E63</color>
     <color name="colorMyBackground">#000000</color>
