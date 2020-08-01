@@ -7,6 +7,37 @@ import kotlin.math.roundToInt
 
 class SoundChooserControlButton(context: Context) : NoteView(context) {
 
+    var eventXOnDown = 0f
+    var eventYOnDown = 0f
+    var translationXInit = 0f
+    var translationYInit = 0f
+
+    private val newNoteList = NoteList(1).apply { add(NoteListItem()) }
+
+//    fun setNote(note: NoteListItem) {
+//        newNoteList[0].set(note)
+//        for(n in newNoteList)
+//            highlightNote(n, true)
+//        setNotes(newNoteList)
+//    }
+
+    fun setNoteId(id: Int) {
+        newNoteList[0].id = id
+        setNotes(newNoteList)
+        highlightNote(0, true)
+    }
+
+    fun setNoteVolume(vol: Float) {
+        newNoteList[0].volume = vol
+        setNotes(newNoteList)
+        highlightNote(0, true)
+    }
+
+    fun animateAllNotes() {
+        for(n in noteList)
+            animateNote(n)
+    }
+
     private val positionAnimatorListener = object : Animator.AnimatorListener {
         override fun onAnimationEnd(animation: Animator?) {
             if(!vanishAnimator.isRunning && !animateZ.isRunning)

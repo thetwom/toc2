@@ -56,6 +56,7 @@ class MainActivity : AppCompatActivity() {
     // TODO: are the PixelC-Problems due to API 23?
     // TODO: NoteView volumes should be drawn with only one path
     // TODO: VolumeControl should work continuously
+    // TODO: Animate SoundChooser ControlButton to target on release instead instantly move it there
 
 
     companion object {

@@ -10,13 +10,13 @@ import android.transition.TransitionManager
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
+import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.widget.ImageView
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.roundToInt
 
 
@@ -110,13 +110,13 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             r
         }
 
-    interface OnClickListener {
-        fun onDown(event: MotionEvent?, note : NoteListItem?, noteIndex : Int, noteBoundingBoxes : Array<Rect>) : Boolean
-        fun onUp(event: MotionEvent?, note : NoteListItem?, noteIndex : Int, noteBoundingBoxes : Array<Rect>) : Boolean
+    interface OnNoteClickListener {
+        fun onDown(event: MotionEvent?, note : NoteListItem?, noteIndex : Int) : Boolean
+        fun onUp(event: MotionEvent?, note : NoteListItem?, noteIndex : Int) : Boolean
         fun onMove(event: MotionEvent?, note : NoteListItem?, noteIndex : Int) : Boolean
     }
 
-    var onClickListener : OnClickListener? = null
+    var onNoteClickListener : OnNoteClickListener? = null
 
     constructor(context: Context, attrs : AttributeSet? = null)
             : this(context, attrs, R.attr.noteViewStyle)
@@ -186,7 +186,12 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         }
     }
 
+    override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
+        Log.v("Metronome", "NoteView.onInterceptTouchEvent")
+        return true
+    }
     override fun onTouchEvent(event: MotionEvent?): Boolean {
+        Log.v("Metronome", "NoteView.onTouchEvent")
         if(event == null)
             return super.onTouchEvent(event)
 
@@ -217,17 +222,17 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         when(action) {
             MotionEvent.ACTION_DOWN -> {
 //                Log.v("Notes", "NoteViw action down: $overNote")
-                actionTaken = onClickListener?.onDown(event, overNote, overNoteIndex, noteBoundingBoxes) ?: true
+                actionTaken = onNoteClickListener?.onDown(event, overNote, overNoteIndex) ?: true
                 if(actionTaken)
                     isPressed = true
             }
             MotionEvent.ACTION_UP -> {
-                actionTaken = onClickListener?.onUp(event, overNote, overNoteIndex, noteBoundingBoxes) ?: true
+                actionTaken = onNoteClickListener?.onUp(event, overNote, overNoteIndex) ?: true
                 if(actionTaken)
                     isPressed = false
             }
             else -> {
-                actionTaken = onClickListener?.onMove(event, overNote, overNoteIndex) ?: true
+                actionTaken = onNoteClickListener?.onMove(event, overNote, overNoteIndex) ?: true
             }
         }
 

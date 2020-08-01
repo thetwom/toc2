@@ -24,7 +24,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
-import android.graphics.Rect
 import android.os.Bundle
 import android.os.IBinder
 import android.support.v4.media.session.PlaybackStateCompat
@@ -160,19 +159,22 @@ class MetronomeFragment : Fragment() {
 
         noteView = view.findViewById(R.id.note_view)
 
-        noteView?.onClickListener = object : NoteView.OnClickListener {
-            override fun onDown(event: MotionEvent?, note: NoteListItem?, noteIndex: Int, noteBoundingBoxes: Array<Rect>
-            ): Boolean {
+        noteView?.onNoteClickListener = object : NoteView.OnNoteClickListener {
+            override fun onDown(event: MotionEvent?, note: NoteListItem?, noteIndex: Int): Boolean {
+                Log.v("Metronome", "MetronomeFragment.noteView.onClickListener.onDown: noteIndex=$noteIndex")
                 if(note != null) {
-                    soundChooser?.activate(note, noteIndex, noteBoundingBoxes)
+//                    soundChooser?.activate(note, noteIndex, noteBoundingBoxes)
+//                    soundChooser?.setBoundingBoxes(noteBoundingBoxes)
+                    soundChooser?.setActiveNote(noteIndex, note)
+                    //soundChooser?.translationZ = 20f // TODO: use some better value
+                    // soundChooser?.activateStaticChoices()
                     noteView?.highlightNote(note, true)
                     //noteView?.animateNote(note)
                 }
                 return false
             }
 
-            override fun onUp(event: MotionEvent?, note: NoteListItem?,noteIndex: Int, noteBoundingBoxes: Array<Rect>
-            ): Boolean {
+            override fun onUp(event: MotionEvent?, note: NoteListItem?,noteIndex: Int): Boolean {
                 return true
             }
 
@@ -194,7 +196,10 @@ class MetronomeFragment : Fragment() {
                 val note = noteList[noteIndex]
                 val noteBoxes = noteView?.noteBoundingBoxes
                 if (noteBoxes != null) {
-                    soundChooser?.activate(note, noteIndex, noteBoxes)
+                    //soundChooser?.activate(note, noteIndex, noteBoxes)
+//                    soundChooser?.setBoundingBoxes(noteBoxes)
+                    soundChooser?.setActiveNote(noteIndex, note)
+                    soundChooser?.activateStaticChoices()
                     noteView?.highlightNote(note, true)
                 }
             }
@@ -210,9 +215,24 @@ class MetronomeFragment : Fragment() {
             }
 
             override fun onNoteDeleted(note: NoteListItem) {
+                var index = noteList.indexOfObject(note)
+                Log.v("Metronome", "MetronmeFragment.onNoteDeleted: index of note to be deleted = $index")
                 noteList.remove(note)
                 applyNoteList(false)
+
+                if(soundChooser?.choiceStatus == SoundChooser.CHOICE_STATIC) {
+                    if(noteList.size == 0) {
+                        soundChooser?.deactivate()
+                    }
+                    else {
+                        if (index < 0 || index >= noteList.size)
+                            index = noteList.size - 1
+                        soundChooser?.setActiveNote(index, noteList[index])
+                        noteView?.highlightNote(noteList[index], true)
+                    }
+                }
             }
+
             override fun onNoteChanged(note: NoteListItem, noteID: Int) {
                 note.id = noteID
 //                if(noteList.size >= 2) {
@@ -310,7 +330,7 @@ class MetronomeFragment : Fragment() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         if(soundChooser?.choiceStatus == SoundChooser.CHOICE_STATIC) {
-            val noteIndex = noteList.indexOf(soundChooser?.note)
+            val noteIndex = noteList.indexOf(soundChooser?.activeNote)
             outState.putInt("soundChooserNoteIndex", noteIndex)
         }
 
@@ -373,7 +393,9 @@ class MetronomeFragment : Fragment() {
                         val note = noteList[savedSoundChooserNoteIndex]
                         val noteBoxes = noteView?.noteBoundingBoxes
                         if (noteBoxes != null) {
-                            soundChooser?.activate(note, savedSoundChooserNoteIndex, noteBoxes, 0L,true)
+                            //soundChooser?.activate(note, savedSoundChooserNoteIndex, noteBoxes, 0L,true)
+//                            soundChooser?.setBoundingBoxes(noteBoxes)
+                            soundChooser?.setActiveNote(savedSoundChooserNoteIndex, note)
                             noteView?.highlightNote(note, true)
                         }
                     }
@@ -414,6 +436,7 @@ class MetronomeFragment : Fragment() {
         noteView?.setNotes(noteList)
         Log.v("Metronome", "MetronomeFragment.noteList : size at end = ${noteList.size}")
         updateSpeedIndicatorMarksAndVolumeSliders()
+        noteView?.let { soundChooser?.setBoundingBoxes(it.noteBoundingBoxes) }
     }
 
     private fun updateSpeedIndicatorMarksAndVolumeSliders() {

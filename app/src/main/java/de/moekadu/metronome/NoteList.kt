@@ -26,6 +26,13 @@ fun NoteList.removeNote(note : NoteListItem) {
         }
 }
 
+fun NoteList.indexOfObject(note : NoteListItem) : Int {
+    for (i in this.indices)
+        if(this[i] === note)
+            return i
+    return -1
+}
+
 fun NoteList.compareNoteListItemInstances(other : NoteList) : Boolean {
     if(this.size != other.size)
         return false
