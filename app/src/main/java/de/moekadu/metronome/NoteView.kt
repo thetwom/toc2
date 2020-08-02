@@ -40,7 +40,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
         var highlight : Boolean = false
             set(value) {
-                noteImage.isPressed = value
+                noteImage.isSelected = value
                 field = value
             }
 

@@ -397,6 +397,7 @@ class MetronomeFragment : Fragment() {
 //                            soundChooser?.setBoundingBoxes(noteBoxes)
                             soundChooser?.setActiveNote(savedSoundChooserNoteIndex, note)
                             noteView?.highlightNote(note, true)
+                            soundChooser?.activateStaticChoices(0L)
                         }
                     }
                 }

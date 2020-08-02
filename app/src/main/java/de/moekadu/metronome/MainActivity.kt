@@ -49,15 +49,8 @@ class MainActivity : AppCompatActivity() {
     // TODO: animate volume slider position to new position if it is changed
     // TODO: test different device formats
     // TODO: notification play button should have the same color as the text
-    // TODO: don't deactivate static soundchooser after pressing delete button
     // TODO: check behavior when all notes are deleted
-    // TODO; PixelC: static shoundchooser does not always start correctly
-    // TODO: PixelC: notes are not animated
-    // TODO: are the PixelC-Problems due to API 23?
-    // TODO: NoteView volumes should be drawn with only one path
     // TODO: VolumeControl should work continuously
-    // TODO: Animate SoundChooser ControlButton to target on release instead instantly move it there
-
 
     companion object {
         private const val METRONOME_FRAGMENT_TAG = "metronomeFragment"
