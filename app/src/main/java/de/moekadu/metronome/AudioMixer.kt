@@ -48,7 +48,6 @@ class AudioMixer (availableTrackResources : IntArray, context: Context, maximumL
     /// Device sample rate
     private val nativeSampleRate = AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC)
 
-    /// Minimum buffer size of our AudioTrack in bytes
     private val minBufferSize = AudioTrack.getMinBufferSize(nativeSampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_FLOAT)
 
     /// Maximum latency measured in frames instead of milliseconds
@@ -65,22 +64,7 @@ class AudioMixer (availableTrackResources : IntArray, context: Context, maximumL
     private val audioTrackBufferSize = max(minBufferSize, 4 * 2 * audioBufferUpdatePeriod)
 
     /// The playing audio track itself
-    private val player = AudioTrack.Builder()
-        .setAudioAttributes(
-            AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_MEDIA)
-                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                .build()
-        )
-        .setAudioFormat(
-            AudioFormat.Builder()
-                .setEncoding(AudioFormat.ENCODING_PCM_FLOAT)
-                .setSampleRate(nativeSampleRate)
-                .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
-                .build()
-        )
-        .setBufferSizeInBytes(audioTrackBufferSize)
-        .build()
+    private var player : AudioTrack? = null
 
     /// These are all available tracks which we can play, samples are stored as as FloatArrays
     private val availableTracks = createAvailableTracks(availableTrackResources, context)
@@ -179,8 +163,50 @@ class AudioMixer (availableTrackResources : IntArray, context: Context, maximumL
     /// Start playing
     fun start() {
         require(playList.isNotEmpty()) {"Playlist must not be empty"}
+        stop()
 
-        player.playbackHeadPosition = 0
+        player = AudioTrack.Builder()
+                .setAudioAttributes(
+                        AudioAttributes.Builder()
+                                .setUsage(AudioAttributes.USAGE_MEDIA)
+                                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                                .build()
+                )
+                .setAudioFormat(
+                        AudioFormat.Builder()
+                                .setEncoding(AudioFormat.ENCODING_PCM_FLOAT)
+                                .setSampleRate(nativeSampleRate)
+                                .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
+                                .build()
+                )
+                .setBufferSizeInBytes(audioTrackBufferSize)
+                .build()
+
+        player?.setPlaybackPositionUpdateListener(object : AudioTrack.OnPlaybackPositionUpdateListener {
+
+            override fun onMarkerReached(track: AudioTrack?) {
+//                Log.v("AudioMixer", "AudioMixer: onMarkerReached, headPos=${track?.playbackHeadPosition}")
+                val markerAndPosition = markers.pop()
+//                Log.v("AudioMixer", "AudioMixer: onMarkerReached, nextMarker=${markerAndPosition.nextTrackPosition}")
+                val objectReference = markerAndPosition.objectReferenceOfPlaylistItem
+                trackStartedListener?.onTrackStarted(objectReference)
+
+                if(markers.size > 0) {
+                    val nextMarker = markers.first()
+                    track?.notificationMarkerPosition = nextMarker.frameWhenPlaylistItemStarts
+                }
+            }
+
+            override fun onPeriodicNotification(track: AudioTrack?) {
+//                Log.v("AudioMixer", "AudioMixer: onPeriodicNotification")
+                if(track != null) {
+                    queueNextTracks()
+                    mixAndPlayQueuedTracks()
+                }
+            }
+        })
+
+        player?.playbackHeadPosition = 0
         markers.clear()
 
         queuedTracks.clear()
@@ -190,13 +216,13 @@ class AudioMixer (availableTrackResources : IntArray, context: Context, maximumL
         nextTrackFrame = audioBufferUpdatePeriod
         nextPlaylistIndex = 0
 
-        player.flush()
+        player?.flush()
 
         // Log.v("AudioMixer", "AudioMixer: start")
         // Log.v("AudioMixer", "AudioMixer:start : minimumBufferSize=$minBufferSize , periodicBaseSize: ${4 * 2 * audioBufferUpdatePeriod}")
-        player.play()
+        player?.play()
 
-        player.positionNotificationPeriod = audioBufferUpdatePeriod
+        player?.positionNotificationPeriod = audioBufferUpdatePeriod
 
         // Log.v("AudioMixer", "AudioMixer:start, positionPeriod = $audioBufferUpdatePeriod")
 
@@ -214,8 +240,12 @@ class AudioMixer (availableTrackResources : IntArray, context: Context, maximumL
 
     /// Stop playing
     fun stop() {
-        player.pause()
-        player.flush()
+        if(player != null) {
+            player?.pause()
+            player?.flush()
+            player?.release()
+            player = null
+        }
         isPlaying = false
     }
 
@@ -231,7 +261,7 @@ class AudioMixer (availableTrackResources : IntArray, context: Context, maximumL
     fun synchronizeTime(referenceTime : Long, beatDuration : Float) {
 
         val currentTimeMillis  = SystemClock.uptimeMillis()
-        val currentTimeInFrames = player.playbackHeadPosition
+        val currentTimeInFrames = player?.playbackHeadPosition ?: 0
         val referenceTimeInFrames = currentTimeInFrames + (referenceTime - currentTimeMillis).toInt() * nativeSampleRate / 1000
         val beatDurationInFrames = (beatDuration * nativeSampleRate).roundToInt()
 
@@ -263,29 +293,6 @@ class AudioMixer (availableTrackResources : IntArray, context: Context, maximumL
        // Log.v("AudioMixer", "AudioMixer: maxTrackSize = ${getMaximumTrackLength(availableTracks)}")
        // Log.v("AudioMixer", "AudioMixer: bufferSize = $audioTrackBufferSize")
 
-        player.setPlaybackPositionUpdateListener(object : AudioTrack.OnPlaybackPositionUpdateListener {
-
-            override fun onMarkerReached(track: AudioTrack?) {
-//                Log.v("AudioMixer", "AudioMixer: onMarkerReached, headPos=${track?.playbackHeadPosition}")
-                val markerAndPosition = markers.pop()
-//                Log.v("AudioMixer", "AudioMixer: onMarkerReached, nextMarker=${markerAndPosition.nextTrackPosition}")
-                val objectReference = markerAndPosition.objectReferenceOfPlaylistItem
-                trackStartedListener?.onTrackStarted(objectReference)
-
-                if(markers.size > 0) {
-                    val nextMarker = markers.first()
-                    track?.notificationMarkerPosition = nextMarker.frameWhenPlaylistItemStarts
-                }
-            }
-
-            override fun onPeriodicNotification(track: AudioTrack?) {
-//                Log.v("AudioMixer", "AudioMixer: onPeriodicNotification")
-                if(track != null) {
-                    queueNextTracks()
-                    mixAndPlayQueuedTracks()
-                }
-            }
-        })
     }
 
     private fun queueNextTracks() {
@@ -309,7 +316,7 @@ class AudioMixer (availableTrackResources : IntArray, context: Context, maximumL
             nextMarker.objectReferenceOfPlaylistItem = track.objectReference
 
             if( markers.size == 1)
-                player.notificationMarkerPosition = queuedFrames + queueItem.startDelay
+                player?.notificationMarkerPosition = queuedFrames + queueItem.startDelay
 
             ++nextPlaylistIndex
         }
@@ -353,7 +360,7 @@ class AudioMixer (availableTrackResources : IntArray, context: Context, maximumL
             else
                 break
         }
-        val numWrite = player.write(mixingBuffer, 0, mixingBuffer.size, AudioTrack.WRITE_NON_BLOCKING)
+        val numWrite = player?.write(mixingBuffer, 0, mixingBuffer.size, AudioTrack.WRITE_NON_BLOCKING)
 //        Log.v("AudioMixer", "AudioMixer:mixAndQueueTracks : wrote $numWrite to audioTrack")
         if(numWrite != mixingBuffer.size)
             throw RuntimeException("Nonblocking write of ${mixingBuffer.size} samples to AudioTrack not possible")
