@@ -448,6 +448,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
      * @param noteBoundingBoxes Bounding boxes of notes in corresponding noteView in absolute coordinates
      */
     fun setBoundingBoxes(noteBoundingBoxes: Array<Rect>) {
+        // TODO: should we better store the raw coordinates, since left/top might be not correct here?
         boundingBoxes.clear()
         for(bb in noteBoundingBoxes) {
             boundingBoxes.add(
@@ -458,6 +459,12 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
                             bb.bottom - top - translationY.roundToInt()
                     )
             )
+        }
+
+        if (activeBoxIndex < boundingBoxes.size && activeBoxIndex >= 0) {
+            moveControlButtonToActiveBoundingBox() // TODO: set animation duration
+            activeBoxLeft = (boundingBoxes[activeBoxIndex].left - tolerance).roundToInt()
+            activeBoxRight = (boundingBoxes[activeBoxIndex].right + tolerance).roundToInt()
         }
         requestLayout()
     }
@@ -479,6 +486,10 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         volumeControl.volume = note.volume
         for(c in choiceButtons)
             c.button.highlightNote(0, c.button.noteList[0].id == activeNote?.id)
+
+        // do not set more things if the bounding boxes aren't ready
+        if(activeBoxIndex >= boundingBoxes.size)
+            return
 
         if(choiceStatus == CHOICE_STATIC)
             moveControlButtonToActiveBoundingBox(animationDuration)

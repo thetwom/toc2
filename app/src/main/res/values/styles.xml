@@ -130,19 +130,21 @@
     </style>
 
     <declare-styleable name="VolumeSliders">
-        <attr name="interactiveColor"/>
-        <attr name="elementBackgroundColor"/>
-        <attr name="onInteractiveColor"/>
+        <attr name="sliderColor"/>
+        <attr name="backgroundSurfaceColor"/>
+        <attr name="iconColor"/>
         <attr name="belowSliderColor"/>
         <attr name="backgroundColor"/>
+        <attr name="activeTranslationZ"/>
     </declare-styleable>
 
     <style name="Widget.AppTheme.VolumeSlidersStyle" parent="">
-        <item name="elementBackgroundColor">?attr/colorBackgroundFloating</item>
-        <item name="interactiveColor">?attr/colorPrimary</item>
-        <item name="onInteractiveColor">?attr/colorOnPrimary</item>
+        <item name="backgroundSurfaceColor">?attr/colorBackgroundFloating</item>
+        <item name="sliderColor">?attr/colorPrimary</item>
+        <item name="iconColor">?attr/colorOnPrimary</item>
         <item name="backgroundColor">?android:attr/colorBackground</item>
         <item name="belowSliderColor">?attr/colorPrimaryFaint</item>
+        <item name="activeTranslationZ">12dp</item>
     </style>
 
     <declare-styleable name="SavedItemAttributes">

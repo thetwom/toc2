@@ -6,22 +6,28 @@ import android.graphics.Rect
 import android.graphics.drawable.Animatable
 import android.graphics.drawable.Drawable
 import android.transition.AutoTransition
+import android.transition.Transition
 import android.transition.TransitionManager
+import android.transition.TransitionSet
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
-import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.widget.ImageView
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import kotlin.math.max
-import kotlin.math.roundToInt
 
 
 open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
     : ViewGroup(context, attrs, defStyleAttr) {
+
+    interface BoundingBoxesChangedListener {
+        fun onBoundingBoxesChanged(boundingBoxes : Array<Rect>)
+    }
+
+    var boundingBoxesChangedListener : BoundingBoxesChangedListener? = null
 
     private val lineView = ImageView(context).apply {
         setPadding(0, 0, 0, 0)
@@ -97,18 +103,27 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             return noteList
         }
 
-    val noteBoundingBoxes
-        get() = Array(notes.size) {i ->
-            val noteHorizontalSpace = (width - paddingLeft - paddingRight) / notes.size.toFloat()
-            val noteHeight = height - paddingTop - paddingBottom
-            val r = Rect(0, 0, noteHorizontalSpace.toInt(), noteHeight)
-            r.offset(
-                (i * noteHorizontalSpace + paddingLeft + left + translationX).roundToInt(),
-                paddingTop + top + translationY.roundToInt()
-            )
-            //Log.v("Notes", "NoteView.noteBoundingBoxes, top = $top, translationY = $translationY")
-            r
-        }
+    val numNotes
+        get() = notes.size
+
+    fun getNoteListItem(index : Int) : NoteListItem {
+        return notes[index].note
+    }
+
+    var noteBoundingBoxes = Array(0) {Rect()}
+        private set
+
+//        get() = Array(notes.size) {i ->
+//            val noteHorizontalSpace = (width - paddingLeft - paddingRight) / notes.size.toFloat()
+//            val noteHeight = height - paddingTop - paddingBottom
+//            val r = Rect(0, 0, noteHorizontalSpace.toInt(), noteHeight)
+//            r.offset(
+//                (i * noteHorizontalSpace + paddingLeft + left + translationX).roundToInt(),
+//                paddingTop + top + translationY.roundToInt()
+//            )
+//            //Log.v("Notes", "NoteView.noteBoundingBoxes, top = $top, translationY = $translationY")
+//            r
+//        }
 
     interface OnNoteClickListener {
         fun onDown(event: MotionEvent?, note : NoteListItem?, noteIndex : Int) : Boolean
@@ -170,6 +185,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         lineView.layout(paddingLeft, paddingTop, paddingLeft + lineView.measuredWidth, paddingTop + lineView.measuredHeight)
 
         val noteHorizontalSpace = totalWidth / notes.size.toFloat()
+        var boundingBoxesModified = false
 
         for(i in notes.indices) {
             val noteView = notes[i].noteImage
@@ -177,13 +193,25 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             val noteImageWidth = noteView.measuredWidth
             val noteImageHeight = noteView.measuredHeight
 
-            noteView.layout(
-                (noteCenter - 0.5f * noteImageWidth).toInt(),
-                paddingTop,
-                (noteCenter - 0.5f * noteImageWidth).toInt() + noteImageWidth,
-                paddingTop + noteImageHeight
-            )
+            val noteLeft = (noteCenter - 0.5f * noteImageWidth).toInt()
+            val noteTop = paddingTop
+            val noteRight = (noteCenter - 0.5f * noteImageWidth).toInt() + noteImageWidth
+            val noteBottom = paddingTop + noteImageHeight
+            noteView.layout(noteLeft, noteTop, noteRight, noteBottom)
+
+            val box = noteBoundingBoxes[i]
+            val bbLeft = l + (noteCenter - 0.5f * noteHorizontalSpace).toInt()
+            val bbTop = t
+            val bbRight = l + (noteCenter + 0.5f * noteHorizontalSpace).toInt()
+            val bbBottom = b
+            if(bbLeft != box.left || bbTop != box.top || bbRight != box.right || bbBottom != box.bottom) {
+                box.set(bbLeft, bbTop, bbRight, bbBottom)
+                boundingBoxesModified = true
+            }
         }
+        Log.v("Metronome", "NoteView.onLayout: boundingBoxesModified=$boundingBoxesModified")
+        if(boundingBoxesModified)
+            post{boundingBoxesChangedListener?.onBoundingBoxesChanged(noteBoundingBoxes)}
     }
 
     override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
@@ -294,11 +322,15 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         notesMarkedToDelete.clear()
         notesMarkedToDelete.addAll(notes) // for now add all current notes to this list, some might be removed again later
 
-        this.notes.clear()
+        notes.clear()
+
+        if(noteBoundingBoxes.size != newNotes.size)
+            noteBoundingBoxes = Array(newNotes.size) {Rect()}
 
         if(animationDuration > 0) {
             val autoTransition = AutoTransition().apply {
                 this.duration = duration
+                // ordering = TransitionSet.ORDERING_TOGETHER
             }
             TransitionManager.beginDelayedTransition(this, autoTransition)
         }

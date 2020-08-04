@@ -45,12 +45,14 @@ class MainActivity : AppCompatActivity() {
     // TODO: double/half speed?
     // TODO: delete log messages?
 
-    // TODO: when volume sliders are shown and a note is added/removed, animate the sliders to fit then new note setup
     // TODO: animate volume slider position to new position if it is changed
     // TODO: test different device formats
     // TODO: notification play button should have the same color as the text
     // TODO: check behavior when all notes are deleted
     // TODO: VolumeControl should work continuously
+    // TODO: VolumeSliders should stay unfolded when rotating device
+    // TODO: we have graphical glitches on VolumeControl, when VolumeSliders are unfolded and a note is added
+    // TODO: SoundChooser ControlButton should not move to new place, when a note is added, but fade out/in (or at least jump)
 
     companion object {
         private const val METRONOME_FRAGMENT_TAG = "metronomeFragment"

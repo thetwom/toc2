@@ -27,9 +27,7 @@
     <attr name="sliderColor" format="color" />
     <attr name="iconColor" format="color" />
     <attr name="belowSliderColor" format="color"/>
-    <attr name="interactiveColor" format="color"/>
-    <attr name="elementBackgroundColor" format="color"/>
-    <attr name="onInteractiveColor" format="color"/>
+    <attr name="backgroundSurfaceColor" format="color"/>
     <attr name="deleteColor" format="color"/>
     <attr name="onDeleteColor" format="color"/>
     <attr name="seperatorColor" format="color"/>

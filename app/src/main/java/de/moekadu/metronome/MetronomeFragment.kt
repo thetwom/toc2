@@ -24,6 +24,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
+import android.graphics.Rect
 import android.os.Bundle
 import android.os.IBinder
 import android.support.v4.media.session.PlaybackStateCompat
@@ -34,6 +35,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.core.view.size
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import kotlin.math.roundToInt
@@ -86,7 +88,7 @@ class MetronomeFragment : Fragment() {
     private var sharedPreferenceChangeListener: OnSharedPreferenceChangeListener? = null
     private var speedIncrement = Utilities.speedIncrements[InitialValues.speedIncrementIndex]
 
-    private val volumes = ArrayList<Float>()
+    private var volumes = FloatArray(0)
 
     private val playerServiceStatusChangedListener = object : PlayerService.StatusChangedListener {
         override fun onNoteListChanged(noteList: NoteList) {
@@ -163,13 +165,8 @@ class MetronomeFragment : Fragment() {
             override fun onDown(event: MotionEvent?, note: NoteListItem?, noteIndex: Int): Boolean {
                 Log.v("Metronome", "MetronomeFragment.noteView.onClickListener.onDown: noteIndex=$noteIndex")
                 if(note != null) {
-//                    soundChooser?.activate(note, noteIndex, noteBoundingBoxes)
-//                    soundChooser?.setBoundingBoxes(noteBoundingBoxes)
                     soundChooser?.setActiveNote(noteIndex, note)
-                    //soundChooser?.translationZ = 20f // TODO: use some better value
-                    // soundChooser?.activateStaticChoices()
                     noteView?.highlightNote(note, true)
-                    //noteView?.animateNote(note)
                 }
                 return false
             }
@@ -180,6 +177,19 @@ class MetronomeFragment : Fragment() {
 
             override fun onMove(event: MotionEvent?, note: NoteListItem?,noteIndex: Int): Boolean {
                 return true
+            }
+        }
+
+        noteView?.boundingBoxesChangedListener = object : NoteView.BoundingBoxesChangedListener {
+            override fun onBoundingBoxesChanged(boundingBoxes: Array<Rect>) {
+                Log.v("Metronome", "MetronomeFragment.noteView.onBoundingBoxesChanged")
+                soundChooser?.setBoundingBoxes(boundingBoxes)
+                if (volumes.size != noteView?.numNotes)
+                    volumes = FloatArray(noteView?.numNotes ?: 0)
+                for (i in volumes.indices) {
+                    volumes[i] = noteView?.getNoteListItem(i)?.volume ?: 0f
+                }
+                volumeSliders?.setTunersAt(boundingBoxes, volumes)
             }
         }
 
@@ -194,14 +204,12 @@ class MetronomeFragment : Fragment() {
             if(soundChooser?.choiceStatus == SoundChooser.CHOICE_STATIC) {
                 val noteIndex = noteList.size - 1
                 val note = noteList[noteIndex]
-                val noteBoxes = noteView?.noteBoundingBoxes
-                if (noteBoxes != null) {
-                    //soundChooser?.activate(note, noteIndex, noteBoxes)
-//                    soundChooser?.setBoundingBoxes(noteBoxes)
+                //val noteBoxes = noteView?.noteBoundingBoxes
+                //if (noteBoxes != null) {
                     soundChooser?.setActiveNote(noteIndex, note)
                     soundChooser?.activateStaticChoices()
                     noteView?.highlightNote(note, true)
-                }
+                //}
             }
         }
 
@@ -212,6 +220,10 @@ class MetronomeFragment : Fragment() {
                 noteList.removeNote(note)
                 noteList.add(boxIndex, note)
                 applyNoteList(true)
+                // Reset volumes
+                for(i in noteList.indices)
+                    volumes[i] = noteList[i].volume
+                volumeSliders?.setVolumes(volumes)
             }
 
             override fun onNoteDeleted(note: NoteListItem) {
@@ -260,6 +272,10 @@ class MetronomeFragment : Fragment() {
                 if(soundChooser?.choiceStatus == SoundChooser.CHOICE_STATIC && playerService?.state != PlaybackStateCompat.STATE_PLAYING) {
                     playerService?.playSpecificSound(note)
                 }
+
+                for(i in noteList.indices)
+                    volumes[i] = noteList[i].volume
+                volumeSliders?.setVolumes(volumes)
             }
         }
 
@@ -387,18 +403,16 @@ class MetronomeFragment : Fragment() {
                     playerService?.registerStatusChangedListener(playerServiceStatusChangedListener)
 
                     updateView()
-                    updateSpeedIndicatorMarksAndVolumeSliders()
+//                    updateSpeedIndicatorMarksAndVolumeSliders()
 
                     if(savedSoundChooserNoteIndex >= 0 && savedSoundChooserNoteIndex < noteList.size) {
                         val note = noteList[savedSoundChooserNoteIndex]
-                        val noteBoxes = noteView?.noteBoundingBoxes
-                        if (noteBoxes != null) {
-                            //soundChooser?.activate(note, savedSoundChooserNoteIndex, noteBoxes, 0L,true)
-//                            soundChooser?.setBoundingBoxes(noteBoxes)
+                        //val noteBoxes = noteView?.noteBoundingBoxes
+                        //if (noteBoxes != null) {
                             soundChooser?.setActiveNote(savedSoundChooserNoteIndex, note)
                             noteView?.highlightNote(note, true)
                             soundChooser?.activateStaticChoices(0L)
-                        }
+                        //}
                     }
                 }
 
@@ -436,22 +450,22 @@ class MetronomeFragment : Fragment() {
         playerService?.noteList = noteList
         noteView?.setNotes(noteList)
         Log.v("Metronome", "MetronomeFragment.noteList : size at end = ${noteList.size}")
-        updateSpeedIndicatorMarksAndVolumeSliders()
-        noteView?.let { soundChooser?.setBoundingBoxes(it.noteBoundingBoxes) }
+//        updateSpeedIndicatorMarksAndVolumeSliders()
+        //noteView?.let { soundChooser?.setBoundingBoxes(it.noteBoundingBoxes) }
     }
 
-    private fun updateSpeedIndicatorMarksAndVolumeSliders() {
-
-        val noteBoxes = noteView?.noteBoundingBoxes
-        val noteList = noteView?.noteList
-        if (noteBoxes == null || noteBoxes.isEmpty() || noteList == null)
-            return
-
-        volumes.clear()
-
-        for(i in noteList.indices)
-            volumes.add(noteList[i].volume)
-
-        volumeSliders?.setTunersAt(noteBoxes, volumes)
-    }
+//    private fun updateSpeedIndicatorMarksAndVolumeSliders() {
+//
+//        //val noteBoxes = noteView?.noteBoundingBoxes
+//        val noteList = noteView?.noteList
+//        //if (noteBoxes == null || noteBoxes.isEmpty() || noteList == null)
+//        //    return
+//
+//        volumes.clear()
+//
+//        for(i in noteList.indices)
+//            volumes.add(noteList[i].volume)
+//
+//        volumeSliders?.setTunersAt(noteBoxes, volumes)
+//    }
 }

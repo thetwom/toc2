@@ -238,11 +238,12 @@
         android:layout_marginEnd="0dp"
         android:layout_marginBottom="0dp"
         android:layout_marginTop="0dp"
-        android:padding="0dp"
+        android:padding="4dp"
         android:backgroundTint="?attr/colorPrimary"
         app:layout_constraintBottom_toTopOf="@id/note_view"
         app:layout_constraintTop_toTopOf="parent"
          app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:activeTranslationZ="28dp"
         />
 </androidx.constraintlayout.widget.ConstraintLayout>
