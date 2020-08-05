@@ -64,8 +64,6 @@ public class PlayerService extends Service {
     private static final String INCREMENTSPEED = "INCREMENTSPEED";
     private static final String DECREMENTSPEED = "DECREMENTSPEED";
 
-    private static final int nativeSampleRate = AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC);
-
     private float minimumSpeed;
     private float maximumSpeed;
 
@@ -161,7 +159,7 @@ public class PlayerService extends Service {
         IntentFilter filter = new IntentFilter(BROADCAST_PLAYERACTION);
         registerReceiver(actionReceiver, filter);
 
-        audioMixer = new AudioMixer(Sounds.getSoundIDs(nativeSampleRate), getApplicationContext(),250.0f);
+        audioMixer = new AudioMixer(getApplicationContext());
         audioMixer.setTrackStartedListener(new AudioMixer.TrackStartedListener() {
             @Override
             public void onTrackStarted(@Nullable Object objectReference) {
@@ -270,7 +268,7 @@ public class PlayerService extends Service {
         int numSounds = Sounds.getNumSoundID();
         soundHandles = new int[numSounds];
         for (int i = 0; i < numSounds; ++i) {
-            int soundID = Sounds.getSoundID(i, nativeSampleRate);
+            int soundID = Sounds.getSoundID(i, AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC));
             soundHandles[i] = soundpool.load(this, soundID, 1);
         }
         return playerBinder;

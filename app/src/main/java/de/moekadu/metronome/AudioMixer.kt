@@ -28,14 +28,16 @@ import android.os.SystemClock
 import java.lang.RuntimeException
 import kotlin.math.*
 
-class AudioMixer (availableTrackResources : IntArray, context: Context, maximumLatency : Float = 250.0f) {
+class AudioMixer (val context: Context) {
     companion object {
-        fun createAvailableTracks(availableTrackResources: IntArray, context: Context) : Array<FloatArray> {
-            return Array(availableTrackResources.size) {
+        fun createAvailableTracks(context: Context, sampleRate: Int): Array<FloatArray> {
+            return Array(Sounds.getNumSoundID()) {
                 // i -> audioToPCM(availableTrackResources[i], context)
-                i -> waveToPCM(availableTrackResources[i], context)
+                i ->
+                waveToPCM(Sounds.getSoundID(i, sampleRate), context)
             }
         }
+
 
 //        fun getMaximumTrackLength(tracks : Array<FloatArray>) : Int {
 //            var maxLength = 0
@@ -45,29 +47,18 @@ class AudioMixer (availableTrackResources : IntArray, context: Context, maximumL
 //        }
     }
 
-    /// Device sample rate
-    private val nativeSampleRate = AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC)
-
-    private val minBufferSize = AudioTrack.getMinBufferSize(nativeSampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_FLOAT)
-
-    /// Maximum latency measured in frames instead of milliseconds
-    private val maximumLatencyInFrames = (maximumLatency * nativeSampleRate / 1000.0f).roundToInt()
-
     /// Period in audio frames when we ask for new data in the audio buffer
     /**
      * We take this period to be half the time of the maximum latency, we copy the first half to
      * the AudioTrack and prepare the half to be ready writing it in time.
      */
-    private val audioBufferUpdatePeriod = floor(maximumLatencyInFrames / 2.0f).toInt()
-
-    /// Buffer size of Audio Track in bytes (the factor for is because the size of 1 float is 4 bytes)
-    private val audioTrackBufferSize = max(minBufferSize, 4 * 2 * audioBufferUpdatePeriod)
+    private var audioBufferUpdatePeriod = 0
 
     /// The playing audio track itself
     private var player : AudioTrack? = null
 
     /// These are all available tracks which we can play, samples are stored as as FloatArrays
-    private val availableTracks = createAvailableTracks(availableTrackResources, context)
+    private var availableTracks = Array(0) { FloatArray(0)}
 
     /// Class which stores tracks which are queued for the playing
     /**
@@ -86,7 +77,7 @@ class AudioMixer (availableTrackResources : IntArray, context: Context, maximumL
     private var queuedFrames = 0
 
     /// Mixing buffer where we mix our audio
-    private val mixingBuffer = FloatArray(audioBufferUpdatePeriod)
+    private var mixingBuffer = FloatArray(0)
 
     /// Item in the playlist.
     /**
@@ -165,6 +156,13 @@ class AudioMixer (availableTrackResources : IntArray, context: Context, maximumL
         require(playList.isNotEmpty()) {"Playlist must not be empty"}
         stop()
 
+        val sampleRate = AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC)
+        val bufferSize = 2 * AudioTrack.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_FLOAT)
+        /// Division by 4 since this is frames (float) and the buffer size is in bytes
+        audioBufferUpdatePeriod = floor(bufferSize / 4f  / 2.0f).toInt()
+        availableTracks = createAvailableTracks(context, sampleRate)
+        mixingBuffer = FloatArray(audioBufferUpdatePeriod)
+
         player = AudioTrack.Builder()
                 .setAudioAttributes(
                         AudioAttributes.Builder()
@@ -175,11 +173,11 @@ class AudioMixer (availableTrackResources : IntArray, context: Context, maximumL
                 .setAudioFormat(
                         AudioFormat.Builder()
                                 .setEncoding(AudioFormat.ENCODING_PCM_FLOAT)
-                                .setSampleRate(nativeSampleRate)
+                                .setSampleRate(sampleRate)
                                 .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
                                 .build()
                 )
-                .setBufferSizeInBytes(audioTrackBufferSize)
+                .setBufferSizeInBytes(bufferSize)
                 .build()
 
         player?.setPlaybackPositionUpdateListener(object : AudioTrack.OnPlaybackPositionUpdateListener {
@@ -259,68 +257,61 @@ class AudioMixer (availableTrackResources : IntArray, context: Context, maximumL
      *   where n is a integer number.
      */
     fun synchronizeTime(referenceTime : Long, beatDuration : Float) {
+        player?.let { audioTrack ->
+            val currentTimeMillis = SystemClock.uptimeMillis()
+            val currentTimeInFrames = audioTrack.playbackHeadPosition
+            val referenceTimeInFrames = currentTimeInFrames + (referenceTime - currentTimeMillis).toInt() * audioTrack.sampleRate / 1000
+            val beatDurationInFrames = (beatDuration * audioTrack.sampleRate).roundToInt()
 
-        val currentTimeMillis  = SystemClock.uptimeMillis()
-        val currentTimeInFrames = player?.playbackHeadPosition ?: 0
-        val referenceTimeInFrames = currentTimeInFrames + (referenceTime - currentTimeMillis).toInt() * nativeSampleRate / 1000
-        val beatDurationInFrames = (beatDuration * nativeSampleRate).roundToInt()
+            if (nextPlaylistIndex >= playList.size)
+                nextPlaylistIndex = 0
 
-        if(nextPlaylistIndex >= playList.size)
-            nextPlaylistIndex = 0
+            var referenceTimeForNextPlaylistItem = referenceTimeInFrames
+            for (i in 0 until nextPlaylistIndex)
+                referenceTimeForNextPlaylistItem += (playList[i].duration * audioTrack.sampleRate).roundToInt()
 
-        var referenceTimeForNextPlaylistItem = referenceTimeInFrames
-        for (i in 0 until nextPlaylistIndex)
-            referenceTimeForNextPlaylistItem += (playList[i].duration * nativeSampleRate).roundToInt()
+            // remove multiples of beat duration from our reference, so that it is always smaller than the nextTrackFrame
+            if (referenceTimeForNextPlaylistItem > 0)
+                referenceTimeForNextPlaylistItem -= (referenceTimeForNextPlaylistItem / beatDurationInFrames) * (beatDurationInFrames + 1)
+            require(referenceTimeForNextPlaylistItem <= nextTrackFrame)
 
-        // remove multiples of beat duration from our reference, so that it is always smaller than the nextTrackFrame
-        if(referenceTimeForNextPlaylistItem > 0)
-            referenceTimeForNextPlaylistItem -= (referenceTimeForNextPlaylistItem / beatDurationInFrames) * (beatDurationInFrames + 1)
-        require(referenceTimeForNextPlaylistItem <= nextTrackFrame)
-
-        val correctedNextFrameIndex = (referenceTimeForNextPlaylistItem +
-                ((nextTrackFrame - referenceTimeForNextPlaylistItem).toFloat()
-                        / beatDurationInFrames).roundToInt()
-                * beatDurationInFrames)
-        // Log.v("AudioMixer", "AudioMixer.synchronizeTime : correctedNextFrame=$correctedNextFrameIndex, nextTrackFrame=$nextTrackFrame")
-        nextTrackFrame = correctedNextFrameIndex
-    }
-
-
-    init {
-
-       // Log.v("AudioMixer", "AudioMixer: audioBufferUpdatePeriod = $audioBufferUpdatePeriod")
-       // Log.v("AudioMixer", "AudioMixer: minBufferSize = $minBufferSize")
-       // Log.v("AudioMixer", "AudioMixer: maxTrackSize = ${getMaximumTrackLength(availableTracks)}")
-       // Log.v("AudioMixer", "AudioMixer: bufferSize = $audioTrackBufferSize")
-
+            val correctedNextFrameIndex = (referenceTimeForNextPlaylistItem +
+                    ((nextTrackFrame - referenceTimeForNextPlaylistItem).toFloat()
+                            / beatDurationInFrames).roundToInt()
+                    * beatDurationInFrames)
+            // Log.v("AudioMixer", "AudioMixer.synchronizeTime : correctedNextFrame=$correctedNextFrameIndex, nextTrackFrame=$nextTrackFrame")
+            nextTrackFrame = correctedNextFrameIndex
+        }
     }
 
     private fun queueNextTracks() {
 //        Log.v("AudioMixer", "AudioMixer:queueNextTracks")
-        while (nextTrackFrame < queuedFrames + audioBufferUpdatePeriod) {
-            if (nextPlaylistIndex >= playList.size)
-                nextPlaylistIndex = 0
+        player?.let { audioTrack ->
+            while (nextTrackFrame < queuedFrames + audioBufferUpdatePeriod) {
+                if (nextPlaylistIndex >= playList.size)
+                    nextPlaylistIndex = 0
 //            Log.v("AudioMixer", "AudioMixer:queueNextTracks nextPlaylistIndex=$nextPlaylistIndex")
-            val track = playList[nextPlaylistIndex]
+                val track = playList[nextPlaylistIndex]
 
-            val queueItem = queuedTracks.add()
-            queueItem.trackIndex = track.trackIndex
-            queueItem.startDelay = max(0, nextTrackFrame - queuedFrames)
-            queueItem.nextSampleToMix = 0
-            queueItem.volume = track.volume
+                val queueItem = queuedTracks.add()
+                queueItem.trackIndex = track.trackIndex
+                queueItem.startDelay = max(0, nextTrackFrame - queuedFrames)
+                queueItem.nextSampleToMix = 0
+                queueItem.volume = track.volume
 
-            nextTrackFrame += (track.duration * nativeSampleRate).roundToInt()
+                nextTrackFrame += (track.duration * audioTrack.sampleRate).roundToInt()
 
-            val nextMarker = markers.add()
-            nextMarker.frameWhenPlaylistItemStarts = nextTrackFrame
-            nextMarker.objectReferenceOfPlaylistItem = track.objectReference
+                val nextMarker = markers.add()
+                nextMarker.frameWhenPlaylistItemStarts = nextTrackFrame
+                nextMarker.objectReferenceOfPlaylistItem = track.objectReference
 
-            if( markers.size == 1)
-                player?.notificationMarkerPosition = queuedFrames + queueItem.startDelay
+                if (markers.size == 1)
+                    audioTrack.notificationMarkerPosition = queuedFrames + queueItem.startDelay
 
-            ++nextPlaylistIndex
+                ++nextPlaylistIndex
+            }
+            queuedFrames += audioBufferUpdatePeriod
         }
-        queuedFrames += audioBufferUpdatePeriod
     }
 
     private fun mixAndPlayQueuedTracks() {
