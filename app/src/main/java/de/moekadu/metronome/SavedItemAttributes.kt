@@ -19,10 +19,20 @@
 
 package de.moekadu.metronome;
 
-class InitialValues {
-    static final float speed = 120;
-    static final float minimumSpeed = 20;
-    static final float maximumSpeed = 250;
-    static final float speedSensitivity = 2.0f;
-    static final int speedIncrementIndex = 3;
+import android.content.Context
+import android.graphics.Color
+import android.util.AttributeSet
+import android.view.View
+
+
+class SavedItemAttributes(context: Context, attrs: AttributeSet?) : View(context, attrs) {
+    val deleteColor: Int
+    val onDeleteColor: Int
+
+    init {
+        val ta = context.obtainStyledAttributes(attrs, R.styleable.SavedItemAttributes)
+        deleteColor = ta.getColor(R.styleable.SavedItemAttributes_deleteColor, Color.RED)
+        onDeleteColor = ta.getColor(R.styleable.SavedItemAttributes_onDeleteColor, Color.WHITE)
+        ta.recycle()
+    }
 }

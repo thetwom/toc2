@@ -53,6 +53,7 @@ class MainActivity : AppCompatActivity() {
     // TODO: VolumeSliders should stay unfolded when rotating device
     // TODO: we have graphical glitches on VolumeControl, when VolumeSliders are unfolded and a note is added
     // TODO: SoundChooser ControlButton should not move to new place, when a note is added, but fade out/in (or at least jump)
+    // TODO: Is the volume in "load data" painted over the notes???
 
     companion object {
         private const val METRONOME_FRAGMENT_TAG = "metronomeFragment"
