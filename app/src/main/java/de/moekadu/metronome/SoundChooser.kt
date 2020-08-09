@@ -506,7 +506,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
             activeBoxLeft = (boundingBoxes[activeBoxIndex].left - tolerance).roundToInt()
             activeBoxRight = (boundingBoxes[activeBoxIndex].right + tolerance).roundToInt()
         }
-        
+
         activeNote = note
         controlButton.setNoteId(note.id)
         controlButton.setNoteVolume(note.volume)
