@@ -1,21 +1,21 @@
 package de.moekadu.metronome
 
-import android.animation.Animator
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.content.Context
 import android.content.res.Resources
 import android.graphics.Color
 import android.graphics.Rect
-import android.transition.TransitionManager
+import android.transition.*
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
-import android.transition.AutoTransition
-import android.transition.Slide
-import android.transition.Transition
 import android.view.Gravity
+import android.view.animation.OvershootInterpolator
+import android.widget.Toast
 import kotlin.math.*
 
 class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
@@ -32,6 +32,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
 
     private val backgroundView = ImageButton(context)
     private val controlButton = SoundChooserControlButton(context)
+    private val controlButtonAnimator = AnimatorSet()
 
     private val choiceButtons = Array(availableNotes.size) {i ->
         SoundChooserChoiceButton(context, i)
@@ -93,10 +94,10 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
             activeTranslationZ = ta.getDimension(R.styleable.SoundChooser_activeTranslationZ, activeTranslationZ)
             elementPadding = ta.getDimension(R.styleable.SoundChooser_elementPadding, elementPadding)
             volumePaintColor = ta.getColor(R.styleable.SoundChooser_volumeColor, volumePaintColor)
-            volumeControl.sliderColor = ta.getColor(R.styleable.SoundChooser_volumeControlSliderColor, volumeControl.sliderColor)
-            volumeControl.belowSliderColor = ta.getColor(R.styleable.SoundChooser_volumeControlBelowSliderColor, volumeControl.belowSliderColor)
-            volumeControl.iconColor = ta.getColor(R.styleable.SoundChooser_volumeControlOnSliderColor, volumeControl.iconColor)
-            volumeControl.backgroundSurfaceColor = ta.getColor(R.styleable.SoundChooser_volumeControlBackgroundColor, volumeControl.backgroundSurfaceColor)
+//            volumeControl.sliderColor = ta.getColor(R.styleable.SoundChooser_volumeControlSliderColor, volumeControl.sliderColor)
+//            volumeControl.belowSliderColor = ta.getColor(R.styleable.SoundChooser_volumeControlBelowSliderColor, volumeControl.belowSliderColor)
+//            volumeControl.iconColor = ta.getColor(R.styleable.SoundChooser_volumeControlOnSliderColor, volumeControl.iconColor)
+//            volumeControl.backgroundSurfaceColor = ta.getColor(R.styleable.SoundChooser_volumeControlBackgroundColor, volumeControl.backgroundSurfaceColor)
             backgroundView.setBackgroundColor(ta.getColor(R.styleable.SoundChooser_backgroundViewColor, Color.WHITE))
             ta.recycle()
         }
@@ -116,7 +117,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         deleteButton.elevation = elementElevation
         deleteButton.setOnClickListener {
             Log.v("Notes", "SoundChooser.deleteButton.onClick")
-            activeNote?.let { stateChangedListener?.onNoteDeleted(it) }
+            deleteActiveNoteIfPossible()
         }
 
         addView(doneButton)
@@ -427,7 +428,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
                 }
                 else {
                     if(deleteButton.isPressed)
-                        activeNote?.let{stateChangedListener?.onNoteDeleted(it)}
+                        deleteActiveNoteIfPossible()
                     deactivate()
                 }
                 return true
@@ -437,6 +438,14 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         return false
     }
 
+    private fun deleteActiveNoteIfPossible() {
+        if (boundingBoxes.size <= 1) {
+            Toast.makeText(context, context.getString(R.string.cannot_delete_last_note), Toast.LENGTH_LONG).show()
+        }
+        else {
+            activeNote?.let { stateChangedListener?.onNoteDeleted(it) }
+        }
+    }
     fun animateNote(note : NoteListItem) {
         controlButton.animateNote(note)
     }
@@ -462,10 +471,15 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         }
 
         if (activeBoxIndex < boundingBoxes.size && activeBoxIndex >= 0) {
-            moveControlButtonToActiveBoundingBox() // TODO: set animation duration
+            moveControlButtonToActiveBoundingBox(0L) // TODO: set animation duration
             activeBoxLeft = (boundingBoxes[activeBoxIndex].left - tolerance).roundToInt()
             activeBoxRight = (boundingBoxes[activeBoxIndex].right + tolerance).roundToInt()
         }
+
+        if (boundingBoxes.size <= 1 && deleteButton.alpha != 0.5f)
+            deleteButton.animate().alpha(0.5f)
+        else if (deleteButton.alpha != 1f)
+            deleteButton.animate().alpha(1f)
         requestLayout()
     }
 
@@ -480,24 +494,25 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
     fun setActiveNote(noteIndex: Int, note: NoteListItem, animationDuration: Long = 300L) {
         Log.v("Metronome", "SoundChooser2.setActiveNote: noteIndex=$noteIndex")
         activeBoxIndex = noteIndex
+
+        // ony move controlbutton and set active region if there is a valid bounding box
+        if(activeBoxIndex < boundingBoxes.size) {
+//        if(choiceStatus == CHOICE_STATIC)
+//            moveControlButtonToActiveBoundingBox(animationDuration, true)
+//        else
+//            moveControlButtonToActiveBoundingBox(0L)
+            moveControlButtonToActiveBoundingBox(0L)
+
+            activeBoxLeft = (boundingBoxes[activeBoxIndex].left - tolerance).roundToInt()
+            activeBoxRight = (boundingBoxes[activeBoxIndex].right + tolerance).roundToInt()
+        }
+        
         activeNote = note
         controlButton.setNoteId(note.id)
         controlButton.setNoteVolume(note.volume)
-        volumeControl.volume = note.volume
+        volumeControl.setVolume(note.volume, if(choiceStatus == CHOICE_STATIC) animationDuration else 0L)
         for(c in choiceButtons)
             c.button.highlightNote(0, c.button.noteList[0].id == activeNote?.id)
-
-        // do not set more things if the bounding boxes aren't ready
-        if(activeBoxIndex >= boundingBoxes.size)
-            return
-
-        if(choiceStatus == CHOICE_STATIC)
-            moveControlButtonToActiveBoundingBox(animationDuration)
-        else
-            moveControlButtonToActiveBoundingBox(0L)
-
-        activeBoxLeft = (boundingBoxes[activeBoxIndex].left - tolerance).roundToInt()
-        activeBoxRight = (boundingBoxes[activeBoxIndex].right + tolerance).roundToInt()
     }
 
     fun deactivate(animationDuration: Long = 300L) {
@@ -594,18 +609,29 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
             c.button.visibility = View.VISIBLE
     }
 
-    private fun moveControlButtonToActiveBoundingBox(animationDuration: Long = 300L) {
+    private fun moveControlButtonToActiveBoundingBox(animationDuration: Long = 300L, fadeOutIn : Boolean = false) {
 //        Log.v("Metronome", "SoundChooser.moveControlButtonToActiveBoundingBox")
-        if(animationDuration == 0L) {
-            controlButton.translationX = controlButtonTranslationXInit
-            controlButton.translationY = controlButtonTranslationYInit
-        }
-        else {
+//        controlButtonAnimator.pause()
+
+//        if(animationDuration > 0L && fadeOutIn) {
+//            Log.v("Metronome", "SoundChooser.moveControlButtonToActiveBoundingBox: fadeOutIn, controlbutto..translationX=${controlButton.translationX}, controlButtonTranslationXInit=$controlButtonTranslationXInit")
+//            controlButtonAnimator.playSequentially(
+//                    ObjectAnimator.ofFloat(controlButton, View.ALPHA, controlButton.alpha, 0f).setDuration((0.5f * animationDuration).toLong())
+//                    ObjectAnimator.ofFloat(controlButton, View.TRANSLATION_X, controlButton.translationX, controlButtonTranslationXInit).setDuration((0.2f * animationDuration).toLong()),
+                    //ObjectAnimator.ofFloat(controlButton, View.TRANSLATION_Y, controlButton.translationY, controlButtonTranslationYInit).setDuration((0.2f * animationDuration).toLong()),
+//                    ObjectAnimator.ofFloat(controlButton, View.ALPHA, 0f, 1f).setDuration((0.5f * animationDuration).toLong())
+//            )
+//        }
+        if (animationDuration > 0L) {
             controlButton.animate()
                     .translationX(controlButtonTranslationXInit)
                     .translationY(controlButtonTranslationYInit)
                     .setDuration(animationDuration)
                     .start()
+        }
+        else {
+            controlButton.translationX = controlButtonTranslationXInit
+            controlButton.translationY = controlButtonTranslationYInit
         }
 
         controlButton.translationXInit = controlButtonTranslationXInit
@@ -705,10 +731,11 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
                     choiceButtons[i].button.highlightNote(0, i == activeVerticalIndex)
 
                 activeVerticalCenters[0] = Float.MAX_VALUE
-                val autoTransition = AutoTransition().apply {
-                    duration = 100L
+                val transition = ChangeBounds().apply {
+                    duration = 150L
+                    interpolator = OvershootInterpolator()
                 }
-                TransitionManager.beginDelayedTransition(this, autoTransition)
+                TransitionManager.beginDelayedTransition(this, transition)
                 requestLayout()
             }
         }

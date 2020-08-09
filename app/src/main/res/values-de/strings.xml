@@ -42,4 +42,5 @@
     <string name="yes">ja</string>
 
     <string name="keep_screen_on">Bildschirm immer an</string>
+    <string name="cannot_delete_last_note">Die letzte Note kann nicht gelöscht werden.</string>
 </resources>

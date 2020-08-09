@@ -112,6 +112,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
     var noteBoundingBoxes = Array(0) {Rect()}
         private set
+    var numBoundingBoxesBeforeBoundingBoxesChangedCall = 0
 
 //        get() = Array(notes.size) {i ->
 //            val noteHorizontalSpace = (width - paddingLeft - paddingRight) / notes.size.toFloat()
@@ -210,8 +211,10 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             }
         }
         Log.v("Metronome", "NoteView.onLayout: boundingBoxesModified=$boundingBoxesModified")
-        if(boundingBoxesModified)
-            post{boundingBoxesChangedListener?.onBoundingBoxesChanged(noteBoundingBoxes)}
+        if(boundingBoxesModified  || numBoundingBoxesBeforeBoundingBoxesChangedCall != noteBoundingBoxes.size) {
+            post { boundingBoxesChangedListener?.onBoundingBoxesChanged(noteBoundingBoxes) }
+        }
+        numBoundingBoxesBeforeBoundingBoxesChangedCall = noteBoundingBoxes.size
     }
 
     override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
@@ -245,7 +248,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         if(overNoteIndex >= 0)
             overNote = notes[overNoteIndex].note
 
-        var actionTaken = false
+        val actionTaken : Boolean
 
         when(action) {
             MotionEvent.ACTION_DOWN -> {

@@ -62,6 +62,8 @@
     <string name="save">Save</string>
     <string name="dismiss">Dismiss</string>
     <string name="max_allowed_characters">Maximum character number: %d</string>
+
+    <string name="cannot_delete_last_note">You cannot delete the last note.</string>
     
     <string name="no_saved_items">Currently no saved items"</string>
 

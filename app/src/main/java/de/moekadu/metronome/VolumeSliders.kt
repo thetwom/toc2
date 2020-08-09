@@ -47,12 +47,13 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 //    private val tunerWidthPercent = 0.1f
     private val buttonTunerSpacing = Utilities.dp2px(8f)
     private val tunerSpacing = Utilities.dp2px(4f)
-    private val elementPadding = Utilities.dp2px(4f)
+    private val elementPadding = Utilities.dp2px(8f)
     private var activeTranslationZ = 20f
     private val minimumButtonHeight = (Utilities.dp2px(40f)).roundToInt()
     private val minimumButtonWidth = (Utilities.dp2px(70f)).roundToInt()
     private val buttonAspectRatio = 3.0f
-    private var folded = true
+    var folded = true
+        private set
 
     private var boundingBoxes = ArrayList<Rect>(0)
     private val volumeControls = ArrayList<VolumeControl>()
@@ -153,7 +154,7 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                 MeasureSpec.makeMeasureSpec(measuredHeight, MeasureSpec.EXACTLY)
         )
 
-        val buttonWidthFolded = max(minimumButtonWidth.toFloat(), measuredWidth / 4.0f).roundToInt()
+        val buttonWidthFolded = max(minimumButtonWidth.toFloat(), measuredWidth / 5.0f).roundToInt()
         val buttonWidthUnfolded = measuredWidth - paddingLeft - paddingRight
         val buttonWidth = if (folded) buttonWidthFolded else buttonWidthUnfolded
         val buttonHeight = max(minimumButtonHeight, (buttonWidthFolded/ buttonAspectRatio).roundToInt())
@@ -163,9 +164,9 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                 MeasureSpec.makeMeasureSpec(buttonHeight, MeasureSpec.EXACTLY)
         )
 
-        val maxHeight = measuredHeight - elementPadding - elementPadding - buttonHeight - buttonTunerSpacing
-        val defaultHeight = min(maxHeight, measuredHeight * tunerHeightPercent)
-        val tunerHeight =  min(maxHeight, defaultHeight).toInt()
+        val maxHeight = measuredHeight - elementPadding - buttonHeight
+        val defaultHeight = measuredHeight * tunerHeightPercent
+        val tunerHeight =  (min(maxHeight, defaultHeight) - elementPadding - buttonTunerSpacing).toInt()
 
         var tunerWidth = Int.MAX_VALUE
         for(box in boundingBoxes)
@@ -292,16 +293,16 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 //        addView(background)
 //    }
 
-    fun setVolumes(volumes: FloatArray) {
+    fun setVolumes(volumes: FloatArray, animationDuration: Long = 0L) {
         require(volumes.size == volumeControls.size)
         for (i in volumes.indices) {
             if (volumeControls[i].volume != volumes[i])
-                volumeControls[i].volume = volumes[i]
+                volumeControls[i].setVolume(volumes[i], animationDuration)
         }
     }
 
     fun setTunersAt(noteBoundingBoxes : Array<Rect>, volumes : FloatArray, animationDuration: Long = 300L) {
-        Log.v("Metronome", " VolumeSliders.setTunersAt")
+        Log.v("Metronome", " VolumeSliders.setTunersAt, noteBoundingBoxes.size = ${noteBoundingBoxes.size}")
         require(noteBoundingBoxes.size == volumes.size)
 
         if(animationDuration > 0L) {
@@ -332,27 +333,27 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
         for (i in volumeControls.indices) {
             val vC = volumeControls[i]
+            vC.setVolume(volumes[i], animationDuration)
             if (folded)
                 vC.visibility = View.GONE
             else
                 vC.visibility = View.VISIBLE
-            vC.volume = volumes[i]
         }
 
-        if (!folded) {
-            Log.v("Metronome", " VolumeSliders.setTunersAt: requesting layout, num boxes=${boundingBoxes.size}, num volume controls=${volumeControls.size}")
-            requestLayout()
-        }
+//        if (!folded) {
+//            Log.v("Metronome", " VolumeSliders.setTunersAt: requesting layout, num boxes=${boundingBoxes.size}, num volume controls=${volumeControls.size}")
+//            //requestLayout()
+//        }
     }
 
     private fun createVolumeControl() : VolumeControl {
         val volumeControl = VolumeControl(context, null)
         volumeControl.elevation = Utilities.dp2px(2f)
         volumeControl.vertical = true
-        volumeControl.backgroundSurfaceColor = backgrounSurfaceColor
-        volumeControl.sliderColor = sliderColor
-        volumeControl.iconColor = iconColor
-        volumeControl.belowSliderColor = belowSliderColor
+//        volumeControl.backgroundSurfaceColor = backgrounSurfaceColor
+//        volumeControl.sliderColor = sliderColor
+//        volumeControl.iconColor = iconColor
+//        volumeControl.belowSliderColor = belowSliderColor
         volumeControl.setPadding(0,0,0,0)
 
         volumeControl.onVolumeChangedListener = object : VolumeControl.OnVolumeChangedListener {
@@ -397,9 +398,10 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             v.visibility = View.GONE
     }
 
-    private fun unfold(animationDuration : Long = 300L) {
+    fun unfold(animationDuration : Long = 300L) {
         folded = false
         if(animationDuration > 0L) {
+            Log.v("Metronome", "VolumeSliders.unfold: with animation")
             val transition = TransitionSet().apply {
                 duration = animationDuration
                 addTransition(ChangeBounds())

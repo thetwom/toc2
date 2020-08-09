@@ -35,7 +35,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
-import androidx.core.view.size
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import kotlin.math.roundToInt
@@ -80,6 +79,7 @@ class MetronomeFragment : Fragment() {
     private var soundChooser: SoundChooser? = null
     private var savedSoundChooserNoteIndex = -1
     private var volumeSliders: VolumeSliders? = null
+    private var savedVolumeSlidersFolded = true
 
     private var playerConnection: ServiceConnection? = null
     private var playerService: PlayerService? = null
@@ -207,7 +207,7 @@ class MetronomeFragment : Fragment() {
                 //val noteBoxes = noteView?.noteBoundingBoxes
                 //if (noteBoxes != null) {
                     soundChooser?.setActiveNote(noteIndex, note)
-                    soundChooser?.activateStaticChoices()
+//                    soundChooser?.activateStaticChoices()
                     noteView?.highlightNote(note, true)
                 //}
             }
@@ -223,13 +223,14 @@ class MetronomeFragment : Fragment() {
                 // Reset volumes
                 for(i in noteList.indices)
                     volumes[i] = noteList[i].volume
-                volumeSliders?.setVolumes(volumes)
+                volumeSliders?.setVolumes(volumes, 300L)
             }
 
             override fun onNoteDeleted(note: NoteListItem) {
                 var index = noteList.indexOfObject(note)
                 Log.v("Metronome", "MetronmeFragment.onNoteDeleted: index of note to be deleted = $index")
                 noteList.remove(note)
+                noteView?.highlightNote(note, false)
                 applyNoteList(false)
 
                 if(soundChooser?.choiceStatus == SoundChooser.CHOICE_STATIC) {
@@ -275,7 +276,7 @@ class MetronomeFragment : Fragment() {
 
                 for(i in noteList.indices)
                     volumes[i] = noteList[i].volume
-                volumeSliders?.setVolumes(volumes)
+                volumeSliders?.setVolumes(volumes, 300L)
             }
         }
 
@@ -313,7 +314,7 @@ class MetronomeFragment : Fragment() {
         speedPanel?.sensitivity = Utilities.percentage2sensitivity(speedSensitivity)
 
         savedSoundChooserNoteIndex = savedInstanceState?.getInt("soundChooserNoteIndex", -1) ?: -1
-
+        savedVolumeSlidersFolded = savedInstanceState?.getBoolean("volumeSlidersFolded", true) ?: true
         return view
     }
 
@@ -349,6 +350,7 @@ class MetronomeFragment : Fragment() {
             val noteIndex = noteList.indexOf(soundChooser?.activeNote)
             outState.putInt("soundChooserNoteIndex", noteIndex)
         }
+        outState.putBoolean("volumeSlidersFolded", volumeSliders?.folded ?: true)
 
         super.onSaveInstanceState(outState)
     }
@@ -414,6 +416,8 @@ class MetronomeFragment : Fragment() {
                             soundChooser?.activateStaticChoices(0L)
                         //}
                     }
+                    if(!savedVolumeSlidersFolded)
+                        volumeSliders?.unfold(0L)
                 }
 
                 override fun onServiceDisconnected(name: ComponentName?) {
