@@ -238,11 +238,11 @@ class AudioMixer (val context: Context) {
 
     /// Stop playing
     fun stop() {
-        if(player != null) {
-            player?.pause()
-            player?.flush()
-            player?.release()
+        player?.let {audioTrack ->
             player = null
+            audioTrack.pause()
+            audioTrack.flush()
+            audioTrack.release()
         }
         isPlaying = false
     }
@@ -353,7 +353,7 @@ class AudioMixer (val context: Context) {
         }
         val numWrite = player?.write(mixingBuffer, 0, mixingBuffer.size, AudioTrack.WRITE_NON_BLOCKING)
 //        Log.v("AudioMixer", "AudioMixer:mixAndQueueTracks : wrote $numWrite to audioTrack")
-        if(numWrite != mixingBuffer.size)
+        if(numWrite != mixingBuffer.size && numWrite != null)
             throw RuntimeException("Nonblocking write of ${mixingBuffer.size} samples to AudioTrack not possible")
     }
 }
