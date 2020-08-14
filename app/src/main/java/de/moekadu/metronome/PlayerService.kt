@@ -30,7 +30,6 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.media.SoundPool
 import android.os.Binder
 import android.os.IBinder
-import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.widget.RemoteViews
@@ -79,7 +78,7 @@ class PlayerService : Service() {
         fun onPause()
         fun onNoteStarted(noteListItem: NoteListItem)
         fun onSpeedChanged(speed : Float)
-        fun onNoteListChanged(noteList : NoteList)
+//        fun onNoteListChanged(noteList : NoteList)
     }
 
     private val statusChangedListeners = mutableSetOf<StatusChangedListener>()
@@ -128,24 +127,37 @@ class PlayerService : Service() {
     private var audioMixer : AudioMixer? = null
 
     /// The current note list played by the metronome. This list shares its items with all the other classes
-    var noteList = NoteList()
-        set(value) {
-            val instancesChangedFlag = !noteList.compareNoteListItemInstances(value)
-
-            if (instancesChangedFlag) {
-                field.clear()
-                field.addAll(value)
+    val noteList = NoteList().apply {
+        registerNoteListChangedListener(object : NoteList.NoteListChangedListener {
+            override fun onNoteAdded(note: NoteListItem) {
+                setDuration(indexOf(note), computeNoteDurationInSeconds(speed))
             }
+            override fun onNoteRemoved(note: NoteListItem) { }
+            override fun onNoteMoved(note: NoteListItem) { }
+            override fun onVolumeChanged(note: NoteListItem) { }
+            override fun onNoteIdChanged(note: NoteListItem) { }
+            override fun onDurationChanged(note: NoteListItem) { }
+        })
+    }
 
-            // if instances changed we force the note list update (update noteView, call noteListChangedListener)
-            applyNoteList(instancesChangedFlag)
-        }
-
-    /// This is a copy of the note list which items are only owned by this service.
-    /**
-     * This allows to check if something changed when the note list ist checked
-     */
-    private val noteListCopy = NoteList()
+//    var noteList = NoteList()
+//        set(value) {
+//            val instancesChangedFlag = !noteList.compareNoteListItemInstances(value)
+//
+//            if (instancesChangedFlag) {
+//                field.clear()
+//                field.addAll(value)
+//            }
+//
+//            // if instances changed we force the note list update (update noteView, call noteListChangedListener)
+//            applyNoteList(instancesChangedFlag)
+//        }
+//
+//    /// This is a copy of the note list which items are only owned by this service.
+//    /**
+//     * This allows to check if something changed when the note list ist checked
+//     */
+//    private val noteListCopy = NoteList()
 
     private var sharedPreferenceChangeListener: OnSharedPreferenceChangeListener? = null
 
@@ -197,6 +209,7 @@ class PlayerService : Service() {
                     statusChangedListeners.forEach {s -> s.onNoteStarted(noteListItem)}
             }
         })
+        audioMixer?.noteList = noteList
 
         val activityIntent = Intent(this, MainActivity::class.java)
         val launchActivity = PendingIntent.getActivity(this, 0, activityIntent, 0)
@@ -361,7 +374,11 @@ class PlayerService : Service() {
             // playbackState = playbackStateBuilder.setState(state, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, newSpeed).build()
             // mediaSession.setPlaybackState(playbackState)
             statusChangedListeners.forEach {s -> s.onSpeedChanged(field)}
-            setNoteListInAudioMixer()
+
+            val duration = computeNoteDurationInSeconds(field)
+            for(i in noteList.indices) {
+                noteList.setDuration(i, duration)
+            }
 
 //            notificationBuilder.setContentText(getString(R.string.bpm, Utilities.getBpmString(getSpeed(), speedIncrement)));
             notificationView?.setTextViewText(R.id.notification_speedtext, getString(R.string.bpm, Utilities.getBpmString(field, speedIncrement)))
@@ -371,6 +388,9 @@ class PlayerService : Service() {
     val state
         get() = playbackState.state
 
+    private fun computeNoteDurationInSeconds(speed: Float) : Float {
+        return Utilities.speed2dt(speed) / 1000.0f
+    }
 
     fun addValueToSpeed(dSpeed : Float) {
         var newSpeed = speed + dSpeed
@@ -379,22 +399,22 @@ class PlayerService : Service() {
         speed = newSpeed
     }
 
-     fun setVolume(noteListIndex : Int, volume : Float) {
-         var volumeChanged = false
-         if(noteListIndex < noteList.size) {
-             val oldVolume = noteList[noteListIndex].volume
-             if(abs(volume - oldVolume) > 1e-8) {
-                 volumeChanged = true
-                 noteList[noteListIndex].volume = volume
-                 noteListCopy[noteListIndex].volume = volume
-             }
-         }
-
-         if(volumeChanged) {
-             setNoteListInAudioMixer()
-             statusChangedListeners.forEach {s -> s.onNoteListChanged(noteList)}
-         }
-     }
+//     fun setVolume(noteListIndex : Int, volume : Float) {
+//         var volumeChanged = false
+//         if(noteListIndex < noteList.size) {
+//             val oldVolume = noteList[noteListIndex].volume
+//             if(abs(volume - oldVolume) > 1e-8) {
+//                 volumeChanged = true
+//                 noteList[noteListIndex].volume = volume
+//                 noteListCopy[noteListIndex].volume = volume
+//             }
+//         }
+//
+//         if(volumeChanged) {
+//             setNoteListInAudioMixer()
+//             statusChangedListeners.forEach {s -> s.onNoteListChanged(noteList)}
+//         }
+//     }
 
     fun startPlay() {
         // Log.v("Metronome", "PlayerService:startPlay")
@@ -438,17 +458,9 @@ class PlayerService : Service() {
 
     fun syncClickWithUptimeMillis(time : Long) {
         if(state == PlaybackStateCompat.STATE_PLAYING) {
-            audioMixer?.synchronizeTime(time, Utilities.speed2dt(speed) / 1000.0f)
+            audioMixer?.synchronizeTime(time, computeNoteDurationInSeconds(speed))
         }
     }
-
-//    fun registerMediaControllerCallback(callback : MediaControllerCompat.Callback) {
-//        mediaSession.controller.registerCallback(callback)
-//    }
-//
-//    fun unregisterMediaControllerCallback(callback : MediaControllerCompat.Callback) {
-//        mediaSession.controller.unregisterCallback(callback)
-//    }
 
     fun registerStatusChangedListener(statusChangedListener: StatusChangedListener) {
         statusChangedListeners.add(statusChangedListener)
@@ -457,84 +469,44 @@ class PlayerService : Service() {
     fun unregisterStatusChangedListener(statusChangedListener: StatusChangedListener) {
         statusChangedListeners.remove(statusChangedListener)
     }
-//    fun getSpeed() : Float {
-//        return playbackState.playbackSpeed
-//    }
-
-//    private fun setMinimumSpeed(newMinimumSpeed : Float) : Boolean {
-//        if (newMinimumSpeed >= maximumSpeed)
-//            return false
-//
-//        minimumSpeed = newMinimumSpeed
-//        if (speed < minimumSpeed) {
-//            speed = minimumSpeed
-//        }
-//        return true
-//    }
-
-//    private fun setMaximumSpeed(newMaximumSpeed : Float) : Boolean {
-//        if (newMaximumSpeed <= minimumSpeed)
-//            return false
-//
-//        maximumSpeed = newMaximumSpeed
-//        if (speed > maximumSpeed) {
-//            speed = maximumSpeed
-//        }
-//        return true
-//    }
-//    private fun setSpeedIncrement(speedIncrement : Float) {
-//        this.speedIncrement = speedIncrement
-//        speed = speed // Make sure that current speed fits speedIncrement (so reassigning is intenionally here)
-//        updateNotification()
-//    }
-
-//    fun playSpecificSound(playListPosition : Int) {
-//        if(playListPosition >= noteList.size)
-//            return
-//        playSpecificSound(noteList[playListPosition].id, noteList[playListPosition].volume)
-//    }
-//
-//    fun playSpecificSound(sound : Int, volume : Float) {
-//        soundPool.play(soundHandles[sound], volume, volume, 1, 0, 1.0f)
-//    }
 
     fun playSpecificSound(noteListItem: NoteListItem) {
         soundPool.play(soundHandles[noteListItem.id], noteListItem.volume, noteListItem.volume, 1, 0, 1.0f)
     }
 
-    private fun setNoteListInAudioMixer() {
-        if(noteList.size == 0)
-            return
+//    private fun setNoteListInAudioMixer() {
+//        if(noteList.size == 0)
+//            return
+//
+//        val duration = Utilities.speed2dt(speed) / 1000.0f
+////        Log.v("Metronome", "PlayerService.setMissingMembersAndCopyPlayListToAudioMixer: duration = " +duration + " speed= " + getSpeed());
+//        require(noteList.size > 0)
+//        for (noteListItem in noteList) {
+//            noteListItem.duration = duration
+//        }
+//        audioMixer?.noteList = noteList
+//    }
 
-        val duration = Utilities.speed2dt(speed) / 1000.0f
-//        Log.v("Metronome", "PlayerService.setMissingMembersAndCopyPlayListToAudioMixer: duration = " +duration + " speed= " + getSpeed());
-        require(noteList.size > 0)
-        for (noteListItem in noteList) {
-            noteListItem.duration = duration
-        }
-        audioMixer?.noteList = noteList
-    }
-
-    private fun applyNoteList(force : Boolean) {
-         if (SoundProperties.noteIdAndVolumeEqual(noteList, noteListCopy) && !force)
-            return
-
-        // Delay update a little, to avoid any feedback loop with updates of other instances
-//            updateMetadataDelayed()
-
-        // set copy of note list which allows reliable checks if something changed in the note list
-        if(noteListCopy.size == noteList.size) {
-            for(i in noteList.indices)
-                noteListCopy[i].set(noteList[i])
-        }
-        else {
-            noteListCopy.clear()
-            for (n in noteList)
-                noteListCopy.add(n.clone())
-        }
-
-        statusChangedListeners.forEach {s -> s.onNoteListChanged(noteList)}
-        setNoteListInAudioMixer()
-    }
+//    private fun applyNoteList(force : Boolean) {
+//         if (SoundProperties.noteIdAndVolumeEqual(noteList, noteListCopy) && !force)
+//            return
+//
+//        // Delay update a little, to avoid any feedback loop with updates of other instances
+////            updateMetadataDelayed()
+//
+//        // set copy of note list which allows reliable checks if something changed in the note list
+//        if(noteListCopy.size == noteList.size) {
+//            for(i in noteList.indices)
+//                noteListCopy[i].set(noteList[i])
+//        }
+//        else {
+//            noteListCopy.clear()
+//            for (n in noteList)
+//                noteListCopy.add(n.clone())
+//        }
+//
+//        statusChangedListeners.forEach {s -> s.onNoteListChanged(noteList)}
+//        setNoteListInAudioMixer()
+//    }
 
 }

@@ -69,7 +69,7 @@ class SavedItemDatabase : RecyclerView.Adapter<SavedItemDatabase.ViewHolder>() {
 //        iconListVisualizer.setIcons(metaData);
         val noteView = holder.view.findViewById(R.id.saved_item_sounds) as NoteView?
         val noteList = SoundProperties.parseMetaDataString(item.noteList)
-        noteView?.setNotes(noteList)
+        noteView?.noteList = noteList
 
         holder.view.setOnClickListener {
             // Log.v("Metronome", "SavedItemDatabase:onClickListener " + holder.getAdapterPosition())

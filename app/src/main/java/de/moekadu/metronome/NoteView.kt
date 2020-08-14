@@ -80,7 +80,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     }
 
     private val notes = ArrayList<Note>()
-    private val notesMarkedToDelete = ArrayList<Note>()
+//    private val notesMarkedToDelete = ArrayList<Note>()
 
     private fun computeLargestAspectRatio() : Float {
         var largestAspectRatio = 0.0f
@@ -95,24 +95,105 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     }
     private val largestAspectRatio = computeLargestAspectRatio()
 
-    val noteList : NoteList
-        get(){
-            val noteList = NoteList(0)
-            for(n in notes)
-                noteList.add(n.note)
-            return noteList
+    private val transition = AutoTransition().apply { duration = 300L }
+
+    private val noteListChangedListener = object: NoteList.NoteListChangedListener {
+        override fun onNoteAdded(note: NoteListItem) {
+            val index = noteList?.indexOf(note) ?: -1
+            if (index >= 0) {
+                TransitionManager.beginDelayedTransition(this@NoteView, transition)
+                val newNote = Note(note)
+                notes.add(index, newNote)
+                noteBoundingBoxes = Array(notes.size) {Rect()}
+                addView(newNote.noteImage)
+            }
         }
 
-    val numNotes
-        get() = notes.size
+        override fun onNoteRemoved(note: NoteListItem) {
+            var index = -1
+            for(i in notes.indices) {
+                if (notes[i].note === note) {
+                    index = i
+                    break
+                }
+            }
+            if (index >= 0) {
+                TransitionManager.beginDelayedTransition(this@NoteView, transition)
+                removeView(notes[index].noteImage)
+                notes.removeAt(index)
+                noteBoundingBoxes = Array(notes.size) {Rect()}
+            }
+        }
 
-    fun getNoteListItem(index : Int) : NoteListItem {
-        return notes[index].note
+        override fun onNoteMoved(note: NoteListItem) {
+            var fromIndex = -1
+            for(i in notes.indices) {
+                if (notes[i].note === note) {
+                    fromIndex = i
+                    break
+                }
+            }
+
+            val toIndex = noteList?.indexOf(note) ?: -1
+            if (fromIndex >= 0 && toIndex >= 0) {
+                TransitionManager.beginDelayedTransition(this@NoteView, transition)
+                val noteToBeMoved = notes[fromIndex]
+                notes.removeAt(fromIndex)
+                notes.add(toIndex, noteToBeMoved)
+                requestLayout()
+            }
+        }
+
+        override fun onVolumeChanged(note: NoteListItem) { }
+
+        override fun onNoteIdChanged(note: NoteListItem) {
+            for(n in notes) {
+                if (n.note === note)
+                    n.update()
+            }
+        }
+
+        override fun onDurationChanged(note: NoteListItem) { }
     }
+
+    var noteList : NoteList? = null
+        set(value) {
+            field?.unregisterNoteListChangedListener(noteListChangedListener)
+            field = value
+            field?.registerNoteListChangedListener(noteListChangedListener)
+            volumeView.noteList = noteList
+
+            for(n in notes)
+                removeView(n.noteImage)
+            notes.clear()
+
+            value?.let {
+                for (n in it) {
+                    notes.add(Note(n))
+                    addView(notes.last().noteImage)
+                }
+            }
+            noteBoundingBoxes = Array(notes.size) {Rect()}
+        }
+
+//    val noteList : NoteList
+//        get(){
+//            val noteList = NoteList(0)
+//            for(n in notes)
+//                noteList.add(n.note)
+//            return noteList
+//        }
+
+//    val numNotes
+//        get() = notes.size
+//
+//    fun getNoteListItem(index : Int) : NoteListItem {
+//        return notes[index].note
+//    }
 
     var noteBoundingBoxes = Array(0) {Rect()}
         private set
-    var numBoundingBoxesBeforeBoundingBoxesChangedCall = 0
+    private var numBoundingBoxesBeforeBoundingBoxesChangedCall = 0
 
 //        get() = Array(notes.size) {i ->
 //            val noteHorizontalSpace = (width - paddingLeft - paddingRight) / notes.size.toFloat()
@@ -155,6 +236,8 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                 viewTreeObserver.removeOnGlobalLayoutListener(this)
                 addView(volumeView)
                 addView(lineView)
+                volumeView.elevation = -2f
+                lineView.elevation = -1f
             }
         })
     }
@@ -221,6 +304,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         Log.v("Metronome", "NoteView.onInterceptTouchEvent")
         return true
     }
+
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         Log.v("Metronome", "NoteView.onTouchEvent")
         if(event == null)
@@ -301,71 +385,71 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             }
     }
 
-    fun setNotes(newNotes : NoteList, animationDuration: Long = 300L) {
-        var notesChanged = false
-        if(newNotes.size == notes.size) {
-            for(i in notes.indices) {
-                if (!(newNotes[i] === notes[i].note)) {
-                    notesChanged = true
-                    break
-                }
-            }
-        }
-        else {
-            notesChanged = true
-        }
-
-        if (!notesChanged) {
-            for (n in notes)
-                n.update()
-            volumeView.setNoteList(noteList)
-            return
-        }
-
-        notesMarkedToDelete.clear()
-        notesMarkedToDelete.addAll(notes) // for now add all current notes to this list, some might be removed again later
-
-        notes.clear()
-
-        if(noteBoundingBoxes.size != newNotes.size)
-            noteBoundingBoxes = Array(newNotes.size) {Rect()}
-
-        if(animationDuration > 0) {
-            val autoTransition = AutoTransition().apply {
-                this.duration = duration
-                // ordering = TransitionSet.ORDERING_TOGETHER
-            }
-            TransitionManager.beginDelayedTransition(this, autoTransition)
-        }
-
-        for (i in newNotes.indices) {
-            val noteI = newNotes[i]
-            var noteToAdd: Note? = null
-            for (n in notesMarkedToDelete) {
-                if (noteI === n.note) {
-                    noteToAdd = n
-                    break
-                }
-            }
-
-            if (noteToAdd == null) {
-                val newNote = Note(noteI)
-                notes.add(newNote)
-                addView(newNote.noteImage)
-            } else {
-                notesMarkedToDelete.remove(noteToAdd)
-                noteToAdd.update()
-                notes.add(noteToAdd)
-//                if(notes.size >= 2)
-//                    Log.v("Notes", "NoteView:setNotes : notes[$i]note.id=${noteToAdd.note.id}")
-            }
-        }
-//        Log.v("Notes", "NoteView:setNotes : numNotes to dissolve=${temporaryNotes.size}")
-        for(n in notesMarkedToDelete) {
-            removeView(n.noteImage)
-        }
-
-        volumeView.setNoteList(noteList)
-        requestLayout()
-    }
+//    fun setNotes(newNotes : NoteList, animationDuration: Long = 300L) {
+//        var notesChanged = false
+//        if(newNotes.size == notes.size) {
+//            for(i in notes.indices) {
+//                if (!(newNotes[i] === notes[i].note)) {
+//                    notesChanged = true
+//                    break
+//                }
+//            }
+//        }
+//        else {
+//            notesChanged = true
+//        }
+//
+//        if (!notesChanged) {
+//            for (n in notes)
+//                n.update()
+//            volumeView.setNoteList(noteList)
+//            return
+//        }
+//
+//        notesMarkedToDelete.clear()
+//        notesMarkedToDelete.addAll(notes) // for now add all current notes to this list, some might be removed again later
+//
+//        notes.clear()
+//
+//        if(noteBoundingBoxes.size != newNotes.size)
+//            noteBoundingBoxes = Array(newNotes.size) {Rect()}
+//
+//        if(animationDuration > 0) {
+//            val autoTransition = AutoTransition().apply {
+//                this.duration = duration
+//                // ordering = TransitionSet.ORDERING_TOGETHER
+//            }
+//            TransitionManager.beginDelayedTransition(this, autoTransition)
+//        }
+//
+//        for (i in newNotes.indices) {
+//            val noteI = newNotes[i]
+//            var noteToAdd: Note? = null
+//            for (n in notesMarkedToDelete) {
+//                if (noteI === n.note) {
+//                    noteToAdd = n
+//                    break
+//                }
+//            }
+//
+//            if (noteToAdd == null) {
+//                val newNote = Note(noteI)
+//                notes.add(newNote)
+//                addView(newNote.noteImage)
+//            } else {
+//                notesMarkedToDelete.remove(noteToAdd)
+//                noteToAdd.update()
+//                notes.add(noteToAdd)
+////                if(notes.size >= 2)
+////                    Log.v("Notes", "NoteView:setNotes : notes[$i]note.id=${noteToAdd.note.id}")
+//            }
+//        }
+////        Log.v("Notes", "NoteView:setNotes : numNotes to dissolve=${temporaryNotes.size}")
+//        for(n in notesMarkedToDelete) {
+//            removeView(n.noteImage)
+//        }
+//
+//        volumeView.setNoteList(noteList)
+//        requestLayout()
+//    }
 }

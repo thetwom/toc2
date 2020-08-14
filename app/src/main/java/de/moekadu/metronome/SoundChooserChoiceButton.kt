@@ -13,7 +13,7 @@ class SoundChooserChoiceButton(context : Context, noteID : Int) {
     val button = NoteView(context).apply {
         val buttonNoteList = NoteList()
         buttonNoteList.add(NoteListItem(noteID, 0.0f, 0.0f))
-        setNotes(buttonNoteList)
+        noteList = buttonNoteList
     }
 
     private val startBounds = Rect()
@@ -24,7 +24,7 @@ class SoundChooserChoiceButton(context : Context, noteID : Int) {
 
     var doNotAnimateX = false
 
-    val noteID = button.noteList[0].id
+    val noteId = button.noteList?.get(0)?.id ?: defaultNote
 
     var left = 0
         set(value) {

@@ -79,7 +79,7 @@ class PlayerFragment : Fragment() {
                     playerService = binder.service
                     playerContext = context
                     playerService?.speed = speed
-                    playerService?.noteList = noteList
+                    //playerService?.noteList = noteList
                 }
 
                 override fun onServiceDisconnected(name: ComponentName?) {

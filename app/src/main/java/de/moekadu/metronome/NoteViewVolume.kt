@@ -24,25 +24,77 @@ class NoteViewVolume(context : Context) : View(context) {
 
     private val volumes = ArrayList<Float>(0)
 
-    fun setNoteList(noteList : NoteList) {
-
-        var volumeChanged = false
-
-        if (noteList.size == volumes.size) {
-            for (i in noteList.indices) {
-                if (noteList[i].volume != volumes[i])
-                    volumeChanged = true
-                volumes[i] = noteList[i].volume
+    private val noteListChangedListener = object: NoteList.NoteListChangedListener {
+        override fun onNoteAdded(note: NoteListItem) {
+            noteList?.let { notes ->
+                volumes.add(notes.indexOf(note), note.volume)
+                invalidate()
             }
-        } else {
-            volumes.clear()
-            for (n in noteList)
-                volumes.add(n.volume)
-            volumeChanged = true
         }
-        if (volumeChanged)
-            invalidate()
+
+        override fun onNoteRemoved(note: NoteListItem) {
+            noteList?.let { notes ->
+                volumes.clear()
+                for (n in notes)
+                    volumes.add(n.volume)
+                invalidate()
+            }
+        }
+
+        override fun onNoteMoved(note: NoteListItem) {
+            noteList?.let { notes ->
+                require(notes.size == volumes.size)
+                for (i in notes.indices)
+                    volumes[i] = notes[i].volume
+                invalidate()
+            }
+        }
+
+        override fun onVolumeChanged(note: NoteListItem) {
+            noteList?.let { notes ->
+                require(notes.size == volumes.size)
+                volumes[notes.indexOf(note)] = note.volume
+                invalidate()
+            }
+        }
+
+        override fun onNoteIdChanged(note: NoteListItem) { }
+        override fun onDurationChanged(note: NoteListItem) { }
     }
+
+    var noteList : NoteList? = null
+        set(value) {
+            field?.unregisterNoteListChangedListener(noteListChangedListener)
+            field = value
+            field?.registerNoteListChangedListener(noteListChangedListener)
+            field?.let { notes ->
+                volumes.clear()
+                for (n in notes)
+                    volumes.add(n.volume)
+            }
+            invalidate()
+        }
+
+
+//    fun setNoteList(noteList : NoteList) {
+//
+//        var volumeChanged = false
+//
+//        if (noteList.size == volumes.size) {
+//            for (i in noteList.indices) {
+//                if (noteList[i].volume != volumes[i])
+//                    volumeChanged = true
+//                volumes[i] = noteList[i].volume
+//            }
+//        } else {
+//            volumes.clear()
+//            for (n in noteList)
+//                volumes.add(n.volume)
+//            volumeChanged = true
+//        }
+//        if (volumeChanged)
+//            invalidate()
+//    }
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)

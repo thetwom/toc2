@@ -2,8 +2,15 @@ package de.moekadu.metronome
 
 import android.media.AudioManager
 import android.media.AudioTrack
+import kotlin.math.min
 
-data class NoteListItem(var id : Int = 0, var volume : Float = 1.0f, var duration : Float = 1.0f) {
+/// Item in note list
+/**
+ * @param id Id identifying which note is played
+ * @param volume Note volume (0.0f <= volume <= 1.0f
+ * @param duration Note duration in seconds
+ */
+class NoteListItem(var id : Int = 0, var volume : Float = 1.0f, var duration : Float = 1.0f) {
     fun set(value : NoteListItem) {
         id = value.id
         volume = value.volume
@@ -16,33 +23,160 @@ data class NoteListItem(var id : Int = 0, var volume : Float = 1.0f, var duratio
         return c
     }
 }
-typealias NoteList = ArrayList<NoteListItem>
 
-fun NoteList.removeNote(note : NoteListItem) {
-    for (i in this.indices)
-        if(this[i] === note) {
-            this.removeAt(i)
-            break
-        }
-}
+class NoteList : Collection<NoteListItem>{
+    private val notes = ArrayList<NoteListItem>()
 
-fun NoteList.indexOfObject(note : NoteListItem) : Int {
-    for (i in this.indices)
-        if(this[i] === note)
-            return i
-    return -1
-}
+    override val size get() = notes.size
+    operator fun get(index: Int) = notes[index]
 
-fun NoteList.compareNoteListItemInstances(other : NoteList) : Boolean {
-    if(this.size != other.size)
-        return false
-    for(i in this.indices) {
-        if (!(this[i] === other[i])){
-            return false
+    interface NoteListChangedListener {
+        fun onNoteAdded(note: NoteListItem)
+        fun onNoteRemoved(note: NoteListItem)
+        fun onNoteMoved(note: NoteListItem)
+        fun onVolumeChanged(note: NoteListItem)
+        fun onNoteIdChanged(note: NoteListItem)
+        fun onDurationChanged(note: NoteListItem)
+    }
+
+    private val noteListChangedListener = ArrayList<NoteListChangedListener>()
+
+    fun add(note: NoteListItem, index : Int = size) {
+        require(notes.indexOf(note) < 0) // make sure that each note only exists once!!
+        notes.add(note)
+        for (n in noteListChangedListener)
+            n.onNoteAdded(note)
+    }
+
+    fun remove(note: NoteListItem) {
+        notes.remove(note)
+        for (n in noteListChangedListener)
+            n.onNoteRemoved(note)
+    }
+
+    fun move(fromIndex : Int, toIndex : Int) {
+        if(fromIndex in 0 until notes.size && toIndex >= 0) {
+            val note = notes[fromIndex]
+            notes.removeAt(fromIndex)
+            notes.add(min(notes.size, toIndex), note)
+            for (n in noteListChangedListener)
+                n.onNoteMoved(note)
         }
     }
-    return true
+
+    fun setVolume(index: Int, volume: Float) {
+        if (index in 0 until notes.size && notes[index].volume != volume) {
+            notes[index].volume = volume
+            for (n in noteListChangedListener)
+                n.onVolumeChanged(notes[index])
+        }
+    }
+
+    fun setNote(index: Int, noteId: Int) {
+        if (index in 0 until notes.size && notes[index].id != noteId) {
+            notes[index].id = noteId
+            for (n in noteListChangedListener) {
+                n.onNoteIdChanged(notes[index])
+            }
+        }
+    }
+
+    /// Set not duration in seconds.
+    /**
+     * @param index Note index.
+     * @param duration Duration in seconds.
+     */
+    fun setDuration(index: Int, duration: Float) {
+        if (index in 0 until notes.size && notes[index].duration != duration) {
+            notes[index].duration = duration
+            for (n in noteListChangedListener) {
+                n.onDurationChanged(notes[index])
+            }
+        }
+
+    }
+
+    fun indexOf(note: NoteListItem): Int {
+        for(i in notes.indices) {
+            if (notes[i] === note)
+                return i
+        }
+        return -1
+    }
+
+    fun last(): NoteListItem {
+        return notes.last()
+    }
+
+    override fun isEmpty(): Boolean {
+        return notes.isEmpty()
+    }
+
+    fun registerNoteListChangedListener(noteListChangedListener: NoteListChangedListener) {
+        this.noteListChangedListener.add(noteListChangedListener)
+    }
+
+    fun unregisterNoteListChangedListener(noteListChangedListener: NoteListChangedListener) {
+        this.noteListChangedListener.remove(noteListChangedListener)
+    }
+
+    override fun toString(): String {
+        var s = ""
+        for (note in notes) {
+            s += "${note.id} ${note.volume} "
+        }
+        return s
+    }
+
+    fun fromString(string: String) {
+        val elements = string.split(" ")
+        while (size > 0)
+            remove(notes.last())
+        for(i in 0 until elements.size / 2) {
+            add(NoteListItem(elements[2 * i].toInt(), elements[2 * i + 1].toFloat(), -1f))
+        }
+    }
+
+    override fun iterator(): Iterator<NoteListItem> {
+        return notes.iterator()
+    }
+
+    override fun contains(element: NoteListItem): Boolean {
+        return notes.contains(element)
+    }
+
+    override fun containsAll(elements: Collection<NoteListItem>): Boolean {
+        return notes.containsAll(elements)
+    }
 }
+//
+//typealias NoteList = ArrayList<NoteListItem>
+//
+//fun NoteList.removeNote(note : NoteListItem) {
+//    for (i in this.indices)
+//        if(this[i] === note) {
+//            this.removeAt(i)
+//            break
+//        }
+//}
+//
+//fun NoteList.indexOfObject(note : NoteListItem) : Int {
+//    for (i in this.indices)
+//        if(this[i] === note)
+//            return i
+//    return -1
+//}
+//
+//fun NoteList.compareNoteListItemInstances(other : NoteList) : Boolean {
+//    if(this.size != other.size)
+//        return false
+//    for(i in this.indices) {
+//        if (!(this[i] === other[i])){
+//            return false
+//        }
+//    }
+//    return true
+//}
 
 data class NoteInfo(val audio44ResourceID : Int, val audio48ResourceID : Int, val stringResourceID : Int, val drawableResourceID : Int)
 

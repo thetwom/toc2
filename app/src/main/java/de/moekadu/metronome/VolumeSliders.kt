@@ -31,7 +31,7 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.appcompat.content.res.AppCompatResources
-import androidx.core.view.setPadding
+//import androidx.core.view.setPadding
 import kotlin.collections.ArrayList
 import kotlin.math.max
 import kotlin.math.min
@@ -43,7 +43,7 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
 //    private val defaultHeight = Utilities.dp2px(300f)
     private val tunerHeightPercent = 0.7f
-    private val defaultTunerWidth = Utilities.dp2px(35f)
+//    private val defaultTunerWidth = Utilities.dp2px(35f)
 //    private val tunerWidthPercent = 0.1f
     private val buttonTunerSpacing = Utilities.dp2px(8f)
     private val tunerSpacing = Utilities.dp2px(4f)
@@ -79,6 +79,84 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     private var backgrounSurfaceColor = Color.WHITE
     private var surfaceBackgroundColor = Color.WHITE
     private var belowSliderColor =  Color.WHITE
+
+    private val noteListChangedListener = object: NoteList.NoteListChangedListener {
+        override fun onNoteAdded(note: NoteListItem) {
+            noteList?.let { notes ->
+                TransitionManager.beginDelayedTransition(
+                        this@VolumeSliders,
+                        AutoTransition().apply { duration = 300L }
+                )
+
+                while (volumeControls.size < notes.size) {
+                    val vC = createVolumeControl()
+                    addView(vC)
+                    volumeControls.add(vC)
+                }
+
+                for (i in volumeControls.indices) {
+                    volumeControls[i].setVolume(notes[i].volume, 300L)
+                }
+            }
+        }
+
+        override fun onNoteRemoved(note: NoteListItem) {
+            noteList?.let { notes ->
+                TransitionManager.beginDelayedTransition(
+                        this@VolumeSliders,
+                        AutoTransition().apply { duration = 300L }
+                )
+
+                while (volumeControls.size > notes.size) {
+                    val vC = volumeControls.last()
+                    removeView(vC)
+                    volumeControls.remove(vC)
+                }
+
+                for (i in volumeControls.indices) {
+                    volumeControls[i].setVolume(notes[i].volume, 300L)
+                }
+            }
+        }
+
+        override fun onNoteMoved(note: NoteListItem) {
+            if (volumeControls.size != noteList?.size)
+                return
+            noteList?.let { notes ->
+                for (i in notes.indices)
+                    volumeControls[i].setVolume(notes[i].volume, 300L)
+            }
+        }
+
+        override fun onVolumeChanged(note: NoteListItem) {
+            noteList?.let { notes ->
+                val index = notes.indexOf(note)
+                if (index in 0 until volumeControls.size)
+                    volumeControls[index].setVolume(note.volume, 300L)
+            }
+        }
+
+        override fun onNoteIdChanged(note: NoteListItem) { }
+        override fun onDurationChanged(note: NoteListItem) { }
+    }
+
+    var noteList: NoteList? = null
+        set(value){
+            field?.unregisterNoteListChangedListener(noteListChangedListener)
+            field = value
+            field?.registerNoteListChangedListener(noteListChangedListener)
+            for (vC in volumeControls)
+                removeView(vC)
+            volumeControls.clear()
+            value?.let { notes ->
+                for (n in notes) {
+                    val vC = createVolumeControl()
+                    vC.setVolume(n.volume)
+                    addView(vC)
+                    volumeControls.add(vC)
+                }
+            }
+        }
 
 //    private val unfoldAnimator = ValueAnimator.ofFloat(0f, 1f)
 //
@@ -203,8 +281,10 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             val tunerHeight = volumeControls[0].measuredHeight
             val vT = (h - (elementPadding + tunerHeight)).toInt()
             for (i in volumeControls.indices) {
-                val vL = (boundingBoxes[i].centerX() - l - translationX - 0.5f * volumeControls[i].measuredWidth).toInt()
-                volumeControls[i].layout(vL, vT, vL + volumeControls[i].measuredWidth, vT + volumeControls[i].measuredHeight)
+                if (i < boundingBoxes.size) {
+                    val vL = (boundingBoxes[i].centerX() - l - translationX - 0.5f * volumeControls[i].measuredWidth).toInt()
+                    volumeControls[i].layout(vL, vT, vL + volumeControls[i].measuredWidth, vT + volumeControls[i].measuredHeight)
+                }
             }
         }
     }
@@ -293,57 +373,69 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 //        addView(background)
 //    }
 
-    fun setVolumes(volumes: FloatArray, animationDuration: Long = 0L) {
-        require(volumes.size == volumeControls.size)
-        for (i in volumes.indices) {
-            if (volumeControls[i].volume != volumes[i])
-                volumeControls[i].setVolume(volumes[i], animationDuration)
-        }
-    }
+//    fun setVolumes(volumes: FloatArray, animationDuration: Long = 0L) {
+//        require(volumes.size == volumeControls.size)
+//        for (i in volumes.indices) {
+//            if (volumeControls[i].volume != volumes[i])
+//                volumeControls[i].setVolume(volumes[i], animationDuration)
+//        }
+//    }
+//
+//    fun setTunersAt(noteBoundingBoxes : Array<Rect>, volumes : FloatArray, animationDuration: Long = 300L) {
+//        Log.v("Metronome", " VolumeSliders.setTunersAt, noteBoundingBoxes.size = ${noteBoundingBoxes.size}")
+//        require(noteBoundingBoxes.size == volumes.size)
+//
+//        if(animationDuration > 0L) {
+//            val transition = AutoTransition().apply {
+//                duration = animationDuration
+//            }
+//            TransitionManager.beginDelayedTransition(this, transition)
+//        }
+//
+//        boundingBoxes.clear()
+//        for(bb in noteBoundingBoxes) {
+//            boundingBoxes.add(Rect(bb.left, bb.top, bb.right, bb.bottom))
+//        }
+//
+//        // Delete volume controls which are not required anymore
+//        while (volumeControls.size > boundingBoxes.size) {
+//            val vC = volumeControls.last()
+//            removeView(vC)
+//            volumeControls.remove(vC)
+//        }
+//
+//        // Add volume controls
+//        while (volumeControls.size < boundingBoxes.size) {
+//            val vC = createVolumeControl()
+//            addView(vC)
+//            volumeControls.add(vC)
+//        }
+//
+//        for (i in volumeControls.indices) {
+//            val vC = volumeControls[i]
+//            vC.setVolume(volumes[i], animationDuration)
+//            if (folded)
+//                vC.visibility = View.GONE
+//            else
+//                vC.visibility = View.VISIBLE
+//        }
+//
+////        if (!folded) {
+////            Log.v("Metronome", " VolumeSliders.setTunersAt: requesting layout, num boxes=${boundingBoxes.size}, num volume controls=${volumeControls.size}")
+////            //requestLayout()
+////        }
+//    }
 
-    fun setTunersAt(noteBoundingBoxes : Array<Rect>, volumes : FloatArray, animationDuration: Long = 300L) {
-        Log.v("Metronome", " VolumeSliders.setTunersAt, noteBoundingBoxes.size = ${noteBoundingBoxes.size}")
-        require(noteBoundingBoxes.size == volumes.size)
-
-        if(animationDuration > 0L) {
-            val transition = AutoTransition().apply {
-                duration = animationDuration
-            }
-            TransitionManager.beginDelayedTransition(this, transition)
-        }
+    fun setBoundingBoxes(noteBoundingBoxes : Array<Rect>) {
+        Log.v("Metronome", " VolumeSliders.setBoundingBoxes, noteBoundingBoxes.size = ${noteBoundingBoxes.size}")
 
         boundingBoxes.clear()
         for(bb in noteBoundingBoxes) {
             boundingBoxes.add(Rect(bb.left, bb.top, bb.right, bb.bottom))
         }
 
-        // Delete volume controls which are not required anymore
-        while (volumeControls.size > boundingBoxes.size) {
-            val vC = volumeControls.last()
-            removeView(vC)
-            volumeControls.remove(vC)
-        }
-
-        // Add volume controls
-        while (volumeControls.size < boundingBoxes.size) {
-            val vC = createVolumeControl()
-            addView(vC)
-            volumeControls.add(vC)
-        }
-
-        for (i in volumeControls.indices) {
-            val vC = volumeControls[i]
-            vC.setVolume(volumes[i], animationDuration)
-            if (folded)
-                vC.visibility = View.GONE
-            else
-                vC.visibility = View.VISIBLE
-        }
-
-//        if (!folded) {
-//            Log.v("Metronome", " VolumeSliders.setTunersAt: requesting layout, num boxes=${boundingBoxes.size}, num volume controls=${volumeControls.size}")
-//            //requestLayout()
-//        }
+        if (!folded && boundingBoxes.size == volumeControls.size)
+            requestLayout()
     }
 
     private fun createVolumeControl() : VolumeControl {
@@ -359,9 +451,15 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         volumeControl.onVolumeChangedListener = object : VolumeControl.OnVolumeChangedListener {
             override fun onVolumeChanged(volume: Float) {
                 val index = volumeControls.indexOf(volumeControl)
-                volumeChangedListener?.onVolumeChanged(index, volume)
+                noteList?.setVolume(index, volume)
+//                volumeChangedListener?.onVolumeChanged(index, volume)
             }
         }
+
+          if (folded)
+              volumeControl.visibility = View.GONE
+          else
+              volumeControl.visibility = View.VISIBLE
 
         return volumeControl
     }
