@@ -2,6 +2,7 @@ package de.moekadu.metronome
 
 import android.media.AudioManager
 import android.media.AudioTrack
+import android.util.Log
 import kotlin.math.min
 
 /// Item in note list
@@ -31,27 +32,33 @@ class NoteList : Collection<NoteListItem>{
     operator fun get(index: Int) = notes[index]
 
     interface NoteListChangedListener {
-        fun onNoteAdded(note: NoteListItem)
-        fun onNoteRemoved(note: NoteListItem)
-        fun onNoteMoved(note: NoteListItem)
-        fun onVolumeChanged(note: NoteListItem)
-        fun onNoteIdChanged(note: NoteListItem)
-        fun onDurationChanged(note: NoteListItem)
+        fun onNoteAdded(note: NoteListItem, index: Int)
+        fun onNoteRemoved(note: NoteListItem, index: Int)
+        fun onNoteMoved(note: NoteListItem, fromIndex: Int, toIndex: Int)
+        fun onVolumeChanged(note: NoteListItem, index: Int)
+        fun onNoteIdChanged(note: NoteListItem, index: Int)
+        fun onDurationChanged(note: NoteListItem, index: Int)
     }
 
     private val noteListChangedListener = ArrayList<NoteListChangedListener>()
 
     fun add(note: NoteListItem, index : Int = size) {
         require(notes.indexOf(note) < 0) // make sure that each note only exists once!!
-        notes.add(note)
-        for (n in noteListChangedListener)
-            n.onNoteAdded(note)
+        notes.add(index, note)
+        Log.v("Metronome", "NoteList.add: noteListChangedListener.size = ${noteListChangedListener.size}")
+        for (n in noteListChangedListener) {
+            n.onNoteAdded(note, index)
+            Log.v("Metronome", "NoteList.add: called onNoteAdded")
+        }
     }
 
     fun remove(note: NoteListItem) {
-        notes.remove(note)
-        for (n in noteListChangedListener)
-            n.onNoteRemoved(note)
+        val index = notes.indexOf(note)
+        if (index >= 0) {
+            notes.remove(note)
+            for (n in noteListChangedListener)
+                n.onNoteRemoved(note, index)
+        }
     }
 
     fun move(fromIndex : Int, toIndex : Int) {
@@ -60,7 +67,7 @@ class NoteList : Collection<NoteListItem>{
             notes.removeAt(fromIndex)
             notes.add(min(notes.size, toIndex), note)
             for (n in noteListChangedListener)
-                n.onNoteMoved(note)
+                n.onNoteMoved(note, fromIndex, toIndex)
         }
     }
 
@@ -68,7 +75,7 @@ class NoteList : Collection<NoteListItem>{
         if (index in 0 until notes.size && notes[index].volume != volume) {
             notes[index].volume = volume
             for (n in noteListChangedListener)
-                n.onVolumeChanged(notes[index])
+                n.onVolumeChanged(notes[index], index)
         }
     }
 
@@ -76,7 +83,7 @@ class NoteList : Collection<NoteListItem>{
         if (index in 0 until notes.size && notes[index].id != noteId) {
             notes[index].id = noteId
             for (n in noteListChangedListener) {
-                n.onNoteIdChanged(notes[index])
+                n.onNoteIdChanged(notes[index], index)
             }
         }
     }
@@ -90,7 +97,7 @@ class NoteList : Collection<NoteListItem>{
         if (index in 0 until notes.size && notes[index].duration != duration) {
             notes[index].duration = duration
             for (n in noteListChangedListener) {
-                n.onDurationChanged(notes[index])
+                n.onDurationChanged(notes[index], index)
             }
         }
 

@@ -55,19 +55,19 @@ class MetronomeFragment : Fragment() {
             if(soundChooser?.choiceStatus == SoundChooser.CHOICE_STATIC && playerService?.state != PlaybackStateCompat.STATE_PLAYING)
                 playerService?.playSpecificSound(note)
         }
-        override fun onNoteAdded(note: NoteListItem) { }
-        override fun onNoteRemoved(note: NoteListItem) { }
-        override fun onNoteMoved(note: NoteListItem) { }
+        override fun onNoteAdded(note: NoteListItem, index: Int) { }
+        override fun onNoteRemoved(note: NoteListItem, index: Int) { }
+        override fun onNoteMoved(note: NoteListItem, fromIndex: Int, toIndex: Int) { }
 
-        override fun onVolumeChanged(note: NoteListItem) {
+        override fun onVolumeChanged(note: NoteListItem, index: Int) {
             playTestSoundIfRequired(note)
         }
 
-        override fun onNoteIdChanged(note: NoteListItem) {
+        override fun onNoteIdChanged(note: NoteListItem, index: Int) {
             playTestSoundIfRequired(note)
         }
 
-        override fun onDurationChanged(note: NoteListItem) { }
+        override fun onDurationChanged(note: NoteListItem, index: Int) { }
     }
 
     /// Note list, that contains current metronome notes.
@@ -119,7 +119,7 @@ class MetronomeFragment : Fragment() {
     private var sharedPreferenceChangeListener: OnSharedPreferenceChangeListener? = null
     private var speedIncrement = Utilities.speedIncrements[InitialValues.speedIncrementIndex]
 
-    private var volumes = FloatArray(0)
+//    private var volumes = FloatArray(0)
 
     private val playerServiceStatusChangedListener = object : PlayerService.StatusChangedListener {
 
@@ -211,18 +211,35 @@ class MetronomeFragment : Fragment() {
             }
         }
 
-        noteView?.boundingBoxesChangedListener = object : NoteView.BoundingBoxesChangedListener {
-            override fun onBoundingBoxesChanged(boundingBoxes: Array<Rect>) {
-                Log.v("Metronome", "MetronomeFragment.noteView.onBoundingBoxesChanged")
-                soundChooser?.setBoundingBoxes(boundingBoxes)
-//                if (volumes.size != noteView?.numNotes)
-//                    volumes = FloatArray(noteView?.numNotes ?: 0)
-//                for (i in volumes.indices) {
-//                    volumes[i] = noteView?.getNoteListItem(i)?.volume ?: 0f
-//                }
-                volumeSliders?.setBoundingBoxes(boundingBoxes)
+        noteView?.addOnLayoutChangeListener { v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+            if(left != oldLeft || top != oldTop || right != oldRight || bottom != oldBottom) {
+                volumeSliders?.setNoteViewBoundingBox(
+                        left + v.paddingLeft,
+                        top + v.paddingTop,
+                        right - v.paddingLeft,
+                        bottom - v.paddingBottom
+                )
+                soundChooser?.setNoteViewBoundingBox(
+                        left + v.paddingLeft,
+                        top + v.paddingTop,
+                        right - v.paddingLeft,
+                        bottom - v.paddingBottom
+                )
+                Log.v("Metronome", "MetronomeFragment.noteView.onLayoutChangedListener: height = ${bottom-top}, ${v.height}, ${noteView?.height}")
             }
         }
+//        noteView?.boundingBoxesChangedListener = object : NoteView.BoundingBoxesChangedListener {
+//            override fun onBoundingBoxesChanged(boundingBoxes: Array<Rect>) {
+//                Log.v("Metronome", "MetronomeFragment.noteView.onBoundingBoxesChanged")
+//                soundChooser?.setBoundingBoxes(boundingBoxes)
+////                if (volumes.size != noteView?.numNotes)
+////                    volumes = FloatArray(noteView?.numNotes ?: 0)
+////                for (i in volumes.indices) {
+////                    volumes[i] = noteView?.getNoteListItem(i)?.volume ?: 0f
+////                }
+//                volumeSliders?.setBoundingBoxes(boundingBoxes)
+//            }
+//        }
 
         plusButton = view.findViewById(R.id.plus_button)
         plusButton?.setOnClickListener {

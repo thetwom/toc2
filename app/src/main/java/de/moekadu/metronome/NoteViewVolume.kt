@@ -25,23 +25,17 @@ class NoteViewVolume(context : Context) : View(context) {
     private val volumes = ArrayList<Float>(0)
 
     private val noteListChangedListener = object: NoteList.NoteListChangedListener {
-        override fun onNoteAdded(note: NoteListItem) {
-            noteList?.let { notes ->
-                volumes.add(notes.indexOf(note), note.volume)
-                invalidate()
-            }
+        override fun onNoteAdded(note: NoteListItem, index: Int) {
+            volumes.add(index, note.volume)
+            invalidate()
         }
 
-        override fun onNoteRemoved(note: NoteListItem) {
-            noteList?.let { notes ->
-                volumes.clear()
-                for (n in notes)
-                    volumes.add(n.volume)
-                invalidate()
-            }
+        override fun onNoteRemoved(note: NoteListItem, index: Int) {
+            volumes.removeAt(index)
+            invalidate()
         }
 
-        override fun onNoteMoved(note: NoteListItem) {
+        override fun onNoteMoved(note: NoteListItem, fromIndex: Int, toIndex: Int) {
             noteList?.let { notes ->
                 require(notes.size == volumes.size)
                 for (i in notes.indices)
@@ -50,16 +44,13 @@ class NoteViewVolume(context : Context) : View(context) {
             }
         }
 
-        override fun onVolumeChanged(note: NoteListItem) {
-            noteList?.let { notes ->
-                require(notes.size == volumes.size)
-                volumes[notes.indexOf(note)] = note.volume
-                invalidate()
-            }
+        override fun onVolumeChanged(note: NoteListItem, index: Int) {
+            volumes[index] = note.volume
+            invalidate()
         }
 
-        override fun onNoteIdChanged(note: NoteListItem) { }
-        override fun onDurationChanged(note: NoteListItem) { }
+        override fun onNoteIdChanged(note: NoteListItem, index: Int) { }
+        override fun onDurationChanged(note: NoteListItem, index: Int) { }
     }
 
     var noteList : NoteList? = null

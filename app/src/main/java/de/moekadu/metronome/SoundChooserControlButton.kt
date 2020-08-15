@@ -3,9 +3,10 @@ package de.moekadu.metronome
 import android.animation.*
 import android.content.Context
 import android.graphics.Rect
+import android.view.View
 import kotlin.math.roundToInt
 
-class SoundChooserControlButton(context: Context, val note: NoteListItem, elevation: Float, volumeColor: Int) : NoteView(context) {
+class SoundChooserControlButton(context: Context, note: NoteListItem, elevation: Float, volumeColor: Int) : NoteView(context) {
 
     var eventXOnDown = 0f
     var eventYOnDown = 0f

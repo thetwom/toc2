@@ -46,13 +46,8 @@ class MainActivity : AppCompatActivity() {
 
     // TODO: test different device formats
     // TODO: notification play button should have the same color as the text
-    // TODO: SoundChooser ControlButton should not move to new place, when a note is added, but fade out/in (or at least jump)
-    // TODO: Is the volume in "load data" painted over the notes???
-    // TODO: Quickly deleting many notes does not have a great appearance
     // TODO: Symbols in Toolbar are not the same color as the text (at least in api 29)
     // TODO: When enabling the Dynamic SoundChooser, the x translation only applies after everything is slided in and the control button is moved
-    // TODO: In SoundChooser each note should get it's own controlButton to have more consistent transition behavior
-    // TODO: NoteList should be a more complex class which allows registering listeners. This should simplify spreading the note information over the different classes
 
     companion object {
         private const val METRONOME_FRAGMENT_TAG = "metronomeFragment"

@@ -129,14 +129,14 @@ class PlayerService : Service() {
     /// The current note list played by the metronome. This list shares its items with all the other classes
     val noteList = NoteList().apply {
         registerNoteListChangedListener(object : NoteList.NoteListChangedListener {
-            override fun onNoteAdded(note: NoteListItem) {
+            override fun onNoteAdded(note: NoteListItem, index: Int) {
                 setDuration(indexOf(note), computeNoteDurationInSeconds(speed))
             }
-            override fun onNoteRemoved(note: NoteListItem) { }
-            override fun onNoteMoved(note: NoteListItem) { }
-            override fun onVolumeChanged(note: NoteListItem) { }
-            override fun onNoteIdChanged(note: NoteListItem) { }
-            override fun onDurationChanged(note: NoteListItem) { }
+            override fun onNoteRemoved(note: NoteListItem, index: Int) { }
+            override fun onNoteMoved(note: NoteListItem, fromIndex: Int, toIndex: Int) { }
+            override fun onVolumeChanged(note: NoteListItem, index: Int) { }
+            override fun onNoteIdChanged(note: NoteListItem, index: Int) { }
+            override fun onDurationChanged(note: NoteListItem, index: Int) { }
         })
     }
 
