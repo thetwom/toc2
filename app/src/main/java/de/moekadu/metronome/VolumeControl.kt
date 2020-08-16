@@ -37,12 +37,7 @@ import kotlin.math.*
 class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     : ViewGroup(context, attrs, defStyleAttr) {
 
-//    private val defaultWidth = (Utilities.dp2px(60f)).roundToInt()
-//    private val defaultLength = (Utilities.dp2px(300f)).roundToInt()
     private val rectInt = Rect()
-//    private val rect = RectF()
-//    private val rectSlider = RectF()
-//    private val rectZeroToSlider = RectF()
 
     private val sliderButton = ImageButton(context).apply {
         background = AppCompatResources.getDrawable(context, R.drawable.volume_control_slider)?.mutate()
@@ -63,9 +58,6 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     private val backgroundView = ImageView(context).apply {
         background = AppCompatResources.getDrawable(context, R.drawable.volumecontrol_background)
     }
-    // private val sliderDrawable = ContextCompat.getDrawable(context, R.drawable.volume_control_slider)
-    // private val sliderDrawable = GradientDrawable()
-    // private var sliderColorStateList = ContextCompat.getColorStateList(context, R.color.done_button_background) as ColorStateList
 
     private val volMute = AppCompatResources.getDrawable(context, R.drawable.ic_volume_mute)
     private var volDown = AppCompatResources.getDrawable(context, R.drawable.ic_volume_down)
@@ -85,28 +77,6 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             requestLayout()
         }
 
-//    private val centerX : Float
-//        get() {
-//            return if(vertical) {
-//                paddingLeft + iSpace + movableHeight / 2.0f
-//            } else {
-//                val pos0 = paddingLeft + iSpace
-//                val pos1 = width - paddingRight - movableLength - iSpace
-//                pos0 + volume * (pos1 - pos0) + movableLength / 2.0f
-//            }
-//        }
-//
-//    private val centerY : Float
-//        get() {
-//            return if(vertical) {
-//                val pos0 = paddingTop + iSpace
-//                val pos1 = height - paddingTop - movableLength - iSpace
-//                pos0 + (1.0f - volume) * (pos1 - pos0) + movableLength / 2.0f
-//            } else {
-//                paddingTop + iSpace + movableHeight / 2.0f
-//            }
-//        }
-
     private val iSpace = Utilities.dp2px(2f)
     var volume: Float = 0f
         private set
@@ -121,7 +91,7 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     }
 
     private fun setSliderToMatchVolume(animationDuration: Long = 0L) {
-        Log.v("Metronome", "VolumeControl.setSliderToMatchVolume")
+//        Log.v("Metronome", "VolumeControl.setSliderToMatchVolume")
         val sliderTranslation : Float
 
         if(measuredHeight == 0 || measuredWidth == 0)
@@ -131,11 +101,11 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             sliderTranslation = sliderMovingSpace - (volume * sliderMovingSpace)
 
             if (animationDuration == 0L || visibility != View.VISIBLE) {
-                Log.v("Metronome", "VolumeControl.setVolume: no animation, sliderTranslation = $sliderTranslation, old translation = ${sliderButton.translationY}")
+//                Log.v("Metronome", "VolumeControl.setVolume: no animation, sliderTranslation = $sliderTranslation, old translation = ${sliderButton.translationY}")
                 sliderButton.translationY = sliderTranslation
             }
             else {
-                Log.v("Metronome", "VolumeControl.setVolume: with animation, sliderTranslation = $sliderTranslation, old translation = ${sliderButton.translationY}")
+//                Log.v("Metronome", "VolumeControl.setVolume: with animation, sliderTranslation = $sliderTranslation, old translation = ${sliderButton.translationY}")
                 sliderButton.animate()
                         .translationY(sliderTranslation)
                         .setDuration(animationDuration)
@@ -159,8 +129,6 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         scaleBelowSliderView(sliderTranslation, animationDuration)
     }
 
-//    private val contourPaint = Paint()
-
     interface OnVolumeChangedListener {
         fun onVolumeChanged(volume: Float)
     }
@@ -183,18 +151,11 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         attrs?.let {
             val ta = context.obtainStyledAttributes(attrs, R.styleable.VolumeControl,
                     defStyleAttr, R.style.Widget_AppTheme_VolumeControlStyle)
-//            iconColor = ta.getColor(R.styleable.VolumeControl_iconColor, iconColor)
-//            sliderColor = ta.getColor(R.styleable.VolumeControl_sliderColor, sliderColor)
-//            backgroundSurfaceColor = ta.getColor(R.styleable.VolumeControl_backgroundColor, backgroundSurfaceColor)
-//            belowSliderColor = ta.getColor(R.styleable.VolumeControl_belowSliderColor, belowSliderColor)
+
             vertical = ta.getBoolean(R.styleable.VolumeControl_vertical, vertical)
             ta.recycle()
         }
 
-//        volMute?.colorFilter = PorterDuffColorFilter(iconColor, PorterDuff.Mode.SRC_ATOP)
-//        volDown?.colorFilter = PorterDuffColorFilter(iconColor, PorterDuff.Mode.SRC_ATOP)
-//        volUp?.colorFilter = PorterDuffColorFilter(iconColor, PorterDuff.Mode.SRC_ATOP)
-//        foreground = sliderDrawable
         addView(backgroundView)
         addView(belowSliderView1)
         addView(belowSliderView2)
@@ -233,8 +194,6 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         belowSliderView1.measure(
                 MeasureSpec.makeMeasureSpec(belowSliderWidth1.toInt(), MeasureSpec.EXACTLY),
                 MeasureSpec.makeMeasureSpec(belowSliderHeight1.toInt(), MeasureSpec.EXACTLY)
-//                MeasureSpec.makeMeasureSpec(movableThickness.toInt(), MeasureSpec.EXACTLY),
-//                MeasureSpec.makeMeasureSpec(movableThickness.toInt(), MeasureSpec.EXACTLY)
         )
 
         val belowSliderWidth2 = if (vertical) sliderThickness.toInt() else (backgroundWidth - sliderLength - 2 * iSpace).toInt()
@@ -251,7 +210,7 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         val h = b - t
-        Log.v("Metronome", "VolumeControl.onLayout: h = $h")
+//        Log.v("Metronome", "VolumeControl.onLayout: h = $h")
         backgroundView.layout(paddingLeft, paddingTop, backgroundView.measuredWidth, backgroundView.measuredHeight)
         val belowSliderVertical = if (vertical) (h - paddingBottom - iSpace - belowSliderView1.measuredHeight).toInt() - 1 else (paddingLeft + iSpace).toInt()
         val belowSliderHorizontal = if (vertical) (paddingLeft + iSpace).toInt() else (paddingLeft + iSpace).toInt()
@@ -373,12 +332,16 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     }
 
     private fun resetSliderButtonIcon() {
-        if (volume < 0.01f) {
-            sliderButton.setImageDrawable(volMute)
-        } else if (volume < 0.6f) {
-            sliderButton.setImageDrawable(volDown)
-        } else {
-            sliderButton.setImageDrawable(volUp)
+        when {
+            volume < 0.01f -> {
+                sliderButton.setImageDrawable(volMute)
+            }
+            volume < 0.6f -> {
+                sliderButton.setImageDrawable(volDown)
+            }
+            else -> {
+                sliderButton.setImageDrawable(volUp)
+            }
         }
     }
 }

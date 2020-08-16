@@ -25,7 +25,6 @@ import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
 import android.os.SystemClock
-import android.util.Log
 import java.lang.RuntimeException
 import kotlin.math.*
 
@@ -73,20 +72,6 @@ class AudioMixer (val context: Context) {
 
     ///  Note list with tracks which are played in a loop
     var noteList : NoteList? = null
-
-//    ///  Note list with tracks which are played in a loop
-//    var noteList = NoteList()
-//        set(newNoteList) {
-//            require(newNoteList.isNotEmpty()) {"The note list size must be at least 1"}
-//            if (field.size == newNoteList.size) {
-//                for(i in field.indices)
-//                    field[i] = newNoteList[i]
-//            }
-//            else {
-//                field.clear()
-//                field.addAll(newNoteList)
-//            }
-//        }
 
     /// Index of next playlist item which will be queued for playing
     private var nextNoteListIndex = 0

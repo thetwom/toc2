@@ -156,34 +156,6 @@ class NoteList : Collection<NoteListItem>{
         return notes.containsAll(elements)
     }
 }
-//
-//typealias NoteList = ArrayList<NoteListItem>
-//
-//fun NoteList.removeNote(note : NoteListItem) {
-//    for (i in this.indices)
-//        if(this[i] === note) {
-//            this.removeAt(i)
-//            break
-//        }
-//}
-//
-//fun NoteList.indexOfObject(note : NoteListItem) : Int {
-//    for (i in this.indices)
-//        if(this[i] === note)
-//            return i
-//    return -1
-//}
-//
-//fun NoteList.compareNoteListItemInstances(other : NoteList) : Boolean {
-//    if(this.size != other.size)
-//        return false
-//    for(i in this.indices) {
-//        if (!(this[i] === other[i])){
-//            return false
-//        }
-//    }
-//    return true
-//}
 
 data class NoteInfo(val audio44ResourceID : Int, val audio48ResourceID : Int, val stringResourceID : Int, val drawableResourceID : Int)
 

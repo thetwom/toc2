@@ -13,7 +13,9 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.view.Gravity
 import android.view.animation.OvershootInterpolator
+import android.widget.ImageView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import kotlin.math.*
 
 class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
@@ -32,7 +34,12 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
     private val controlButtons = mutableMapOf<NoteListItem, SoundChooserControlButton>() //ArrayList<SoundChooserControlButton>()
 
     private val choiceButtons = Array(availableNotes.size) {i ->
-        SoundChooserChoiceButton(context, i)
+        NoteView(context).apply {
+            val buttonNoteList = NoteList()
+            buttonNoteList.add(NoteListItem(i, 0.0f, 0.0f))
+            noteList = buttonNoteList
+            setBackgroundResource(R.drawable.choice_button_background)
+        }
     }
 
     var choiceStatus = CHOICE_OFF
@@ -40,8 +47,6 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
 
     private val noteViewBoundingBox = Rect()
     private val boundingBox = Rect()
-//    private var boundingBoxes = ArrayList<Rect>(0)
-//    private var activeBoxIndex = -1
     private var activeBoxLeft = 0
     private var activeBoxRight = 0
     var activeNote : NoteListItem? = null
@@ -64,11 +69,8 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
 
     private val noteListChangedListener = object: NoteList.NoteListChangedListener {
         override fun onNoteAdded(note: NoteListItem, index: Int) {
-//                val index = notes.indexOf(note)
             val s = SoundChooserControlButton(context, note, elementElevation + tolerance, volumePaintColor)
             controlButtons[note] = s
-//                controlButtons.add(index, s)
-//                setControlButtonTargetTranslation(s)
             addView(s)
             for (c in controlButtons.values)
                 c.visibility = View.GONE
@@ -85,19 +87,15 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
                     removeView(s)
 
                 val newActiveIndex = if(index < notes.size) index else notes.size - 1
-                setActiveNote(notes[newActiveIndex], 300L)
+                if (newActiveIndex in notes.indices)
+                    setActiveNote(notes[newActiveIndex], 300L)
             }
-
         }
 
         override fun onNoteMoved(note: NoteListItem, fromIndex: Int, toIndex: Int) {
-            Log.v("Metronome", "SoundChooser.noteList.onNoteMoved: moving from $fromIndex to $toIndex")
-            //noteList?.let { notes ->
-//                for (cB in controlButtons)
-//                    setControlButtonTargetTranslation(cB)
+//            Log.v("Metronome", "SoundChooser.noteList.onNoteMoved: moving from $fromIndex to $toIndex")
             activeControlButton?.let { setControlButtonTargetTranslation(it) }
             resetActiveNoteBoundingBox()
-            //}
         }
 
         override fun onVolumeChanged(note: NoteListItem, index: Int) {
@@ -128,23 +126,30 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
                     controlButtons[n] = SoundChooserControlButton(context, n, elementElevation + tolerance, volumePaintColor)
                     addView(controlButtons[n])
                     controlButtons[n]?.visibility = View.GONE
-//                    setControlButtonTargetTranslation(controlButtons.last())
-//                    controlButtons.last().moveToTarget()
                 }
             }
         }
 
     interface StateChangedListener {
-//        fun onPositionChanged(note : NoteListItem, boxIndex : Int) { }
-//        fun onNoteDeleted(note : NoteListItem) { }
-//        fun onNoteChanged(note : NoteListItem, noteID : Int) { }
         fun onSoundChooserDeactivated(note : NoteListItem?) {}
-//        fun onVolumeChanged(note : NoteListItem, volume : Float) {}
     }
     var stateChangedListener : StateChangedListener? = null
 
-    private val deleteButton = SoundChooserDeleteButton(context)
-    private val doneButton = SoundChooserDoneButton(context)
+    private val deleteButton = androidx.appcompat.widget.AppCompatImageButton(context)
+            .apply {
+                setImageResource(R.drawable.delete_button_icon)
+                setBackgroundResource(R.drawable.delete_button_background)
+                imageTintList = ContextCompat.getColorStateList(context, R.color.delete_button_icon)
+                scaleType = ImageView.ScaleType.FIT_CENTER
+            }
+
+    private val doneButton = androidx.appcompat.widget.AppCompatButton(context)
+        .apply {
+            text = context.getString(R.string.done)
+            setBackgroundResource(R.drawable.done_button_background)
+            setTextColor(ContextCompat.getColorStateList(context, R.color.done_button_text))
+            visibility = View.GONE
+        }
 
     private var elementElevation = 5.0f
     private var activeTranslationZ = 10.0f
@@ -165,23 +170,13 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
             activeTranslationZ = ta.getDimension(R.styleable.SoundChooser_activeTranslationZ, activeTranslationZ)
             elementPadding = ta.getDimension(R.styleable.SoundChooser_elementPadding, elementPadding)
             volumePaintColor = ta.getColor(R.styleable.SoundChooser_volumeColor, volumePaintColor)
-//            volumeControl.sliderColor = ta.getColor(R.styleable.SoundChooser_volumeControlSliderColor, volumeControl.sliderColor)
-//            volumeControl.belowSliderColor = ta.getColor(R.styleable.SoundChooser_volumeControlBelowSliderColor, volumeControl.belowSliderColor)
-//            volumeControl.iconColor = ta.getColor(R.styleable.SoundChooser_volumeControlOnSliderColor, volumeControl.iconColor)
-//            volumeControl.backgroundSurfaceColor = ta.getColor(R.styleable.SoundChooser_volumeControlBackgroundColor, volumeControl.backgroundSurfaceColor)
             backgroundView.setBackgroundColor(ta.getColor(R.styleable.SoundChooser_backgroundViewColor, Color.WHITE))
             ta.recycle()
         }
 
         addView(backgroundView)
         backgroundView.alpha = 0.7f
-        //backgroundView.elevation = elementElevation
         backgroundView.visibility = View.GONE
-
-//        controlButton.volumeColor = volumePaintColor
-//        addView(controlButton)
-//        controlButton.elevation = elementElevation + tolerance // slightly increase elevation to be sure that this button is always on top
-//        controlButton.visibility = View.GONE
         addView(deleteButton)
 
         deleteButton.visibility = View.GONE
@@ -198,12 +193,12 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         }
 
         for(c in choiceButtons) {
-            c.button.elevation = elementElevation
-            c.button.volumeColor = volumePaintColor
+            c.elevation = elementElevation
+            c.volumeColor = volumePaintColor
 
-            addView(c.button)
-            c.button.visibility = View.GONE
-            c.button.onNoteClickListener = object : NoteView.OnNoteClickListener {
+            addView(c)
+            c.visibility = View.GONE
+            c.onNoteClickListener = object : NoteView.OnNoteClickListener {
                 override fun onDown(event: MotionEvent?, note: NoteListItem?, noteIndex: Int): Boolean {
 //                    Log.v("Notes", "SoundChooser.choiceButton.onDown")
                     return true
@@ -212,18 +207,13 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
                     return true
                 }
                 override fun onUp(event: MotionEvent?, note: NoteListItem?, noteIndex: Int): Boolean {
-//
-//                    this@SoundChooser.activeNote?.let {
-//                        stateChangedListener?.onNoteChanged(it, c.noteID)
-//                    }
-//                    controlButton.setNoteId(c.noteID)
                     noteList?.let { notes ->
                         val index = notes.indexOf(activeNote)
                         if (index in notes.indices)
-                            notes.setNote(index, c.noteId)
+                            notes.setNote(index, c.noteList?.get(0)?.id ?: defaultNote)
                     }
                     for(cB in choiceButtons)
-                        cB.button.highlightNote(0, cB === c)
+                        cB.highlightNote(0, cB === c)
                     return true
                 }
             }
@@ -239,13 +229,6 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
                     if (index in notes.indices)
                         notes.setVolume(index, volume)
                 }
-//                // show new volume in control button
-//                controlButton.setNoteVolume(volume)
-//
-//                // call our listener that the note changed
-//                activeNote?.let {
-//                    stateChangedListener?.onVolumeChanged(it, volume)
-//                }
             }
         }
     }
@@ -267,7 +250,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
     private fun measureChoiceBase(measuredWidth: Int, measuredHeight: Int) {
         deleteButton.measure(
                 MeasureSpec.makeMeasureSpec(measuredWidth - 2 * elementPadding.roundToInt(), MeasureSpec.EXACTLY),
-                MeasureSpec.makeMeasureSpec(computeDeleteButtonHeight(measuredHeight), MeasureSpec.EXACTLY)
+                MeasureSpec.makeMeasureSpec(computeDeleteButtonHeight(), MeasureSpec.EXACTLY)
         )
 
         /// here we assume that the note view bottom is aligned with the sound chooser bottom, and the padding at the bottom is equal
@@ -287,23 +270,6 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
                 )
             }
         }
-//        for (i in boundingBoxes.indices) {
-//            if (i < controlButtons.size) {
-//                val box = boundingBoxes[i]
-//                controlButtons[i].measure(
-//                        MeasureSpec.makeMeasureSpec(min(box.width(), box.height()), MeasureSpec.EXACTLY),
-//                        MeasureSpec.makeMeasureSpec(box.height(), MeasureSpec.EXACTLY)
-//                )
-//            }
-//        }
-
-//        if(activeBoxIndex >= 0 && activeBoxIndex < boundingBoxes.size) {
-//            val box = boundingBoxes[activeBoxIndex]
-//            controlButton.measure(
-//                    MeasureSpec.makeMeasureSpec(min(box.width(), box.height()), MeasureSpec.EXACTLY),
-//                    MeasureSpec.makeMeasureSpec(box.height(), MeasureSpec.EXACTLY)
-//            )
-//        }
     }
 
     private fun measureChoiceDynamic(measuredWidth : Int, measuredHeight : Int) {
@@ -329,7 +295,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
 
         /// here we assume that the note view bottom is aligned with the sound chooser bottom, and the padding at the bottom is equal
         val verticalSpace = (measuredHeight
-                - computeDeleteButtonHeight(measuredHeight)
+                - computeDeleteButtonHeight()
                 - noteViewBoundingBox.height()
                 - 3 * elementPadding
                 - paddingBottom
@@ -346,7 +312,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
                     (largestChoiceSize * sizeRatio).roundToInt() - choiceButtonSpacing.toInt(),
                     MeasureSpec.EXACTLY
             )
-            choiceButtons[i].button.measure(newSizeSpec, newSizeSpec)
+            choiceButtons[i].measure(newSizeSpec, newSizeSpec)
         }
     }
 
@@ -355,31 +321,31 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
 
         doneButton.measure(
                 MeasureSpec.makeMeasureSpec(measuredWidth - 2 * elementPadding.roundToInt(), MeasureSpec.EXACTLY),
-                MeasureSpec.makeMeasureSpec(computeDoneButtonHeight(measuredHeight), MeasureSpec.EXACTLY)
+                MeasureSpec.makeMeasureSpec(computeDoneButtonHeight(), MeasureSpec.EXACTLY)
         )
 
         volumeControl.measure(
                 MeasureSpec.makeMeasureSpec(measuredWidth - 2 * elementPadding.roundToInt(), MeasureSpec.EXACTLY),
-                MeasureSpec.makeMeasureSpec(computeVolumeControlHeight(measuredWidth, measuredHeight), MeasureSpec.EXACTLY)
+                MeasureSpec.makeMeasureSpec(computeVolumeControlHeight(measuredWidth), MeasureSpec.EXACTLY)
         )
 
-        val buttonSize = MeasureSpec.makeMeasureSpec(computeChoiceButtonSize(measuredWidth, measuredHeight).toInt(), MeasureSpec.EXACTLY)
+        val buttonSize = MeasureSpec.makeMeasureSpec(computeChoiceButtonSize(measuredWidth).toInt(), MeasureSpec.EXACTLY)
         for(c in choiceButtons){
-            c.button.measure(buttonSize, buttonSize)
+            c.measure(buttonSize, buttonSize)
         }
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
-        Log.v("Metronome", "SoundChooser.onLayout")
+//        Log.v("Metronome", "SoundChooser.onLayout")
         when(choiceStatus) {
             CHOICE_BASE -> layoutChoiceBase(l, t)
-            CHOICE_DYNAMIC -> layoutChoiceDynamic(l, t, b)
-            CHOICE_STATIC -> layoutChoiceStatic(l, t, r, b)
+            CHOICE_DYNAMIC -> layoutChoiceDynamic(l, t)
+            CHOICE_STATIC -> layoutChoiceStatic(l, t, r)
         }
     }
 
     private fun layoutChoiceBase(l: Int, t: Int) {
-        Log.v("Metronome", "SoundChooser.layoutChoiceBase")
+//        Log.v("Metronome", "SoundChooser.layoutChoiceBase")
         deleteButton.layout(
                 elementPadding.toInt(),
                 elementPadding.toInt(),
@@ -402,19 +368,16 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
                 }
             }
         }
-//        for (controlButton in controlButtons)
-//            controlButton.layout(0, 0, controlButton.measuredWidth, controlButton.measuredHeight)
     }
 
-    private fun layoutChoiceDynamic(l: Int, t: Int, b: Int) {
-        Log.v("Metronome", "SoundChooser.layoutChoiceDynamic")
+    private fun layoutChoiceDynamic(l: Int, t: Int) {
+//        Log.v("Metronome", "SoundChooser.layoutChoiceDynamic")
         layoutChoiceBase(l, t)
 
-//        var verticalPosition = b - t - boundingBoxesHeight - elementPadding - paddingBottom
         var verticalPosition = noteViewBoundingBox.top - t - elementPadding
 
         for(i in choiceButtons.indices) {
-            val v = choiceButtons[i].button
+            val v = choiceButtons[i]
             v.layout(0, verticalPosition.toInt() - v.measuredHeight, v.measuredWidth, verticalPosition.toInt())
             activeVerticalCenters[i] = verticalPosition - 0.5f * v.measuredHeight
             if(i == activeVerticalIndex) {
@@ -426,11 +389,10 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         }
     }
 
-    private fun layoutChoiceStatic(l: Int, t: Int, r: Int, b: Int) {
+    private fun layoutChoiceStatic(l: Int, t: Int, r: Int) {
 //        Log.v("Metronome", "SoundChooser.layoutChoiceStatic")
         layoutChoiceBase(l, t)
 
-//        var pos = (b - t - paddingBottom - boundingBoxesHeight - elementPadding).toInt()
         var pos = (noteViewBoundingBox.top - t - elementPadding).toInt()
 
         doneButton.layout(
@@ -450,16 +412,16 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         )
         pos = pos - volumeControl.measuredHeight - elementPadding.toInt()
 
-        val numCols = computeNumCols(measuredWidth, measuredHeight)
+        val numCols = computeNumCols(measuredWidth)
         // we assume that all buttons have the same size
-        val buttonWidth = choiceButtons[0].button.measuredWidth
+        val buttonWidth = choiceButtons[0].measuredWidth
 
         val choiceButtonsTotalWidth = numCols * buttonWidth + (numCols - 1) * choiceButtonSpacing
         val effectiveWidth = r - l - 2 * elementPadding
         val choiceButtonsLeft = elementPadding + 0.5f * (effectiveWidth - choiceButtonsTotalWidth)
 
         val numRows = computeNumRows(numCols)
-        val buttonHeight = choiceButtons[0].button.measuredHeight
+        val buttonHeight = choiceButtons[0].measuredHeight
         val choiceButtonsTotalHeight = numRows * buttonHeight + (numRows - 1) * choiceButtonSpacing
         val choiceButtonSpaceTop = 2 * elementPadding + deleteButton.measuredHeight
         val effectiveHeight = pos - choiceButtonSpaceTop
@@ -472,8 +434,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         var verticalPosition = choiceButtonsTop.toInt()
 
         for(i in choiceButtons.indices) {
-            val c = choiceButtons[i]
-            val v = c.button
+            val v = choiceButtons[i]
 
             v.layout(
                     horizontalPosition,
@@ -543,7 +504,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
                 if(choiceStatus == CHOICE_DYNAMIC) {
                     val tXC = tX + controlButton.right + elementPadding
                     for(c in choiceButtons)
-                        c.button.translationX = tXC
+                        c.translationX = tXC
                     repositionDynamicChoices()
                 }
             }
@@ -573,7 +534,6 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
                 Toast.makeText(context, context.getString(R.string.cannot_delete_last_note), Toast.LENGTH_LONG).show()
             } else {
                 activeNote?.let {notes.remove(it)}
-//                activeNote?.let { stateChangedListener?.onNoteDeleted(it) }
             }
         }
     }
@@ -604,34 +564,6 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         }
     }
 
-//    fun setNoteViewBoundingBox(noteBoundingBoxes: Array<Rect>) {
-//        Log.v("Metronome", "SoundChooser.setBoundingBoxes")
-//        // TODO: should we better store the raw coordinates, since left/top might be not correct here?
-//        boundingBoxes.clear()
-//        for(bb in noteBoundingBoxes) {
-//            boundingBoxes.add(
-//                    Rect(
-//                            bb.left - left - translationX.roundToInt(),
-//                            bb.top - top - translationY.roundToInt(),
-//                            bb.right - left - translationX.roundToInt(),
-//                            bb.bottom - top - translationY.roundToInt()
-//                    )
-//            )
-//        }
-//
-//        resetActiveNoteBoundingBox()
-//
-//        if (boundingBoxes.size <= 1 && deleteButton.alpha != 0.5f)
-//            deleteButton.animate().alpha(0.5f)
-//        else if (deleteButton.alpha != 1f)
-//            deleteButton.animate().alpha(1f)
-//
-//        for (cB in controlButtons)
-//            setControlButtonTargetTranslation(cB)
-//
-//        requestLayout()
-//    }
-
     private fun resetActiveNoteBoundingBox() {
         noteList?.let { notes ->
             val index = notes.indexOf(activeNote)
@@ -654,25 +586,13 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
 
         activeNote = note
         activeControlButton = controlButtons[note]
-        Log.v("Metronome", "SoundChooser.setActiveNote: activeControlButton.translationX=${activeControlButton?.translationX}")
-//        if (activeControlButton?.visibility != View.VISIBLE)
-//            activeControlButton?.let { setControlButtonTargetTranslation(it) }
-
-//        for (cB in controlButtons.values) {
-//            if ( cB.visibility == View.VISIBLE && (cB.translationX != 0f || cB.translationY != 0f)) {
-//                cB.animate().setDuration(animationDuration).translationX(0f).translationY(0f).start()
-//            }
-//            else {
-//                cB.translationX = 0f
-//                cB.translationY = 0f
-//            }
-//        }
+//        Log.v("Metronome", "SoundChooser.setActiveNote: activeControlButton.translationX=${activeControlButton?.translationX}")
 
         resetActiveNoteBoundingBox()
 
         volumeControl.setVolume(note.volume, if(choiceStatus == CHOICE_STATIC) animationDuration else 0L)
         for(c in choiceButtons)
-            c.button.highlightNote(0, c.button.noteList?.get(0)?.id == activeNote?.id)
+            c.highlightNote(0, c.noteList?.get(0)?.id == activeNote?.id)
 
         if(choiceStatus == CHOICE_STATIC && activeControlButton?.visibility != View.VISIBLE) {
             TransitionManager.beginDelayedTransition(this,
@@ -687,7 +607,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         }
     }
 
-    fun deactivate(animationDuration: Long = 300L) {
+    private fun deactivate(animationDuration: Long = 300L) {
         activeVerticalCenters[0] = Float.MAX_VALUE
         val autoTransition = AutoTransition().apply {
             duration = animationDuration
@@ -711,34 +631,25 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         }
         TransitionManager.beginDelayedTransition(this, autoTransition)
         choiceStatus = CHOICE_OFF
-//        controlButton.visibility = View.GONE
         deleteButton.visibility = View.GONE
         deleteButton.isPressed = false
         doneButton.visibility = View.GONE
         backgroundView.visibility = View.GONE
         volumeControl.visibility = View.GONE
         for(c in choiceButtons)
-            c.button.visibility = View.GONE
+            c.visibility = View.GONE
         for(cB in controlButtons.values) {
             if (cB.visibility == View.VISIBLE) {
                 cB.moveToTarget(animationDuration)
             }
             cB.visibility = View.GONE
         }
-
-//        controlButton.animate()
-//                .translationX(controlButtonTranslationXInit)
-//                .translationY(controlButtonTranslationYInit)
-//                .withEndAction{controlButton.visibility = View.GONE}
-//                .setDuration(animationDuration)
-//                .start()
     }
 
-    fun activateBaseLayout() {
+    private fun activateBaseLayout() {
         choiceStatus = CHOICE_BASE
         translationZ = activeTranslationZ
         TransitionManager.beginDelayedTransition(this,
-                //AutoTransition().apply{
                 Fade().apply{
                     duration = 300L
                 })
@@ -747,7 +658,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         doneButton.visibility = View.GONE
         volumeControl.visibility = View.GONE
         for(c in choiceButtons)
-            c.button.visibility = View.GONE
+            c.visibility = View.GONE
         for (cB in controlButtons.values) {
             cB.visibility = if (cB === activeControlButton) View.VISIBLE else View.GONE
         }
@@ -769,9 +680,9 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         deleteButton.visibility = View.VISIBLE
 
         for(c in choiceButtons) {
-            c.button.visibility = View.VISIBLE
-            c.button.translationX = 0f
-            c.button.highlightNote(0, c.button.noteList?.get(0)?.id == activeNote?.id)
+            c.visibility = View.VISIBLE
+            c.translationX = 0f
+            c.highlightNote(0, c.noteList?.get(0)?.id == activeNote?.id)
         }
 
         for (cB in controlButtons.values)
@@ -785,10 +696,28 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         choiceStatus = CHOICE_DYNAMIC
         translationZ = activeTranslationZ
 
-        //val autoTransition = AutoTransition().apply { duration = 80L }
         val slideTransition = Slide().apply {
             duration = 300L
             slideEdge = Gravity.BOTTOM
+
+            // without this listener the choice buttons can stay mispositioned after the transition ended.
+            addListener(object: Transition.TransitionListener {
+                override fun onTransitionEnd(transition: Transition?) {
+                    post {
+                        activeControlButton?.let { controlButton ->
+                            val tXC = controlButton.translationX + controlButton.right + elementPadding
+                            for (c in choiceButtons)
+                                c.translationX = tXC
+                        }
+                    }
+                }
+
+                override fun onTransitionResume(transition: Transition?) {}
+                override fun onTransitionPause(transition: Transition?) {}
+                override fun onTransitionCancel(transition: Transition?) {}
+                override fun onTransitionStart(transition: Transition?) {}
+
+            })
         }
         TransitionManager.beginDelayedTransition(this, slideTransition)
         doneButton.visibility = View.GONE
@@ -796,7 +725,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         deleteButton.visibility = View.VISIBLE
 
         for(c in choiceButtons)
-            c.button.visibility = View.VISIBLE
+            c.visibility = View.VISIBLE
     }
 
     private fun setControlButtonTargetTranslation(controlButton: SoundChooserControlButton) {
@@ -813,7 +742,6 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         if (index < 0)
             return
 
-
         NoteView.computeBoundingBox(index, notes.size, noteViewBoundingBox.width(), noteViewBoundingBox.height(), boundingBox)
 
         controlButton.translationXTarget = (
@@ -827,66 +755,6 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         if (controlButton.visibility != View.VISIBLE)
             controlButton.moveToTarget()
     }
-
-//    private fun setControlButtonTargetTranslation(controlButton: SoundChooserControlButton) {
-//        val index = controlButtons.indexOf(controlButton)
-//        if(index >= 0 && index < boundingBoxes.size) {
-//            val box = boundingBoxes[index]
-//            controlButton.translationXTarget = box.left.toFloat() + 0.5f * (box.width() - min(box.width(), box.height()))
-//            controlButton.translationYTarget = box.top.toFloat()
-//        }
-//
-//        if (controlButton.visibility != View.VISIBLE)
-//            controlButton.moveToTarget()
-//    }
-
-//    private fun moveControlButtonToActiveBoundingBox(animationDuration: Long = 300L, fadeOutIn : Boolean = false) {
-////        Log.v("Metronome", "SoundChooser.moveControlButtonToActiveBoundingBox")
-////        controlButtonAnimator.pause()
-//
-////        if(animationDuration > 0L && fadeOutIn) {
-////            Log.v("Metronome", "SoundChooser.moveControlButtonToActiveBoundingBox: fadeOutIn, controlbutto..translationX=${controlButton.translationX}, controlButtonTranslationXInit=$controlButtonTranslationXInit")
-////            controlButtonAnimator.playSequentially(
-////                    ObjectAnimator.ofFloat(controlButton, View.ALPHA, controlButton.alpha, 0f).setDuration((0.5f * animationDuration).toLong())
-////                    ObjectAnimator.ofFloat(controlButton, View.TRANSLATION_X, controlButton.translationX, controlButtonTranslationXInit).setDuration((0.2f * animationDuration).toLong()),
-//                    //ObjectAnimator.ofFloat(controlButton, View.TRANSLATION_Y, controlButton.translationY, controlButtonTranslationYInit).setDuration((0.2f * animationDuration).toLong()),
-////                    ObjectAnimator.ofFloat(controlButton, View.ALPHA, 0f, 1f).setDuration((0.5f * animationDuration).toLong())
-////            )
-////        }
-//        if (animationDuration > 0L) {
-//            controlButton.animate()
-//                    .translationX(controlButtonTranslationXInit)
-//                    .translationY(controlButtonTranslationYInit)
-//                    .setDuration(animationDuration)
-//                    .start()
-//        }
-//        else {
-//            controlButton.translationX = controlButtonTranslationXInit
-//            controlButton.translationY = controlButtonTranslationYInit
-//        }
-//
-//        controlButton.translationXInit = controlButtonTranslationXInit
-//        controlButton.translationYInit = controlButtonTranslationYInit
-//    }
-//
-//    private val controlButtonTranslationXInit: Float
-//            get() {
-////                Log.v("Metronome", "controlButtonTranslationXInit: activeBoxIndex=$activeBoxIndex, boundingboxes.size=${boundingBoxes.size}")
-//                if(activeBoxIndex >= 0 && activeBoxIndex < boundingBoxes.size) {
-//                    val box = boundingBoxes[activeBoxIndex]
-//                    return box.left.toFloat() + 0.5f * (box.width() - min(box.width(), box.height()))
-//                }
-//                return 0f
-//            }
-//
-//    private val controlButtonTranslationYInit: Float
-//        get() {
-//            if(activeBoxIndex >= 0 && activeBoxIndex < boundingBoxes.size) {
-//                val box = boundingBoxes[activeBoxIndex]
-//                return box.top.toFloat()
-//            }
-//            return 0f
-//        }
 
     private fun inActiveBoundingBoxCheck() : Boolean {
         activeControlButton?.let { controlButton ->
@@ -922,19 +790,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
             if (previousActiveBoxIndex != newIndex)
                 triggerStaticChooserOnUp = false
         }
-
-//        activeBoxLeft = (boundingBoxes[activeBoxIndex].left - tolerance).roundToInt()
-//        activeBoxRight = (boundingBoxes[activeBoxIndex].right + tolerance).roundToInt()
-//
-////        Log.v("Notes", "SoundChooser: ... previous index: $previousActiveBoxIndex, new index = $activeBoxIndex")
-//        if(previousActiveBoxIndex != activeBoxIndex) {
-//            activeNote?.let {
-//                stateChangedListener?.onPositionChanged(it, activeBoxIndex)
-//            }
-//            triggerStaticChooserOnUp = false
-//        }
     }
-
 
     private fun repositionDynamicChoices() {
         // Don't position dynamic choices, if centers are not set, this will be done in the layout step
@@ -966,20 +822,15 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
             if (activeVerticalIndex != newChoiceIndex) {
                 activeVerticalIndex = newChoiceIndex
 
-//                // call our listener that the note changed
-//                activeNote?.let {
-//                    stateChangedListener?.onNoteChanged(it, choiceButtons[activeVerticalIndex].noteId)
-//                    controlButton.setNoteId(choiceButtons[activeVerticalIndex].noteId)
-//                }
                 noteList?.let { notes ->
                     val index = notes.indexOf(activeNote)
                     if (index in notes.indices) {
-                        notes.setNote(index, choiceButtons[activeVerticalIndex].noteId)
+                        notes.setNote(index, choiceButtons[activeVerticalIndex].noteList?.get(0)?.id ?: defaultNote)
                     }
                 }
 
                 for (i in choiceButtons.indices)
-                    choiceButtons[i].button.highlightNote(0, i == activeVerticalIndex)
+                    choiceButtons[i].highlightNote(0, i == activeVerticalIndex)
 
                 activeVerticalCenters[0] = Float.MAX_VALUE
                 val transition = ChangeBounds().apply {
@@ -992,25 +843,24 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         }
     }
 
-
     /// Compute height of delete button.
-    private fun computeDeleteButtonHeight(measuredHeight: Int) : Int {
+    private fun computeDeleteButtonHeight() : Int {
         Log.v("Metronome", "SoundChooser.computeDeleteButtonHeight: noteViewBoundingBox.top=${noteViewBoundingBox.top}, top=$top")
         val freeSpaceAboveBoxes = noteViewBoundingBox.top - top
         return min(noteViewBoundingBox.height() / 1.5f, freeSpaceAboveBoxes / 4.0f).roundToInt()
     }
 
     /// Compute height of done button.
-    private fun computeDoneButtonHeight(measuredHeight: Int) : Int {
-        return computeDeleteButtonHeight(measuredHeight)
+    private fun computeDoneButtonHeight() : Int {
+        return computeDeleteButtonHeight()
     }
 
     /// Compute height of volume control.
-    private fun computeVolumeControlHeight(measuredWidth: Int, measuredHeight: Int) : Int {
+    private fun computeVolumeControlHeight(measuredWidth: Int) : Int {
         val freeSpace = (
                 (noteViewBoundingBox.top - top)
-                - computeDeleteButtonHeight(measuredHeight)
-                - computeDoneButtonHeight(measuredHeight)
+                - computeDeleteButtonHeight()
+                - computeDoneButtonHeight()
                 - 4 * elementPadding)
         var w = min(freeSpace / 3.0f, noteViewBoundingBox.height() / 3.0f)
         val volumeControlLength = (measuredWidth - 2 * elementPadding).roundToInt()
@@ -1022,18 +872,18 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         return (measuredWidth - 2 * elementPadding).roundToInt()
     }
 
-    private fun computeChoiceButtonSpaceHeight(measuredWidth: Int, measuredHeight: Int) : Int {
+    private fun computeChoiceButtonSpaceHeight(measuredWidth: Int) : Int {
         return ((noteViewBoundingBox.top - top)
-                - computeDeleteButtonHeight(measuredHeight)
-                - computeDoneButtonHeight(measuredHeight)
-                - computeVolumeControlHeight(measuredWidth, measuredHeight)
+                - computeDeleteButtonHeight()
+                - computeDoneButtonHeight()
+                - computeVolumeControlHeight(measuredWidth)
                 - 4 * elementPadding
                 ).toInt()
     }
 
-    private fun computeNumCols(measuredWidth: Int, measuredHeight: Int) : Int {
+    private fun computeNumCols(measuredWidth: Int) : Int {
         val choiceButtonSpaceWidth = computeChoiceButtonSpaceWidth(measuredWidth)
-        val choiceButtonSpaceHeight = computeChoiceButtonSpaceHeight(measuredWidth, measuredHeight)
+        val choiceButtonSpaceHeight = computeChoiceButtonSpaceHeight(measuredWidth)
         val aspect = choiceButtonSpaceWidth.toFloat() / choiceButtonSpaceHeight.toFloat()
         var bestColRowAspect = Float.MAX_VALUE
         var bestNumCols = 0
@@ -1053,39 +903,15 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         return ceil(getNumAvailableNotes().toFloat() / numCols.toFloat()).toInt()
     }
 
-    private fun computeChoiceButtonSize(measuredWidth: Int, measuredHeight: Int) : Float {
-        val numCols = computeNumCols(measuredWidth, measuredHeight)
+    private fun computeChoiceButtonSize(measuredWidth: Int) : Float {
+        val numCols = computeNumCols(measuredWidth)
         val numRows = computeNumRows(numCols)
         val choiceButtonSpaceWidth = computeChoiceButtonSpaceWidth(measuredWidth)
-        val choiceButtonSpaceHeight = computeChoiceButtonSpaceHeight(measuredWidth, measuredHeight)
+        val choiceButtonSpaceHeight = computeChoiceButtonSpaceHeight(measuredWidth)
         val s = min(
                 (choiceButtonSpaceWidth + choiceButtonSpacing) / numCols.toFloat() - choiceButtonSpacing,
                 (choiceButtonSpaceHeight + choiceButtonSpacing) / numRows.toFloat() - choiceButtonSpacing
         )
         return min(s, noteViewBoundingBox.height().toFloat())
     }
-
-//    private val boundingBoxesHeight : Int
-//        get() {
-//            var value = 0
-//            for(box in boundingBoxes)
-//                value = max(value, box.height())
-//            return value
-//        }
-//
-//    private val boundingBoxesLeft : Int
-//        get() {
-//            var value = Int.MAX_VALUE
-//            for(box in boundingBoxes)
-//                value = min(value, box.left)
-//            return value
-//        }
-//
-//    private val boundingBoxesRight : Int
-//        get() {
-//            var value = 0
-//            for(box in boundingBoxes)
-//                value = max(value, box.right)
-//            return value
-//        }
 }

@@ -58,17 +58,12 @@ class SavedItemDatabase : RecyclerView.Adapter<SavedItemDatabase.ViewHolder>() {
         val dateView = holder.view.findViewById(R.id.saved_item_date) as TextView?
         val speedView = holder.view.findViewById(R.id.saved_item_speed) as TextView?
 
-//        titleView.setText("Some title " + dataBase.get(position))
         titleView?.text = item.title
         dateView?.text = item.date + "\n" + item.time
-//        dateView.setText("23.03.2019\n23:43")
         speedView?.text = holder.view.context.getString(R.string.bpm, Utilities.getBpmString(item.bpm))
 
-//        IconListVisualizer iconListVisualizer = holder.view.findViewById(R.id.saved_item_sounds);
-//        AudioMixer.PlayListItem[] metaData = SoundProperties.Companion.parseMetaDataString(item.playList);
-//        iconListVisualizer.setIcons(metaData);
         val noteView = holder.view.findViewById(R.id.saved_item_sounds) as NoteView?
-        val noteList = SoundProperties.parseMetaDataString(item.noteList)
+        val noteList = NoteList().apply { fromString(item.noteList) }//SoundProperties.parseMetaDataString(item.noteList)
         noteView?.noteList = noteList
 
         holder.view.setOnClickListener {

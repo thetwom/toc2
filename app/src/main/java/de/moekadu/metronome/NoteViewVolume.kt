@@ -66,27 +66,6 @@ class NoteViewVolume(context : Context) : View(context) {
             invalidate()
         }
 
-
-//    fun setNoteList(noteList : NoteList) {
-//
-//        var volumeChanged = false
-//
-//        if (noteList.size == volumes.size) {
-//            for (i in noteList.indices) {
-//                if (noteList[i].volume != volumes[i])
-//                    volumeChanged = true
-//                volumes[i] = noteList[i].volume
-//            }
-//        } else {
-//            volumes.clear()
-//            for (n in noteList)
-//                volumes.add(n.volume)
-//            volumeChanged = true
-//        }
-//        if (volumeChanged)
-//            invalidate()
-//    }
-
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         if(volumes.size == 0)

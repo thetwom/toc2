@@ -42,12 +42,6 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         }
     }
 
-//    interface BoundingBoxesChangedListener {
-//        fun onBoundingBoxesChanged(boundingBoxes : Array<Rect>)
-//    }
-
-//    var boundingBoxesChangedListener : BoundingBoxesChangedListener? = null
-
     private val lineView = ImageView(context).apply {
         setPadding(0, 0, 0, 0)
         setBackgroundResource(R.drawable.ic_notelines)
@@ -99,7 +93,6 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     }
 
     private val notes = ArrayList<Note>()
-//    private val notesMarkedToDelete = ArrayList<Note>()
 
     private fun computeLargestAspectRatio() : Float {
         var largestAspectRatio = 0.0f
@@ -121,7 +114,6 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             TransitionManager.beginDelayedTransition(this@NoteView, transition)
             val newNote = Note(note)
             notes.add(index, newNote)
-//                noteBoundingBoxes = Array(notes.size) {Rect()}
             addView(newNote.noteImage)
         }
 
@@ -129,7 +121,6 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             TransitionManager.beginDelayedTransition(this@NoteView, transition)
             removeView(notes[index].noteImage)
             notes.removeAt(index)
-//                noteBoundingBoxes = Array(notes.size) {Rect()}
         }
 
         override fun onNoteMoved(note: NoteListItem, fromIndex: Int, toIndex: Int) {
@@ -169,39 +160,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                     addView(notes.last().noteImage)
                 }
             }
-//            noteBoundingBoxes = Array(notes.size) {Rect()}
         }
-
-//    val noteList : NoteList
-//        get(){
-//            val noteList = NoteList(0)
-//            for(n in notes)
-//                noteList.add(n.note)
-//            return noteList
-//        }
-
-//    val numNotes
-//        get() = notes.size
-//
-//    fun getNoteListItem(index : Int) : NoteListItem {
-//        return notes[index].note
-//    }
-
-//    var noteBoundingBoxes = Array(0) {Rect()}
-//        private set
-//    private var numBoundingBoxesBeforeBoundingBoxesChangedCall = 0
-
-//        get() = Array(notes.size) {i ->
-//            val noteHorizontalSpace = (width - paddingLeft - paddingRight) / notes.size.toFloat()
-//            val noteHeight = height - paddingTop - paddingBottom
-//            val r = Rect(0, 0, noteHorizontalSpace.toInt(), noteHeight)
-//            r.offset(
-//                (i * noteHorizontalSpace + paddingLeft + left + translationX).roundToInt(),
-//                paddingTop + top + translationY.roundToInt()
-//            )
-//            //Log.v("Notes", "NoteView.noteBoundingBoxes, top = $top, translationY = $translationY")
-//            r
-//        }
 
     interface OnNoteClickListener {
         fun onDown(event: MotionEvent?, note : NoteListItem?, noteIndex : Int) : Boolean
@@ -229,16 +188,6 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
         addView(volumeView)
         addView(lineView)
-
-//        viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
-//            override fun onGlobalLayout() {
-//                viewTreeObserver.removeOnGlobalLayoutListener(this)
-//                addView(volumeView)
-//
-//                volumeView.elevation = -2f
-//                lineView.elevation = -1f
-//            }
-//        })
     }
 
     final override fun addView(child: View?) {
@@ -272,7 +221,6 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         lineView.layout(paddingLeft, paddingTop, paddingLeft + lineView.measuredWidth, paddingTop + lineView.measuredHeight)
 
         val noteHorizontalSpace = totalWidth / notes.size.toFloat()
-//        var boundingBoxesModified = false
 
         for(i in notes.indices) {
             val noteView = notes[i].noteImage
@@ -285,22 +233,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             val noteRight = (noteCenter - 0.5f * noteImageWidth).toInt() + noteImageWidth
             val noteBottom = paddingTop + noteImageHeight
             noteView.layout(noteLeft, noteTop, noteRight, noteBottom)
-
-//            val box = noteBoundingBoxes[i]
-//            val bbLeft = l + (noteCenter - 0.5f * noteHorizontalSpace).toInt()
-//            val bbTop = t
-//            val bbRight = l + (noteCenter + 0.5f * noteHorizontalSpace).toInt()
-//            val bbBottom = b
-//            if(bbLeft != box.left || bbTop != box.top || bbRight != box.right || bbBottom != box.bottom) {
-//                box.set(bbLeft, bbTop, bbRight, bbBottom)
-//                boundingBoxesModified = true
-//            }
         }
-//        Log.v("Metronome", "NoteView.onLayout: boundingBoxesModified=$boundingBoxesModified")
-//        if(boundingBoxesModified  || numBoundingBoxesBeforeBoundingBoxesChangedCall != noteBoundingBoxes.size) {
-//            post { boundingBoxesChangedListener?.onBoundingBoxesChanged(noteBoundingBoxes) }
-//        }
-//        numBoundingBoxesBeforeBoundingBoxesChangedCall = noteBoundingBoxes.size
     }
 
     override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
@@ -309,6 +242,8 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
+        if(onNoteClickListener == null)
+            return super.onTouchEvent(event)
         Log.v("Metronome", "NoteView.onTouchEvent")
         if(event == null)
             return super.onTouchEvent(event)
@@ -335,26 +270,18 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         if(overNoteIndex >= 0)
             overNote = notes[overNoteIndex].note
 
-        val actionTaken : Boolean
-
-        when(action) {
+        return when(action) {
             MotionEvent.ACTION_DOWN -> {
 //                Log.v("Notes", "NoteViw action down: $overNote")
-                actionTaken = onNoteClickListener?.onDown(event, overNote, overNoteIndex) ?: true
-                if(actionTaken)
-                    isPressed = true
+                onNoteClickListener?.onDown(event, overNote, overNoteIndex) ?: false
             }
             MotionEvent.ACTION_UP -> {
-                actionTaken = onNoteClickListener?.onUp(event, overNote, overNoteIndex) ?: true
-                if(actionTaken)
-                    isPressed = false
+                onNoteClickListener?.onUp(event, overNote, overNoteIndex) ?: false
             }
             else -> {
-                actionTaken = onNoteClickListener?.onMove(event, overNote, overNoteIndex) ?: true
+                onNoteClickListener?.onMove(event, overNote, overNoteIndex) ?: false
             }
         }
-
-        return actionTaken
     }
 
     fun highlightNote(i : Int, flag : Boolean) {
@@ -387,6 +314,4 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                 drawable?.start()
             }
     }
-
-
 }

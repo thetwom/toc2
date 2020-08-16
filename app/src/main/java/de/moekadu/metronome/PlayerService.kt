@@ -78,7 +78,6 @@ class PlayerService : Service() {
         fun onPause()
         fun onNoteStarted(noteListItem: NoteListItem)
         fun onSpeedChanged(speed : Float)
-//        fun onNoteListChanged(noteList : NoteList)
     }
 
     private val statusChangedListeners = mutableSetOf<StatusChangedListener>()
@@ -139,25 +138,6 @@ class PlayerService : Service() {
             override fun onDurationChanged(note: NoteListItem, index: Int) { }
         })
     }
-
-//    var noteList = NoteList()
-//        set(value) {
-//            val instancesChangedFlag = !noteList.compareNoteListItemInstances(value)
-//
-//            if (instancesChangedFlag) {
-//                field.clear()
-//                field.addAll(value)
-//            }
-//
-//            // if instances changed we force the note list update (update noteView, call noteListChangedListener)
-//            applyNoteList(instancesChangedFlag)
-//        }
-//
-//    /// This is a copy of the note list which items are only owned by this service.
-//    /**
-//     * This allows to check if something changed when the note list ist checked
-//     */
-//    private val noteListCopy = NoteList()
 
     private var sharedPreferenceChangeListener: OnSharedPreferenceChangeListener? = null
 
@@ -371,8 +351,6 @@ class PlayerService : Service() {
                 return
 
             field = newSpeed
-            // playbackState = playbackStateBuilder.setState(state, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, newSpeed).build()
-            // mediaSession.setPlaybackState(playbackState)
             statusChangedListeners.forEach {s -> s.onSpeedChanged(field)}
 
             val duration = computeNoteDurationInSeconds(field)
@@ -380,7 +358,6 @@ class PlayerService : Service() {
                 noteList.setDuration(i, duration)
             }
 
-//            notificationBuilder.setContentText(getString(R.string.bpm, Utilities.getBpmString(getSpeed(), speedIncrement)));
             notificationView?.setTextViewText(R.id.notification_speedtext, getString(R.string.bpm, Utilities.getBpmString(field, speedIncrement)))
             notificationBuilder?.build()?.let { NotificationManagerCompat.from(this).notify(notificationID, it) }
         }
@@ -398,23 +375,6 @@ class PlayerService : Service() {
         newSpeed = max(newSpeed, minimumSpeed)
         speed = newSpeed
     }
-
-//     fun setVolume(noteListIndex : Int, volume : Float) {
-//         var volumeChanged = false
-//         if(noteListIndex < noteList.size) {
-//             val oldVolume = noteList[noteListIndex].volume
-//             if(abs(volume - oldVolume) > 1e-8) {
-//                 volumeChanged = true
-//                 noteList[noteListIndex].volume = volume
-//                 noteListCopy[noteListIndex].volume = volume
-//             }
-//         }
-//
-//         if(volumeChanged) {
-//             setNoteListInAudioMixer()
-//             statusChangedListeners.forEach {s -> s.onNoteListChanged(noteList)}
-//         }
-//     }
 
     fun startPlay() {
         // Log.v("Metronome", "PlayerService:startPlay")
@@ -435,7 +395,6 @@ class PlayerService : Service() {
 
         stopForeground(false)
 
-        // waitHandler.removeCallbacksAndMessages(null)
         audioMixer?.stop()
 
         statusChangedListeners.forEach {s -> s.onPause()}
@@ -473,40 +432,4 @@ class PlayerService : Service() {
     fun playSpecificSound(noteListItem: NoteListItem) {
         soundPool.play(soundHandles[noteListItem.id], noteListItem.volume, noteListItem.volume, 1, 0, 1.0f)
     }
-
-//    private fun setNoteListInAudioMixer() {
-//        if(noteList.size == 0)
-//            return
-//
-//        val duration = Utilities.speed2dt(speed) / 1000.0f
-////        Log.v("Metronome", "PlayerService.setMissingMembersAndCopyPlayListToAudioMixer: duration = " +duration + " speed= " + getSpeed());
-//        require(noteList.size > 0)
-//        for (noteListItem in noteList) {
-//            noteListItem.duration = duration
-//        }
-//        audioMixer?.noteList = noteList
-//    }
-
-//    private fun applyNoteList(force : Boolean) {
-//         if (SoundProperties.noteIdAndVolumeEqual(noteList, noteListCopy) && !force)
-//            return
-//
-//        // Delay update a little, to avoid any feedback loop with updates of other instances
-////            updateMetadataDelayed()
-//
-//        // set copy of note list which allows reliable checks if something changed in the note list
-//        if(noteListCopy.size == noteList.size) {
-//            for(i in noteList.indices)
-//                noteListCopy[i].set(noteList[i])
-//        }
-//        else {
-//            noteListCopy.clear()
-//            for (n in noteList)
-//                noteListCopy.add(n.clone())
-//        }
-//
-//        statusChangedListeners.forEach {s -> s.onNoteListChanged(noteList)}
-//        setNoteListInAudioMixer()
-//    }
-
 }

@@ -46,8 +46,6 @@ class MainActivity : AppCompatActivity() {
 
     // TODO: test different device formats
     // TODO: notification play button should have the same color as the text
-    // TODO: Symbols in Toolbar are not the same color as the text (at least in api 29)
-    // TODO: When enabling the Dynamic SoundChooser, the x translation only applies after everything is slided in and the control button is moved
 
     companion object {
         private const val METRONOME_FRAGMENT_TAG = "metronomeFragment"
@@ -197,8 +195,6 @@ class MainActivity : AppCompatActivity() {
                     item.time = timeFormat.format(date)
 
                     item.bpm = playerFrag?.playerService?.speed ?: InitialValues.speed
-                    //item.noteList = playerFrag?.playerService?.metaData?.getString(MediaMetadataCompat.METADATA_KEY_TITLE) ?: ""
-                    //item.noteList = SoundProperties.createMetaDataString(playerFrag?.playerService?.noteList)
                     item.noteList = playerFrag?.playerService?.noteList?.toString() ?: ""
                     //                    Log.v("Metronome", item.playList);
                     if (item.title.length > 200) {
@@ -238,7 +234,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         playerFrag?.playerService?.speed = item.bpm
-//        playerFrag?.playerService?.noteList = SoundProperties.parseMetaDataString(item.noteList)
         playerFrag?.playerService?.noteList?.fromString(item.noteList)
         Toast.makeText(this, getString(R.string.loaded_message, item.title), Toast.LENGTH_SHORT).show()
     }

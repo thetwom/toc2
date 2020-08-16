@@ -41,10 +41,7 @@ import kotlin.math.roundToInt
 class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
     : ViewGroup(context, attrs, defStyleAttr){
 
-//    private val defaultHeight = Utilities.dp2px(300f)
     private val tunerHeightPercent = 0.7f
-//    private val defaultTunerWidth = Utilities.dp2px(35f)
-//    private val tunerWidthPercent = 0.1f
     private val buttonTunerSpacing = Utilities.dp2px(8f)
     private val tunerSpacing = Utilities.dp2px(4f)
     private val elementPadding = Utilities.dp2px(8f)
@@ -57,7 +54,6 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
     /// Bounding box of corresponding NoteView (in absolute coordinates).
     private val noteViewBoundingBox = Rect()
-//    private var boundingBoxes = ArrayList<Rect>(0)
     private val volumeControls = ArrayList<VolumeControl>()
 
     private val boundingBox = Rect()
@@ -80,7 +76,7 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
     private var sliderColor = Color.BLACK
     private var iconColor = Color.WHITE
-    private var backgrounSurfaceColor = Color.WHITE
+    private var backgroundSurfaceColor = Color.WHITE
     private var surfaceBackgroundColor = Color.WHITE
     private var belowSliderColor =  Color.WHITE
 
@@ -159,46 +155,6 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             }
         }
 
-//    private val unfoldAnimator = ValueAnimator.ofFloat(0f, 1f)
-//
-//    private val unfoldedButtonTop : Float
-//        get() {
-//            return bottom - (elementPadding + tunerHeight + buttonTunerSpacing + buttonHeight)
-//        }
-//
-//    private val foldedButtonTop : Float
-//        get() {
-//            return bottom - elementPadding - buttonHeight
-//        }
-//
-//    private val tunerHeight : Float
-//        get() {
-//            val maxHeight = height - elementPadding - elementPadding - buttonHeight - buttonTunerSpacing
-//            val defaultHeight = min(maxHeight, height * tunerHeightPercent)
-//            return min(maxHeight, defaultHeight)
-//        }
-//
-//    private val unfoldedTunerTop : Float
-//        get() {
-//            return bottom - (elementPadding + tunerHeight)
-//        }
-//
-//    private val foldedTunerTop : Float
-//        get() {
-//            return max(foldedButtonTop + buttonHeight + buttonTunerSpacing, bottom.toFloat())
-//        }
-//
-//    private val tunerTop : Float
-//        get() {
-//            return foldingValue * unfoldedTunerTop + (1 - foldingValue) * foldedTunerTop
-//        }
-
-//    var volumeChangedListener: VolumeChangedListener? = null
-//
-//    interface VolumeChangedListener {
-//        fun onVolumeChanged(sliderIdx: Int, volume: Float)
-//    }
-
     constructor(context: Context, attrs: AttributeSet? = null)
             :this(context, attrs, R.attr.volumeSlidersStyle)
 
@@ -208,14 +164,13 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             val ta = context.obtainStyledAttributes(attrs, R.styleable.VolumeSliders, defStyleAttr, R.style.Widget_AppTheme_VolumeSlidersStyle)
             sliderColor = ta.getColor(R.styleable.VolumeSliders_sliderColor, sliderColor)
             iconColor = ta.getColor(R.styleable.VolumeSliders_iconColor, iconColor)
-            backgrounSurfaceColor = ta.getColor(R.styleable.VolumeSliders_backgroundSurfaceColor, backgrounSurfaceColor)
+            backgroundSurfaceColor = ta.getColor(R.styleable.VolumeSliders_backgroundSurfaceColor, backgroundSurfaceColor)
             surfaceBackgroundColor = ta.getColor(R.styleable.VolumeSliders_backgroundColor, surfaceBackgroundColor)
             belowSliderColor = ta.getColor(R.styleable.VolumeSliders_belowSliderColor, belowSliderColor)
             activeTranslationZ = ta.getDimension(R.styleable.VolumeSliders_activeTranslationZ, activeTranslationZ)
             ta.recycle()
         }
 
-//        button = ImageButton(context, attrs)
         addView(button)
         background.setBackgroundColor(surfaceBackgroundColor)
         background.alpha = 0.7f
@@ -254,8 +209,6 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                 tunerWidth = min((boundingBox.width() - tunerSpacing).toInt(), tunerWidth)
             }
         }
-//        for(box in boundingBoxes)
-//            tunerWidth = min((box.width() - tunerSpacing).toInt(), tunerWidth)
 
         tunerWidth = min((tunerHeight / 7f).toInt(), tunerWidth)
 
@@ -298,143 +251,6 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         }
     }
 
-//    override fun onFinishInflate() {
-//        super.onFinishInflate()
-//        post { init() }
-//    }
-
-//    override fun onSaveInstanceState() : Parcelable {
-////        Log.v("Metronome", "VolumeSliders:onSaveInstanceState");
-//        val bundle = Bundle()
-//        bundle.putParcelable("superState", super.onSaveInstanceState())
-//        bundle.putBoolean("foldedState", folded)
-//        return bundle
-//    }
-//
-//    override fun onRestoreInstanceState(state : Parcelable) {
-//        var superState = state
-//        when(state) {
-//            is Bundle -> {
-//                folded = state.getBoolean("foldedState")
-////            Log.v("Metronome", "Folded: " + folded);
-//                foldingValue = if(folded) 0.0f else 1.0f
-//                superState = state.getParcelable("superState") ?: state
-//            }
-//        }
-//        super.onRestoreInstanceState(superState)
-//    }
-
-//        override fun dispatchSaveInstanceState(container : SparseArray<Parcelable>) {
-//            dispatchFreezeSelfOnly(container)
-//        }
-//
-//        override fun dispatchRestoreInstanceState(container : SparseArray<Parcelable>) {
-//            dispatchThawSelfOnly(container)
-//        }
-
-//        fun init() {
-//            translationZ = Utilities.dp2px(24f)
-//
-//        unfoldAnimator.addUpdateListener { animation ->
-//            foldingValue = animation.animatedValue as Float
-//            button?.translationY = foldingValue * unfoldedButtonTop + (1 - foldingValue) * foldedButtonTop
-//
-//            for(v in volumeControls)
-//                v.translationY = tunerTop
-//            background?.translationY = foldingValue * top + (1-foldingValue) * bottom
-//        }
-
-//        MarginLayoutParams params = new MarginLayoutParams(Math.round(Utilities.dp_to_px(90)), buttonHeight);
-//        val actualButtonWidth = max(minimumButtonWidth.toFloat(), width / 4.0f)
-//        buttonHeight = max(minimumButtonHeight, (actualButtonWidth / buttonAspectRatio).roundToInt())
-//        val params = MarginLayoutParams(actualButtonWidth.roundToInt(), buttonHeight)
-//        button?.layoutParams = params
-//        val pad = (Utilities.dp2px(0f)).roundToInt()
-//        button?.setPadding(pad, pad, pad, pad)
-//        button?.elevation = Utilities.dp2px(2f)
-//        button?.translationX = Utilities.dp2px(4f)
-//        button?.translationY = if(folded) foldedButtonTop else unfoldedButtonTop
-//        button?.scaleType = ImageView.ScaleType.CENTER_INSIDE
-//        button?.setImageResource(if(folded) R.drawable.ic_tune_arrow2 else R.drawable.ic_tune_arrow_down2)
-//        button?.setColorFilter(onInteractiveColor)
-
-//        button?.setOnClickListener {
-//            folded = if (folded) {
-//                unfoldAnimator.start()
-//                button?.setImageResource(R.drawable.ic_tune_arrow_down2)
-//                false
-//            } else {
-//                unfoldAnimator.reverse()
-//                button?.setImageResource(R.drawable.ic_tune_arrow2)
-//                true
-//            }
-//        }
-//
-//        addView(button)
-//
-//
-//        background?.setBackgroundColor(surfaceBackgroundColor)
-//        params.height = height
-//        params.width = width
-//        background?.layoutParams = params
-//        background?.translationY = if(folded) bottom.toFloat() else top.toFloat()
-//        background?.alpha = 0.7f
-//        addView(background)
-//    }
-
-//    fun setVolumes(volumes: FloatArray, animationDuration: Long = 0L) {
-//        require(volumes.size == volumeControls.size)
-//        for (i in volumes.indices) {
-//            if (volumeControls[i].volume != volumes[i])
-//                volumeControls[i].setVolume(volumes[i], animationDuration)
-//        }
-//    }
-//
-//    fun setTunersAt(noteBoundingBoxes : Array<Rect>, volumes : FloatArray, animationDuration: Long = 300L) {
-//        Log.v("Metronome", " VolumeSliders.setTunersAt, noteBoundingBoxes.size = ${noteBoundingBoxes.size}")
-//        require(noteBoundingBoxes.size == volumes.size)
-//
-//        if(animationDuration > 0L) {
-//            val transition = AutoTransition().apply {
-//                duration = animationDuration
-//            }
-//            TransitionManager.beginDelayedTransition(this, transition)
-//        }
-//
-//        boundingBoxes.clear()
-//        for(bb in noteBoundingBoxes) {
-//            boundingBoxes.add(Rect(bb.left, bb.top, bb.right, bb.bottom))
-//        }
-//
-//        // Delete volume controls which are not required anymore
-//        while (volumeControls.size > boundingBoxes.size) {
-//            val vC = volumeControls.last()
-//            removeView(vC)
-//            volumeControls.remove(vC)
-//        }
-//
-//        // Add volume controls
-//        while (volumeControls.size < boundingBoxes.size) {
-//            val vC = createVolumeControl()
-//            addView(vC)
-//            volumeControls.add(vC)
-//        }
-//
-//        for (i in volumeControls.indices) {
-//            val vC = volumeControls[i]
-//            vC.setVolume(volumes[i], animationDuration)
-//            if (folded)
-//                vC.visibility = View.GONE
-//            else
-//                vC.visibility = View.VISIBLE
-//        }
-//
-////        if (!folded) {
-////            Log.v("Metronome", " VolumeSliders.setTunersAt: requesting layout, num boxes=${boundingBoxes.size}, num volume controls=${volumeControls.size}")
-////            //requestLayout()
-////        }
-//    }
-
       fun setNoteViewBoundingBox(left: Int, top: Int, right: Int, bottom: Int) {
           if (noteViewBoundingBox.left != left
                   || noteViewBoundingBox.top != top
@@ -448,33 +264,16 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
           }
       }
 
-//    fun setBoundingBoxes(noteBoundingBoxes : Array<Rect>) {
-//        Log.v("Metronome", " VolumeSliders.setBoundingBoxes, noteBoundingBoxes.size = ${noteBoundingBoxes.size}")
-//
-//        boundingBoxes.clear()
-//        for(bb in noteBoundingBoxes) {
-//            boundingBoxes.add(Rect(bb.left, bb.top, bb.right, bb.bottom))
-//        }
-//
-//        if (!folded && boundingBoxes.size == volumeControls.size)
-//            requestLayout()
-//    }
-
     private fun createVolumeControl() : VolumeControl {
         val volumeControl = VolumeControl(context, null)
         volumeControl.elevation = Utilities.dp2px(2f)
         volumeControl.vertical = true
-//        volumeControl.backgroundSurfaceColor = backgrounSurfaceColor
-//        volumeControl.sliderColor = sliderColor
-//        volumeControl.iconColor = iconColor
-//        volumeControl.belowSliderColor = belowSliderColor
         volumeControl.setPadding(0,0,0,0)
 
         volumeControl.onVolumeChangedListener = object : VolumeControl.OnVolumeChangedListener {
             override fun onVolumeChanged(volume: Float) {
                 val index = volumeControls.indexOf(volumeControl)
                 noteList?.setVolume(index, volume)
-//                volumeChangedListener?.onVolumeChanged(index, volume)
             }
         }
 

@@ -17,7 +17,7 @@
  * along with Metronome.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.moekadu.metronome;
+package de.moekadu.metronome
 
 import android.content.Context
 import android.graphics.Color

@@ -42,7 +42,8 @@ class PlayerFragment : Fragment() {
     private var playerConnection: ServiceConnection? = null
 
     private var speed = InitialValues.speed
-    private var noteList = NoteList()
+
+    private var noteString: String? = null
 
     override fun onCreate(savedInstanceState : Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,11 +57,7 @@ class PlayerFragment : Fragment() {
             // Log.v("Metronome", "PlayerFragment:onCreate : loading preferences");
             val preferences = context.getPreferences(Context.MODE_PRIVATE)
             speed = preferences.getFloat("speed", InitialValues.speed)
-            val soundString = preferences.getString("sound", defaultNote.toString()) ?: defaultNote.toString()
-            noteList = SoundProperties.parseMetaDataString(soundString)
-            if(noteList.isEmpty()){
-                noteList.add(NoteListItem(defaultNote, 1.0f, 1f))
-            }
+            noteString = preferences.getString("sound", null)
 
             bindService(context.applicationContext)
         }
@@ -78,8 +75,11 @@ class PlayerFragment : Fragment() {
                     val binder = service as PlayerService.PlayerBinder
                     playerService = binder.service
                     playerContext = context
+                    noteString?.let {playerService?.noteList?.fromString(it) }
+                    if(playerService?.noteList?.size == 0) {
+                        playerService?.noteList?.add(NoteListItem())
+                    }
                     playerService?.speed = speed
-                    //playerService?.noteList = noteList
                 }
 
                 override fun onServiceDisconnected(name: ComponentName?) {
@@ -109,14 +109,9 @@ class PlayerFragment : Fragment() {
             // Log.v("Metronome", "PlayerFragment:onStop : saving preferences");
             val preferences = context.getPreferences(Context.MODE_PRIVATE)
             val editor = preferences.edit()
-            //editor.putInt("speed", speed);
             speed = playerService?.playbackState?.playbackSpeed ?: InitialValues.speed
-            playerService?.noteList?.let { noteList = it }
-
             editor.putFloat("speed", speed)
-            val metaDataString = SoundProperties.createMetaDataString(noteList)
-            // Log.v("Metronome", "PlayerFragment:onStop : saving meta data: " + metaDataString)
-            editor.putString("sound", metaDataString)
+            editor.putString("sound", playerService?.noteList?.toString() ?: "")
             editor.apply()
         }
 
