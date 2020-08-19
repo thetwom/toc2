@@ -50,20 +50,19 @@ class MetronomeFragment : Fragment() {
     private var plusButton : ImageButton? = null
 
     private val noteListChangeListener = object : NoteList.NoteListChangedListener {
-        private fun playTestSoundIfRequired(note: NoteListItem) {
-            if(soundChooser?.choiceStatus == SoundChooser.CHOICE_STATIC && playerService?.state != PlaybackStateCompat.STATE_PLAYING)
-                playerService?.playSpecificSound(note)
-        }
+
         override fun onNoteAdded(note: NoteListItem, index: Int) { }
         override fun onNoteRemoved(note: NoteListItem, index: Int) { }
         override fun onNoteMoved(note: NoteListItem, fromIndex: Int, toIndex: Int) { }
 
         override fun onVolumeChanged(note: NoteListItem, index: Int) {
-            playTestSoundIfRequired(note)
+            if(playerService?.state != PlaybackStateCompat.STATE_PLAYING)
+                playerService?.playSpecificSound(note)
         }
 
         override fun onNoteIdChanged(note: NoteListItem, index: Int) {
-            playTestSoundIfRequired(note)
+            if(soundChooser?.choiceStatus == SoundChooser.CHOICE_STATIC && playerService?.state != PlaybackStateCompat.STATE_PLAYING)
+                playerService?.playSpecificSound(note)
         }
 
         override fun onDurationChanged(note: NoteListItem, index: Int) { }

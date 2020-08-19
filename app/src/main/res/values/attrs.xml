@@ -8,7 +8,7 @@
     <attr name="tickVisualizerStyle" format="reference"/>
     <attr name="noteViewStyle" format="reference"/>
     <attr name="soundChooserStyle" format="reference"/>
-
+    <attr name="playButtonStyle" format="reference"/>
 
     <attr name="normalColor" format="color" />
     <attr name="labelColor" format="color" />

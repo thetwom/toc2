@@ -25,7 +25,7 @@
     <!-- <style name="AppTheme" parent="Theme.MaterialComponents.Light.DarkActionBar"> -->
         <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
         <!-- Customize your theme here. -->
- <item name="colorControlNormal">@color/colorMyOnBackground</item>
+        <item name="colorControlNormal">@color/colorMyOnBackground</item>
         <item name="colorPrimary">@color/colorPrimary</item>
 
         <item name="colorSecondary">@color/colorSecondary</item>
@@ -33,12 +33,13 @@
         <item name="android:colorBackground">@color/colorMyBackground</item>
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
 
-            <item name="colorPrimaryFaint">@color/myColorPrimaryFaint</item>
+        <item name="colorPrimaryFaint">@color/myColorPrimaryFaint</item>
 
         <item name="controlPanelStyle">@style/Widget.AppTheme.ControlPanelStyle</item>
         <item name="volumeSlidersStyle">@style/Widget.AppTheme.VolumeSlidersStyle</item>
         <item name="volumeControlStyle">@style/Widget.AppTheme.VolumeControlStyle</item>
         <item name="tickVisualizerStyle">@style/Widget.AppTheme.TickVisualizerStyle</item>
+        <item name="playButtonStyle">@style/Widget.AppTheme.PlayButtonStyle</item>
     </style>
 
     <declare-styleable name="ControlPanel">
@@ -108,10 +109,12 @@
     </style>
 
     <declare-styleable name="PlayButton">
-        <attr name="normalColor"/>
         <attr name="labelColor"/>
-        <attr name="highlightColor"/>
     </declare-styleable>
+
+     <style name="Widget.AppTheme.PlayButtonStyle" parent="">
+         <item name="labelColor">?attr/colorOnPrimary</item>
+     </style>
 
     <declare-styleable name="VolumeControl">
         <attr name="sliderColor"/>

@@ -263,11 +263,14 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
             for (i in notes.indices) {
                 val n = notes[i]
                 NoteView.computeBoundingBox(i, notes.size, noteViewBoundingBox.width(), noteViewBoundingBox.height(), boundingBox)
-                Log.v("Metronome", "SoundChooser.measureChoiceBase: boundingBox=$boundingBox, controlButtons[n]=${controlButtons[n]}")
+//                Log.v("Metronome", "SoundChooser.measureChoiceBase: boundingBox=$boundingBox, controlButtons[n]=${controlButtons[n]}")
                 controlButtons[n]?.measure(
                         MeasureSpec.makeMeasureSpec(min(boundingBox.width(), boundingBox.height()), MeasureSpec.EXACTLY),
                         MeasureSpec.makeMeasureSpec(boundingBox.height(), MeasureSpec.EXACTLY)
                 )
+                if(controlButtons[n] === activeControlButton) {
+                    Log.v("Metrononme", "SoundChooser.measureChoiceBase: activeControlButton-boundingbox=$boundingBox")
+                }
             }
         }
     }
@@ -466,7 +469,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
 
         when(action) {
             MotionEvent.ACTION_DOWN -> {
-                Log.v("Metronome", "SoundChooser.onTouchEvent: ACTION_DOWN")
+                Log.v("Metronome", "SoundChooser.onTouchEvent: ACTION_DOWN, x=$x, y=$y")
                 if (choiceStatus == CHOICE_STATIC)
                     return false
 
@@ -486,17 +489,18 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
                 }
             }
             MotionEvent.ACTION_MOVE -> {
+                Log.v("Metronome", "SoundChooser.onTouchEvent: ACTION_MOVE, x=$x, y=$y, choiceStatus=$choiceStatus, inActiveBoundingBoxCheck=${inActiveBoundingBoxCheck()}, activeBoxLeft=$activeBoxLeft, activeBoxRight=$activeBoxRight")
                 val tX = controlButton.translationXInit + x - controlButton.eventXOnDown
                 val tY = controlButton.translationYInit + y - controlButton.eventYOnDown
                 if(choiceStatus == CHOICE_DYNAMIC || choiceStatus == CHOICE_BASE) {
                     controlButton.translationX = tX
                     controlButton.translationY = tY
 
-                    if(!inActiveBoundingBoxCheck())
+                    if(!inActiveBoundingBoxCheck() && controlButton.width > 0)
                         moveActiveNoteToNewBoundingBoxIfRequired()
                 }
 
-                if(choiceStatus == CHOICE_BASE) {
+                if(choiceStatus == CHOICE_BASE && controlButton.width > 0) {
                     if (tY + 0.5f * (controlButton.top + controlButton.bottom) < noteViewBoundingBox.top - top + 0.3 * noteViewBoundingBox.height())
                         activateDynamicChoices()
                 }
@@ -662,7 +666,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         for (cB in controlButtons.values) {
             cB.visibility = if (cB === activeControlButton) View.VISIBLE else View.GONE
         }
-//        Log.v("Metronome", "SoundChooser.activateBaseLayout: activeControlButton=$activeControlButton")
+        Log.v("Metronome", "SoundChooser.activateBaseLayout: activeControlButton=$activeControlButton")
     }
 
 
@@ -692,6 +696,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
 
     /// This function assumes, that activateBaseLayout() was already called
     private fun activateDynamicChoices() {
+        Log.v("Metronome", "SoundChooser.activateDynamicChoices, noteViewBoundingBox=$noteViewBoundingBox")
         triggerStaticChooserOnUp = false
         choiceStatus = CHOICE_DYNAMIC
         translationZ = activeTranslationZ
