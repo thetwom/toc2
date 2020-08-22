@@ -46,7 +46,7 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     private val tunerSpacing = Utilities.dp2px(4f)
     private val elementPadding = Utilities.dp2px(8f)
     private var activeTranslationZ = 20f
-    private val minimumButtonHeight = (Utilities.dp2px(40f)).roundToInt()
+    private val minimumButtonHeight = (Utilities.dp2px(35f)).roundToInt()
     private val minimumButtonWidth = (Utilities.dp2px(70f)).roundToInt()
     private val buttonAspectRatio = 3.0f
     var folded = true

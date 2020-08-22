@@ -26,14 +26,6 @@
     tools:context=".MetronomeFragment">
     <!--tools:context=".MainActivity"-->
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        android:text="wakeup error: 0 ms"
-        android:visibility="invisible"
-        />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/upper_guideline"
@@ -48,7 +40,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.82"
+        app:layout_constraintGuide_percent="0.8"
         />
 
 
@@ -132,20 +124,15 @@
         app:layout_constraintVertical_weight="0.56"
         />
 
-    <de.moekadu.metronome.TickVisualizer
+ <de.moekadu.metronome.TickVisualizer
         android:id="@+id/tick_visualizer"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginStart="0dp"
-        android:layout_marginEnd="0dp"
-        android:elevation="9dp"
-        android:padding="10dp"
-        app:layout_constraintBottom_toBottomOf="@id/speed_panel"
-        app:layout_constraintEnd_toEndOf="@id/speed_panel"
-        app:layout_constraintStart_toStartOf="@id/speed_panel"
-        app:layout_constraintTop_toTopOf="@id/speed_panel"
-        tools:layout_conversion_wrapHeight="577" />
-
+        app:layout_constraintBottom_toBottomOf="parent"
+     app:layout_constraintTop_toBottomOf="@id/note_view"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+     app:layout_constraintVertical_weight="0.08"/>
 
     <TextView
         android:id="@+id/speed_text"
@@ -167,48 +154,15 @@
         tools:layout_conversion_wrapWidth="239"
         tools:ignore="HardcodedText" />
 
-
-<!--    <de.moekadu.metronome.SpeedIndicator-->
-<!--        android:id="@+id/speedindicator2"-->
-<!--        android:layout_width="0dp"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:elevation="10dp"-->
-<!--        android:layout_marginBottom="3dp"-->
-<!--        app:normalColor="?attr/colorPrimary"-->
-<!--        app:layout_constraintBottom_toBottomOf="@id/soundchooser"-->
-<!--        app:layout_constraintEnd_toEndOf="@id/soundchooser"-->
-<!--        app:layout_constraintStart_toStartOf="@id/soundchooser"-->
-<!--        />-->
-
-<!--    <de.moekadu.metronome.SoundChooserOld-->
-<!--        android:id="@+id/sound_chooser"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="0dp"-->
-<!--        android:layout_marginStart="8dp"-->
-<!--        android:layout_marginEnd="8dp"-->
-<!--        android:layout_marginBottom="8dp"-->
-<!--        app:normalColor="?attr/colorBackgroundFloating"-->
-<!--        app:highlightColor="?attr/colorSecondary"-->
-<!--        app:volumeColor="?attr/colorSecondary"-->
-<!--        app:layout_constraintTop_toBottomOf="@id/lower_guideline"-->
-<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:layout_constraintHorizontal_bias="1.0"-->
-<!--        app:layout_constraintLeft_toLeftOf="parent"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        android:visibility="invisible"-->
-<!--        tools:layout_conversion_wrapHeight="199"-->
-<!--        tools:layout_conversion_wrapWidth="1064" />-->
-
     <ImageButton
         android:id="@+id/plus_button_notelines"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:scaleType="fitXY"
         android:layout_marginEnd="0dp"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/lower_guideline"
+        android:layout_marginBottom="0dp"
+        app:layout_constraintBottom_toBottomOf="@id/note_view"
+        app:layout_constraintTop_toTopOf="@id/note_view"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintDimensionRatio="1:1"
         android:background="@drawable/ic_notelines"
@@ -222,7 +176,8 @@
             android:layout_height="0dp"
             android:layout_marginEnd="8dp"
             android:layout_marginStart="8dp"
-            android:layout_marginBottom="0dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="8dp"
             android:scaleType="fitXY"
             android:elevation="4dp"
             app:layout_constraintBottom_toBottomOf="@id/plus_button_notelines"
@@ -236,35 +191,19 @@
             android:contentDescription="add note"
             />
 
-    <!--    <ImageButton-->
-<!--        android:id="@+id/plus_button"-->
-<!--        android:layout_width="0dp"-->
-<!--        android:layout_height="0dp"-->
-<!--        android:scaleType="fitXY"-->
-<!--        android:layout_marginEnd="0dp"-->
-<!--        android:layout_marginBottom="8dp"-->
-<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--        app:layout_constraintTop_toBottomOf="@id/lower_guideline"-->
-<!--        app:layout_constraintRight_toRightOf="parent"-->
-<!--        app:layout_constraintDimensionRatio="1:1"-->
-<!--        android:src="@drawable/ic_add_circle"-->
-<!--        android:background="@drawable/ic_notelines"-->
-<!--        android:backgroundTint="?attr/colorOnBackground"-->
-<!--        android:contentDescription="add note"-->
-<!--        />-->
-
     <de.moekadu.metronome.NoteView
         android:id="@+id/note_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="0dp"
         android:layout_marginEnd="0dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="0dp"
         android:elevation="5dp"
         app:layout_constraintTop_toBottomOf="@id/lower_guideline"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/tick_visualizer"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/plus_button_notelines" />
+        app:layout_constraintEnd_toStartOf="@id/plus_button_notelines"
+        app:layout_constraintVertical_weight="1"/>
 
     <de.moekadu.metronome.SoundChooser
         android:id="@+id/sound_chooser"
@@ -284,7 +223,7 @@
         android:layout_marginEnd="0dp"
         android:layout_marginBottom="0dp"
         android:layout_marginTop="0dp"
-        android:padding="4dp"
+        android:padding="0dp"
         android:backgroundTint="?attr/colorPrimary"
         app:layout_constraintBottom_toTopOf="@id/note_view"
         app:layout_constraintTop_toTopOf="parent"

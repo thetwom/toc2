@@ -314,7 +314,7 @@ class MetronomeFragment : Fragment() {
                 PlaybackStateCompat.STATE_PLAYING -> {
                     playButton?.changeStatus(PlayButton.STATUS_PLAYING, false)
                 }
-                        PlaybackStateCompat.STATE_PAUSED -> {
+                PlaybackStateCompat.STATE_PAUSED -> {
                     tickVisualizer?.stop()
                     playButton?.changeStatus(PlayButton.STATUS_PAUSED, false)
                 }

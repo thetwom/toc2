@@ -27,10 +27,11 @@
         <!-- Customize your theme here. -->
         <item name="colorControlNormal">@color/colorMyOnBackground</item>
         <item name="colorPrimary">@color/colorPrimary</item>
-
+            <item name="colorPrimaryLight">@color/myColorPrimaryLight</item>
         <item name="colorSecondary">@color/colorSecondary</item>
         <item name="colorOnPrimary">@color/myColorOnPrimary</item>
         <item name="android:colorBackground">@color/colorMyBackground</item>
+            <item name="colorBackgroundFloating">@color/colorMyBackgroundFloating</item>
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
 
         <item name="colorPrimaryFaint">@color/myColorPrimaryFaint</item>
@@ -54,14 +55,6 @@
         <item name="labelColor">?attr/colorPrimary</item>
         <item name="highlightColor">?attr/colorSecondary</item>
         <item name="textColor">?attr/colorPrimary</item>
-    </style>
-
-    <declare-styleable name="TickVisualizer" parent="ControlPanel">
-        <attr name="pointSize" format="dimension"/>
-    </declare-styleable>
-
-    <style name="Widget.AppTheme.TickVisualizerStyle" parent="Widget.AppTheme.ControlPanelStyle">
-        <item name="pointSize">10dp</item>
     </style>
 
     <declare-styleable name="NoteView">
@@ -115,6 +108,16 @@
      <style name="Widget.AppTheme.PlayButtonStyle" parent="">
          <item name="labelColor">?attr/colorOnPrimary</item>
      </style>
+
+    <declare-styleable name="TickVisualizer">
+        <attr name="color"/>
+        <attr name="vertical"/>
+    </declare-styleable>
+
+    <style name="Widget.AppTheme.TickVisualizerStyle" parent="">
+        <item name="color">?attr/colorSecondary</item>
+        <item name="vertical">false</item>
+    </style>
 
     <declare-styleable name="VolumeControl">
         <attr name="sliderColor"/>

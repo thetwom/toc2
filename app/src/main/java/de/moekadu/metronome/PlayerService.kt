@@ -27,6 +27,8 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.*
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
+import android.media.AudioManager
+import android.media.AudioTrack
 import android.media.SoundPool
 import android.os.Binder
 import android.os.IBinder
@@ -183,12 +185,12 @@ class PlayerService : Service() {
         registerReceiver(actionReceiver, filter)
 
         audioMixer = AudioMixer(applicationContext)
-        audioMixer?.setNoteStartedListener(object : AudioMixer.NoteStartedListener {
+        audioMixer?.noteStartedListener = object : AudioMixer.NoteStartedListener {
             override fun onNoteStarted(noteListItem: NoteListItem?) {
                 if(noteListItem != null)
                     statusChangedListeners.forEach {s -> s.onNoteStarted(noteListItem)}
             }
-        })
+        }
         audioMixer?.noteList = noteList
 
         val activityIntent = Intent(this, MainActivity::class.java)
@@ -281,7 +283,7 @@ class PlayerService : Service() {
 
         val numSounds = getNumAvailableNotes()
         for (i in 0 until numSounds) {
-            val soundID = getNoteAudioResourceID(i)
+            val soundID = getNoteAudioResourceID(i, AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC))
             soundHandles.add(soundPool.load(this, soundID, 1))
         }
         return playerBinder

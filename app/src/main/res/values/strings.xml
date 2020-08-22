@@ -18,7 +18,7 @@
 -->
 
 <resources>
-    <string name="app_name" translatable="false">Metronome</string>
+    <string name="app_name">Metronome</string>
     <string name="action_settings">Settings</string>
 
     <string name="base" translatable="false">kick drum</string>

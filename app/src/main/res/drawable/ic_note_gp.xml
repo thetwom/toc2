@@ -13,7 +13,7 @@
             <group
                 android:name="note_head"
                 android:pivotX="6.0893"
-                android:pivotY="6.436">
+                android:pivotY="3.436">  <!--this would be 6.436, but then the notehead would go to far to top when animating-->
                 <path
                     android:fillColor="#FF000000"
                     android:pathData="M14.2232,3.0652a3.4697,4.8805 61.6557,1 0,-8.1809 5.2719a3.4697,4.8805 61.6557,1 0,8.1809 -5.2719z"/>

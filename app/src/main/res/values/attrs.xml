@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <attr name="colorPrimaryFaint" format="color"/>
+    <attr name="colorPrimaryLight" format="color"/>
 
     <attr name="controlPanelStyle" format="reference"/>
     <attr name="volumeSlidersStyle" format="reference"/>

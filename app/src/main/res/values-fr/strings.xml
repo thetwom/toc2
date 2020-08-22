@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-<!--    <string name="app_name" translatable="false">Métronome</string>-->
+    <string name="app_name">Métronome</string>
     <string name="action_settings">Configuration</string>
 
 <!--    <string name="base" translatable="false">grosse caisse</string>-->

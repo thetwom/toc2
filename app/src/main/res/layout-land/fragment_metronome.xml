@@ -31,7 +31,7 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.75"
+        app:layout_constraintGuide_percent="0.7"
         />
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/text_upper_guideline"
@@ -72,7 +72,6 @@
         android:elevation="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@id/vertical_guideline"
         app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintTop_toTopOf="parent"
@@ -139,20 +138,16 @@
         app:layout_constraintVertical_weight="0.56"
         />
 
-        <de.moekadu.metronome.TickVisualizer
+     <de.moekadu.metronome.TickVisualizer
         android:id="@+id/tick_visualizer"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="0dp"
-        android:layout_marginEnd="0dp"
-        android:elevation="9dp"
-        android:padding="10dp"
-        app:layout_constraintBottom_toBottomOf="@id/speed_panel"
-        app:layout_constraintEnd_toEndOf="@id/speed_panel"
-        app:layout_constraintStart_toStartOf="@id/speed_panel"
-        app:layout_constraintTop_toTopOf="@id/speed_panel"
-        tools:layout_conversion_wrapHeight="577" />
-
+         app:layout_constraintBottom_toBottomOf="parent"
+         app:layout_constraintTop_toBottomOf="@id/notelines_below_speedpanel1"
+        app:layout_constraintLeft_toLeftOf="parent"
+         app:layout_constraintRight_toRightOf="@id/plus_button"
+         app:layout_constraintVertical_weight="0.08"
+         />
 
     <TextView
         android:id="@+id/speed_text"
@@ -174,6 +169,32 @@
         tools:layout_conversion_wrapWidth="239"
         tools:ignore="HardcodedText" />
 
+    <ImageButton
+        android:id="@+id/notelines_below_speedpanel1"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:scaleType="centerCrop"
+        android:layout_marginEnd="0dp"
+        android:layout_marginBottom="0dp"
+        app:layout_constraintBottom_toTopOf="@id/tick_visualizer"
+        app:layout_constraintTop_toTopOf="@id/lower_guideline"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/notelines_below_speedpanel_placeholder"
+        app:layout_constraintHorizontal_weight="7"
+        app:layout_constraintVertical_weight="1"
+        android:background="@drawable/ic_notelines"
+        android:backgroundTint="?attr/colorOnBackground" />
+
+    <View
+        android:id="@+id/notelines_below_speedpanel_placeholder"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="@id/notelines_below_speedpanel1"
+        app:layout_constraintTop_toTopOf="@id/notelines_below_speedpanel1"
+        app:layout_constraintEnd_toStartOf="@id/notelines_below_speedpanel1"
+        app:layout_constraintStart_toStartOf="@id/speed_panel"
+        app:layout_constraintHorizontal_weight="1"
+        android:visibility="invisible"/>
 
       <ImageButton
         android:id="@+id/plus_button_notelines"
@@ -181,15 +202,13 @@
         android:layout_height="0dp"
         android:scaleType="centerCrop"
         android:layout_marginEnd="0dp"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/lower_guideline"
-        app:layout_constraintRight_toLeftOf="@id/speed_panel"
-        app:layout_constraintDimensionRatio="1:1"
+        android:layout_marginBottom="0dp"
+        app:layout_constraintBottom_toBottomOf="@id/notelines_below_speedpanel1"
+        app:layout_constraintTop_toTopOf="@id/notelines_below_speedpanel1"
+        app:layout_constraintRight_toLeftOf="@id/notelines_below_speedpanel1"
+          app:layout_constraintDimensionRatio="1:1"
         android:background="@drawable/ic_notelines"
-        android:backgroundTint="?attr/colorOnBackground"
-        android:contentDescription="add note" />
-
+        android:backgroundTint="?attr/colorOnBackground" />
 
     <ImageButton
         android:id="@+id/plus_button"
@@ -197,14 +216,14 @@
         android:layout_height="0dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginBottom="0dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="8dp"
         android:scaleType="fitXY"
         android:elevation="4dp"
         app:layout_constraintBottom_toBottomOf="@id/plus_button_notelines"
         app:layout_constraintTop_toTopOf="@id/plus_button_notelines"
         app:layout_constraintRight_toRightOf="@id/plus_button_notelines"
-        app:layout_constraintLeft_toLeftOf="@id/plus_button_notelines"
-        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintLeft_toLeftOf="@+id/plus_button_notelines"
         android:background="@drawable/plus_button_background"
         app:tint="?attr/colorOnPrimary"
         android:src="@drawable/ic_add"
@@ -217,10 +236,10 @@
         android:layout_height="0dp"
         android:layout_marginStart="0dp"
         android:layout_marginEnd="0dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="0dp"
         android:elevation="5dp"
-        app:layout_constraintTop_toBottomOf="@id/lower_guideline"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/notelines_below_speedpanel1"
+        app:layout_constraintTop_toTopOf="@id/notelines_below_speedpanel1"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@id/plus_button_notelines"
         />
@@ -243,7 +262,7 @@
         android:layout_marginEnd="0dp"
         android:layout_marginBottom="0dp"
         android:layout_marginTop="0dp"
-        android:padding="4dp"
+        android:padding="0dp"
         android:backgroundTint="?attr/colorPrimary"
         app:layout_constraintBottom_toTopOf="@id/note_view"
         app:layout_constraintTop_toTopOf="parent"

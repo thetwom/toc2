@@ -20,20 +20,19 @@
 package de.moekadu.metronome
 
 import android.content.Context
-import android.media.AudioAttributes
-import android.media.AudioFormat
-import android.media.AudioManager
-import android.media.AudioTrack
+import android.media.*
+import android.os.Build
 import android.os.SystemClock
+import android.util.Log
 import java.lang.RuntimeException
 import kotlin.math.*
 
 class AudioMixer (val context: Context) {
     companion object {
-        fun createNoteSamples(context: Context) : Array<FloatArray> {
+        fun createNoteSamples(context: Context, sampleRate: Int) : Array<FloatArray> {
             return Array(getNumAvailableNotes()) {
                 // i -> audioToPCM(audioResourceIds[i], context)
-                i -> waveToPCM(getNoteAudioResourceID(i), context)
+                i -> waveToPCM(getNoteAudioResourceID(i, sampleRate), context)
             }
         }
     }
@@ -48,7 +47,18 @@ class AudioMixer (val context: Context) {
     /// The playing audio track itself
     private var player : AudioTrack? = null
 
+    /// Current sample rat which is used
+    private var sampleRate = 0
+        set(value) {
+            if (value != field)
+                noteSamples = createNoteSamples(context, value)
+            field = value
+        }
+
+    private var minBufferSize = 0
+
     /// These are the samples for all available notes which we can play, samples are stored as as FloatArrays
+    /** @note This is automatically set, when setting the sample rate */
     private var noteSamples = Array(0) { FloatArray(0)}
 
     /// Class which stores tracks which are queued for the playing
@@ -102,26 +112,35 @@ class AudioMixer (val context: Context) {
     }
 
     /// Callback when a track starts
-    private var noteStartedListener : NoteStartedListener ?= null
-
-    /// Set listener which is called, when a track starts
-    fun setNoteStartedListener(noteStartedListener: NoteStartedListener?) {
-        this.noteStartedListener = noteStartedListener
-    }
+    var noteStartedListener : NoteStartedListener ?= null
 
     /// Variable which tells us if our player is running.
     private var isPlaying = false
 
-    /// Start playing
-    fun start() {
-        require(noteList?.isNotEmpty() ?: false) {"Note list must not be empty"}
-        stop()
+    init {
+        updateInternalStructures()
+    }
 
-        val sampleRate = AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC)
-        val bufferSize = 2 * AudioTrack.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_FLOAT)
-        /// Division by 4 since this is frames (float) and the buffer size is in bytes
-        audioBufferUpdatePeriod = floor(bufferSize / 4f  / 2.0f).toInt()
-        noteSamples = createNoteSamples(context)
+    private fun updateInternalStructures() {
+        val nativeSampleRate = AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC)
+        val minBufferSize = AudioTrack.getMinBufferSize(nativeSampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_FLOAT)
+
+        if (nativeSampleRate == sampleRate && minBufferSize == this.minBufferSize)
+            return
+//        Log.v("Metronome", "AudioMixer.updateInternalStructures: recreating AudioTrack")
+        player?.let { audioTrack ->
+            player = null
+            audioTrack.pause()
+            audioTrack.flush()
+            audioTrack.release()
+        }
+
+        val savedNextNoteListIndex = if (isPlaying) nextNoteListIndex else 0
+
+        sampleRate = nativeSampleRate // this will also reset the noteSamples if needed
+        this.minBufferSize = minBufferSize
+        val bufferSize = 2 * minBufferSize
+        audioBufferUpdatePeriod = floor(bufferSize / 4f / 2.0f).toInt()
         mixingBuffer = FloatArray(audioBufferUpdatePeriod)
 
         player = AudioTrack.Builder()
@@ -149,7 +168,7 @@ class AudioMixer (val context: Context) {
 //                Log.v("AudioMixer", "AudioMixer: onMarkerReached, nextMarker=${markerAndPosition.nextTrackPosition}")
                 noteStartedListener?.onNoteStarted(markerAndPosition.noteListItem)
 
-                if(markers.size > 0) {
+                if (markers.size > 0) {
                     val nextMarker = markers.first()
                     track?.notificationMarkerPosition = nextMarker.frameWhenNoteListItemStarts
                 }
@@ -157,12 +176,29 @@ class AudioMixer (val context: Context) {
 
             override fun onPeriodicNotification(track: AudioTrack?) {
 //                Log.v("AudioMixer", "AudioMixer: onPeriodicNotification")
-                if(track != null) {
+                if (track != null) {
                     queueNextNotes()
-                    mixAndPlayQueuedNotes()
+                    mixAndPlayQueuedNotes(track)
                 }
             }
         })
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+            player?.addOnRoutingChangedListener({
+                Log.v("Metronome", "AudioMixer: On routing changed")
+                updateInternalStructures()
+            }, null)
+
+        if (isPlaying)
+            start(savedNextNoteListIndex)
+    }
+
+    /// Start playing
+    fun start(firstNoteListIndex: Int = 0) {
+        require(noteList?.isNotEmpty() ?: false) {"Note list must not be empty"}
+        stop()
+
+        updateInternalStructures()
 
         player?.playbackHeadPosition = 0
         markers.clear()
@@ -172,7 +208,7 @@ class AudioMixer (val context: Context) {
 
         // lets add a delay for the first note to play to avoid playing artifacts
         nextNoteFrame = audioBufferUpdatePeriod
-        nextNoteListIndex = 0
+        nextNoteListIndex = firstNoteListIndex
 
         player?.flush()
 
@@ -188,7 +224,7 @@ class AudioMixer (val context: Context) {
         // since the first periodic update is not at frame zero , we have to queue the next tracks already here
         for(i in 0 .. 1) {
             queueNextNotes()
-            mixAndPlayQueuedNotes()
+            player?.let {mixAndPlayQueuedNotes(it)}
         }
 
         // Log.v("AudioMixer", "AudioMixer: start, first marker = ${player.notificationMarkerPosition}")
@@ -197,12 +233,8 @@ class AudioMixer (val context: Context) {
 
     /// Stop playing
     fun stop() {
-        player?.let {audioTrack ->
-            player = null
-            audioTrack.pause()
-            audioTrack.flush()
-            audioTrack.release()
-        }
+        player?.pause()
+        player?.flush()
         isPlaying = false
     }
 
@@ -283,8 +315,13 @@ class AudioMixer (val context: Context) {
         }
     }
 
-    private fun mixAndPlayQueuedNotes() {
+    private fun mixAndPlayQueuedNotes(track: AudioTrack) {
 //        Log.v("AudioMixer", "AudioMixer:mixAndQueueTracks")
+
+        // Do note play if our player was destroyed
+        if (!(track === player))
+            return
+
         mixingBuffer.fill(0.0f)
 
         for (i in queuedNotes.indexStart until queuedNotes.indexEnd) {
@@ -320,9 +357,9 @@ class AudioMixer (val context: Context) {
             else
                 break
         }
-        val numWrite = player?.write(mixingBuffer, 0, mixingBuffer.size, AudioTrack.WRITE_NON_BLOCKING)
+        val numWrite = track.write(mixingBuffer, 0, mixingBuffer.size, AudioTrack.WRITE_NON_BLOCKING)
 //        Log.v("AudioMixer", "AudioMixer:mixAndQueueTracks : wrote $numWrite to audioTrack")
-        if(numWrite != mixingBuffer.size && numWrite != null)
+        if(numWrite != mixingBuffer.size)
             throw RuntimeException("Nonblocking write of ${mixingBuffer.size} samples to AudioTrack not possible")
     }
 }

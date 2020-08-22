@@ -22,6 +22,7 @@ package de.moekadu.metronome
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
+import android.graphics.drawable.RippleDrawable
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
@@ -98,16 +99,6 @@ class PlayButton(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             playPercentage = (animation.animatedValue as Float).toDouble()
             invalidate()
         }
-
-        setOnClickListener {
-            if (buttonStatus == STATUS_PAUSED) {
-                // Log.v("Metronome", "PlayButton:GestureTap:onSingleTapConfirmed() : trigger onPlay");
-                buttonClickedListener?.onPlay()
-            } else {
-                // Log.v("Metronome", "PlayButton:GestureTap:onSingleTapConfirmed() : trigger onPause");
-                buttonClickedListener?.onPause()
-            }
-        }
     }
 
     @Override
@@ -166,55 +157,61 @@ class PlayButton(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         pathPlayButton.rewind()
     }
 
-//    override fun onTouchEvent(event : MotionEvent) : Boolean {
-//
-//        val action = event.actionMasked
-//        val x = event.x - centerX
-//        val y = event.y - centerY
-//
-//        val radiusXY = sqrt(x*x + y*y).roundToInt()
-//
-//        when(action) {
-//            MotionEvent.ACTION_DOWN -> {
-//                if (radiusXY < innerRadius) {
-//                    clickInitiated = true
-//                } else {
-//                    return false
-//                }
-//                invalidate()
-//                return true
-//            }
-//            MotionEvent.ACTION_MOVE -> {
-//                if (clickInitiated && radiusXY > innerRadius) {
-//                    clickInitiated = false
-//                    invalidate()
-//                    return false
-//                }
-//                return true
-//            }
-//            MotionEvent.ACTION_UP -> {
-//                if (clickInitiated && radiusXY < innerRadius) {
-//                    performClick()
-//                }
-//                clickInitiated = false
-//                invalidate()
-//            }
-//        }
-//
-//        return true
-//    }
-//
-//    override fun performClick() : Boolean {
-//        if (buttonStatus == STATUS_PAUSED) {
-//            // Log.v("Metronome", "PlayButton:GestureTap:onSingleTapConfirmed() : trigger onPlay");
-//            buttonClickedListener?.onPlay()
-//        }
-//        else {
-//            // Log.v("Metronome", "PlayButton:GestureTap:onSingleTapConfirmed() : trigger onPause");
-//            buttonClickedListener?.onPause()
-//         }
-//         return super.performClick()
-//    }
+    override fun onTouchEvent(event : MotionEvent) : Boolean {
+
+        val action = event.actionMasked
+        val x = event.x - centerX
+        val y = event.y - centerY
+
+        val radiusXY = sqrt(x*x + y*y).roundToInt()
+        val radius = 0.5f * width
+        val bg = background as RippleDrawable?
+        bg?.setHotspot(event.x, event.y)
+
+        when(action) {
+            MotionEvent.ACTION_DOWN -> {
+                if (radiusXY <= radius) {
+                    isPressed = true
+                    return true
+                } else {
+                    isPressed = false
+                    return false
+                }
+            }
+            MotionEvent.ACTION_MOVE -> {
+                if (radiusXY <= radius && isPressed) {
+                    return true
+                }
+                else {
+                    isPressed = false
+                    return false
+                }
+            }
+            MotionEvent.ACTION_UP -> {
+                if (radiusXY <= radius && isPressed) {
+                    isPressed = false
+                    performClick()
+                }
+                else {
+                    isPressed = false
+                    return false
+                }
+            }
+        }
+        return true
+    }
+
+    override fun performClick() : Boolean {
+        if (buttonStatus == STATUS_PAUSED) {
+            // Log.v("Metronome", "PlayButton:GestureTap:onSingleTapConfirmed() : trigger onPlay");
+            buttonClickedListener?.onPlay()
+        }
+        else {
+            // Log.v("Metronome", "PlayButton:GestureTap:onSingleTapConfirmed() : trigger onPause");
+            buttonClickedListener?.onPause()
+         }
+         return super.performClick()
+    }
 
 
     fun changeStatus(status : Int, animate : Boolean){

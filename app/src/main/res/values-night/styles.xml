@@ -23,8 +23,10 @@
     <style name="AppTheme" parent="Theme.MaterialComponents.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryLight">@color/myColorPrimaryLight</item>
         <item name="colorSecondary">@color/colorSecondary</item>
         <item name="colorOnPrimary">@color/myColorOnPrimary</item>
+        <item name="colorBackgroundFloating">@color/colorMyBackgroundFloating</item>
         <item name="android:colorBackground">@color/colorMyBackground</item>
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
 

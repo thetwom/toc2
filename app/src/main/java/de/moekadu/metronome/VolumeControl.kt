@@ -42,7 +42,7 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     private val sliderButton = ImageButton(context).apply {
         background = AppCompatResources.getDrawable(context, R.drawable.volume_control_slider)?.mutate()
         imageTintList = AppCompatResources.getColorStateList(context, R.color.volumecontrol_icon)
-        scaleType = ImageView.ScaleType.CENTER_INSIDE
+        scaleType = ImageView.ScaleType.FIT_CENTER
         setPadding(0, 0, 0, 0)
         setImageDrawable(volMute)
     }

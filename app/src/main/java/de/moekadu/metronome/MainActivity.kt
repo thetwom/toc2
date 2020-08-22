@@ -46,8 +46,6 @@ class MainActivity : AppCompatActivity() {
 
     // TODO: test different device formats
     // TODO: notification play button should have the same color as the text
-    // TODO: start playing is delayed slightly, should we only recreate AudioTrack when routing changed?
-    // TODO: speed indicator should be different, such that it doesn't have to redraw the entire screen (not sure, if this helps...)
 
     companion object {
         private const val METRONOME_FRAGMENT_TAG = "metronomeFragment"

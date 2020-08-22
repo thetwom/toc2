@@ -19,11 +19,13 @@
 -->
 
 <resources>
-    <color name="colorPrimary">#1E88E5</color>
-    <color name="myColorPrimaryFaint">#0b467a</color>
-    <color name="myColorOnPrimary">#FFFFFF</color>
-    <color name="colorSecondary">#E91E63</color>
-    <color name="colorMyBackground">#000000</color>
+    <color name="colorPrimary">#e0e0e0</color>
+    <color name="myColorPrimaryFaint">#616161</color>
+    <color name="myColorPrimaryLight">#9be7ff</color>
+    <color name="myColorOnPrimary">#000000</color>
+    <color name="colorSecondary">#4caf50</color>
+    <color name="colorMyBackground">#292929</color>
     <color name="colorMyOnBackground">#FFFFFF</color>
+    <color name="colorMyBackgroundFloating">#121212</color>
 
 </resources>
