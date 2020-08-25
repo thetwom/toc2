@@ -19,10 +19,6 @@
 
 package de.moekadu.metronome
 
-// import android.util.Log
-
-import android.app.Notification
-import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.*
@@ -34,11 +30,7 @@ import android.os.Binder
 import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.widget.RemoteViews
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.preference.PreferenceManager
-import de.moekadu.metronome.App.CHANNEL_ID
 import kotlin.collections.ArrayList
 import kotlin.math.abs
 import kotlin.math.max
@@ -50,11 +42,11 @@ class PlayerService : Service() {
     private val playerBinder = PlayerBinder()
 
     companion object {
-        private const val BROADCAST_PLAYERACTION = "toc.PlayerService.PLAYERACTION"
-        private const val PLAYERSTATE = "PLAYERSTATE"
-        private const val PLAYBACKSPEED = "PLAYBACKSPEED"
-        private const val INCREMENTSPEED = "INCREMENTSPEED"
-        private const val DECREMENTSPEED = "DECREMENTSPEED"
+        const val BROADCAST_PLAYERACTION = "de.moekadu.metronome.playeraction"
+        const val PLAYER_STATE = "de.moekadu.metronome.playerstate"
+        const val PLAYBACK_SPEED = "de.moekadu.metronome.playbackspeed"
+        const val INCREMENT_SPEED = "de.moekadu.metronome.incrementSpeed"
+        const val DECREMENT_SPEED = "de.moekadu.metronome.decrementSpeed"
 
 //        fun sendPlayIntent(context: Context) {
 //            val intent = Intent(BROADCAST_PLAYERACTION)
@@ -84,6 +76,38 @@ class PlayerService : Service() {
 
     private val statusChangedListeners = mutableSetOf<StatusChangedListener>()
 
+    var speed = InitialValues.speed
+        set(value) {
+            val tolerance = 1.0e-6f
+            var newSpeed = value
+            newSpeed = min(newSpeed, maximumSpeed)
+            newSpeed = max(newSpeed, minimumSpeed)
+            // Make speed match the increment
+            newSpeed = (newSpeed / speedIncrement).roundToInt() * speedIncrement
+
+            if(newSpeed < minimumSpeed - tolerance)
+                newSpeed += speedIncrement
+            if(newSpeed > maximumSpeed + tolerance)
+                newSpeed -= speedIncrement
+
+            if (abs(field - newSpeed) < tolerance)
+                return
+
+            field = newSpeed
+            statusChangedListeners.forEach {s -> s.onSpeedChanged(field)}
+
+            val duration = computeNoteDurationInSeconds(field)
+            for(i in noteList.indices) {
+                noteList.setDuration(i, duration)
+            }
+
+            notification?.speed = field
+            notification?.postNotificationUpdate()
+        }
+
+    val state
+        get() = playbackState.state
+
     private var minimumSpeed = 0f
         set(value) {
             if(value > maximumSpeed)
@@ -106,18 +130,16 @@ class PlayerService : Service() {
         set(value) {
             field = value
             speed = speed // Make sure that current speed fits speedIncrement (so reassigning is intentionally here)
-            updateNotification()
+            notification?.speedIncrement = value
+            notification?.postNotificationUpdate()
         }
 
-    private val notificationID = 3252
+    private var notification: PlayerNotification? = null
 
     private var mediaSession : MediaSessionCompat? = null
     private val playbackStateBuilder = PlaybackStateCompat.Builder()
     var playbackState: PlaybackStateCompat = playbackStateBuilder.build()
         private set
-
-    private var notificationView : RemoteViews? = null
-    private var notificationBuilder : NotificationCompat.Builder? = null
 
     /// Sound pool which is used for playing sample sounds when selected in the sound chooser.
     private val soundPool = SoundPool.Builder().setMaxStreams(3).build()
@@ -155,10 +177,10 @@ class PlayerService : Service() {
 //            Log.v("Metronome", "ActionReceiver:onReceive()");
             val extras = intent?.extras ?: return
 
-            val myAction = extras.getLong(PLAYERSTATE, PlaybackStateCompat.STATE_NONE.toLong())
-            val newSpeed = extras.getFloat(PLAYBACKSPEED, -1f)
-            val incrementSpeed = extras.getBoolean(INCREMENTSPEED, false)
-            val decrementSpeed = extras.getBoolean(DECREMENTSPEED, false)
+            val myAction = extras.getLong(PLAYER_STATE, PlaybackStateCompat.STATE_NONE.toLong())
+            val newSpeed = extras.getFloat(PLAYBACK_SPEED, -1f)
+            val incrementSpeed = extras.getBoolean(INCREMENT_SPEED, false)
+            val decrementSpeed = extras.getBoolean(DECREMENT_SPEED, false)
 
             if (newSpeed > 0)
                 speed = newSpeed
@@ -196,16 +218,7 @@ class PlayerService : Service() {
         val activityIntent = Intent(this, MainActivity::class.java)
         val launchActivity = PendingIntent.getActivity(this, 0, activityIntent, 0)
 
-        notificationView = RemoteViews(packageName, R.layout.notification)
-        notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID).apply {
-            val actIntent = Intent(this@PlayerService, MainActivity::class.java)
-            val launchAct = PendingIntent.getActivity(this@PlayerService, 0, actIntent, 0)
-            setContentTitle(getString(R.string.app_name))
-                    .setSmallIcon(R.drawable.ic_toc_swb)
-                    .setContentIntent(launchAct)
-                    .setStyle(NotificationCompat.DecoratedCustomViewStyle())
-                    .setCustomContentView(notificationView)
-        }
+        notification = PlayerNotification(this)
 
         mediaSession = MediaSessionCompat(this, "toc2") // TODO: change tag to de.moekadu.metronome
         mediaSession?.setSessionActivity(launchActivity)
@@ -298,75 +311,6 @@ class PlayerService : Service() {
         return super.onUnbind(intent)
     }
 
-    private fun createNotification() : Notification? {
-
-        notificationView?.setTextViewText(R.id.notification_speedtext, getString(R.string.bpm, Utilities.getBpmString(speed, speedIncrement)))
-
-        val intent = Intent(BROADCAST_PLAYERACTION)
-        val notificationStateID = 3214
-
-        if (state == PlaybackStateCompat.STATE_PLAYING) {
-            // Log.v("Metronome", "isplaying");
-             notificationView?.setImageViewResource(R.id.notification_button, R.drawable.ic_pause2)
-            intent.putExtra(PLAYERSTATE, PlaybackStateCompat.ACTION_PAUSE)
-            val pIntent = PendingIntent.getBroadcast(this, notificationStateID, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-            notificationView?.setOnClickPendingIntent(R.id.notification_button, pIntent)
-        }
-        else { // if(getState() == PlaybackStateCompat.STATE_PAUSED){
-            // Log.v("Metronome", "ispaused");
-            notificationView?.setImageViewResource(R.id.notification_button, R.drawable.ic_play2)
-            intent.putExtra(PLAYERSTATE, PlaybackStateCompat.ACTION_PLAY)
-            val pIntent = PendingIntent.getBroadcast(this, notificationStateID, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-            notificationView?.setOnClickPendingIntent(R.id.notification_button, pIntent)
-        }
-
-        notificationView?.setTextViewText(R.id.notification_button_p, "   + " + Utilities.getBpmString(speedIncrement,speedIncrement) + " ")
-        val incrIntent = Intent(BROADCAST_PLAYERACTION)
-        incrIntent.putExtra(INCREMENTSPEED, true)
-        val pIncrIntent = PendingIntent.getBroadcast(this, notificationStateID+1, incrIntent, PendingIntent.FLAG_UPDATE_CURRENT)
-        notificationView?.setOnClickPendingIntent(R.id.notification_button_p_toucharea, pIncrIntent)
-
-        notificationView?.setTextViewText(R.id.notification_button_m, " - " + Utilities.getBpmString(speedIncrement,speedIncrement) + "   ")
-        val decrIntent = Intent(BROADCAST_PLAYERACTION)
-        decrIntent.putExtra(DECREMENTSPEED, true)
-        val pDecrIntent = PendingIntent.getBroadcast(this, notificationStateID+2, decrIntent, PendingIntent.FLAG_UPDATE_CURRENT)
-        notificationView?.setOnClickPendingIntent(R.id.notification_button_m_toucharea, pDecrIntent)
-
-        return notificationBuilder?.build()
-    }
-
-    var speed = InitialValues.speed
-        set(value) {
-            val tolerance = 1.0e-6f
-            var newSpeed = value
-            newSpeed = min(newSpeed, maximumSpeed)
-            newSpeed = max(newSpeed, minimumSpeed)
-            // Make speed match the increment
-            newSpeed = (newSpeed / speedIncrement).roundToInt() * speedIncrement
-
-            if(newSpeed < minimumSpeed - tolerance)
-                newSpeed += speedIncrement
-            if(newSpeed > maximumSpeed + tolerance)
-                newSpeed -= speedIncrement
-
-            if (abs(field - newSpeed) < tolerance)
-                return
-
-            field = newSpeed
-            statusChangedListeners.forEach {s -> s.onSpeedChanged(field)}
-
-            val duration = computeNoteDurationInSeconds(field)
-            for(i in noteList.indices) {
-                noteList.setDuration(i, duration)
-            }
-
-            notificationView?.setTextViewText(R.id.notification_speedtext, getString(R.string.bpm, Utilities.getBpmString(field, speedIncrement)))
-            notificationBuilder?.build()?.let { NotificationManagerCompat.from(this).notify(notificationID, it) }
-        }
-
-    val state
-        get() = playbackState.state
-
     private fun computeNoteDurationInSeconds(speed: Float) : Float {
         return Utilities.speed2dt(speed) / 1000.0f
     }
@@ -383,7 +327,10 @@ class PlayerService : Service() {
         playbackState = playbackStateBuilder.setState(PlaybackStateCompat.STATE_PLAYING, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, speed).build()
         mediaSession?.setPlaybackState(playbackState)
 
-        startForeground(notificationID, createNotification())
+        notification?.state = state
+        notification?.let {
+            startForeground(it.id, it.notification)
+        }
 
         audioMixer?.start()
         statusChangedListeners.forEach {s -> s.onPlay()}
@@ -400,21 +347,9 @@ class PlayerService : Service() {
         audioMixer?.stop()
 
         statusChangedListeners.forEach {s -> s.onPause()}
-        updateNotification()
-    }
 
-    private fun updateNotification() {
-        // Update notification only if it still exists (check is necessary, when app is canceled)
-        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager?
-                ?: return
-
-        val notifications = notificationManager.activeNotifications
-        for (notification in notifications) {
-            if (notification.id == notificationID) {
-                // This is the line which updates the notification
-                createNotification()?.let { NotificationManagerCompat.from(this).notify(notificationID, it) }
-            }
-        }
+        notification?.state = state
+        notification?.postNotificationUpdate()
     }
 
     fun syncClickWithUptimeMillis(time : Long) {

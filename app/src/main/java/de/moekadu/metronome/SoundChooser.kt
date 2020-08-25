@@ -26,6 +26,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         const val CHOICE_DYNAMIC = 1
         const val CHOICE_STATIC = 2
         const val CHOICE_OFF = 3
+        const val CHOICE_DEACTIVATING = 4
     }
 
     constructor(context : Context, attrs : AttributeSet? = null) : this(context, attrs, R.attr.soundChooserStyle)
@@ -268,9 +269,9 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
                         MeasureSpec.makeMeasureSpec(min(boundingBox.width(), boundingBox.height()), MeasureSpec.EXACTLY),
                         MeasureSpec.makeMeasureSpec(boundingBox.height(), MeasureSpec.EXACTLY)
                 )
-                if(controlButtons[n] === activeControlButton) {
-                    Log.v("Metrononme", "SoundChooser.measureChoiceBase: activeControlButton-boundingbox=$boundingBox")
-                }
+//                if(controlButtons[n] === activeControlButton) {
+//                    Log.v("Metronome", "SoundChooser.measureChoiceBase: activeControlButton-boundingbox=$boundingBox")
+//                }
             }
         }
     }
@@ -457,8 +458,10 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
-//        Log.v("Metronome", "SoundChooser.onTouchEvent: translationZ = $translationZ, elevation = $elevation")
-        if(event == null)
+        Log.v("Metronome", "SoundChooser.onTouchEvent: translationZ = $translationZ, elevation = $elevation, choiceStatus=$choiceStatus")
+        if (choiceStatus == CHOICE_DEACTIVATING)
+            return false
+        if (event == null)
             return super.onTouchEvent(event)
 
         val action = event.actionMasked
@@ -469,7 +472,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
 
         when(action) {
             MotionEvent.ACTION_DOWN -> {
-                Log.v("Metronome", "SoundChooser.onTouchEvent: ACTION_DOWN, x=$x, y=$y")
+//                Log.v("Metronome", "SoundChooser.onTouchEvent: ACTION_DOWN, x=$x, y=$y")
                 if (choiceStatus == CHOICE_STATIC)
                     return false
 
@@ -489,7 +492,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
                 }
             }
             MotionEvent.ACTION_MOVE -> {
-                Log.v("Metronome", "SoundChooser.onTouchEvent: ACTION_MOVE, x=$x, y=$y, choiceStatus=$choiceStatus, inActiveBoundingBoxCheck=${inActiveBoundingBoxCheck()}, activeBoxLeft=$activeBoxLeft, activeBoxRight=$activeBoxRight")
+//                Log.v("Metronome", "SoundChooser.onTouchEvent: ACTION_MOVE, x=$x, y=$y, choiceStatus=$choiceStatus, inActiveBoundingBoxCheck=${inActiveBoundingBoxCheck()}, activeBoxLeft=$activeBoxLeft, activeBoxRight=$activeBoxRight")
                 val tX = controlButton.translationXInit + x - controlButton.eventXOnDown
                 val tY = controlButton.translationYInit + y - controlButton.eventYOnDown
                 if(choiceStatus == CHOICE_DYNAMIC || choiceStatus == CHOICE_BASE) {
@@ -611,12 +614,14 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         }
     }
 
-    private fun deactivate(animationDuration: Long = 300L) {
+    private fun deactivate(animationDuration: Long = 200L) {
+        Log.v("Metronome", "SoundChooser.deactivate")
         activeVerticalCenters[0] = Float.MAX_VALUE
         val autoTransition = AutoTransition().apply {
             duration = animationDuration
             addListener(object: Transition.TransitionListener {
                 override fun onTransitionEnd(transition: Transition) {
+                    Log.v("Metronome", "SoundChooser.deactivate -> onTransitionEnd")
                     translationZ = 0f
                     stateChangedListener?.onSoundChooserDeactivated(activeNote)
                     for ( cB in controlButtons.values) {
@@ -625,16 +630,20 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
                         cB.translationXTarget = 0f
                         cB.translationYTarget = 0f
                     }
-
+                    choiceStatus = CHOICE_OFF
                 }
                 override fun onTransitionResume(transition: Transition) { }
                 override fun onTransitionPause(transition: Transition) { }
-                override fun onTransitionCancel(transition: Transition) { }
-                override fun onTransitionStart(transition: Transition) { }
+                override fun onTransitionCancel(transition: Transition) {
+                    Log.v("Metronome", "SoundChooser.deactivate -> onTransitionCancel")
+                }
+                override fun onTransitionStart(transition: Transition) {
+                    Log.v("Metronome", "SoundChooser.deactivate -> onTransitionStart")
+                }
             })
         }
         TransitionManager.beginDelayedTransition(this, autoTransition)
-        choiceStatus = CHOICE_OFF
+        choiceStatus = CHOICE_DEACTIVATING
         deleteButton.visibility = View.GONE
         deleteButton.isPressed = false
         doneButton.visibility = View.GONE
@@ -651,6 +660,8 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
     }
 
     private fun activateBaseLayout() {
+        if (choiceStatus == CHOICE_DEACTIVATING)
+            return
         choiceStatus = CHOICE_BASE
         translationZ = activeTranslationZ
         TransitionManager.beginDelayedTransition(this,
@@ -666,11 +677,13 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         for (cB in controlButtons.values) {
             cB.visibility = if (cB === activeControlButton) View.VISIBLE else View.GONE
         }
-        Log.v("Metronome", "SoundChooser.activateBaseLayout: activeControlButton=$activeControlButton")
+//        Log.v("Metronome", "SoundChooser.activateBaseLayout: activeControlButton=$activeControlButton")
     }
 
 
     fun activateStaticChoices(animationDuration : Long = 300L) {
+        if (choiceStatus == CHOICE_DEACTIVATING)
+            return
         activeVerticalCenters[0] = Float.MAX_VALUE
         choiceStatus = CHOICE_STATIC
         translationZ = activeTranslationZ
@@ -696,7 +709,9 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
 
     /// This function assumes, that activateBaseLayout() was already called
     private fun activateDynamicChoices() {
-        Log.v("Metronome", "SoundChooser.activateDynamicChoices, noteViewBoundingBox=$noteViewBoundingBox")
+//        Log.v("Metronome", "SoundChooser.activateDynamicChoices, noteViewBoundingBox=$noteViewBoundingBox")
+        if (choiceStatus == CHOICE_DEACTIVATING)
+            return
         triggerStaticChooserOnUp = false
         choiceStatus = CHOICE_DYNAMIC
         translationZ = activeTranslationZ
@@ -850,7 +865,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
 
     /// Compute height of delete button.
     private fun computeDeleteButtonHeight() : Int {
-        Log.v("Metronome", "SoundChooser.computeDeleteButtonHeight: noteViewBoundingBox.top=${noteViewBoundingBox.top}, top=$top")
+//        Log.v("Metronome", "SoundChooser.computeDeleteButtonHeight: noteViewBoundingBox.top=${noteViewBoundingBox.top}, top=$top")
         val freeSpaceAboveBoxes = noteViewBoundingBox.top - top
         return min(noteViewBoundingBox.height() / 1.5f, freeSpaceAboveBoxes / 4.0f).roundToInt()
     }
