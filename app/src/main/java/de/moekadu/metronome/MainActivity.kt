@@ -45,9 +45,7 @@ class MainActivity : AppCompatActivity() {
     // TODO: delete log messages?
 
     // TODO: test different device formats
-    // TODO: notification play button should have the same color as the text
-    // TODO: bug: start dynamic sound chooser, then before it is fully deactivated, click on a note ... from now on we cant start the chooser again
-    // TODO: better handle nonblocking write failure in AudioMixer
+    // TODO: better handle nonblocking write failure in AudioMixer (at least the error is not disable, test if there appear problems)
 
     companion object {
         private const val METRONOME_FRAGMENT_TAG = "metronomeFragment"

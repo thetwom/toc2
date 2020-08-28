@@ -24,6 +24,7 @@ import android.media.*
 import android.os.Build
 import android.os.SystemClock
 import android.util.Log
+import android.widget.Toast
 import java.lang.RuntimeException
 import kotlin.math.*
 
@@ -359,8 +360,10 @@ class AudioMixer (val context: Context) {
         }
         val numWrite = track.write(mixingBuffer, 0, mixingBuffer.size, AudioTrack.WRITE_NON_BLOCKING)
 //        Log.v("AudioMixer", "AudioMixer:mixAndQueueTracks : wrote $numWrite to audioTrack")
-        if(numWrite != mixingBuffer.size)
-            throw RuntimeException("Nonblocking write of ${mixingBuffer.size} samples to AudioTrack not possible")
+        if(numWrite != mixingBuffer.size) {
+            Log.d("Metronome", "Could not write all audio samples to audio buffer.")
+            // throw RuntimeException("Nonblocking write of ${mixingBuffer.size} samples to AudioTrack not possible")
+        }
     }
 }
 

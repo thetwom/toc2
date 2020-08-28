@@ -160,7 +160,7 @@
         android:maxLines="1"
         app:autoSizeTextType="uniform"
         android:gravity="center"
-        android:textColor="?attr/colorOnBackground"
+        android:textColor="?attr/colorSecondary"
         app:layout_constraintBottom_toBottomOf="@id/text_lower_guideline"
         app:layout_constraintEnd_toStartOf="@id/speed_panel"
         app:layout_constraintStart_toStartOf="parent"
