@@ -17,19 +17,18 @@ class PlayerNotification(val context: PlayerService) {
 
     private val notificationView = RemoteViews(context.packageName, R.layout.notification).apply {
         // define response to click on increment
-        val incrementIntent = Intent(PlayerService.BROADCAST_PLAYERACTION)
-        incrementIntent.putExtra(PlayerService.INCREMENT_SPEED, true)
-        val pendingIncrementIntent = PendingIntent.getBroadcast(
-                context, notificationStateID + 1, incrementIntent, PendingIntent.FLAG_UPDATE_CURRENT)
-        setOnClickPendingIntent(R.id.notification_button_p_toucharea, pendingIncrementIntent)
-
-        // define response to click on decrement
-        val decrementIntent = Intent(PlayerService.BROADCAST_PLAYERACTION)
-        decrementIntent.putExtra(PlayerService.DECREMENT_SPEED, true)
-        val pendingDecrementIntent = PendingIntent.getBroadcast(
-                context, notificationStateID + 2, decrementIntent, PendingIntent.FLAG_UPDATE_CURRENT)
-        setOnClickPendingIntent(R.id.notification_button_m_toucharea, pendingDecrementIntent)
-
+//        val incrementIntent = Intent(PlayerService.BROADCAST_PLAYERACTION)
+//        incrementIntent.putExtra(PlayerService.INCREMENT_SPEED, true)
+//        val pendingIncrementIntent = PendingIntent.getBroadcast(
+//                context, notificationStateID + 1, incrementIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+//        setOnClickPendingIntent(R.id.notification_button_p, pendingIncrementIntent)
+//
+//        // define response to click on decrement
+//        val decrementIntent = Intent(PlayerService.BROADCAST_PLAYERACTION)
+//        decrementIntent.putExtra(PlayerService.DECREMENT_SPEED, true)
+//        val pendingDecrementIntent = PendingIntent.getBroadcast(
+//                context, notificationStateID + 2, decrementIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+//        setOnClickPendingIntent(R.id.notification_button_m, pendingDecrementIntent)
 
     }
     private val notificationBuilder = NotificationCompat.Builder(context, App.CHANNEL_ID).apply {
@@ -83,8 +82,8 @@ class PlayerNotification(val context: PlayerService) {
         set(value) {
             if (value != field) {
                 field = value
-                notificationView.setTextViewText(R.id.notification_button_p, "   + " + Utilities.getBpmString(value, value) + " ")
-                notificationView.setTextViewText(R.id.notification_button_m, " - " + Utilities.getBpmString(value, value) + "   ")
+//                notificationView.setTextViewText(R.id.notification_button_p, "   + " + Utilities.getBpmString(value, value) + " ")
+//                notificationView.setTextViewText(R.id.notification_button_m, " - " + Utilities.getBpmString(value, value) + "   ")
             }
         }
 

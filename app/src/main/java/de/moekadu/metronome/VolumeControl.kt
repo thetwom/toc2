@@ -163,7 +163,7 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        Log.v("Metronome", "VolumeControl.onMeasure")
+//        Log.v("Metronome", "VolumeControl.onMeasure")
         val measuredWidth = MeasureSpec.getSize(widthMeasureSpec)
         val measuredHeight = MeasureSpec.getSize(heightMeasureSpec)
 
@@ -264,7 +264,7 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 
         when (action) {
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
-                Log.v("Metronome", "VolumeControl.onTouchEvent : ACTION_MOVE")
+//                Log.v("Metronome", "VolumeControl.onTouchEvent : ACTION_MOVE")
                 val sliderLength = if (vertical) sliderButton.height else sliderButton.width
                 if (vertical) {
                     var newTranslation = y - 0.5f * sliderLength

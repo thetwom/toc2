@@ -237,14 +237,14 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     }
 
     override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
-        Log.v("Metronome", "NoteView.onInterceptTouchEvent")
+//        Log.v("Metronome", "NoteView.onInterceptTouchEvent")
         return true
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         if(onNoteClickListener == null)
             return super.onTouchEvent(event)
-        Log.v("Metronome", "NoteView.onTouchEvent")
+//        Log.v("Metronome", "NoteView.onTouchEvent")
         if(event == null)
             return super.onTouchEvent(event)
 

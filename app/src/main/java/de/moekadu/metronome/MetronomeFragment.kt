@@ -164,7 +164,7 @@ class MetronomeFragment : Fragment() {
 
         noteView?.onNoteClickListener = object : NoteView.OnNoteClickListener {
             override fun onDown(event: MotionEvent?, note: NoteListItem?, noteIndex: Int): Boolean {
-                Log.v("Metronome", "MetronomeFragment.noteView.onClickListener.onDown: noteIndex=$noteIndex")
+//                Log.v("Metronome", "MetronomeFragment.noteView.onClickListener.onDown: noteIndex=$noteIndex")
                 if(note != null) {
                     soundChooser?.setActiveNote(note)
                     noteView?.highlightNote(note, true)
@@ -195,7 +195,7 @@ class MetronomeFragment : Fragment() {
                         right - v.paddingLeft,
                         bottom - v.paddingBottom
                 )
-                Log.v("Metronome", "MetronomeFragment.noteView.onLayoutChangedListener: height = ${bottom - top}, ${v.height}, ${noteView?.height}")
+//                Log.v("Metronome", "MetronomeFragment.noteView.onLayoutChangedListener: height = ${bottom - top}, ${v.height}, ${noteView?.height}")
             }
         }
 
@@ -255,7 +255,7 @@ class MetronomeFragment : Fragment() {
     }
 
     override fun onResume() {
-        Log.v("Metronome", "MetronomeFragment:onResume")
+//        Log.v("Metronome", "MetronomeFragment:onResume")
         super.onResume()
         require(context != null)
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
@@ -273,7 +273,7 @@ class MetronomeFragment : Fragment() {
     }
 
     override fun onPause() {
-        Log.v("Metronome", "MetronomeFragment:onPause")
+//        Log.v("Metronome", "MetronomeFragment:onPause")
         require(context != null)
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener)
@@ -308,7 +308,7 @@ class MetronomeFragment : Fragment() {
     }
 
     private fun updateView() {
-        Log.v("Metronome", "MetronomeFragment.updateView")
+//        Log.v("Metronome", "MetronomeFragment.updateView")
         playerService?.playbackState?.let { playbackState ->
             when(playbackState.state) {
                 PlaybackStateCompat.STATE_PLAYING -> {
@@ -335,7 +335,7 @@ class MetronomeFragment : Fragment() {
         if(playerService == null) {
             playerConnection = object : ServiceConnection {
                 override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-                    Log.v("Metronome", "PlayerService:onServiceConnected")
+//                    Log.v("Metronome", "PlayerService:onServiceConnected")
                     // We've bound to LocalService, cast the IBinder and get LocalService instance
                     val binder = service as PlayerService.PlayerBinder
                     playerService = binder.service

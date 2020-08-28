@@ -179,7 +179,7 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     }
 
     override fun onMeasure(widthMeasureSpec : Int, heightMeasureSpec : Int) {
-        Log.v("Metronome", "VolumeSliders.onMeasure")
+//        Log.v("Metronome", "VolumeSliders.onMeasure")
         val measuredWidth = MeasureSpec.getSize(widthMeasureSpec)
         val measuredHeight = MeasureSpec.getSize(heightMeasureSpec)
 
@@ -223,7 +223,7 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         background.layout(0, 0, background.measuredWidth, background.measuredHeight)
         val h = b - t
-        Log.v("Metronome", "VolumeSliders.onLayout: folded=$folded, volumeControls.size=${volumeControls.size}")
+//        Log.v("Metronome", "VolumeSliders.onLayout: folded=$folded, volumeControls.size=${volumeControls.size}")
         val buttonTop = if(folded || volumeControls.size == 0) {
             h - (elementPadding + button.measuredHeight).toInt()
         }
@@ -231,7 +231,7 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             val tunerHeight = volumeControls[0].measuredHeight
             h - (elementPadding + tunerHeight + buttonTunerSpacing + button.measuredHeight).toInt()
         }
-        Log.v("Metronome", "VolumeSliders.onLayout: button.layout($paddingLeft, $buttonTop, ${paddingLeft + button.measuredWidth}, ${buttonTop + button.measuredHeight})")
+//        Log.v("Metronome", "VolumeSliders.onLayout: button.layout($paddingLeft, $buttonTop, ${paddingLeft + button.measuredWidth}, ${buttonTop + button.measuredHeight})")
         button.layout(paddingLeft, buttonTop, paddingLeft + button.measuredWidth, buttonTop + button.measuredHeight
         )
 
@@ -320,7 +320,7 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     fun unfold(animationDuration : Long = 300L) {
         folded = false
         if(animationDuration > 0L) {
-            Log.v("Metronome", "VolumeSliders.unfold: with animation")
+//            Log.v("Metronome", "VolumeSliders.unfold: with animation")
             val transition = TransitionSet().apply {
                 duration = animationDuration
                 addTransition(ChangeBounds())

@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.res.Resources
 import android.graphics.Color
 import android.graphics.Rect
-import android.transition.*
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
@@ -16,6 +15,8 @@ import android.view.animation.OvershootInterpolator
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.core.view.children
+import androidx.transition.*
 import kotlin.math.*
 
 class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
@@ -26,7 +27,9 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         const val CHOICE_DYNAMIC = 1
         const val CHOICE_STATIC = 2
         const val CHOICE_OFF = 3
-        const val CHOICE_DEACTIVATING = 4
+        const val TRANSITION_FINISHED = 4
+        const val TRANSITION_DEACTIVATING = 5
+        const val TRANSITION_ACTIVATING_STATIC = 6
     }
 
     constructor(context : Context, attrs : AttributeSet? = null) : this(context, attrs, R.attr.soundChooserStyle)
@@ -45,6 +48,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
 
     var choiceStatus = CHOICE_OFF
         private set
+    private var runningTransition = TRANSITION_FINISHED
 
     private val noteViewBoundingBox = Rect()
     private val boundingBox = Rect()
@@ -75,7 +79,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
             addView(s)
             for (c in controlButtons.values)
                 c.visibility = View.GONE
-            setActiveNote(note, 300L)
+            setActiveNote(note, 200L)
         }
 
         override fun onNoteRemoved(note: NoteListItem, index: Int) {
@@ -83,13 +87,13 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
                 val s = controlButtons[note]
                 controlButtons.remove(note)
                 if (s?.visibility == View.VISIBLE)
-                    s.animate().alpha(0f).setDuration(300L).withEndAction { removeView(s) }.start()
+                    s.animate().alpha(0f).setDuration(200L).withEndAction { removeView(s) }.start()
                 else
                     removeView(s)
 
                 val newActiveIndex = if(index < notes.size) index else notes.size - 1
                 if (newActiveIndex in notes.indices)
-                    setActiveNote(notes[newActiveIndex], 300L)
+                    setActiveNote(notes[newActiveIndex], 200L)
             }
         }
 
@@ -101,7 +105,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
 
         override fun onVolumeChanged(note: NoteListItem, index: Int) {
             if (note === activeNote)
-                volumeControl.setVolume(note.volume, 300L)
+                volumeControl.setVolume(note.volume, 200L)
             controlButtons[note]?.volume = note.volume
         }
 
@@ -110,6 +114,20 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         }
 
         override fun onDurationChanged(note: NoteListItem, index: Int) { }
+    }
+
+    private val transitionEndListener = object : Transition.TransitionListener {
+        override fun onTransitionEnd(transition: Transition) {
+//            Log.v("Metronome", "SoundChooser.deactivate -> onTransitionEnd")
+            if (runningTransition == TRANSITION_DEACTIVATING)
+                onDeactivateComplete()
+            runningTransition = TRANSITION_FINISHED
+        }
+
+        override fun onTransitionResume(transition: Transition) { }
+        override fun onTransitionPause(transition: Transition) { }
+        override fun onTransitionCancel(transition: Transition) { }
+        override fun onTransitionStart(transition: Transition) { }
     }
 
     var noteList: NoteList? = null
@@ -183,7 +201,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         deleteButton.visibility = View.GONE
         deleteButton.elevation = elementElevation
         deleteButton.setOnClickListener {
-            Log.v("Notes", "SoundChooser.deleteButton.onClick")
+//            Log.v("Notes", "SoundChooser.deleteButton.onClick")
             deleteActiveNoteIfPossible()
         }
 
@@ -458,9 +476,11 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
-        Log.v("Metronome", "SoundChooser.onTouchEvent: translationZ = $translationZ, elevation = $elevation, choiceStatus=$choiceStatus")
-        if (choiceStatus == CHOICE_DEACTIVATING)
-            return false
+//        Log.v("Metronome", "SoundChooser.onTouchEvent: translationZ = $translationZ, elevation = $elevation, choiceStatus=$choiceStatus")
+        // it messes up to much if we allow input during a transition
+        if (runningTransition != TRANSITION_FINISHED)
+            return true
+
         if (event == null)
             return super.onTouchEvent(event)
 
@@ -589,8 +609,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
      * @param animationDuration Animation duration for animating the control button to the right place.
      *   only used if the current status is CHOICE_STATIC.
      */
-    fun setActiveNote(note: NoteListItem, animationDuration: Long = 300L) {
-
+    fun setActiveNote(note: NoteListItem, animationDuration: Long = 200L) {
         activeNote = note
         activeControlButton = controlButtons[note]
 //        Log.v("Metronome", "SoundChooser.setActiveNote: activeControlButton.translationX=${activeControlButton?.translationX}")
@@ -602,10 +621,12 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
             c.highlightNote(0, c.noteList?.get(0)?.id == activeNote?.id)
 
         if(choiceStatus == CHOICE_STATIC && activeControlButton?.visibility != View.VISIBLE) {
+            runningTransition = TRANSITION_ACTIVATING_STATIC
             TransitionManager.beginDelayedTransition(this,
                     AutoTransition().apply {
-                        duration = animationDuration
+                        duration = 70L // keep this short to avoid bad user experience when quickly changing nots
                         ordering = TransitionSet.ORDERING_TOGETHER
+                        addListener(transitionEndListener)
                     }
             )
             for (cB in controlButtons.values) {
@@ -615,43 +636,26 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
     }
 
     private fun deactivate(animationDuration: Long = 200L) {
-        Log.v("Metronome", "SoundChooser.deactivate")
+//        Log.v("Metronome", "SoundChooser.deactivate")
+
         activeVerticalCenters[0] = Float.MAX_VALUE
         val autoTransition = AutoTransition().apply {
             duration = animationDuration
-            addListener(object: Transition.TransitionListener {
-                override fun onTransitionEnd(transition: Transition) {
-                    Log.v("Metronome", "SoundChooser.deactivate -> onTransitionEnd")
-                    translationZ = 0f
-                    stateChangedListener?.onSoundChooserDeactivated(activeNote)
-                    for ( cB in controlButtons.values) {
-                        cB.translationX = 0f
-                        cB.translationY = 0f
-                        cB.translationXTarget = 0f
-                        cB.translationYTarget = 0f
-                    }
-                    choiceStatus = CHOICE_OFF
-                }
-                override fun onTransitionResume(transition: Transition) { }
-                override fun onTransitionPause(transition: Transition) { }
-                override fun onTransitionCancel(transition: Transition) {
-                    Log.v("Metronome", "SoundChooser.deactivate -> onTransitionCancel")
-                }
-                override fun onTransitionStart(transition: Transition) {
-                    Log.v("Metronome", "SoundChooser.deactivate -> onTransitionStart")
-                }
-            })
+            addListener(transitionEndListener)
         }
-        TransitionManager.beginDelayedTransition(this, autoTransition)
-        choiceStatus = CHOICE_DEACTIVATING
-        deleteButton.visibility = View.GONE
+
         deleteButton.isPressed = false
+
+        TransitionManager.beginDelayedTransition(this, autoTransition)
+        choiceStatus = CHOICE_OFF
+        runningTransition = TRANSITION_DEACTIVATING
+        deleteButton.visibility = View.GONE
         doneButton.visibility = View.GONE
         backgroundView.visibility = View.GONE
         volumeControl.visibility = View.GONE
-        for(c in choiceButtons)
+        for (c in choiceButtons)
             c.visibility = View.GONE
-        for(cB in controlButtons.values) {
+        for (cB in controlButtons.values) {
             if (cB.visibility == View.VISIBLE) {
                 cB.moveToTarget(animationDuration)
             }
@@ -659,14 +663,28 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         }
     }
 
-    private fun activateBaseLayout() {
-        if (choiceStatus == CHOICE_DEACTIVATING)
+    private fun onDeactivateComplete() {
+        translationZ = 0f
+        stateChangedListener?.onSoundChooserDeactivated(activeNote)
+        for ( cB in controlButtons.values) {
+            cB.translationX = 0f
+            cB.translationY = 0f
+            cB.translationXTarget = 0f
+            cB.translationYTarget = 0f
+        }
+        choiceStatus = CHOICE_OFF
+    }
+
+    private fun activateBaseLayout(animationDuration: Long = 200L) {
+//        Log.v("Metronome", "SoundChooser.activateBaseLayout, choiceStatus=$choiceStatus")
+        if (runningTransition != TRANSITION_FINISHED)
             return
         choiceStatus = CHOICE_BASE
         translationZ = activeTranslationZ
         TransitionManager.beginDelayedTransition(this,
                 Fade().apply{
-                    duration = 300L
+                    duration = animationDuration
+                    addListener(transitionEndListener) // we need this seems deactivate sometimes doesn't call it
                 })
         backgroundView.visibility = View.VISIBLE
         deleteButton.visibility = View.VISIBLE
@@ -680,15 +698,18 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
 //        Log.v("Metronome", "SoundChooser.activateBaseLayout: activeControlButton=$activeControlButton")
     }
 
-
-    fun activateStaticChoices(animationDuration : Long = 300L) {
-        if (choiceStatus == CHOICE_DEACTIVATING)
+    fun activateStaticChoices(animationDuration : Long = 200L) {
+        if (runningTransition != TRANSITION_FINISHED)
             return
         activeVerticalCenters[0] = Float.MAX_VALUE
         choiceStatus = CHOICE_STATIC
         translationZ = activeTranslationZ
         if(animationDuration > 0) {
-            val autoTransition = AutoTransition().apply { duration = animationDuration }
+            runningTransition = TRANSITION_ACTIVATING_STATIC
+            val autoTransition = AutoTransition().apply {
+                duration = animationDuration
+                addListener(transitionEndListener)
+            }
             TransitionManager.beginDelayedTransition(this, autoTransition)
         }
         backgroundView.visibility = View.VISIBLE
@@ -708,21 +729,22 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
     }
 
     /// This function assumes, that activateBaseLayout() was already called
-    private fun activateDynamicChoices() {
+    private fun activateDynamicChoices(animationDuration: Long = 200L) {
 //        Log.v("Metronome", "SoundChooser.activateDynamicChoices, noteViewBoundingBox=$noteViewBoundingBox")
-        if (choiceStatus == CHOICE_DEACTIVATING)
+        if (runningTransition != TRANSITION_FINISHED)
             return
         triggerStaticChooserOnUp = false
         choiceStatus = CHOICE_DYNAMIC
         translationZ = activeTranslationZ
 
         val slideTransition = Slide().apply {
-            duration = 300L
+            duration = animationDuration
             slideEdge = Gravity.BOTTOM
 
             // without this listener the choice buttons can stay mispositioned after the transition ended.
             addListener(object: Transition.TransitionListener {
-                override fun onTransitionEnd(transition: Transition?) {
+                override fun onTransitionEnd(transition: Transition) {
+                    transitionEndListener.onTransitionEnd(transition)
                     post {
                         activeControlButton?.let { controlButton ->
                             val tXC = controlButton.translationX + controlButton.right + elementPadding
@@ -732,10 +754,10 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
                     }
                 }
 
-                override fun onTransitionResume(transition: Transition?) {}
-                override fun onTransitionPause(transition: Transition?) {}
-                override fun onTransitionCancel(transition: Transition?) {}
-                override fun onTransitionStart(transition: Transition?) {}
+                override fun onTransitionResume(transition: Transition) {}
+                override fun onTransitionPause(transition: Transition) {}
+                override fun onTransitionCancel(transition: Transition) {}
+                override fun onTransitionStart(transition: Transition) {}
 
             })
         }
@@ -856,6 +878,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
                 val transition = ChangeBounds().apply {
                     duration = 150L
                     interpolator = OvershootInterpolator()
+                    addListener(transitionEndListener)
                 }
                 TransitionManager.beginDelayedTransition(this, transition)
                 requestLayout()
