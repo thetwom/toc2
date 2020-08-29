@@ -44,4 +44,6 @@
     <string name="keep_screen_on">Bildschirm immer an</string>
     <string name="cannot_delete_last_note">Die letzte Note kann nicht gelöscht werden.</string>
     <string name="app_name">Metronom</string>
+    <string name="max_speed_lower_minimum">Vorgegebene Maximalgeschwindigkeit (%s) ist kleiner als Minimalgeschwindigkeit (%s)</string>
+    <string name="min_speed_higher_maximum">Vorgegebene Minimalgeschwindigkeit (%s) ist höher als Maximalgeschwindigkeit (%s)</string>
 </resources>

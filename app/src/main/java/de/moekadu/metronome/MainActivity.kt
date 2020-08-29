@@ -40,8 +40,7 @@ import kotlin.math.roundToInt
 class MainActivity : AppCompatActivity() {
 
     // TODO: handle incorrect loads which could occur, when loading with newer version
-    // TODO: nicer saved-item layout
-    // TODO: double/half speed?
+    // TODO: nicer saved-item layoutgi
     // TODO: delete log messages?
 
     // TODO: test different device formats
