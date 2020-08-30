@@ -33,20 +33,20 @@
         app:layout_constraintStart_toStartOf="parent"
         />
 
-    <!--<toc2.moekadu.toc2.SavedItemAttributes-->
-        <!--android:id="@+id/saved_item_attributes"-->
-        <!--android:layout_width="0dp"-->
-        <!--android:layout_height="0dp"-->
-        <!--app:deleteColor="?attr/colorError"-->
-        <!--app:onDeleteColor="?attr/colorOnError"-->
-        <!--app:layout_constraintTop_toTopOf="parent"-->
-        <!--app:layout_constraintStart_toStartOf="parent"/>-->
+<!--    <de.moekadu.metronome.SavedItemAttributes-->
+<!--        android:id="@+id/saved_item_attributes"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="0dp"-->
+<!--        app:backgroundColor="?android:attr/colorBackground"-->
+<!--        app:onBackgroundColor="?attr/colorOnBackground"-->
+<!--        app:layout_constraintTop_toTopOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"/>-->
 
     <TextView
         android:id="@+id/saved_item_title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:padding="8dp"
+        android:padding="4dp"
         android:textSize="18sp"
         android:text="@string/title"
         app:layout_constraintStart_toStartOf="parent"
@@ -57,7 +57,10 @@
         android:id="@+id/saved_item_sounds"
         android:layout_width="0dp"
         android:layout_height="50dp"
-        android:padding="8dp"
+        android:paddingStart="4dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:paddingEnd="0dp"
         android:clipToPadding="false"
         app:normalColor="?attr/colorBackgroundFloating"
         app:layout_constraintEnd_toEndOf="parent"
@@ -68,7 +71,7 @@
         android:id="@+id/saved_item_date"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="8dp"
+        android:padding="4dp"
         android:textSize="12sp"
         android:text="12:00h  21.03.2019"
         android:gravity="end"
@@ -79,9 +82,13 @@
     <TextView
         android:id="@+id/saved_item_speed"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="8dp"
+        android:layout_height="0dp"
+        android:padding="4dp"
         android:text="65 bpm"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:textColor="?attr/colorSecondary"
+        android:minWidth="70dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/saved_item_sounds"
         app:layout_constraintBottom_toBottomOf="@id/saved_item_sounds"

@@ -20,8 +20,6 @@
 package de.moekadu.metronome
 
 import android.graphics.Canvas
-import android.graphics.Rect
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -37,6 +35,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import de.moekadu.metronome.SavedItemDatabase.SavedItem
+import kotlin.math.absoluteValue
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 
@@ -45,7 +45,6 @@ class SaveDataFragment : Fragment() {
     private var savedItems: RecyclerView? = null
     private var savedItemsManager: RecyclerView.LayoutManager? = null
     private val savedItemsAdapter = SavedItemDatabase()
-    private val backgroundArea = Rect()
 
     private var lastRemovedItemIndex = -1
     private var lastRemovedItem: SavedItem? = null
@@ -84,15 +83,18 @@ class SaveDataFragment : Fragment() {
         savedItems?.layoutManager = savedItemsManager
         savedItems?.adapter = savedItemsAdapter
 
-        val savedItemAttributes = view.findViewById(R.id.saved_item_attributes) as SavedItemAttributes
+        val simpleTouchHelper = object: ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.LEFT) {
 
-        val simpleTouchHelper = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
-
-            val background = ColorDrawable(savedItemAttributes.deleteColor)
-            val deleteIcon = activity?.let { ContextCompat.getDrawable(it, R.drawable.ic_delete_on_error) }
+            val background = activity?.let { ContextCompat.getDrawable(it, R.drawable.saved_item_below_background) }
+            val deleteIcon = activity?.let { ContextCompat.getDrawable(it, R.drawable.saved_item_delete) }
 
             override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
-                return false
+                val fromPos = viewHolder.adapterPosition
+                val toPos = target.adapterPosition
+                if(fromPos != toPos) {
+                    savedItemsAdapter.moveItem(fromPos, toPos)
+                }
+                return true
             }
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
@@ -129,16 +131,19 @@ class SaveDataFragment : Fragment() {
                     return
                 }
 
-                backgroundArea.set(itemView.left, itemView.top, itemView.right, itemView.bottom)
-                background.bounds = backgroundArea
-                background.draw(c)
+                background?.setBounds(itemView.left, itemView.top, itemView.right, itemView.bottom)
+                background?.draw(c)
 
-                val iconHeight = (0.7f * (itemView.height - itemView.paddingTop - itemView.paddingBottom)).roundToInt()
-                deleteIcon?.setBounds(itemView.right -iconHeight-itemView.paddingRight,
-                        (itemView.top +itemView.bottom - iconHeight)/2,
-                        itemView.right -itemView.paddingRight,
-                        (itemView.top +itemView.bottom +iconHeight)/2)
-                deleteIcon?.draw(c)
+                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+                    deleteIcon?.alpha = min(255, (255 * 3 * dX.absoluteValue / itemView.width).toInt())
+                    val iconHeight = (0.4f * (itemView.height - itemView.paddingTop - itemView.paddingBottom)).roundToInt()
+                    val deleteIconLeft = itemView.right - iconHeight - itemView.paddingRight //itemView.right + iconHeight + itemView.paddingRight + dX.roundToInt()
+                    deleteIcon?.setBounds(deleteIconLeft,
+                            (itemView.top + itemView.bottom - iconHeight) / 2,
+                            deleteIconLeft + iconHeight,
+                            (itemView.top + itemView.bottom + iconHeight) / 2)
+                    deleteIcon?.draw(c)
+                }
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
             }
         }

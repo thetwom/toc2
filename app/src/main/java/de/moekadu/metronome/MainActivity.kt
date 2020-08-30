@@ -188,7 +188,7 @@ class MainActivity : AppCompatActivity() {
                     val item = SavedItemDatabase.SavedItem()
                     item.title = editText.text.toString()
                     val dateFormat = SimpleDateFormat("dd.MM.yyyy")
-                    val timeFormat = SimpleDateFormat("hh:mm")
+                    val timeFormat = SimpleDateFormat("HH:mm")
                     val date = Calendar.getInstance().time
                     item.date = dateFormat.format(date)
                     item.time = timeFormat.format(date)

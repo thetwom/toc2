@@ -36,6 +36,7 @@
         <item name="volumeSlidersStyle">@style/Widget.AppTheme.VolumeSlidersStyle</item>
         <item name="volumeControlStyle">@style/Widget.AppTheme.VolumeControlStyle</item>
          <item name="tickVisualizerStyle">@style/Widget.AppTheme.TickVisualizerStyle</item>
+        <item name="playButtonStyle">@style/Widget.AppTheme.PlayButtonStyle</item>
     </style>
 
 

@@ -153,10 +153,4 @@
         <item name="activeTranslationZ">12dp</item>
     </style>
 
-    <declare-styleable name="SavedItemAttributes">
-        <attr name="deleteColor"/>
-        <attr name="onDeleteColor"/>
-        <attr name="separatorColor"/>
-    </declare-styleable>
-
 </resources>

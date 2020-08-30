@@ -37,12 +37,5 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scrollbars="vertical" />
-
-    <de.moekadu.metronome.SavedItemAttributes
-        android:id="@+id/saved_item_attributes"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:deleteColor="?attr/colorError"
-        app:onDeleteColor="?attr/colorOnError" />
-
+    
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

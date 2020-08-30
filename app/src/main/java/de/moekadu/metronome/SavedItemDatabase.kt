@@ -85,6 +85,16 @@ class SavedItemDatabase : RecyclerView.Adapter<SavedItemDatabase.ViewHolder>() {
         return item
     }
 
+    fun moveItem(fromIndex: Int, toIndex: Int) {
+        if (fromIndex == toIndex || fromIndex >= dataBase?.size ?: 0)
+            return
+        dataBase?.get(fromIndex)?.let { item ->
+            dataBase?.removeAt(fromIndex)
+            dataBase?.add(toIndex, item)
+            notifyItemMoved(fromIndex, toIndex)
+        }
+    }
+
     override fun getItemCount(): Int {
         return dataBase?.size ?: 0
     }
