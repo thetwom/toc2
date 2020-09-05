@@ -20,11 +20,13 @@
 package de.moekadu.metronome
 
 import android.annotation.SuppressLint
+import android.content.DialogInterface
 import android.content.Intent
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Bundle
 import android.text.InputType
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.WindowManager
@@ -33,7 +35,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
 import java.text.SimpleDateFormat
 import java.util.*
@@ -48,6 +52,7 @@ class MainActivity : AppCompatActivity() {
 
     // TODO: test different device formats
     // TODO: better handle nonblocking write failure in AudioMixer (at least the error is not disable, test if there appear problems)
+    // TODO: translations
 
     companion object {
         private const val METRONOME_FRAGMENT_TAG = "metronomeFragment"
@@ -190,6 +195,9 @@ class MainActivity : AppCompatActivity() {
                 }
                 startActivityForResult(intent, FILE_OPEN)
             }
+            R.id.action_clear_all -> {
+                clearAllSavedItems()
+            }
         }
 
         return super.onOptionsItemSelected(item)
@@ -206,12 +214,22 @@ class MainActivity : AppCompatActivity() {
             unarchiveSavedItems(data?.data)
     }
 
+    private fun clearAllSavedItems() {
+        val builder = AlertDialog.Builder(this).apply {
+            setTitle(R.string.clear_all_question)
+            setNegativeButton(R.string.no) { dialog, _ -> dialog.dismiss() }
+            setPositiveButton(R.string.yes) { _, _ ->
+                saveDataFragment?.loadFromDatabaseString("", SavedItemDatabase.REPLACE)
+            }
+        }
+        builder.show()
+    }
+
     private fun archiveSavedItems(uri: Uri?) {
         if (uri == null)
             return
         val databaseString = saveDataFragment?.getCurrentDatabaseString() ?: ""
-        if( databaseString == "")
-            return
+        // Log.v("Metronome", "MainActivity.archiveSavedItems: databaseString = $databaseString")
         contentResolver?.openOutputStream(uri)?.use { stream ->
             stream.write(databaseString.toByteArray())
         }
@@ -220,12 +238,30 @@ class MainActivity : AppCompatActivity() {
     private fun unarchiveSavedItems(uri: Uri?) {
         if (uri == null)
             return
-        contentResolver?.openInputStream(uri)?.use { stream ->
-            stream.reader().use {
-                val databaseString = it.readText()
-                saveDataFragment?.loadFromDatabaseString(databaseString)
+        val builder = AlertDialog.Builder(this).apply {
+            setTitle(R.string.load_saved_items)
+            setNegativeButton(R.string.abort) {dialog,_  -> dialog.dismiss()}
+            setItems(R.array.load_saved_items_list) {dialog, which ->
+                val array = resources.getStringArray(R.array.load_saved_items_list)
+                val task = if (array[which] == getString(R.string.prepend_current_list)) {
+                    SavedItemDatabase.PREPEND
+                }
+                else if (array[which] == getString(R.string.append_current_list)) {
+                    SavedItemDatabase.APPEND
+                }
+                else {
+                    SavedItemDatabase.REPLACE
+                }
+
+                contentResolver?.openInputStream(uri)?.use { stream ->
+                    stream.reader().use {
+                        val databaseString = it.readText()
+                        saveDataFragment?.loadFromDatabaseString(databaseString, task)
+                    }
+                }
             }
         }
+        builder.show()
     }
 
     @SuppressLint("SimpleDateFormat")

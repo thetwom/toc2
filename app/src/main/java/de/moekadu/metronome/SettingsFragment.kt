@@ -58,6 +58,9 @@ class SettingsFragment: PreferenceFragmentCompat() {
 
         val unarchive = menu.findItem(R.id.action_unarchive)
         unarchive?.isVisible = false
+
+        val clearAll = menu.findItem(R.id.action_clear_all)
+        clearAll?.isVisible = false
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

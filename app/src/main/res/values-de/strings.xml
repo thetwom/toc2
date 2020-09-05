@@ -46,4 +46,13 @@
     <string name="app_name">Metronom</string>
     <string name="max_speed_lower_minimum">Vorgegebene Maximalgeschwindigkeit (%s) ist kleiner als Minimalgeschwindigkeit (%s)</string>
     <string name="min_speed_higher_maximum">Vorgegebene Minimalgeschwindigkeit (%s) ist höher als Maximalgeschwindigkeit (%s)</string>
+    <string name="load_from_disc">Lade Daten aus Datei</string>
+    <string name="save_to_disc">Daten in Datei speichern</string>
+    <string name="clear_all">Alle löschen</string>
+    <string name="clear_all_question">Alle Einträge löschen?</string>
+    <string name="load_saved_items">Einträge laden</string>
+    <string name="abort">Abbrechen</string>
+    <string name="replace_current_list">Aktuelle Liste ersetzen</string>
+    <string name="prepend_current_list">Vor aktueller Liste einfügen</string>
+    <string name="append_current_list">An aktuelle Liste anhängen</string>
 </resources>

@@ -310,6 +310,9 @@ class MetronomeFragment : Fragment() {
 
         val unarchive = menu.findItem(R.id.action_unarchive)
         unarchive?.isVisible = false
+
+        val clearAll = menu.findItem(R.id.action_clear_all)
+        clearAll?.isVisible = false
     }
 
     private fun unbindPlayerService() {

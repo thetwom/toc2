@@ -32,4 +32,9 @@
         <item>@string/light_appearance_short</item>
     </string-array>
 
+    <string-array name="load_saved_items_list">
+        <item>@string/replace_current_list</item>
+        <item>@string/prepend_current_list</item>
+        <item>@string/append_current_list</item>
+    </string-array>
 </resources>

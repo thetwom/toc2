@@ -34,6 +34,11 @@ import java.util.Locale
 import kotlin.math.min
 
 class SavedItemDatabase : RecyclerView.Adapter<SavedItemDatabase.ViewHolder>() {
+    companion object {
+        const val REPLACE = 0
+        const val PREPEND = 1
+        const val APPEND = 2
+    }
 
     data class SavedItem(var title : String = "", var date : String = "",
                          var time : String = "", var bpm : Float = 0f, var noteList : String = "")
@@ -155,24 +160,26 @@ class SavedItemDatabase : RecyclerView.Adapter<SavedItemDatabase.ViewHolder>() {
         }
     }
 
-    fun loadDataFromString(dataString: String, append: Boolean = false) {
-        val newDataBase = if (dataBase == null || !append) {
+    fun loadDataFromString(activity: FragmentActivity?, dataString: String, mode: Int = REPLACE) {
+        val newDataBase = if (dataBase == null || mode == REPLACE) {
             ArrayList()
         }
         else {
             dataBase
         }
         require(newDataBase != null)
-        val oldSize = newDataBase.size
 
         // Log.v("Metronome", "SavedItemFragment:loadData: " + dataString);
-        if(dataString == "")
+        if(dataString == "" || dataString.length < 50) {
+            dataBase = newDataBase
+            notifyDataSetChanged()
+            activity?.let { saveData(it) }
             return
-        if(dataString.length < 50)
-            return
+        }
 //        val version = dataString.substring(0, 50).trim()
 
         var pos = 50
+        var numItemsRead = 0
         while(pos < dataString.length)
         {
             val si = SavedItem()
@@ -201,23 +208,32 @@ class SavedItemDatabase : RecyclerView.Adapter<SavedItemDatabase.ViewHolder>() {
             si.noteList = dataString.substring(pos, noteListEnd)
             pos = noteListEnd+3
 
-            newDataBase.add(si)
+            if (mode == PREPEND)
+                newDataBase.add(numItemsRead, si)
+            else
+                newDataBase.add(si)
+            ++numItemsRead
         }
+
         dataBase = newDataBase
-        if (append) {
-            notifyItemRangeInserted(oldSize, newDataBase.size - oldSize)
+        if (mode == APPEND) {
+            notifyItemRangeInserted(newDataBase.size - numItemsRead, numItemsRead)
+        }
+        else if (mode == PREPEND) {
+            notifyItemRangeInserted(0, numItemsRead)
         }
         else {
             notifyDataSetChanged()
         }
+        activity?.let { saveData(it) }
     }
 
-    fun loadData(activity : FragmentActivity) {
+    fun loadData(activity : FragmentActivity, mode: Int = REPLACE) {
         if(dataBase != null)
             return
 
         val preferences = activity.getPreferences(Context.MODE_PRIVATE)
         val dataString = preferences.getString("savedDatabase", "") ?: ""
-        loadDataFromString(dataString, false)
+        loadDataFromString(activity, dataString, mode)
     }
 }

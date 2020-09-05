@@ -61,6 +61,14 @@
         android:icon="@drawable/ic_unarchive"
         app:showAsAction="ifRoom"
         />
+
+    <item
+        android:id="@+id/action_clear_all"
+        android:orderInCategory="95"
+        android:title="@string/clear_all"
+        android:icon="@drawable/ic_clear_all"
+        app:showAsAction="ifRoom"
+        />
     <!--<item-->
         <!--android:id="@+id/test_setting"-->
         <!--android:orderInCategory="99"-->

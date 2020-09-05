@@ -76,6 +76,8 @@ class SaveDataFragment : Fragment() {
         val unarchive = menu.findItem(R.id.action_unarchive)
         unarchive?.isVisible = true
 
+        val clearAll = menu.findItem(R.id.action_clear_all)
+        clearAll?.isVisible = true
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -200,7 +202,8 @@ class SaveDataFragment : Fragment() {
         return ""
     }
 
-     fun loadFromDatabaseString(databaseString: String) {
-         savedItemsAdapter.loadDataFromString(databaseString)
+     fun loadFromDatabaseString(databaseString: String, mode: Int = SavedItemDatabase.REPLACE) {
+         savedItemsAdapter.loadDataFromString(activity, databaseString, mode)
+         updateNoSavedItemsMessage()
      }
 }

@@ -34,6 +34,8 @@
     <string name="save_data">Save data</string>
     <string name="load_from_disc">Load data from file</string>
     <string name="save_to_disc">Save data to file</string>
+    <string name="clear_all">Clear all</string>
+    <string name="clear_all_question">Clear all items?</string>
     <string name="title">Title</string>
     <string name="done">Done</string>
     <string name="appearance">Appearance</string>
@@ -64,6 +66,12 @@
     <string name="save">Save</string>
     <string name="dismiss">Dismiss</string>
     <string name="max_allowed_characters">Maximum character number: %d</string>
+
+    <string name="load_saved_items">Load saved items</string>
+    <string name="abort">Abort</string>
+    <string name="replace_current_list">Replace current list</string>
+    <string name="prepend_current_list">Prepend to current list</string>
+    <string name="append_current_list">Append to current list</string>
 
     <string name="cannot_delete_last_note">You cannot delete the last note.</string>
     
