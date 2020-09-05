@@ -27,11 +27,7 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Bundle
 import android.os.IBinder
 import android.support.v4.media.session.PlaybackStateCompat
-import android.util.Log
-import android.view.LayoutInflater
-import android.view.MotionEvent
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.fragment.app.Fragment
@@ -296,6 +292,24 @@ class MetronomeFragment : Fragment() {
         outState.putBoolean("volumeSlidersFolded", volumeSliders?.folded ?: true)
 
         super.onSaveInstanceState(outState)
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu) {
+//        super.onPrepareOptionsMenu(menu);
+        val settingsItem = menu.findItem(R.id.action_properties)
+        settingsItem?.isVisible = true
+
+        val loadDataItem = menu.findItem(R.id.action_load)
+        loadDataItem?.isVisible = true
+
+        val saveDataItem = menu.findItem(R.id.action_save)
+        saveDataItem?.isVisible = true
+
+        val archive = menu.findItem(R.id.action_archive)
+        archive?.isVisible = false
+
+        val unarchive = menu.findItem(R.id.action_unarchive)
+        unarchive?.isVisible = false
     }
 
     private fun unbindPlayerService() {

@@ -45,6 +45,22 @@
         android:icon="@drawable/ic_save"
         app:showAsAction="ifRoom"
         />
+
+    <item
+        android:id="@+id/action_archive"
+        android:orderInCategory="96"
+        android:title="@string/save_to_disc"
+        android:icon="@drawable/ic_archive"
+        app:showAsAction="ifRoom"
+        />
+
+    <item
+        android:id="@+id/action_unarchive"
+        android:orderInCategory="97"
+        android:title="@string/load_from_disc"
+        android:icon="@drawable/ic_unarchive"
+        app:showAsAction="ifRoom"
+        />
     <!--<item-->
         <!--android:id="@+id/test_setting"-->
         <!--android:orderInCategory="99"-->

@@ -52,6 +52,12 @@ class SettingsFragment: PreferenceFragmentCompat() {
 
         val saveDataItem = menu.findItem(R.id.action_save)
         saveDataItem?.isVisible = false
+
+        val archive = menu.findItem(R.id.action_archive)
+        archive?.isVisible = false
+
+        val unarchive = menu.findItem(R.id.action_unarchive)
+        unarchive?.isVisible = false
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

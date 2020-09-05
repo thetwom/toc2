@@ -20,7 +20,9 @@
 package de.moekadu.metronome
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.media.AudioManager
+import android.net.Uri
 import android.os.Bundle
 import android.text.InputType
 import android.view.Menu
@@ -31,6 +33,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.app.ActivityCompat
 import androidx.preference.PreferenceManager
 import java.text.SimpleDateFormat
 import java.util.*
@@ -52,6 +55,8 @@ class MainActivity : AppCompatActivity() {
         private const val SETTINGS_FRAGMENT_TAG = "settingsFragment"
 //        private const val SOUND_CHOOSER_FRAGMENT_TAG = "soundChooserDialog"
         private const val SAVE_DATA_FRAGMENT_TAG = "saveDataFragment"
+        private const val FILE_CREATE = 1
+        private const val FILE_OPEN = 2
     }
 
     private var playerFrag : PlayerFragment? = null
@@ -166,11 +171,62 @@ class MainActivity : AppCompatActivity() {
             R.id.action_save -> {
                 saveCurrentSettings()
             }
+            R.id.action_archive -> {
+                val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                    addCategory(Intent.CATEGORY_OPENABLE)
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TITLE, "metronome.txt")
+                    // default path
+                    // putExtra(DocumentsContract.EXTRA_INITIAL_URI, pickerInitialUri)
+                }
+                startActivityForResult(intent, FILE_CREATE)
+            }
+            R.id.action_unarchive -> {
+                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                    addCategory(Intent.CATEGORY_OPENABLE)
+                    type = "text/plain"
+                    // default path
+                    // putExtra(DocumentsContract.EXTRA_INITIAL_URI, pickerInitialUri)
+                }
+                startActivityForResult(intent, FILE_OPEN)
+            }
         }
 
         return super.onOptionsItemSelected(item)
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode != RESULT_OK)
+            return
+
+        if (requestCode == FILE_CREATE)
+            archiveSavedItems(data?.data)
+        else if (requestCode == FILE_OPEN)
+            unarchiveSavedItems(data?.data)
+    }
+
+    private fun archiveSavedItems(uri: Uri?) {
+        if (uri == null)
+            return
+        val databaseString = saveDataFragment?.getCurrentDatabaseString() ?: ""
+        if( databaseString == "")
+            return
+        contentResolver?.openOutputStream(uri)?.use { stream ->
+            stream.write(databaseString.toByteArray())
+        }
+    }
+
+    private fun unarchiveSavedItems(uri: Uri?) {
+        if (uri == null)
+            return
+        contentResolver?.openInputStream(uri)?.use { stream ->
+            stream.reader().use {
+                val databaseString = it.readText()
+                saveDataFragment?.loadFromDatabaseString(databaseString)
+            }
+        }
+    }
 
     @SuppressLint("SimpleDateFormat")
     private fun saveCurrentSettings() {

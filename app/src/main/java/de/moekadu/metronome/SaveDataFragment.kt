@@ -21,6 +21,7 @@ package de.moekadu.metronome
 
 import android.graphics.Canvas
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.View
@@ -68,6 +69,13 @@ class SaveDataFragment : Fragment() {
 
         val saveDataItem = menu.findItem(R.id.action_save)
         saveDataItem.isVisible = false
+
+        val archive = menu.findItem(R.id.action_archive)
+        archive?.isVisible = true
+
+        val unarchive = menu.findItem(R.id.action_unarchive)
+        unarchive?.isVisible = true
+
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -92,7 +100,8 @@ class SaveDataFragment : Fragment() {
                 val fromPos = viewHolder.adapterPosition
                 val toPos = target.adapterPosition
                 if(fromPos != toPos) {
-                    savedItemsAdapter.moveItem(fromPos, toPos)
+//                    Log.v("Metronome", "SaveDataFragment:onMove from $fromPos to $toPos")
+                    savedItemsAdapter.moveItem(fromPos, toPos, activity)
                 }
                 return true
             }
@@ -101,7 +110,7 @@ class SaveDataFragment : Fragment() {
                 // Log.v("Metronome", "SaveDataFragment:onSwiped " + viewHolder.getAdapterPosition())
 
                 lastRemovedItemIndex = viewHolder.adapterPosition
-                lastRemovedItem = savedItemsAdapter.remove(lastRemovedItemIndex)
+                lastRemovedItem = savedItemsAdapter.remove(lastRemovedItemIndex, activity)
                 updateNoSavedItemsMessage()
 
                 (getView() as CoordinatorLayout?)?.let { coLayout ->
@@ -183,4 +192,15 @@ class SaveDataFragment : Fragment() {
             noSavedItemsMessage?.visibility = View.GONE
         }
     }
+
+    fun getCurrentDatabaseString() : String{
+        activity?.let {
+            return savedItemsAdapter.getSaveDataString(it)
+        }
+        return ""
+    }
+
+     fun loadFromDatabaseString(databaseString: String) {
+         savedItemsAdapter.loadDataFromString(databaseString)
+     }
 }
