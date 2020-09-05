@@ -19,6 +19,7 @@
 
 package de.moekadu.metronome
 
+import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -135,9 +136,9 @@ class MetronomeFragment : Fragment() {
                 playerService?.addValueToSpeed(dSpeed)
             }
 
-            override fun onAbsoluteSpeedChanged(newSpeed: Float, nextKlickTimeInMillis: Long) {
+            override fun onAbsoluteSpeedChanged(newSpeed: Float, nextClickTimeInMillis: Long) {
                 playerService?.speed = newSpeed
-                playerService?.syncClickWithUptimeMillis(nextKlickTimeInMillis)
+                playerService?.syncClickWithUptimeMillis(nextClickTimeInMillis)
             }
         }
 
@@ -324,6 +325,7 @@ class MetronomeFragment : Fragment() {
         playerService = null
     }
 
+    @SuppressLint("SwitchIntDef")
     private fun updateView() {
 //        Log.v("Metronome", "MetronomeFragment.updateView")
         playerService?.playbackState?.let { playbackState ->

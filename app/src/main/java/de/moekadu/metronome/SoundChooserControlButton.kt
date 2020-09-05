@@ -1,7 +1,9 @@
 package de.moekadu.metronome
 
+import android.annotation.SuppressLint
 import android.content.Context
 
+@SuppressLint("ViewConstructor")
 class SoundChooserControlButton(context: Context, note: NoteListItem, elevation: Float, volumeColor: Int) : NoteView(context) {
 
     var eventXOnDown = 0f

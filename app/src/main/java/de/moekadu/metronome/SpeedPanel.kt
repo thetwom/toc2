@@ -86,7 +86,7 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 
     interface SpeedChangedListener {
         fun onSpeedChanged(dSpeed: Float)
-        fun onAbsoluteSpeedChanged(newSpeed: Float, nextKlickTimeInMillis: Long)
+        fun onAbsoluteSpeedChanged(newSpeed: Float, nextClickTimeInMillis: Long)
     }
 
     var speedChangedListener: SpeedChangedListener? = null

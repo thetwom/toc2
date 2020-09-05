@@ -5,19 +5,20 @@ import android.content.res.Resources
 import android.graphics.Color
 import android.graphics.Rect
 import android.util.AttributeSet
-import android.util.Log
+import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
-import android.view.Gravity
 import android.view.animation.OvershootInterpolator
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
-import androidx.core.view.children
 import androidx.transition.*
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.min
+import kotlin.math.roundToInt
 
 class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
     : ViewGroup(context, attrs, defStyleAttr) {
@@ -287,9 +288,6 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
                         MeasureSpec.makeMeasureSpec(min(boundingBox.width(), boundingBox.height()), MeasureSpec.EXACTLY),
                         MeasureSpec.makeMeasureSpec(boundingBox.height(), MeasureSpec.EXACTLY)
                 )
-//                if(controlButtons[n] === activeControlButton) {
-//                    Log.v("Metronome", "SoundChooser.measureChoiceBase: activeControlButton-boundingbox=$boundingBox")
-//                }
             }
         }
     }
@@ -624,7 +622,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
             runningTransition = TRANSITION_ACTIVATING_STATIC
             TransitionManager.beginDelayedTransition(this,
                     AutoTransition().apply {
-                        duration = 70L // keep this short to avoid bad user experience when quickly changing nots
+                        duration = 70L // keep this short to avoid bad user experience when quickly changing notes
                         ordering = TransitionSet.ORDERING_TOGETHER
                         addListener(transitionEndListener)
                     }

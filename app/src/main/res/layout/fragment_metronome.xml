@@ -168,7 +168,7 @@
         android:background="@drawable/ic_notelines"
         android:backgroundTint="?attr/colorOnBackground"
         android:contentDescription="add note background"
-        />
+        tools:ignore="HardcodedText" />
 
         <ImageButton
             android:id="@+id/plus_button"
@@ -188,7 +188,7 @@
             android:background="@drawable/plus_button_background"
             app:tint="?attr/colorOnPrimary"
             android:src="@drawable/ic_add"
-            android:contentDescription="add note"
+            android:contentDescription="@string/add_note"
             />
 
     <de.moekadu.metronome.NoteView

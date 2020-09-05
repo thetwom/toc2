@@ -1,7 +1,5 @@
 package de.moekadu.metronome
 
-import android.media.AudioManager
-import android.media.AudioTrack
 import android.util.Log
 import kotlin.math.min
 
@@ -181,6 +179,6 @@ fun getNoteAudioResourceID(index : Int, sampleRate: Int) = when(sampleRate) {  /
     else ->  availableNotes[index].audio48ResourceID
 }
 
-fun getNoteStringResourceID(index : Int) = availableNotes[index].stringResourceID
+//fun getNoteStringResourceID(index : Int) = availableNotes[index].stringResourceID
 
 fun getNoteDrawableResourceID(index : Int) = availableNotes[index].drawableResourceID

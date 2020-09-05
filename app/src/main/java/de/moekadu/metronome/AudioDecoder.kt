@@ -17,6 +17,8 @@
  * along with Metronome.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+@file:Suppress("unused")
+
 package de.moekadu.metronome
 
 import android.content.Context

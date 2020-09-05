@@ -127,10 +127,10 @@ open class ControlPanel(context : Context, attrs : AttributeSet?, defStyleAttr: 
         setMeasuredDimension(width, height)
     }
 
-    fun pTX(phi : Double, rad : Double) : Float {
-        return ((rad * cos(phi)) + centerX).toFloat()
-    }
-    fun pTY(phi : Double, rad : Double) : Float {
-        return ((rad * sin(phi)) + centerY).toFloat()
-    }
+//    fun pTX(phi : Double, rad : Double) : Float {
+//        return ((rad * cos(phi)) + centerX).toFloat()
+//    }
+//    fun pTY(phi : Double, rad : Double) : Float {
+//        return ((rad * sin(phi)) + centerY).toFloat()
+//    }
 }

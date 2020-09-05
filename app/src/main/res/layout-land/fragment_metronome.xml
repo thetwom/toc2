@@ -183,7 +183,8 @@
         app:layout_constraintHorizontal_weight="7"
         app:layout_constraintVertical_weight="1"
         android:background="@drawable/ic_notelines"
-        android:backgroundTint="?attr/colorOnBackground" />
+        android:backgroundTint="?attr/colorOnBackground"
+        tools:ignore="ContentDescription" />
 
     <View
         android:id="@+id/notelines_below_speedpanel_placeholder"
@@ -208,7 +209,8 @@
         app:layout_constraintRight_toLeftOf="@id/notelines_below_speedpanel1"
           app:layout_constraintDimensionRatio="1:1"
         android:background="@drawable/ic_notelines"
-        android:backgroundTint="?attr/colorOnBackground" />
+        android:backgroundTint="?attr/colorOnBackground"
+          tools:ignore="ContentDescription" />
 
     <ImageButton
         android:id="@+id/plus_button"
@@ -227,7 +229,7 @@
         android:background="@drawable/plus_button_background"
         app:tint="?attr/colorOnPrimary"
         android:src="@drawable/ic_add"
-        android:contentDescription="add note"
+        android:contentDescription="@string/add_note"
         />
 
     <de.moekadu.metronome.NoteView

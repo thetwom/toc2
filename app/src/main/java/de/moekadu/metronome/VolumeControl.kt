@@ -23,7 +23,6 @@ import android.content.Context
 import android.graphics.Outline
 import android.graphics.Rect
 import android.util.AttributeSet
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -31,7 +30,9 @@ import android.view.ViewOutlineProvider
 import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.appcompat.content.res.AppCompatResources
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 
 
 class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)

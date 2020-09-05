@@ -19,20 +19,18 @@
 
 package de.moekadu.metronome
 
+//import androidx.core.view.setPadding
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Rect
 import android.transition.*
 import android.util.AttributeSet
-import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.appcompat.content.res.AppCompatResources
-//import androidx.core.view.setPadding
-import kotlin.collections.ArrayList
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt

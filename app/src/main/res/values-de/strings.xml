@@ -55,4 +55,7 @@
     <string name="replace_current_list">Aktuelle Liste ersetzen</string>
     <string name="prepend_current_list">Vor aktueller Liste einfügen</string>
     <string name="append_current_list">An aktuelle Liste anhängen</string>
+    <string name="add_note">Note hinzfügen</string>
+    <string name="tap_in">TAP IN</string>
+    <string name="bpm" translatable="false">%s bpm</string>
 </resources>

@@ -1,3 +1,5 @@
+@file:Suppress("MemberVisibilityCanBePrivate")
+
 package de.moekadu.metronome
 
 import android.animation.ValueAnimator

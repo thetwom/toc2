@@ -20,17 +20,13 @@
 package de.moekadu.metronome
 
 import android.content.Context
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.RecyclerView
-
-import java.util.ArrayList
-import java.util.Locale
+import java.util.*
 import kotlin.math.min
 
 class SavedItemDatabase : RecyclerView.Adapter<SavedItemDatabase.ViewHolder>() {
@@ -216,14 +212,10 @@ class SavedItemDatabase : RecyclerView.Adapter<SavedItemDatabase.ViewHolder>() {
         }
 
         dataBase = newDataBase
-        if (mode == APPEND) {
-            notifyItemRangeInserted(newDataBase.size - numItemsRead, numItemsRead)
-        }
-        else if (mode == PREPEND) {
-            notifyItemRangeInserted(0, numItemsRead)
-        }
-        else {
-            notifyDataSetChanged()
+        when (mode) {
+            APPEND -> notifyItemRangeInserted(newDataBase.size - numItemsRead, numItemsRead)
+            PREPEND -> notifyItemRangeInserted(0, numItemsRead)
+            else -> notifyDataSetChanged()
         }
         activity?.let { saveData(it) }
     }

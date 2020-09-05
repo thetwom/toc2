@@ -20,13 +20,11 @@
 package de.moekadu.metronome
 
 import android.annotation.SuppressLint
-import android.content.DialogInterface
 import android.content.Intent
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Bundle
 import android.text.InputType
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.WindowManager
@@ -35,9 +33,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.appcompat.content.res.AppCompatResources
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
 import java.text.SimpleDateFormat
 import java.util.*
@@ -47,7 +42,7 @@ import kotlin.math.roundToInt
 class MainActivity : AppCompatActivity() {
 
     // TODO: handle incorrect loads which could occur, when loading with newer version
-    // TODO: nicer saved-item layoutgi
+    // TODO: nicer saved-item layout
     // TODO: delete log messages?
 
     // TODO: test different device formats
@@ -243,14 +238,10 @@ class MainActivity : AppCompatActivity() {
             setNegativeButton(R.string.abort) {dialog,_  -> dialog.dismiss()}
             setItems(R.array.load_saved_items_list) {dialog, which ->
                 val array = resources.getStringArray(R.array.load_saved_items_list)
-                val task = if (array[which] == getString(R.string.prepend_current_list)) {
-                    SavedItemDatabase.PREPEND
-                }
-                else if (array[which] == getString(R.string.append_current_list)) {
-                    SavedItemDatabase.APPEND
-                }
-                else {
-                    SavedItemDatabase.REPLACE
+                val task = when(array[which]) {
+                    getString(R.string.prepend_current_list) -> SavedItemDatabase.PREPEND
+                    getString(R.string.append_current_list) -> SavedItemDatabase.APPEND
+                    else -> SavedItemDatabase.REPLACE
                 }
 
                 contentResolver?.openInputStream(uri)?.use { stream ->

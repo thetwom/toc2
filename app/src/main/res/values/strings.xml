@@ -28,7 +28,7 @@
     <string name="claves" translatable="false">claves</string>
     <string name="woodblock" translatable="false">woodblock</string>
     <string name="mute">mute</string>
-    <string name="bpm" translatable="false">%s bpm</string>
+    <string name="bpm">%s bpm</string>
 
     <string name="load_data">Load data</string>
     <string name="save_data">Save data</string>
@@ -46,6 +46,8 @@
     <string name="dark_appearance_short">Dark</string>
     <string name="light_appearance_short">Light</string>
     <string name="system_appearance_short">Auto</string>
+
+    <string name="add_note">Add note</string>
 
     <string name="speed_sensitivity">Speed changing sensitivity</string>
     <string name="speed_sensitivity_summary">Speed steps per cm: %.1f</string>
@@ -79,7 +81,7 @@
 
     <string name="loaded_message">Loaded settings: %s</string>
 
-    <string name="tap_in" translatable="false">TAP IN</string>
+    <string name="tap_in">TAP IN</string>
 
     <string name="about_message">Metronome app\nVersion: %s\nLicense: GPLv3</string>
 

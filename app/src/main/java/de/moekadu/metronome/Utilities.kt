@@ -40,9 +40,9 @@ class Utilities {
             return px / Resources.getSystem().displayMetrics.density
         }
 
-        fun sp2px(sp: Int): Int {
-            return (sp * Resources.getSystem().displayMetrics.scaledDensity).toInt()
-        }
+//        fun sp2px(sp: Int): Int {
+//            return (sp * Resources.getSystem().displayMetrics.scaledDensity).toInt()
+//        }
 
 
         fun sensitivity2percentage(sensitivity: Float): Float {
@@ -57,9 +57,9 @@ class Utilities {
             return px2dp(px) / 160.0f * 2.54f
         }
 
-        fun cm2px(cm: Float): Float {
-            return dp2px(cm * 160.0f / 2.54f)
-        }
+//        fun cm2px(cm: Float): Float {
+//            return dp2px(cm * 160.0f / 2.54f)
+//        }
 
         fun speed2dt(speed: Float): Long {
             return (1000.0 * 60.0 / speed).roundToLong()
