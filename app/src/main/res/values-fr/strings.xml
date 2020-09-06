@@ -58,7 +58,7 @@
     <string name="append_current_list">Ajouter à la fin de la liste</string>
     <string name="file_empty">Le fichier est vide</string>
     <string name="file_invalid">Fichier invalide</string>
-    <string name="database_empty">Il n'y a pas de réglage à sauver.</string>
+    <string name="database_empty">Il n\'y a pas de réglage à sauver.</string>
 
     <string name="cannot_delete_last_note">Vous ne pouvez pas supprimer la dernière note.</string>
 
