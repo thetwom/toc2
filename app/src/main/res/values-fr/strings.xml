@@ -14,6 +14,10 @@
 
     <string name="load_data">Charger un réglage</string>
     <string name="save_data">Sauver le réglage</string>
+    <string name="load_from_disc">Charger des réglages depuis un fichier</string>
+    <string name="save_to_disc">Sauver les réglages dans un fichier</string>
+    <string name="clear_all">Tout supprimer</string>
+    <string name="clear_all_question">Tout supprimer\u00A0?</string>
     <string name="title">Titre</string>
     <string name="done">Fait</string>
     <string name="appearance">Style</string>
@@ -24,6 +28,8 @@
     <string name="dark_appearance_short">Sombre</string>
     <string name="light_appearance_short">Clair</string>
     <string name="system_appearance_short">Auto</string>
+
+    <string name="add_note">Ajouter une note</string>
 
     <string name="speed_sensitivity">Sensibilité du sélecteur de tempo</string>
     <string name="speed_sensitivity_summary">Nombre de crans par cm\u00A0: %.1f</string>
@@ -45,6 +51,17 @@
     <string name="dismiss">Annuler</string>
     <string name="max_allowed_characters">Nombre de caractères maximum\u00A0: %d</string>
 
+    <string name="load_saved_items">Charger des réglages</string>
+    <string name="abort">Annuler</string>
+    <string name="replace_current_list">Remplacer la liste</string>
+    <string name="prepend_current_list">Ajouter au début de la liste</string>
+    <string name="append_current_list">Ajouter à la fin de la liste</string>
+    <string name="file_empty">Le fichier est vide</string>
+    <string name="file_invalid">Fichier invalide</string>
+    <string name="database_empty">Il n'y a pas de réglage à sauver.</string>
+
+    <string name="cannot_delete_last_note">Vous ne pouvez pas supprimer la dernière note.</string>
+
     <string name="no_saved_items">Aucun réglage sauvé pour le moment</string>
 
     <string name="loaded_message">Réglage chargé\u00A0: %s</string>
@@ -57,14 +74,14 @@
     <string name="no">non</string>
 
     <string name="speed_too_small">Le tempo du réglage %s bpm est en dessous du tempo minimum configuré %s bpm.\n</string>
-    <string name="speed_too_large">Le tempo du réglage %s bpm est au dessus du tempo maximum configuré %s bpm.\n</string>
+    <string name="speed_too_large">Le tempo du réglage %s bpm est au-dessus du tempo maximum configuré %s bpm.\n</string>
+    <string name="max_speed_lower_minimum">Le tempo maximum indiqué (%s) est au-dessus du tempo minimum (%s).</string>
+    <string name="min_speed_higher_maximum">Le tempo minimum indiqué (%s) est en dessous du tempo maximum (%s).</string>
     <string name="inconsistent_increment">Le tempo du réglage %s bpm n\'est pas compatible avec l\'incrémentation configurée %s bpm.</string>
     <string name="inconsistent_load_title">Chargement incorrect</string>
     <string name="inconsistent_summary">Modifiez votre configuration si vous voulez charger le réglage correctement.</string>
     <string name="acknowledged">Vu</string>
 
     <string name="keep_screen_on">Garder l\'écran allumé</string>
-    <string name="tap_in">TAP IN</string>
-    <string name="bpm" translatable="false">%s bpm</string>
 
 </resources>
