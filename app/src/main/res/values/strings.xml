@@ -74,6 +74,9 @@
     <string name="replace_current_list">Replace current list</string>
     <string name="prepend_current_list">Prepend to current list</string>
     <string name="append_current_list">Append to current list</string>
+    <string name="file_empty">File is empty</string>
+    <string name="file_invalid">Invalid file</string>
+    <string name="database_empty">There are no items which can be saved.</string>
 
     <string name="cannot_delete_last_note">You cannot delete the last note.</string>
     
@@ -90,8 +93,8 @@
 
     <string name="speed_too_small">Saved speed %s bpm is smaller than the minimum speed %s bpm.\n</string>
     <string name="speed_too_large">Saved speed %s bpm is larger than the maximum speed %s bpm.\n</string>
-    <string name="max_speed_lower_minimum">"Given maximum speed (%s) is lower than minimum speed (%s)</string>
-    <string name="min_speed_higher_maximum">"Given minimum speed (%s) is higher than maximum speed (%s)</string>
+    <string name="max_speed_lower_minimum">Given maximum speed (%s) is lower than minimum speed (%s).</string>
+    <string name="min_speed_higher_maximum">Given minimum speed (%s) is higher than maximum speed (%s).</string>
     <string name="inconsistent_increment">Saved speed %s bpm cannot be resolved by the current speed increment %s bpm.\n</string>
     <string name="inconsistent_load_title">Inconsistent load</string>
     <string name="inconsistent_summary">\nChange your settings if you want to load the item correctly.</string>

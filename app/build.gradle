@@ -8,8 +8,8 @@ android {
         applicationId "de.moekadu.metronome"
         minSdkVersion 23
         targetSdkVersion 30
-        versionCode 24
-        versionName "2.0.0"
+        versionCode 25
+        versionName "2.1.0"
         resValue "string", "version", "${versionName}"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true

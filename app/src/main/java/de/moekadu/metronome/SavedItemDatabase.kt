@@ -27,6 +27,7 @@ import android.widget.TextView
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.RecyclerView
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.min
 
 class SavedItemDatabase : RecyclerView.Adapter<SavedItemDatabase.ViewHolder>() {
@@ -34,6 +35,9 @@ class SavedItemDatabase : RecyclerView.Adapter<SavedItemDatabase.ViewHolder>() {
         const val REPLACE = 0
         const val PREPEND = 1
         const val APPEND = 2
+        const val FILE_OK = 0
+        const val FILE_EMPTY = 1
+        const val FILE_INVALID = 2
     }
 
     data class SavedItem(var title : String = "", var date : String = "",
@@ -156,22 +160,23 @@ class SavedItemDatabase : RecyclerView.Adapter<SavedItemDatabase.ViewHolder>() {
         }
     }
 
-    fun loadDataFromString(activity: FragmentActivity?, dataString: String, mode: Int = REPLACE) {
-        val newDataBase = if (dataBase == null || mode == REPLACE) {
-            ArrayList()
-        }
-        else {
-            dataBase
-        }
-        require(newDataBase != null)
+    fun clearDatabase(activity: FragmentActivity?) {
+        dataBase = ArrayList()
+        notifyDataSetChanged()
+        activity?.let { saveData(it) }
+    }
+
+    fun loadDataFromString(activity: FragmentActivity?, dataString: String, mode: Int = REPLACE): Int {
+        val newDataBase = ArrayList<SavedItem>()
+        if (mode != REPLACE)
+            dataBase?.let {newDataBase.addAll(it)}
 
         // Log.v("Metronome", "SavedItemFragment:loadData: " + dataString);
-        if(dataString == "" || dataString.length < 50) {
-            dataBase = newDataBase
-            notifyDataSetChanged()
-            activity?.let { saveData(it) }
-            return
-        }
+        if(dataString == "")
+            return FILE_EMPTY
+        else if(dataString.length < 50)
+            return FILE_INVALID
+
 //        val version = dataString.substring(0, 50).trim()
 
         var pos = 50
@@ -179,30 +184,35 @@ class SavedItemDatabase : RecyclerView.Adapter<SavedItemDatabase.ViewHolder>() {
         while(pos < dataString.length)
         {
             val si = SavedItem()
-            if(pos+50 >= dataString.length)
-                return
 
-            if(pos+200 >= dataString.length)
-                return
-            si.title = dataString.substring(pos, pos+200).trim()
+            if(pos + 200 >= dataString.length)
+                return FILE_INVALID
+            si.title = dataString.substring(pos, pos + 200).trim()
             pos += 200
-            if(pos+10 >= dataString.length)
-                return
-            si.date = dataString.substring(pos, pos+10)
+            if(pos + 10 >= dataString.length)
+                return FILE_INVALID
+            si.date = dataString.substring(pos, pos + 10)
             pos += 10
-            if(pos+5 >= dataString.length)
-                return
-            si.time = dataString.substring(pos, pos+5)
+            if(pos + 5 >= dataString.length)
+                return FILE_INVALID
+            si.time = dataString.substring(pos, pos + 5)
             pos += 5
-            if(pos+6 >= dataString.length)
-                return
-            si.bpm = (dataString.substring(pos, pos+12).trim()).toFloat()
+            if(pos + 6 >= dataString.length)
+                return FILE_INVALID
+            try {
+                si.bpm = (dataString.substring(pos, pos + 12).trim()).toFloat()
+            }
+            catch (e: NumberFormatException) {
+                return FILE_INVALID
+            }
             pos += 12
             val noteListEnd = dataString.indexOf("END", pos)
             if(noteListEnd == -1)
-                return
+                return FILE_INVALID
             si.noteList = dataString.substring(pos, noteListEnd)
-            pos = noteListEnd+3
+            if (NoteList.checkString(si.noteList) == NoteList.STRING_INVALID)
+                return FILE_INVALID
+            pos = noteListEnd + 3
 
             if (mode == PREPEND)
                 newDataBase.add(numItemsRead, si)
@@ -218,6 +228,7 @@ class SavedItemDatabase : RecyclerView.Adapter<SavedItemDatabase.ViewHolder>() {
             else -> notifyDataSetChanged()
         }
         activity?.let { saveData(it) }
+        return FILE_OK
     }
 
     fun loadData(activity : FragmentActivity, mode: Int = REPLACE) {

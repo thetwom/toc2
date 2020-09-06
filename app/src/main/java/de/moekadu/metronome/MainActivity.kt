@@ -172,14 +172,19 @@ class MainActivity : AppCompatActivity() {
                 saveCurrentSettings()
             }
             R.id.action_archive -> {
-                val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
-                    addCategory(Intent.CATEGORY_OPENABLE)
-                    type = "text/plain"
-                    putExtra(Intent.EXTRA_TITLE, "metronome.txt")
-                    // default path
-                    // putExtra(DocumentsContract.EXTRA_INITIAL_URI, pickerInitialUri)
+                if (saveDataFragment?.databaseSize ?: 0 == 0) {
+                    Toast.makeText(this, R.string.database_empty, Toast.LENGTH_LONG).show()
                 }
-                startActivityForResult(intent, FILE_CREATE)
+                else {
+                    val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                        addCategory(Intent.CATEGORY_OPENABLE)
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TITLE, "metronome.txt")
+                        // default path
+                        // putExtra(DocumentsContract.EXTRA_INITIAL_URI, pickerInitialUri)
+                    }
+                    startActivityForResult(intent, FILE_CREATE)
+                }
             }
             R.id.action_unarchive -> {
                 val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
@@ -214,7 +219,7 @@ class MainActivity : AppCompatActivity() {
             setTitle(R.string.clear_all_question)
             setNegativeButton(R.string.no) { dialog, _ -> dialog.dismiss() }
             setPositiveButton(R.string.yes) { _, _ ->
-                saveDataFragment?.loadFromDatabaseString("", SavedItemDatabase.REPLACE)
+                saveDataFragment?.clearDatabase()
             }
         }
         builder.show()

@@ -26,6 +26,7 @@ import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -202,7 +203,23 @@ class SaveDataFragment : Fragment() {
     }
 
      fun loadFromDatabaseString(databaseString: String, mode: Int = SavedItemDatabase.REPLACE) {
-         savedItemsAdapter.loadDataFromString(activity, databaseString, mode)
+         val check = savedItemsAdapter.loadDataFromString(activity, databaseString, mode)
+         activity?.let { context ->
+             when (check) {
+                 SavedItemDatabase.FILE_EMPTY ->
+                     Toast.makeText(context, R.string.file_empty, Toast.LENGTH_LONG).show()
+                 SavedItemDatabase.FILE_INVALID ->
+                     Toast.makeText(context, R.string.file_invalid, Toast.LENGTH_LONG).show()
+             }
+         }
          updateNoSavedItemsMessage()
      }
+
+    fun clearDatabase() {
+        savedItemsAdapter.clearDatabase(activity)
+        updateNoSavedItemsMessage()
+    }
+
+    val databaseSize
+        get() = savedItemsAdapter.itemCount
 }

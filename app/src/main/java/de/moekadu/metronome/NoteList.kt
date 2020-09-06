@@ -1,6 +1,7 @@
 package de.moekadu.metronome
 
 import android.util.Log
+import java.security.KeyStore
 import kotlin.math.min
 
 /// Item in note list
@@ -24,6 +25,24 @@ class NoteListItem(var id : Int = 0, var volume : Float = 1.0f, var duration : F
 }
 
 class NoteList : Collection<NoteListItem>{
+    companion object {
+        const val STRING_OK = true
+        const val STRING_INVALID = false
+
+        fun checkString(string: String): Boolean {
+            val elements = string.split(" ")
+            for(i in 0 until elements.size / 2) {
+                try {
+                    elements[2 * i].toInt()
+                    elements[2 * i + 1].toFloat()
+                }
+                catch (e: NumberFormatException) {
+                    return STRING_INVALID
+                }
+            }
+            return STRING_OK
+        }
+    }
     private val notes = ArrayList<NoteListItem>()
 
     override val size get() = notes.size

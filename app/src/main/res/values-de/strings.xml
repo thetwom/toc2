@@ -44,8 +44,8 @@
     <string name="keep_screen_on">Bildschirm immer an</string>
     <string name="cannot_delete_last_note">Die letzte Note kann nicht gelöscht werden.</string>
     <string name="app_name">Metronom</string>
-    <string name="max_speed_lower_minimum">Vorgegebene Maximalgeschwindigkeit (%s) ist kleiner als Minimalgeschwindigkeit (%s)</string>
-    <string name="min_speed_higher_maximum">Vorgegebene Minimalgeschwindigkeit (%s) ist höher als Maximalgeschwindigkeit (%s)</string>
+    <string name="max_speed_lower_minimum">Vorgegebene Maximalgeschwindigkeit (%s) ist kleiner als Minimalgeschwindigkeit (%s).</string>
+    <string name="min_speed_higher_maximum">Vorgegebene Minimalgeschwindigkeit (%s) ist höher als Maximalgeschwindigkeit (%s).</string>
     <string name="load_from_disc">Lade Daten aus Datei</string>
     <string name="save_to_disc">Daten in Datei speichern</string>
     <string name="clear_all">Alle löschen</string>
@@ -58,4 +58,7 @@
     <string name="add_note">Note hinzfügen</string>
     <string name="tap_in">TAP IN</string>
     <string name="bpm" translatable="false">%s bpm</string>
+    <string name="file_empty">Datei ist leer.</string>
+    <string name="file_invalid">Ungültige Datei.</string>
+    <string name="database_empty">Keine zu speichernde Einträge.</string>
 </resources>
