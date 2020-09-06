@@ -57,7 +57,7 @@
     <string name="append_current_list">An aktuelle Liste anhängen</string>
     <string name="add_note">Note hinzfügen</string>
     <string name="tap_in">TAP IN</string>
-    <string name="bpm" translatable="false">%s bpm</string>
+    <string name="bpm">%s bpm</string>
     <string name="file_empty">Datei ist leer.</string>
     <string name="file_invalid">Ungültige Datei.</string>
     <string name="database_empty">Keine zu speichernde Einträge.</string>

@@ -83,5 +83,7 @@
     <string name="acknowledged">Vu</string>
 
     <string name="keep_screen_on">Garder l\'écran allumé</string>
+    <string name="bpm">%s bpm</string>
+    <string name="tap_in">TAP IN</string>
 
 </resources>

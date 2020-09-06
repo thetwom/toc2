@@ -44,5 +44,5 @@
     <string name="keep_screen_on">Pantalla encendida</string>
     <string name="app_name">Metrónomo</string>
     <string name="tap_in">TAP IN</string>
-    <string name="bpm" translatable="false">%s bpm</string>
+    <string name="bpm">%s bpm</string>
 </resources>
