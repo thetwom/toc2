@@ -1,48 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="about">Acerca de</string>
-    <string name="about_message">Metrónomo app\nVersión: %s\nLicencia: GPLv3</string>
-    <string name="acknowledged">Agradecimientos</string>
+    <string name="app_name">Metronome</string>
     <string name="action_settings">Ajustes</string>
+
+    <string name="mute">silenciar</string>
+    <string name="bpm">%s bpm</string>
+
+    <string name="load_data">Cargar datos</string>
+    <string name="save_data">Guardar datos</string>
+    <string name="load_from_disc">Cargar datos desde archivo</string>
+    <string name="save_to_disc">Guardar datos desde archivo</string>
+    <string name="clear_all">Limpiar todo</string>
+    <string name="clear_all_question">¿Limpiar todos los elementos?</string>
+    <string name="title">Título</string>
+    <string name="done">Acepto</string>
     <string name="appearance">Apariencia</string>
     <string name="dark_appearance">Apariencia oscura</string>
     <string name="dark_appearance_short">Oscuro</string>
-    <string name="dismiss">Omitir</string>
-    <string name="done">Aceptar</string>
-    <string name="inconsistent_increment">Velocidad guardada %s bpm no puede resolverse con el incremento de la velocidad reciente %s bpm.\n</string>
-    <string name="inconsistent_load_title">Carga inconsistente</string>
-    <string name="inconsistent_summary">Por favor, establece los ajustes si quieres cargar tu selección correctamente.</string>
-    <string name="item_deleted">Elemento borrado</string>
-    <string name="light_appearance">Apariencia clara</string>
+    <string name="system_appearance">La apariencia sigue la configuración del sistema</string>
+
+    <string name="dark_appearance_short">Oscuro</string>
     <string name="light_appearance_short">Claro</string>
-    <string name="load_data">Cargar datos</string>
-    <string name="loaded_message">Selección cargada: %s</string>
-    <string name="max_allowed_characters">Número máximo de caracteres: %d</string>
-    <string name="maximum_speed">Velocidad máxima</string>
-    <string name="minimum_speed">Velocidad mínima</string>
-    <string name="mute">silenciar</string>
-    <string name="no">NO</string>
-    <string name="no_saved_items">No hay entradas guardadas por el momento</string>
-    <string name="reset_all_settings">Restablecer todos los ajustes</string>
-    <string name="reset_settings_prompt">¿Realmente deseas restablecer todos los ajustes?</string>
-    <string name="save">Guardar</string>
-    <string name="save_data">Guardar los ajustes</string>
-    <string name="save_name">Nombre</string>
-    <string name="save_settings_dialog_title">Guardar la configuración actual</string>
-    <string name="saved_item_message">Ajustes recientes guardados: %s</string>
+    <string name="system_appearance_short">Auto</string>
+
     <string name="speed_sensitivity">Sensibilidad al cambio de velocidad</string>
     <string name="speed_sensitivity_summary">Velocidad de paso por cm: %.1f</string>
-    <string name="speed_too_large">La velocidad almacenada %s bpm es mayor que la velocidad máxima %s bpm.</string>
-    <string name="speed_too_small">La velocidad almacenada %s bpm es menor que la velocidad mínima %s bpm.</string>
     <string name="speedincrement">Tamaño del paso de velocidad</string>
-    <string name="system_appearance">La apariencia sigue la configuración del sistema</string>
-    <string name="system_appearance_short">Auto</string>
-    <string name="title">Título</string>
+    <string name="maximum_speed">Velocidad máxima</string>
+    <string name="minimum_speed">Velocidad mínima</string>
+
+    <string name="reset_all_settings">Restablecer todos los ajustes</string>
+    <string name="reset_settings_prompt">¿Realmente deseas restablecer todos los ajustes?</string>
+    <string name="about">Acerca de</string>
+
     <string name="undo">Deshacer</string>
-    <string name="yes">Sí</string>
+    <string name="item_deleted">Elemento borrado</string>
+
+    <string name="save_settings_dialog_title">Guardar la configuración actual</string>
+    <string name="save_name">Nombre</string>
+    <string name="saved_item_message">Ajustes actuales guardados: %s</string>
+    <string name="save">Guardar</string>
+    <string name="dismiss">Omitir</string>
+    <string name="max_allowed_characters">Número máximo de caracteres: %d</string>
+
+    <string name="load_saved_items">Load saved items</string>
+    <string name="abort">Abortar</string>
+    <string name="replace_current_list">Reemplazar lista actual</string>
+    <string name="prepend_current_list">Anteponer a la lista actual</string>
+    <string name="append_current_list">Suceder a la lista actual</string>
+
+    <string name="cannot_delete_last_note">No se puede borrar la última nota.</string>
+    
+    <string name="no_saved_items">Actualmente sin elementos guardados</string>
+
+    <string name="loaded_message">Ajustes cargados: %s</string>
+
+    <string name="tap_in">TAP IN</string>
+
+    <string name="about_message">Aplicación app\nVersión: %s\nLicencia: GPLv3</string>
+
+    <string name="yes">sí</string>
+    <string name="no">no</string>
+
+    <string name="speed_too_large">La velocidad almacenada %s bpm es mayor que la velocidad máxima %s bpm.\n</string>
+    <string name="speed_too_small">La velocidad almacenada %s bpm es menor que la velocidad mínima %s bpm.\n</string>
+    <string name="max_speed_lower_minimum">"La velocidad dada (%s) es menor al mínimo de velocidad (%s)</string>
+    <string name="min_speed_higher_maximum">"La velocidad dada (%s) es mayor al máximo de velocidad (%s)</string>
+    <string name="inconsistent_increment">La velocidad guardada %s bpm no es resolvible al aumentar la velocidad actual %s bpm.\n</string>
+    <string name="inconsistent_load_title">Carga inconsistente</string>
+    <string name="inconsistent_summary">\nPor favor, establece los ajustes si quieres cargar tu selección correctamente.</string>
+    <string name="acknowledged">Agradecimientos</string>
 
     <string name="keep_screen_on">Pantalla encendida</string>
-    <string name="app_name">Metrónomo</string>
-    <string name="tap_in">TAP IN</string>
-    <string name="bpm">%s bpm</string>
 </resources>
