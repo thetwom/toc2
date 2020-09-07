@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="about">Acerca de</string>
-    <string name="about_message">Metronome app\nVersión: %s\nLicencia: GPLv3</string>
+    <string name="about_message">Metrónomo app\nVersión: %s\nLicencia: GPLv3</string>
     <string name="acknowledged">Agradecimientos</string>
     <string name="action_settings">Ajustes</string>
     <string name="appearance">Apariencia</string>
