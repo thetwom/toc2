@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Metronome</string>
+    <string name="app_name">Metrónomo</string>
     <string name="action_settings">Ajustes</string>
 
     <string name="mute">silenciar</string>
@@ -57,7 +57,7 @@
 
     <string name="tap_in">TAP IN</string>
 
-    <string name="about_message">Aplicación app\nVersión: %s\nLicencia: GPLv3</string>
+    <string name="about_message">Metrónomo app\nVersión: %s\nLicencia: GPLv3</string>
 
     <string name="yes">sí</string>
     <string name="no">no</string>
