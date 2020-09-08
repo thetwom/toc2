@@ -19,7 +19,7 @@
     <string name="dark_appearance_short">Oscuro</string>
     <string name="system_appearance">La apariencia sigue la configuración del sistema</string>
 
-    <string name="dark_appearance_short">Oscuro</string>
+    <string name="light_appearance">Apariencia claro</string>
     <string name="light_appearance_short">Claro</string>
     <string name="system_appearance_short">Auto</string>
 
