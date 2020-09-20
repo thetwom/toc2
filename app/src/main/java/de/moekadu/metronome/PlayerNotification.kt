@@ -58,6 +58,7 @@ class PlayerNotification(val context: PlayerService) {
                 .setContentIntent(launchAct)
                 .setStyle(NotificationCompat.DecoratedCustomViewStyle())
                 .setCustomContentView(notificationView)
+        setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
     }
 
     private val notificationStateID = 3214
