@@ -1,0 +1,10 @@
+v2.2.0:
+- Animated notes
+- Improved choosing of sounds
+- More consistent color scheme
+- Import/export saved note lists
+
+v2.3.0:
+- Allow pause/play via notification when screen is locked
+- Fix: Saving current setup did not always save
+- Add option for vibrating notes

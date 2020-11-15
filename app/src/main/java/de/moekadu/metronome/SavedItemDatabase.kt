@@ -20,6 +20,7 @@
 package de.moekadu.metronome
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -113,12 +114,15 @@ class SavedItemDatabase : RecyclerView.Adapter<SavedItemDatabase.ViewHolder>() {
     fun addItem(activity : FragmentActivity, item : SavedItem) {
         if(dataBase == null)
             loadData(activity)
+        if(dataBase == null)
+        dataBase = ArrayList()
+
         dataBase?.let {
             it.add(item)
             notifyItemRangeInserted(it.size - 1, it.size)
             saveData(activity)
         }
-        // Log.v("Metronome", "SavedItemDatabase:addItem: Number of items: " + dataBase.size)
+//        Log.v("Metronome", "SavedItemDatabase:addItem: Number of items: " + dataBase?.size)
     }
 
     fun addItem(activity : FragmentActivity, item : SavedItem, position : Int) {
@@ -136,11 +140,12 @@ class SavedItemDatabase : RecyclerView.Adapter<SavedItemDatabase.ViewHolder>() {
 //        // Log.v("Metronome", "SavedItemDatabase:addItem: Number of items: " + dataBase.size());
     }
 
-    fun getSaveDataString(activity: FragmentActivity) : String {
+    fun getSaveDataString() : String {
         dataBase?.let {
             val stringBuilder = StringBuilder()
 
-            stringBuilder.append(String.format(Locale.ENGLISH, "%50s", activity.getString(R.string.version)))
+            //stringBuilder.append(String.format(Locale.ENGLISH, "%50s", activity.getString(R.string.version)))
+            stringBuilder.append(String.format(Locale.ENGLISH, "%50s", BuildConfig.VERSION_NAME))
 
             for (si in it) {
                 stringBuilder.append(String.format(Locale.ENGLISH, "%200s%10s%5s%12.5f%sEND", si.title, si.date, si.time, si.bpm, si.noteList))
@@ -151,7 +156,8 @@ class SavedItemDatabase : RecyclerView.Adapter<SavedItemDatabase.ViewHolder>() {
     }
 
     fun saveData(activity : FragmentActivity) {
-        val s = getSaveDataString(activity)
+        val s = getSaveDataString()
+//        Log.v("Metronome", "SavedItemDatabase. saveData: s=$s")
         if (s != "") {
             val preferences = activity.getPreferences(Context.MODE_PRIVATE)
             val editor = preferences.edit()

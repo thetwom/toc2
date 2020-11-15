@@ -54,12 +54,12 @@ class MetronomeFragment : Fragment() {
 
         override fun onVolumeChanged(note: NoteListItem, index: Int) {
             if(playerService?.state != PlaybackStateCompat.STATE_PLAYING)
-                playerService?.playSpecificSound(note)
+                playerService?.playSpecificSound(note, false)
         }
 
         override fun onNoteIdChanged(note: NoteListItem, index: Int) {
             if(soundChooser?.choiceStatus == SoundChooser.CHOICE_STATIC && playerService?.state != PlaybackStateCompat.STATE_PLAYING)
-                playerService?.playSpecificSound(note)
+                playerService?.playSpecificSound(note, true)
         }
 
         override fun onDurationChanged(note: NoteListItem, index: Int) { }

@@ -21,6 +21,7 @@ package de.moekadu.metronome
 
 import android.graphics.Canvas
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.View
@@ -173,6 +174,7 @@ class SaveDataFragment : Fragment() {
     fun saveItem(activity : FragmentActivity, item : SavedItem)
     {
         savedItemsAdapter.addItem(activity, item)
+        // Log.v("Metronome", "SaveDataFragment.saveItem: item=${item}")
         updateNoSavedItemsMessage()
     }
 
@@ -196,10 +198,7 @@ class SaveDataFragment : Fragment() {
     }
 
     fun getCurrentDatabaseString() : String{
-        activity?.let {
-            return savedItemsAdapter.getSaveDataString(it)
-        }
-        return ""
+        return savedItemsAdapter.getSaveDataString()
     }
 
      fun loadFromDatabaseString(databaseString: String, mode: Int = SavedItemDatabase.REPLACE) {

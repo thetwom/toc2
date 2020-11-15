@@ -22,6 +22,8 @@
     package="de.moekadu.metronome">
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.VIBRATE"/>
+
     <application
         android:name="de.moekadu.metronome.App"
         android:allowBackup="true"

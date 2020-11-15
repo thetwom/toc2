@@ -101,5 +101,7 @@
     <string name="acknowledged">Acknowledged</string>
 
     <string name="keep_screen_on">Keep screen on</string>
+    <string name="vibrate_notes">Vibrating notes</string>
+    <string name="not_supported_by_hardware">Not supported by hardware</string>
 
 </resources>

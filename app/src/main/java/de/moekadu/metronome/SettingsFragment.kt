@@ -65,6 +65,15 @@ class SettingsFragment: PreferenceFragmentCompat() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
+        val vibratePreference = findPreference("vibrate") as SwitchPreferenceCompat?
+        require(vibratePreference != null)
+        if (!vibratingNoteHasHardwareSupport(activity)) {
+//            vibratePreference.isVisible = false // leave visible but deactivate
+            vibratePreference.isEnabled = false
+            vibratePreference.isChecked = false
+            vibratePreference.summary = getString(R.string.not_supported_by_hardware)
+        }
+
         val appearance = findPreference("appearance") as ListPreference?
         require(appearance != null)
         appearance.summary = getAppearanceSummary()
@@ -172,6 +181,8 @@ class SettingsFragment: PreferenceFragmentCompat() {
                 val builder = AlertDialog.Builder(ctx)
                         .setTitle(R.string.reset_settings_prompt)
                         .setPositiveButton(R.string.yes) { _, _ ->
+                            vibratePreference.isChecked = false
+
                             minimumSpeed.text = InitialValues.minimumSpeed.toString()
                             minimumSpeed.onPreferenceChangeListener.onPreferenceChange(minimumSpeed, InitialValues.minimumSpeed.toString())
                             maximumSpeed.text = InitialValues.maximumSpeed.toString()
@@ -198,7 +209,8 @@ class SettingsFragment: PreferenceFragmentCompat() {
         require(aboutPreference != null)
         aboutPreference.onPreferenceClickListener = Preference.OnPreferenceClickListener {
             val textView = TextView(context)
-            textView.text = getString(R.string.about_message, getString(R.string.version))
+            //textView.text = getString(R.string.about_message, getString(R.string.version))
+            textView.text = getString(R.string.about_message, BuildConfig.VERSION_NAME)
             val pad = Utilities.dp2px(20f).roundToInt()
             textView.setPadding(pad, pad, pad, pad)
             context?.let { ctx ->

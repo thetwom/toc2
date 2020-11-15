@@ -193,18 +193,20 @@ class NoteList : Collection<NoteListItem>{
     }
 }
 
-data class NoteInfo(val audio44ResourceID : Int, val audio48ResourceID : Int, val stringResourceID : Int, val drawableResourceID : Int)
+data class NoteInfo(val audio44ResourceID: Int, val audio48ResourceID: Int,
+                    val stringResourceID: Int, val drawableResourceID: Int,
+                    val vibrationDuration: Long)
 
 val availableNotes = arrayOf(
-        NoteInfo(R.raw.base44_wav, R.raw.base48_wav, R.string.base, R.drawable.ic_note_a),
-        NoteInfo(R.raw.snare44_wav, R.raw.snare48_wav, R.string.snare, R.drawable.ic_note_c),
-        NoteInfo(R.raw.sticks44_wav, R.raw.sticks48_wav, R.string.sticks, R.drawable.ic_note_c_rim),
-        NoteInfo(R.raw.woodblock_high44_wav, R.raw.woodblock_high48_wav, R.string.woodblock, R.drawable.ic_note_ep),
-        NoteInfo(R.raw.claves44_wav, R.raw.claves48_wav, R.string.claves, R.drawable.ic_note_gp),
-        // NoteInfo(R.raw.hhp_dry_a, R.string.hihat, R.drawable.ic_hihat),
-        NoteInfo(R.raw.hihat44_wav, R.raw.hihat48_wav, R.string.hihat, R.drawable.ic_note_hihat),
-        // NoteInfo(R.raw.sn_jazz_c, R.string.snare, R.drawable.ic_snare),
-        NoteInfo(R.raw.mute44_wav, R.raw.mute48_wav, R.string.mute, R.drawable.ic_note_pause)
+        NoteInfo(R.raw.base44_wav, R.raw.base48_wav, R.string.base, R.drawable.ic_note_a, 70L),
+        NoteInfo(R.raw.snare44_wav, R.raw.snare48_wav, R.string.snare, R.drawable.ic_note_c, 50L),
+        NoteInfo(R.raw.sticks44_wav, R.raw.sticks48_wav, R.string.sticks, R.drawable.ic_note_c_rim, 50L),
+        NoteInfo(R.raw.woodblock_high44_wav, R.raw.woodblock_high48_wav, R.string.woodblock, R.drawable.ic_note_ep, 30L),
+        NoteInfo(R.raw.claves44_wav, R.raw.claves48_wav, R.string.claves, R.drawable.ic_note_gp, 20L),
+        // NoteInfo(R.raw.hhp_dry_a, R.string.hihat, R.drawable.ic_hihat, 30L),
+        NoteInfo(R.raw.hihat44_wav, R.raw.hihat48_wav, R.string.hihat, R.drawable.ic_note_hihat, 20L),
+        // NoteInfo(R.raw.sn_jazz_c, R.string.snare, R.drawable.ic_snare, 30L),
+        NoteInfo(R.raw.mute44_wav, R.raw.mute48_wav, R.string.mute, R.drawable.ic_note_pause, 0L)
 )
 
 fun getNumAvailableNotes() = availableNotes.size
@@ -220,3 +222,5 @@ fun getNoteAudioResourceID(index : Int, sampleRate: Int) = when(sampleRate) {  /
 //fun getNoteStringResourceID(index : Int) = availableNotes[index].stringResourceID
 
 fun getNoteDrawableResourceID(index : Int) = availableNotes[index].drawableResourceID
+
+fun getNoteVibrationDuration(index : Int) = availableNotes[index].vibrationDuration

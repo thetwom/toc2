@@ -149,6 +149,8 @@ class PlayerService : Service() {
     /// The audio mixer plays is the instance which does plays the metronome.
     private var audioMixer : AudioMixer? = null
 
+    private var vibrator: VibratingNote? = null
+
     /// The current note list played by the metronome. This list shares its items with all the other classes
     val noteList = NoteList().apply {
         registerNoteListChangedListener(object : NoteList.NoteListChangedListener {
@@ -209,8 +211,12 @@ class PlayerService : Service() {
         audioMixer = AudioMixer(applicationContext)
         audioMixer?.noteStartedListener = object : AudioMixer.NoteStartedListener {
             override fun onNoteStarted(noteListItem: NoteListItem?) {
-                if(noteListItem != null)
-                    statusChangedListeners.forEach {s -> s.onNoteStarted(noteListItem)}
+                if(noteListItem != null) {
+                    statusChangedListeners.forEach { s -> s.onNoteStarted(noteListItem) }
+
+                    if (getNoteVibrationDuration(noteListItem.id) > 0L)
+                        vibrator?.vibrate(noteListItem.volume, getNoteVibrationDuration(noteListItem.id))
+                }
             }
         }
         audioMixer?.noteList = noteList
@@ -255,6 +261,13 @@ class PlayerService : Service() {
                 if(sharedPreferences == null || key == null)
                     return
                 when (key) {
+                    "vibrate" -> {
+                        val vibrate = sharedPreferences.getBoolean("vibrate", false)
+                        if (vibrate && vibrator == null)
+                            vibrator = VibratingNote(this@PlayerService)
+                        else if (!vibrate)
+                            vibrator = null
+                    }
                     "minimumspeed" -> {
                         val newMinimumSpeed = sharedPreferences.getString("minimumspeed", InitialValues.minimumSpeed.toString())
                         minimumSpeed = newMinimumSpeed!!.toFloat()
@@ -279,6 +292,8 @@ class PlayerService : Service() {
         maximumSpeed = sharedPreferences.getString("maximumspeed", InitialValues.maximumSpeed.toString())!!.toFloat()
         val speedIncrementIndex = sharedPreferences.getInt("speedincrement", InitialValues.speedIncrementIndex)
         speedIncrement = Utilities.speedIncrements[speedIncrementIndex]
+        if (sharedPreferences.getBoolean("vibrate", false))
+            vibrator = VibratingNote(this)
     }
 
     override fun onDestroy() {
@@ -366,7 +381,9 @@ class PlayerService : Service() {
         statusChangedListeners.remove(statusChangedListener)
     }
 
-    fun playSpecificSound(noteListItem: NoteListItem) {
+    fun playSpecificSound(noteListItem: NoteListItem, vibrate: Boolean) {
         soundPool.play(soundHandles[noteListItem.id], noteListItem.volume, noteListItem.volume, 1, 0, 1.0f)
+        if (vibrate && getNoteVibrationDuration(noteListItem.id) > 0L)
+            vibrator?.vibrate(noteListItem.volume, getNoteVibrationDuration(noteListItem.id))
     }
 }

@@ -61,4 +61,6 @@
     <string name="file_empty">Datei ist leer.</string>
     <string name="file_invalid">Ungültige Datei.</string>
     <string name="database_empty">Keine zu speichernde Einträge.</string>
+    <string name="vibrate_notes">Vibrierende Noten</string>
+    <string name="not_supported_by_hardware">Nicht unterstützt durch Hardware</string>
 </resources>

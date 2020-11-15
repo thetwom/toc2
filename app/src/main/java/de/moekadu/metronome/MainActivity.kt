@@ -25,6 +25,7 @@ import android.media.AudioManager
 import android.net.Uri
 import android.os.Bundle
 import android.text.InputType
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.WindowManager
@@ -169,6 +170,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             R.id.action_save -> {
+//                Log.v("Metronome", "MainActivity.onOptionsItemSelected: action_save")
                 saveCurrentSettings()
             }
             R.id.action_archive -> {
