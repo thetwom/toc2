@@ -103,5 +103,9 @@
     <string name="keep_screen_on">Keep screen on</string>
     <string name="vibrate_notes">Vibrating notes</string>
     <string name="not_supported_by_hardware">Not supported by hardware</string>
+    <string name="vibrate_strength">Vibration strength</string>
+    <string name="low_strength">Low vibration strength</string>
+    <string name="medium_strength">Medium vibration strength</string>
+    <string name="high_strength">High vibration strength</string>
 
 </resources>

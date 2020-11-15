@@ -73,6 +73,17 @@ class SettingsFragment: PreferenceFragmentCompat() {
             vibratePreference.isChecked = false
             vibratePreference.summary = getString(R.string.not_supported_by_hardware)
         }
+        val vibrationStrength = findPreference("vibratestrength") as SeekBarPreference?
+        require(vibrationStrength != null)
+        vibrationStrength.updatesContinuously = true
+        vibrationStrength.seekBarIncrement = 1
+        vibrationStrength.min = 0
+        vibrationStrength.max = 100
+        vibrationStrength.summary = getVibrationStrengthSummary(vibrationStrength.value)
+        vibrationStrength.setOnPreferenceChangeListener { _, newValue ->
+            vibrationStrength.summary = getVibrationStrengthSummary(newValue as Int)
+            true
+        }
 
         val appearance = findPreference("appearance") as ListPreference?
         require(appearance != null)
@@ -182,6 +193,8 @@ class SettingsFragment: PreferenceFragmentCompat() {
                         .setTitle(R.string.reset_settings_prompt)
                         .setPositiveButton(R.string.yes) { _, _ ->
                             vibratePreference.isChecked = false
+                            vibrationStrength.value = 50
+                            vibrationStrength.onPreferenceChangeListener.onPreferenceChange(vibrationStrength, 0)
 
                             minimumSpeed.text = InitialValues.minimumSpeed.toString()
                             minimumSpeed.onPreferenceChangeListener.onPreferenceChange(minimumSpeed, InitialValues.minimumSpeed.toString())
@@ -237,5 +250,14 @@ class SettingsFragment: PreferenceFragmentCompat() {
             return getString(R.string.light_appearance)
         }
         throw RuntimeException("No summary for given appearance value")
+    }
+
+    private fun getVibrationStrengthSummary(value: Int): String {
+        return if (value in 0 until 25)
+            getString(R.string.low_strength)
+        else if (value in 25 .. 75)
+            getString(R.string.medium_strength)
+        else
+            getString(R.string.high_strength)
     }
 }

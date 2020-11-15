@@ -26,6 +26,12 @@
         app:title="@string/vibrate_notes"
         app:defaultValue="false"
         />
+    <SeekBarPreference
+        app:key="vibratestrength"
+        app:title="@string/vibrate_strength"
+        android:defaultValue="50"
+        android:dependency="vibrate"
+        />
 
     <ListPreference
       app:key="appearance"

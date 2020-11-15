@@ -215,7 +215,7 @@ class PlayerService : Service() {
                     statusChangedListeners.forEach { s -> s.onNoteStarted(noteListItem) }
 
                     if (getNoteVibrationDuration(noteListItem.id) > 0L)
-                        vibrator?.vibrate(noteListItem.volume, getNoteVibrationDuration(noteListItem.id))
+                        vibrator?.vibrate(noteListItem.volume, noteListItem)
                 }
             }
         }
@@ -263,10 +263,16 @@ class PlayerService : Service() {
                 when (key) {
                     "vibrate" -> {
                         val vibrate = sharedPreferences.getBoolean("vibrate", false)
-                        if (vibrate && vibrator == null)
+                        if (vibrate && vibrator == null) {
                             vibrator = VibratingNote(this@PlayerService)
-                        else if (!vibrate)
+                            vibrator?.strength = sharedPreferences.getInt("vibratestrength", 0)
+                        }
+                        else if (!vibrate) {
                             vibrator = null
+                        }
+                    }
+                    "vibratestrength" -> {
+                        vibrator?.strength = sharedPreferences.getInt("vibratestrength", 0)
                     }
                     "minimumspeed" -> {
                         val newMinimumSpeed = sharedPreferences.getString("minimumspeed", InitialValues.minimumSpeed.toString())
@@ -292,8 +298,10 @@ class PlayerService : Service() {
         maximumSpeed = sharedPreferences.getString("maximumspeed", InitialValues.maximumSpeed.toString())!!.toFloat()
         val speedIncrementIndex = sharedPreferences.getInt("speedincrement", InitialValues.speedIncrementIndex)
         speedIncrement = Utilities.speedIncrements[speedIncrementIndex]
-        if (sharedPreferences.getBoolean("vibrate", false))
+        if (sharedPreferences.getBoolean("vibrate", false)) {
             vibrator = VibratingNote(this)
+            vibrator?.strength = sharedPreferences.getInt("vibratestrength", 0)
+        }
     }
 
     override fun onDestroy() {
@@ -384,6 +392,6 @@ class PlayerService : Service() {
     fun playSpecificSound(noteListItem: NoteListItem, vibrate: Boolean) {
         soundPool.play(soundHandles[noteListItem.id], noteListItem.volume, noteListItem.volume, 1, 0, 1.0f)
         if (vibrate && getNoteVibrationDuration(noteListItem.id) > 0L)
-            vibrator?.vibrate(noteListItem.volume, getNoteVibrationDuration(noteListItem.id))
+            vibrator?.vibrate(noteListItem.volume, noteListItem)
     }
 }
