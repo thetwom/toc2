@@ -1,0 +1,112 @@
+<!--
+  - Copyright 2019 Michael Moessner
+  -
+  - This file is part of Metronome.
+  -
+  - Metronome is free software: you can redistribute it and/or modify
+  - it under the terms of the GNU General Public License as published by
+  - the Free Software Foundation, either version 3 of the License, or
+  - (at your option) any later version.
+  -
+  - Metronome is distributed in the hope that it will be useful,
+  - but WITHOUT ANY WARRANTY; without even the implied warranty of
+  - MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  - GNU General Public License for more details.
+  -
+  - You should have received a copy of the GNU General Public License
+  - along with Metronome.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Metronomo</string>
+    <string name="action_settings">Configurazione</string>
+
+    <string name="base" translatable="false">kick drum</string>
+    <string name="hihat" translatable="false">hi-hat</string>
+    <string name="snare" translatable="false">snare</string>
+    <string name="sticks" translatable="false">sticks</string>
+    <string name="claves" translatable="false">claves</string>
+    <string name="woodblock" translatable="false">woodblock</string>
+    <string name="mute">muto</string>
+    <string name="bpm">%s bpm</string>
+
+    <string name="load_data">Carica dati</string>
+    <string name="save_data">Salva dati</string>
+    <string name="load_from_disc">Carica dati da file</string>
+    <string name="save_to_disc">Salva data in file</string>
+    <string name="clear_all">Azzera</string>
+    <string name="clear_all_question">Rimuovere tutti gli elementi?</string>
+    <string name="title">Titolo</string>
+    <string name="done">Fatto</string>
+    <string name="appearance">Aspetto</string>
+    <string name="dark_appearance">Aspetto scuro</string>
+    <string name="light_appearance">Aspetto chiaro</string>
+    <string name="system_appearance">Aspetto di sistema</string>
+
+    <string name="dark_appearance_short">Scuro</string>
+    <string name="light_appearance_short">Chiaro</string>
+    <string name="system_appearance_short">Auto</string>
+
+    <string name="add_note">Aggiungi nota</string>
+
+    <string name="speed_sensitivity">Calibrazione cambio di velocità</string>
+    <string name="speed_sensitivity_summary">Variazioni di velocità per cm: %.1f</string>
+    <string name="speedincrement">Incremento di velocità</string>
+    <string name="minimum_speed">Velocità minima</string>
+    <string name="maximum_speed">Velocità massima</string>
+
+    <string name="reset_all_settings">Azzera le impostazioni</string>
+    <string name="reset_settings_prompt">Vuoi davvero azzerare tutte le impostazioni?</string>
+    <string name="about">Informazioni</string>
+
+    <string name="undo">Annulla</string>
+    <string name="item_deleted">Elemento rimosso</string>
+
+    <string name="save_settings_dialog_title">Salva impostazioni attuali</string>
+    <string name="save_name">Nome</string>
+    <string name="saved_item_message">Impostazioni attuali salvate: %s</string>
+    <string name="save">Salva</string>
+    <string name="dismiss">Annulla</string>
+    <string name="max_allowed_characters">Lunghezza massima (caratteri): %d</string>
+
+    <string name="load_saved_items">Carica elementi salvati</string>
+    <string name="abort">Annulla</string>
+    <string name="replace_current_list">Sostituisci lista attuale</string>
+    <string name="prepend_current_list">Inserisci all'inizio della lista attuale</string>
+    <string name="append_current_list">Inserisci alla fine della lista attuale</string>
+    <string name="file_empty">Il file è vuoto</string>
+    <string name="file_invalid">File invalido</string>
+    <string name="database_empty">Non ci sono elementi salvabili.</string>
+
+    <string name="cannot_delete_last_note">Impossibile cancellare l'ultima nota.</string>
+
+    <string name="no_saved_items">Nessun elemento salvato al momento"</string>
+
+    <string name="loaded_message">Impostazioni caricate: %s</string>
+
+    <string name="tap_in">BATTI IL TEMPO</string>
+
+    <string name="about_message">Metronomo app\nVersione: %s\nLicenza: GPLv3</string>
+
+    <string name="yes">si</string>
+    <string name="no">no</string>
+
+    <string name="speed_too_small">La velocità salvata %s bpm è minore di quella minima di %s bpm.\n</string>
+    <string name="speed_too_large">La velocità salvata %s bpm è maggiore di quella massima di %s bpm.\n</string>
+    <string name="max_speed_lower_minimum">La velocità massima fornita (%s) è minore di quella minima (%s).</string>
+    <string name="min_speed_higher_maximum">La velocità minima fornita (%s) è maggiore di quella massima (%s).</string>
+    <string name="inconsistent_increment">La velocità salvata %s bpm non può essere variata dell'attuale incremento di velocità di %s bpm.\n</string>
+    <string name="inconsistent_load_title">Caricamento impreciso</string>
+    <string name="inconsistent_summary">\nCambia le impostazioni se vuoi caricare l'elemento correttamente.</string>
+    <string name="acknowledged">Riconosciuto</string>
+
+    <string name="keep_screen_on">Tieni acceso lo schermo</string>
+    <string name="vibrate_notes">Note con vibrazione</string>
+    <string name="not_supported_by_hardware">Non supportato dall'hardware</string>
+    <string name="vibrate_strength">Intensità vibrazione</string>
+    <string name="low_strength">Bassa intensità vibrazione</string>
+    <string name="medium_strength">Media intensità vibrazione</string>
+    <string name="high_strength">Alta intensità vibrazione</string>
+
+</resources>
