@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!--
   - Copyright 2019 Michael Moessner
   -
@@ -17,17 +18,10 @@
   - along with Metronome.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Metronomo</string>
     <string name="action_settings">Configurazione</string>
 
-    <string name="base" translatable="false">kick drum</string>
-    <string name="hihat" translatable="false">hi-hat</string>
-    <string name="snare" translatable="false">snare</string>
-    <string name="sticks" translatable="false">sticks</string>
-    <string name="claves" translatable="false">claves</string>
-    <string name="woodblock" translatable="false">woodblock</string>
     <string name="mute">muto</string>
     <string name="bpm">%s bpm</string>
 
@@ -73,13 +67,13 @@
     <string name="load_saved_items">Carica elementi salvati</string>
     <string name="abort">Annulla</string>
     <string name="replace_current_list">Sostituisci lista attuale</string>
-    <string name="prepend_current_list">Inserisci all'inizio della lista attuale</string>
+    <string name="prepend_current_list">Inserisci all\'inizio della lista attuale</string>
     <string name="append_current_list">Inserisci alla fine della lista attuale</string>
     <string name="file_empty">Il file è vuoto</string>
     <string name="file_invalid">File invalido</string>
     <string name="database_empty">Non ci sono elementi salvabili.</string>
 
-    <string name="cannot_delete_last_note">Impossibile cancellare l'ultima nota.</string>
+    <string name="cannot_delete_last_note">Impossibile cancellare l\'ultima nota.</string>
 
     <string name="no_saved_items">Nessun elemento salvato al momento"</string>
 
@@ -96,17 +90,17 @@
     <string name="speed_too_large">La velocità salvata %s bpm è maggiore di quella massima di %s bpm.\n</string>
     <string name="max_speed_lower_minimum">La velocità massima fornita (%s) è minore di quella minima (%s).</string>
     <string name="min_speed_higher_maximum">La velocità minima fornita (%s) è maggiore di quella massima (%s).</string>
-    <string name="inconsistent_increment">La velocità salvata %s bpm non può essere variata dell'attuale incremento di velocità di %s bpm.\n</string>
+    <string name="inconsistent_increment">La velocità salvata %s bpm non può essere variata dell\'attuale incremento di velocità di %s bpm.\n</string>
     <string name="inconsistent_load_title">Caricamento impreciso</string>
-    <string name="inconsistent_summary">\nCambia le impostazioni se vuoi caricare l'elemento correttamente.</string>
+    <string name="inconsistent_summary">\nCambia le impostazioni se vuoi caricare l\'elemento correttamente.</string>
     <string name="acknowledged">Riconosciuto</string>
 
     <string name="keep_screen_on">Tieni acceso lo schermo</string>
     <string name="vibrate_notes">Note con vibrazione</string>
-    <string name="not_supported_by_hardware">Non supportato dall'hardware</string>
+    <string name="not_supported_by_hardware">Non supportato dall\'hardware</string>
     <string name="vibrate_strength">Intensità vibrazione</string>
-    <string name="low_strength">Bassa intensità vibrazione</string>
-    <string name="medium_strength">Media intensità vibrazione</string>
-    <string name="high_strength">Alta intensità vibrazione</string>
+    <string name="low_strength">Bassa intensità vibrazione (%.2f)</string>
+    <string name="medium_strength">Media intensità vibrazione (%.2f)</string>
+    <string name="high_strength">Alta intensità vibrazione (%.2f)</string>
 
 </resources>

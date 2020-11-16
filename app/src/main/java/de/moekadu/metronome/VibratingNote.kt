@@ -13,6 +13,9 @@ fun vibratingNoteHasHardwareSupport(context: Context?): Boolean {
     return false
 }
 
+fun vibratingNote100ToLog2(value: Int) = 2.0f.pow((value-50) / 50f)
+fun vibratingNoteLog2To100(value: Float) = (50f * log2(value) + 50).toInt()
+
 class VibratingNote(context: Context)  {
 
     private val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator?
@@ -21,11 +24,11 @@ class VibratingNote(context: Context)  {
     var strength: Int
         set(value) {
             require(value in 0..100)
-            _strength = 2.0f.pow((value-50) / 50f)
+            _strength = vibratingNote100ToLog2(value)
 //            Log.v("Metronome", "VibratingNote.strength: $_strength")
         }
         get() {
-            return (100 * log2(_strength)).toInt()
+            return vibratingNoteLog2To100(_strength)
         }
 
 

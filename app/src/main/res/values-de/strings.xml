@@ -64,7 +64,7 @@
     <string name="vibrate_notes">Vibrierende Noten</string>
     <string name="not_supported_by_hardware">Nicht unterstützt durch Hardware</string>
     <string name="vibrate_strength">Vibrationsstärke</string>
-    <string name="low_strength">Geringe Vibrationsstärke</string>
-    <string name="medium_strength">Mittlere Vibrationsstärke</string>
-    <string name="high_strength">Hohe Vibrationsstärke</string>
+    <string name="low_strength">Geringe Vibrationsstärke (%.2f)</string>
+    <string name="medium_strength">Mittlere Vibrationsstärke (%.2f)</string>
+    <string name="high_strength">Hohe Vibrationsstärke (%.2f)</string>
 </resources>
