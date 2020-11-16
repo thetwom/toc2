@@ -1,0 +1,5 @@
+    Semplice app metronomo che supporta funzionalità basilari utili a tenere il tempo mentre si fa pratica. Alcune caratteristiche:
+    * Imposta il tempo specificando i "battiti per minuto".
+    * Imposta il tempo battendo il dito sullo schermo.
+    * Scegli tra vari suoni.
+    * Salva e carica le impostazioni.
