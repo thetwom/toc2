@@ -198,10 +198,15 @@ class MetronomeFragment : Fragment() {
 
         plusButton = view.findViewById(R.id.plus_button)
         plusButton?.setOnClickListener {
-            if(noteList?.size == 0)
+            if(noteList?.size == 0) {
                 noteList?.add(NoteListItem(defaultNote, 1.0f, -1.0f))
-            else
-                noteList?.let {it.add(it.last().clone())}
+            }
+            else {
+                noteList?.let {
+                    val n = it.last().clone().apply { hash = -1 }
+                    it.add(n)
+                }
+            }
 
             if(soundChooser?.choiceStatus == SoundChooser.CHOICE_STATIC) {
                 noteList?.let { notes ->

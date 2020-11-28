@@ -53,7 +53,10 @@ class SoundChooserControlButton(context: Context, note: NoteListItem, elevation:
         this.volumeColor = volumeColor
 
         val privateNoteList = NoteList()
-        val privateNote = NoteListItem().apply { set(note) }
+        val privateNote = NoteListItem().apply {
+            set(note)
+            hash = -1
+        }
         privateNoteList.add(privateNote)
         noteList = privateNoteList
         highlightNote(0, true)

@@ -21,6 +21,8 @@ package de.moekadu.metronome
 
 import android.util.Log
 import java.security.KeyStore
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 import kotlin.math.min
 
 /// Item in note list
@@ -28,12 +30,14 @@ import kotlin.math.min
  * @param id Id identifying which note is played
  * @param volume Note volume (0.0f <= volume <= 1.0f
  * @param duration Note duration in seconds
+ * @param hash Key which the note list can set to identify the note
  */
-class NoteListItem(var id : Int = 0, var volume : Float = 1.0f, var duration : Float = 1.0f) {
+class NoteListItem(var id : Int = 0, var volume : Float = 1.0f, var duration : Float = 1.0f, var hash: Int = -1) {
     fun set(value : NoteListItem) {
         id = value.id
         volume = value.volume
         duration = value.duration
+        hash = value.hash
     }
 
     fun clone() : NoteListItem {
@@ -64,6 +68,46 @@ class NoteList : Collection<NoteListItem>{
     }
     private val notes = ArrayList<NoteListItem>()
 
+    private val lock = ReentrantLock()
+
+    private var generateHash = object: Any() {
+        private var value = 0
+        operator fun invoke(): Int {
+            ++value
+            return value
+        }
+    }
+
+    fun getByHash(hash: Int): NoteListItem? {
+        return notes.find { it.hash == hash}
+    }
+
+    /// Set note list to given note list by copying the notes.
+    /**
+     * @note This function is threadsafe in means that it guards against write operations on the
+     *   input note list. However, it is not allowed to read from the current note list while
+     *   calling this method.
+     */
+    fun assignIfNotLocked(noteList: NoteList?) {
+        if (noteList == null)
+            return
+
+        if (noteList.lock.tryLock()) {
+            try {
+                lock.withLock {
+                    while (notes.size > noteList.size)
+                        notes.removeLast()
+                    while (notes.size < noteList.size)
+                        notes.add(NoteListItem())
+                    noteList.zip(notes).forEach { (origin, target) -> target.set(origin) }
+                }
+            }
+            finally {
+                noteList.lock.unlock()
+            }
+        }
+    }
+
     override val size get() = notes.size
     operator fun get(index: Int) = notes[index]
 
@@ -80,28 +124,34 @@ class NoteList : Collection<NoteListItem>{
 
     fun add(note: NoteListItem, index : Int = size) {
         require(notes.indexOf(note) < 0) // make sure that each note only exists once!!
-        notes.add(index, note)
-        Log.v("Metronome", "NoteList.add: noteListChangedListener.size = ${noteListChangedListener.size}")
+        require(note.hash < 0) // we only add notes which don't have a hash yet
+        note.hash = generateHash()
+        lock.withLock { notes.add(index, note) }
+
+        // Log.v("Metronome", "NoteList.add: noteListChangedListener.size = ${noteListChangedListener.size}")
         for (n in noteListChangedListener) {
             n.onNoteAdded(note, index)
-            Log.v("Metronome", "NoteList.add: called onNoteAdded")
+            // Log.v("Metronome", "NoteList.add: called onNoteAdded")
         }
     }
 
     fun remove(note: NoteListItem) {
         val index = notes.indexOf(note)
         if (index >= 0) {
-            notes.remove(note)
+            lock.withLock { notes.remove(note) }
             for (n in noteListChangedListener)
                 n.onNoteRemoved(note, index)
+
         }
     }
 
     fun move(fromIndex : Int, toIndex : Int) {
         if(fromIndex in 0 until notes.size && toIndex >= 0) {
             val note = notes[fromIndex]
-            notes.removeAt(fromIndex)
-            notes.add(min(notes.size, toIndex), note)
+            lock.withLock {
+                notes.removeAt(fromIndex)
+                notes.add(min(notes.size, toIndex), note)
+            }
             for (n in noteListChangedListener)
                 n.onNoteMoved(note, fromIndex, toIndex)
         }
@@ -109,7 +159,7 @@ class NoteList : Collection<NoteListItem>{
 
     fun setVolume(index: Int, volume: Float) {
         if (index in 0 until notes.size && notes[index].volume != volume) {
-            notes[index].volume = volume
+            lock.withLock { notes[index].volume = volume }
             for (n in noteListChangedListener)
                 n.onVolumeChanged(notes[index], index)
         }
@@ -117,7 +167,7 @@ class NoteList : Collection<NoteListItem>{
 
     fun setNote(index: Int, noteId: Int) {
         if (index in 0 until notes.size && notes[index].id != noteId) {
-            notes[index].id = noteId
+            lock.withLock { notes[index].id = noteId }
             for (n in noteListChangedListener) {
                 n.onNoteIdChanged(notes[index], index)
             }
@@ -131,7 +181,7 @@ class NoteList : Collection<NoteListItem>{
      */
     fun setDuration(index: Int, duration: Float) {
         if (index in 0 until notes.size && notes[index].duration != duration) {
-            notes[index].duration = duration
+            lock.withLock { notes[index].duration = duration }
             for (n in noteListChangedListener) {
                 n.onDurationChanged(notes[index], index)
             }

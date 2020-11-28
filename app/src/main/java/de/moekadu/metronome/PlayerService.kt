@@ -30,6 +30,8 @@ import android.os.Binder
 import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import androidx.lifecycle.LifecycleService
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import kotlin.collections.ArrayList
 import kotlin.math.abs
@@ -37,7 +39,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-class PlayerService : Service() {
+class PlayerService : LifecycleService() {
 
     private val playerBinder = PlayerBinder()
 
@@ -208,7 +210,7 @@ class PlayerService : Service() {
         val filter = IntentFilter(BROADCAST_PLAYERACTION)
         registerReceiver(actionReceiver, filter)
 
-        audioMixer = AudioMixer(applicationContext)
+        audioMixer = AudioMixer(applicationContext, lifecycleScope)
         audioMixer?.noteStartedListener = object : AudioMixer.NoteStartedListener {
             override fun onNoteStarted(noteListItem: NoteListItem?) {
                 if(noteListItem != null) {
@@ -314,7 +316,9 @@ class PlayerService : Service() {
         super.onDestroy()
     }
 
-    override fun onBind(intent: Intent?): IBinder? {
+
+    override fun onBind(intent: Intent): IBinder? {
+        super.onBind(intent)
         // Log.v("Metronome", "PlayerService:onBind")
 
         val numSounds = getNumAvailableNotes()
