@@ -293,11 +293,8 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
 
             player.setPlaybackPositionUpdateListener(object: AudioTrack.OnPlaybackPositionUpdateListener {
                 override fun onMarkerReached(track: AudioTrack?) {
-                    // TODO: instead of a hash we should use the original note
-                    notifiedMarker.poll()?.noteListItem?.hash?.let {hash ->
-                        noteList?.getByHash(hash)?.let {
-                            noteStartedListener?.onNoteStarted(it)
-                        }
+                    notifiedMarker.poll()?.noteListItem?.original?.let {note ->
+                        noteStartedListener?.onNoteStarted(note)
                     }
                 }
                 override fun onPeriodicNotification(track: AudioTrack?) {}
@@ -312,7 +309,7 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                 }, Handler(Looper.getMainLooper()))
             }
 
-            val mixingBufferSize = min(player.bufferSizeInFrames / 2, 128)
+            val mixingBufferSize = min(player.bufferSizeInFrames / 2, 512)
             val mixingBuffer = FloatArray(mixingBufferSize)
 
             // Total number of frames for which we queued track for playing. Is zeroed when player starts.

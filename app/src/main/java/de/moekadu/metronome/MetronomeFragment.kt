@@ -203,7 +203,7 @@ class MetronomeFragment : Fragment() {
             }
             else {
                 noteList?.let {
-                    val n = it.last().clone().apply { hash = -1 }
+                    val n = it.last().clone()
                     it.add(n)
                 }
             }

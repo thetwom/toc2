@@ -30,14 +30,16 @@ import kotlin.math.min
  * @param id Id identifying which note is played
  * @param volume Note volume (0.0f <= volume <= 1.0f
  * @param duration Note duration in seconds
- * @param hash Key which the note list can set to identify the note
+ * @param original Note list item from which this is a copy of. This is only set inside the method
+ *   assignIfNotLocked in the NoteList-class
  */
-class NoteListItem(var id : Int = 0, var volume : Float = 1.0f, var duration : Float = 1.0f, var hash: Int = -1) {
+class NoteListItem(var id : Int = 0, var volume : Float = 1.0f, var duration : Float = 1.0f,
+                   var original: NoteListItem? = null) {
     fun set(value : NoteListItem) {
         id = value.id
         volume = value.volume
         duration = value.duration
-        hash = value.hash
+        original = value.original
     }
 
     fun clone() : NoteListItem {
@@ -70,23 +72,13 @@ class NoteList : Collection<NoteListItem>{
 
     private val lock = ReentrantLock()
 
-    private var generateHash = object: Any() {
-        private var value = 0
-        operator fun invoke(): Int {
-            ++value
-            return value
-        }
-    }
-
-    fun getByHash(hash: Int): NoteListItem? {
-        return notes.find { it.hash == hash}
-    }
-
     /// Set note list to given note list by copying the notes.
     /**
      * @note This function is threadsafe in means that it guards against write operations on the
      *   input note list. However, it is not allowed to read from the current note list while
      *   calling this method.
+     *   In this function we will set the "original"-property of each note, to the note from the
+     *   input note list.
      */
     fun assignIfNotLocked(noteList: NoteList?) {
         if (noteList == null)
@@ -99,7 +91,10 @@ class NoteList : Collection<NoteListItem>{
                         notes.removeLast()
                     while (notes.size < noteList.size)
                         notes.add(NoteListItem())
-                    noteList.zip(notes).forEach { (origin, target) -> target.set(origin) }
+                    noteList.zip(notes).forEach { (origin, target) ->
+                        target.set(origin)
+                        target.original = origin
+                    }
                 }
             }
             finally {
@@ -124,8 +119,6 @@ class NoteList : Collection<NoteListItem>{
 
     fun add(note: NoteListItem, index : Int = size) {
         require(notes.indexOf(note) < 0) // make sure that each note only exists once!!
-        require(note.hash < 0) // we only add notes which don't have a hash yet
-        note.hash = generateHash()
         lock.withLock { notes.add(index, note) }
 
         // Log.v("Metronome", "NoteList.add: noteListChangedListener.size = ${noteListChangedListener.size}")
