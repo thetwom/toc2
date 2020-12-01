@@ -346,8 +346,8 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                         break
                     }
                     else {
-                        player.notificationMarkerPosition = markerPosition.frameWhenNoteListItemStarts
                         notifiedMarker.send(markerPosition)
+                        player.notificationMarkerPosition = markerPosition.frameWhenNoteListItemStarts
                     }
                 }
 

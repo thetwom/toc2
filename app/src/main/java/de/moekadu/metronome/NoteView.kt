@@ -26,12 +26,16 @@ import android.graphics.drawable.Drawable
 import android.transition.AutoTransition
 import android.transition.TransitionManager
 import android.util.AttributeSet
+import android.util.Log
+import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.content.ContextCompat
+import androidx.core.widget.TextViewCompat
 import kotlin.math.max
 
 
@@ -111,6 +115,8 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
     private val notes = ArrayList<Note>()
 
+    private val numbering = ArrayList<AppCompatTextView>()
+
     private fun computeLargestAspectRatio() : Float {
         var largestAspectRatio = 0.0f
         for(i in 0 until getNumAvailableNotes()) {
@@ -132,12 +138,14 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             val newNote = Note(note)
             notes.add(index, newNote)
             addView(newNote.noteImage)
+            makeSureWeHaveCorrectNumberOfNumberingViews()
         }
 
         override fun onNoteRemoved(note: NoteListItem, index: Int) {
             TransitionManager.beginDelayedTransition(this@NoteView, transition)
             removeView(notes[index].noteImage)
             notes.removeAt(index)
+            makeSureWeHaveCorrectNumberOfNumberingViews()
         }
 
         override fun onNoteMoved(note: NoteListItem, fromIndex: Int, toIndex: Int) {
@@ -145,6 +153,8 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             val noteToBeMoved = notes[fromIndex]
             notes.removeAt(fromIndex)
             notes.add(toIndex, noteToBeMoved)
+            if (noteToBeMoved.highlight)
+                highlightNumber(toIndex, true)
             requestLayout()
         }
 
@@ -177,6 +187,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                     addView(notes.last().noteImage)
                 }
             }
+            makeSureWeHaveCorrectNumberOfNumberingViews()
         }
 
     interface OnNoteClickListener {
@@ -186,6 +197,12 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     }
 
     var onNoteClickListener : OnNoteClickListener? = null
+
+    private var showNumbers = false
+        set(value) {
+            field = value
+            makeSureWeHaveCorrectNumberOfNumberingViews()
+        }
 
     constructor(context: Context, attrs : AttributeSet? = null)
             : this(context, attrs, R.attr.noteViewStyle)
@@ -200,6 +217,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             )
 
             volumeColor = ta.getColor(R.styleable.NoteView_volumeColor, volumeColor)
+            showNumbers = ta.getBoolean(R.styleable.NoteView_showNumbers, showNumbers)
             ta.recycle()
         }
 
@@ -229,6 +247,11 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         for(n in notes)
             n.noteImage.measure(noteWidthSpec, heightSpec)
 
+        val textHeightSpec = MeasureSpec.makeMeasureSpec((0.2f * totalHeight).toInt(), MeasureSpec.EXACTLY)
+        //val textHeightSpec = MeasureSpec.makeMeasureSpec(1000, MeasureSpec.EXACTLY)
+        for(n in numbering)
+            n.measure(textHeightSpec, textHeightSpec)
+
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
@@ -247,9 +270,20 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
             val noteLeft = (noteCenter - 0.5f * noteImageWidth).toInt()
             val noteTop = paddingTop
-            val noteRight = (noteCenter - 0.5f * noteImageWidth).toInt() + noteImageWidth
+            val noteRight = noteLeft + noteImageWidth
             val noteBottom = paddingTop + noteImageHeight
             noteView.layout(noteLeft, noteTop, noteRight, noteBottom)
+
+            if (i < numbering.size) {
+                val textView = numbering[i]
+                val textViewLeft = (noteCenter - 0.5f * textView.measuredWidth).toInt()
+                val textViewRight = textViewLeft + textView.measuredWidth
+                val textViewBottom = b - t - paddingBottom
+                val textViewTop = textViewBottom - textView.measuredHeight
+//                Log.v("Metronome", "NoteView.onLayout, $textViewLeft, $textViewTop, $textViewRight, $textViewBottom")
+                textView.layout(textViewLeft, textViewTop, textViewRight, textViewBottom)
+//                textView.layout(0,0,1000,1000)
+            }
         }
     }
 
@@ -304,10 +338,11 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     fun highlightNote(i : Int, flag : Boolean) {
         for(j in notes.indices) {
             if(i == j)
-                notes[i].highlight = flag
+                notes[j].highlight = flag
             else
-                notes[i].highlight = false
+                notes[j].highlight = false
         }
+        highlightNumber(i, flag)
     }
 
     fun highlightNote(noteListItem : NoteListItem?, flag : Boolean) {
@@ -318,6 +353,15 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                 n.highlight = flag
             else
                 n.highlight = false
+        }
+
+        noteList?.indexOf(noteListItem)?.let {highlightNumber(it, flag)}
+    }
+
+    private fun highlightNumber(index: Int, flag: Boolean) {
+        if (index < numbering.size) {
+            for (i in numbering.indices)
+                numbering[i].isSelected = (flag && i == index)
         }
     }
 
@@ -330,5 +374,28 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                 drawable?.stop()
                 drawable?.start()
             }
+    }
+
+    private fun makeSureWeHaveCorrectNumberOfNumberingViews() {
+        val numNumbers = if (showNumbers) notes.size else 0
+
+        while (numbering.size < numNumbers) {
+            numbering.add(
+                    AppCompatTextView(context).apply {
+                        gravity = Gravity.CENTER
+                        text = "${numbering.size + 1}"
+                        setTextColor(ContextCompat.getColorStateList(context, R.color.note_view_note))
+                        background = null
+                        setPadding(0, 0, 0, 0)
+                    }
+            )
+            TextViewCompat.setAutoSizeTextTypeWithDefaults(numbering.last(), TextViewCompat.AUTO_SIZE_TEXT_TYPE_UNIFORM)
+            addView(numbering.last())
+        }
+
+        while (numbering.size > numNumbers) {
+            removeView(numbering.last())
+            numbering.removeLast()
+        }
     }
 }

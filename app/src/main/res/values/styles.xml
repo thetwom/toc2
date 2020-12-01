@@ -59,10 +59,12 @@
 
     <declare-styleable name="NoteView">
         <attr name="volumeColor"/>
+        <attr name="showNumbers"/>
     </declare-styleable>
 
     <style name="Widget.AppTheme.NoteViewStyle" parent="">
         <item name="volumeColor">?attr/colorPrimaryFaint</item>
+        <item name="showNumbers">false</item>
     </style>
 
     <declare-styleable name="SoundChooser">

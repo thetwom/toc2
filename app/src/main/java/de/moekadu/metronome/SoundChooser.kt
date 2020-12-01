@@ -252,7 +252,8 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
                             notes.setNote(index, c.noteList?.get(0)?.id ?: defaultNote)
                     }
                     for(cB in choiceButtons)
-                        cB.highlightNote(0, cB === c)
+                        highlightChoiceButton(cB, cB === c)
+
                     return true
                 }
             }
@@ -635,7 +636,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
 
         volumeControl.setVolume(note.volume, if(choiceStatus == CHOICE_STATIC) animationDuration else 0L)
         for(c in choiceButtons)
-            c.highlightNote(0, c.noteList?.get(0)?.id == activeNote?.id)
+            highlightChoiceButton(c, c.noteList?.get(0)?.id == activeNote?.id)
 
         if(choiceStatus == CHOICE_STATIC && activeControlButton?.visibility != View.VISIBLE) {
             runningTransition = TRANSITION_ACTIVATING_STATIC
@@ -737,7 +738,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         for(c in choiceButtons) {
             c.visibility = View.VISIBLE
             c.translationX = 0f
-            c.highlightNote(0, c.noteList?.get(0)?.id == activeNote?.id)
+            highlightChoiceButton(c, c.noteList?.get(0)?.id == activeNote?.id)
         }
 
         for (cB in controlButtons.values)
@@ -889,7 +890,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
                 }
 
                 for (i in choiceButtons.indices)
-                    choiceButtons[i].highlightNote(0, i == activeVerticalIndex)
+                    highlightChoiceButton(choiceButtons[i], i == activeVerticalIndex)
 
                 activeVerticalCenters[0] = Float.MAX_VALUE
                 val transition = ChangeBounds().apply {
@@ -973,5 +974,13 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
                 (choiceButtonSpaceHeight + choiceButtonSpacing) / numRows.toFloat() - choiceButtonSpacing
         )
         return min(s, noteViewBoundingBox.height().toFloat())
+    }
+
+    private fun highlightChoiceButton(button: NoteView, state: Boolean = true) {
+        button.highlightNote(0, state)
+        if (state)
+            button.setBackgroundResource(R.drawable.choice_button_background_active)
+        else
+            button.setBackgroundResource(R.drawable.choice_button_background)
     }
 }

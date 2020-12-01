@@ -43,4 +43,5 @@
     <attr name="volumeStrokeWidth" format="dimension"/>
 
     <attr name="vertical" format="boolean" />
+    <attr name="showNumbers" format="boolean" />
 </resources>
