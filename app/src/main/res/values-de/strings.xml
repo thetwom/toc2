@@ -67,4 +67,5 @@
     <string name="low_strength">Geringe Vibrationsstärke (%.2f)</string>
     <string name="medium_strength">Mittlere Vibrationsstärke (%.2f)</string>
     <string name="high_strength">Hohe Vibrationsstärke (%.2f)</string>
+    <string name="all_notes_deleted">Alle Noten gelöscht.</string>
 </resources>
