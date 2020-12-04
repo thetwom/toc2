@@ -232,6 +232,23 @@
         android:contentDescription="@string/add_note"
         />
 
+    <ImageButton
+        android:id="@+id/clear_all_button"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="4dp"
+        android:scaleType="fitXY"
+        android:elevation="4dp"
+        app:layout_constraintBottom_toTopOf="@id/plus_button"
+        app:layout_constraintHeight_percent="0.1"
+        app:layout_constraintLeft_toLeftOf="@id/plus_button"
+        app:layout_constraintDimensionRatio="1:1"
+        android:background="@drawable/plus_button_background"
+        app:tint="?attr/colorOnPrimary"
+        android:src="@drawable/ic_clear_all_small"
+        android:contentDescription="@string/clear_all"
+        />
+
     <de.moekadu.metronome.NoteView
         android:id="@+id/note_view"
         android:layout_width="0dp"

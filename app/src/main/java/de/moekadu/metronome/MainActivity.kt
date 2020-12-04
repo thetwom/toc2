@@ -46,6 +46,7 @@ class MainActivity : AppCompatActivity() {
     // TODO: nicer saved-item layout
     // TODO: delete log messages?
 
+    // TODO: when note is added while volume sliders are open, the new slider is not updated
     // TODO: test different device formats
     // TODO: better handle nonblocking write failure in AudioMixer (at least the error is not disable, test if there appear problems)
     // TODO: translations

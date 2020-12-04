@@ -15,3 +15,5 @@ v2.4.0:
 - Playing is done in a separate thread
 - Show numbers below notes
 - Additionally highlight notes with outline when selected
+- Add button to reset notes
+- Fix minor visual issue volume sliders

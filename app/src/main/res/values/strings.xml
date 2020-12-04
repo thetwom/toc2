@@ -107,5 +107,6 @@
     <string name="low_strength">Low vibration strength (%.2f)</string>
     <string name="medium_strength">Medium vibration strength (%.2f)</string>
     <string name="high_strength">High vibration strength (%.2f)</string>
+    <string name="all_notes_deleted">All notes deleted.</string>
 
 </resources>

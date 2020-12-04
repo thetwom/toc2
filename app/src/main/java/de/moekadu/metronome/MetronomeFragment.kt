@@ -31,8 +31,10 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.view.*
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
+import com.google.android.material.snackbar.Snackbar
 import kotlin.math.roundToInt
 
 
@@ -45,6 +47,7 @@ class MetronomeFragment : Fragment() {
     private var playButton: PlayButton? = null
     private var noteView : NoteView? = null
     private var plusButton : ImageButton? = null
+    private var clearAllButton : ImageButton? = null
 
     private val noteListChangeListener = object : NoteList.NoteListChangedListener {
 
@@ -75,6 +78,8 @@ class MetronomeFragment : Fragment() {
             volumeSliders?.noteList = value
             soundChooser?.noteList = value
         }
+
+    private val noteListBackup = NoteList()
 
     private var tickVisualizer: TickVisualizer? = null
     private var soundChooser: SoundChooser? = null
@@ -214,6 +219,34 @@ class MetronomeFragment : Fragment() {
                     val note = notes[noteIndex]
                     soundChooser?.setActiveNote(note)
                     noteView?.highlightNote(note, true)
+                }
+            }
+        }
+
+        clearAllButton = view.findViewById(R.id.clear_all_button)
+        clearAllButton?.setOnClickListener {
+            while (noteListBackup.isNotEmpty())
+                noteListBackup.remove(noteListBackup.last())
+            noteList?.let { notes ->
+                for (n in notes)
+                    noteListBackup.add(n, noteListBackup.size)
+
+                notes.add(NoteListItem(defaultNote), notes.size)
+                while (notes.size > 1) {
+                    val n = notes.first()
+                    notes.remove(n)
+                }
+
+                getView()?.let { view ->
+                    Snackbar.make(view, getString(R.string.all_notes_deleted), Snackbar.LENGTH_LONG)
+                            .setAction(R.string.undo) {
+                                noteList?.let { noteList ->
+                                    while (noteList.isNotEmpty())
+                                        noteList.remove(noteList.last())
+                                    for (n in noteListBackup)
+                                        noteList.add(n, noteList.size)
+                                }
+                            }.show()
                 }
             }
         }
