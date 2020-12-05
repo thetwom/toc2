@@ -245,7 +245,7 @@
         app:layout_constraintDimensionRatio="1:1"
         android:background="@drawable/plus_button_background"
         app:tint="?attr/colorOnPrimary"
-        android:src="@drawable/ic_clear_all_small"
+        android:src="@drawable/ic_baseline_delete_sweep"
         android:contentDescription="@string/clear_all"
         />
 
