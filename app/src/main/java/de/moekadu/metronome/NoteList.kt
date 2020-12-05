@@ -113,9 +113,20 @@ class NoteList : Collection<NoteListItem>{
         fun onVolumeChanged(note: NoteListItem, index: Int)
         fun onNoteIdChanged(note: NoteListItem, index: Int)
         fun onDurationChanged(note: NoteListItem, index: Int)
+        fun onAllNotesReplaced(noteList: NoteList)
     }
 
     private val noteListChangedListener = ArrayList<NoteListChangedListener>()
+
+    fun set(newNoteList: NoteList) {
+        lock.withLock {
+            notes.clear()
+            Log.v("Metronome", "NoteList.set:newNoteList.size=${newNoteList.size}")
+            notes.addAll(newNoteList)
+        }
+        for (n in noteListChangedListener)
+            n.onAllNotesReplaced(this)
+    }
 
     fun add(note: NoteListItem, index : Int = size) {
         require(notes.indexOf(note) < 0) // make sure that each note only exists once!!
@@ -216,11 +227,14 @@ class NoteList : Collection<NoteListItem>{
 
     fun fromString(string: String) {
         val elements = string.split(" ")
-        while (size > 0)
-            remove(notes.last())
-        for(i in 0 until elements.size / 2) {
-            add(NoteListItem(elements[2 * i].toInt(), elements[2 * i + 1].toFloat(), -1f))
+        lock.withLock {
+            notes.clear()
+            for (i in 0 until elements.size / 2) {
+                notes.add(NoteListItem(elements[2 * i].toInt(), elements[2 * i + 1].toFloat(), -1f))
+            }
         }
+        for (n in noteListChangedListener)
+            n.onAllNotesReplaced(this)
     }
 
     override fun iterator(): Iterator<NoteListItem> {

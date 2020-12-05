@@ -66,6 +66,8 @@ class MetronomeFragment : Fragment() {
         }
 
         override fun onDurationChanged(note: NoteListItem, index: Int) { }
+
+        override fun onAllNotesReplaced(noteList: NoteList) { }
     }
 
     /// Note list, that contains current metronome notes.
@@ -225,27 +227,17 @@ class MetronomeFragment : Fragment() {
 
         clearAllButton = view.findViewById(R.id.clear_all_button)
         clearAllButton?.setOnClickListener {
-            while (noteListBackup.isNotEmpty())
-                noteListBackup.remove(noteListBackup.last())
-            noteList?.let { notes ->
-                for (n in notes)
-                    noteListBackup.add(n, noteListBackup.size)
 
-                notes.add(NoteListItem(defaultNote), notes.size)
-                while (notes.size > 1) {
-                    val n = notes.first()
-                    notes.remove(n)
-                }
+            noteList?.let { notes ->
+                noteListBackup.set(notes)
+                val newNoteList = NoteList()
+                newNoteList.add(NoteListItem(defaultNote), 0)
+                notes.set(newNoteList)
 
                 getView()?.let { view ->
                     Snackbar.make(view, getString(R.string.all_notes_deleted), Snackbar.LENGTH_LONG)
                             .setAction(R.string.undo) {
-                                noteList?.let { noteList ->
-                                    while (noteList.isNotEmpty())
-                                        noteList.remove(noteList.last())
-                                    for (n in noteListBackup)
-                                        noteList.add(n, noteList.size)
-                                }
+                                noteList?.set(noteListBackup)
                             }.show()
                 }
             }

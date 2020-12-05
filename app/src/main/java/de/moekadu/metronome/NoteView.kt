@@ -168,6 +168,20 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         }
 
         override fun onDurationChanged(note: NoteListItem, index: Int) { }
+
+        override fun onAllNotesReplaced(noteList: NoteList) {
+            TransitionManager.beginDelayedTransition(this@NoteView, transition)
+            for (n in notes)
+                removeView(n.noteImage)
+            notes.clear()
+            for (n in noteList) {
+                val newNote = Note(n)
+                notes.add(newNote)
+                addView(newNote.noteImage)
+            }
+            makeSureWeHaveCorrectNumberOfNumberingViews()
+        }
+
     }
 
     var noteList : NoteList? = null

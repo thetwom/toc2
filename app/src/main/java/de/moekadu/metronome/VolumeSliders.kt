@@ -80,51 +80,14 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
     private val noteListChangedListener = object: NoteList.NoteListChangedListener {
         override fun onNoteAdded(note: NoteListItem, index: Int) {
-            noteList?.let { notes ->
-                if (!folded) {
-                    TransitionManager.beginDelayedTransition(
-                            this@VolumeSliders,
-                            AutoTransition().apply { duration = 300L }
-                    )
-                }
-
-                while (volumeControls.size < notes.size) {
-                    val vC = createVolumeControl()
-                    addView(vC)
-                    volumeControls.add(vC)
-                }
-
-                if (folded) {
-                    for (i in volumeControls.indices)
-                        volumeControls[i].setVolume(notes[i].volume, 300L)
-                }
-                else {
-                    post {
-                        for (i in volumeControls.indices)
-                            volumeControls[i].setVolume(notes[i].volume, 0L)
-                    }
-                }
+            noteList?.let{
+                onAllNotesReplaced(it)
             }
         }
 
         override fun onNoteRemoved(note: NoteListItem, index: Int) {
-            noteList?.let { notes ->
-                if (!folded) {
-                    TransitionManager.beginDelayedTransition(
-                            this@VolumeSliders,
-                            AutoTransition().apply { duration = 300L }
-                    )
-                }
-
-                while (volumeControls.size > notes.size) {
-                    val vC = volumeControls.last()
-                    removeView(vC)
-                    volumeControls.remove(vC)
-                }
-
-                for (i in volumeControls.indices) {
-                    volumeControls[i].setVolume(notes[i].volume, if (folded) 0L else 300L)
-                }
+            noteList?.let{
+                onAllNotesReplaced(it)
             }
         }
 
@@ -144,6 +107,40 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
         override fun onNoteIdChanged(note: NoteListItem, index: Int) { }
         override fun onDurationChanged(note: NoteListItem, index: Int) { }
+
+        override fun onAllNotesReplaced(noteList: NoteList) {
+            noteList.let { notes ->
+                if (!folded) {
+                    TransitionManager.beginDelayedTransition(
+                            this@VolumeSliders,
+                            AutoTransition().apply { duration = 300L }
+                    )
+                }
+
+                while (volumeControls.size < notes.size) {
+                    val vC = createVolumeControl()
+                    addView(vC)
+                    volumeControls.add(vC)
+                }
+
+                while (volumeControls.size > notes.size) {
+                    val vC = volumeControls.last()
+                    removeView(vC)
+                    volumeControls.remove(vC)
+                }
+
+                if (folded) {
+                    for (i in volumeControls.indices)
+                        volumeControls[i].setVolume(notes[i].volume, 0L)
+                }
+                else {
+                    post {
+                        for (i in volumeControls.indices)
+                            volumeControls[i].setVolume(notes[i].volume, 300L)
+                    }
+                }
+            }
+        }
     }
 
     var noteList: NoteList? = null

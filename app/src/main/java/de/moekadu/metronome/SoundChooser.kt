@@ -106,12 +106,12 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
             noteList?.let { notes ->
                 val s = controlButtons[note]
                 controlButtons.remove(note)
-                if (s?.visibility == View.VISIBLE)
+                if (s?.visibility == View.VISIBLE && choiceStatus == CHOICE_STATIC)
                     s.animate().alpha(0f).setDuration(200L).withEndAction { removeView(s) }.start()
                 else
                     removeView(s)
 
-                val newActiveIndex = if(index < notes.size) index else notes.size - 1
+                val newActiveIndex = if (index < notes.size) index else notes.size - 1
                 if (newActiveIndex in notes.indices)
                     setActiveNote(notes[newActiveIndex], 200L)
             }
@@ -125,7 +125,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
 
         override fun onVolumeChanged(note: NoteListItem, index: Int) {
             if (note === activeNote)
-                volumeControl.setVolume(note.volume, 200L)
+                volumeControl.setVolume(note.volume, if (choiceStatus == CHOICE_STATIC) 200L else 0L)
             controlButtons[note]?.volume = note.volume
         }
 
@@ -133,7 +133,27 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
             controlButtons[note]?.noteId = note.id
         }
 
-        override fun onDurationChanged(note: NoteListItem, index: Int) { }
+        override fun onDurationChanged(note: NoteListItem, index: Int) {}
+
+        override fun onAllNotesReplaced(noteList: NoteList) {
+            for (cB in controlButtons) {
+                if (cB.value.visibility == View.VISIBLE && choiceStatus == CHOICE_STATIC) {
+                    cB.value.animate().alpha(0f)
+                            .setDuration(200L)
+                            .withEndAction { removeView(cB.value) }
+                            .start()
+                }
+                else {
+                    removeView(cB.value)
+                }
+            }
+
+            for (i in noteList.indices) {
+                onNoteAdded(noteList[i], i)
+            }
+
+            setActiveNote(noteList.last(), 200L)
+        }
     }
 
     private val transitionEndListener = object : Transition.TransitionListener {

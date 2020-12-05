@@ -164,6 +164,11 @@ class PlayerService : LifecycleService() {
             override fun onVolumeChanged(note: NoteListItem, index: Int) { }
             override fun onNoteIdChanged(note: NoteListItem, index: Int) { }
             override fun onDurationChanged(note: NoteListItem, index: Int) { }
+            override fun onAllNotesReplaced(noteList: NoteList) {
+                val d = computeNoteDurationInSeconds(speed)
+                for (i in noteList.indices)
+                    setDuration(i, d)
+            }
         })
     }
 

@@ -126,6 +126,11 @@ private suspend fun queueNextNotes(nextNoteInfo: NextNoteInfo,
                                    sampleRate: Int,
                                    queuedNotes: InfiniteCircularBuffer<QueuedNotes>) : NextNoteInfo{
     require(noteList.isNotEmpty())
+    var maxDuration = -1f
+    for (n in noteList)
+        maxDuration = max(n.duration, maxDuration)
+    require(maxDuration > 0)
+
     var nextNoteIndex = nextNoteInfo.nextNoteIndex
     var nextNoteFrame = nextNoteInfo.nextNoteFrame
 
@@ -143,7 +148,7 @@ private suspend fun queueNextNotes(nextNoteInfo: NextNoteInfo,
 
         markers.send(MarkerPositionAndNote(nextNoteFrame, noteListItem))
 
-        // notes can have a duration of -1 if it is not yet set ... in this case we pretend directly play the next note
+        // notes can have a duration of -1 if it is not yet set ... in this case we directly play the next note
         nextNoteFrame += (max(0f, noteListItem.duration) * sampleRate).roundToInt()
         ++nextNoteIndex
     }

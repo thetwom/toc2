@@ -70,6 +70,13 @@ class NoteViewVolume(context : Context) : View(context) {
 
         override fun onNoteIdChanged(note: NoteListItem, index: Int) { }
         override fun onDurationChanged(note: NoteListItem, index: Int) { }
+
+        override fun onAllNotesReplaced(noteList: NoteList) {
+            volumes.clear()
+            for (n in noteList)
+                volumes.add(n.volume)
+            invalidate()
+        }
     }
 
     var noteList : NoteList? = null
