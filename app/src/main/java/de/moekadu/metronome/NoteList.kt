@@ -23,6 +23,7 @@ import android.util.Log
 import java.security.KeyStore
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+import kotlin.math.max
 import kotlin.math.min
 
 /// Item in note list
@@ -121,7 +122,7 @@ class NoteList : Collection<NoteListItem>{
     fun set(newNoteList: NoteList) {
         lock.withLock {
             notes.clear()
-            Log.v("Metronome", "NoteList.set:newNoteList.size=${newNoteList.size}")
+//            Log.v("Metronome", "NoteList.set:newNoteList.size=${newNoteList.size}")
             notes.addAll(newNoteList)
         }
         for (n in noteListChangedListener)
@@ -230,7 +231,10 @@ class NoteList : Collection<NoteListItem>{
         lock.withLock {
             notes.clear()
             for (i in 0 until elements.size / 2) {
-                notes.add(NoteListItem(elements[2 * i].toInt(), elements[2 * i + 1].toFloat(), -1f))
+                val noteId = min(elements[2 * i].toInt(), getNumAvailableNotes() - 1)
+                val volume = elements[2 * i + 1].toFloat()
+//                Log.v("Metronome", "NoteList.fromString: noteId = $noteId, ${elements[2*i].toInt()} available = ${getNumAvailableNotes()}")
+                notes.add(NoteListItem(noteId, volume, -1f))
             }
         }
         for (n in noteListChangedListener)

@@ -23,7 +23,7 @@ class VibratingNote(context: Context)  {
     private var _strength = 1.0f
     var strength: Int
         set(value) {
-            Log.v("Metronome", "VibratingNote.strength: $value")
+//            Log.v("Metronome", "VibratingNote.strength: $value")
             require(value in 0..100)
             _strength = vibratingNote100ToLog2(value)
 //            Log.v("Metronome", "VibratingNote.strength: $_strength")

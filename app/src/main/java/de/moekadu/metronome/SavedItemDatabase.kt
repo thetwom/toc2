@@ -69,7 +69,7 @@ class SavedItemDatabase : RecyclerView.Adapter<SavedItemDatabase.ViewHolder>() {
         titleView?.text = item.title
         dateView?.text = item.date + "\n" + item.time
         speedView?.text = holder.view.context.getString(R.string.bpm, Utilities.getBpmString(item.bpm))
-
+//        Log.v("Metronome", "SavedItemDatabase.onBindViewHolder: item.noteList = ${item.noteList}")
         val noteView = holder.view.findViewById(R.id.saved_item_sounds) as NoteView?
         val noteList = NoteList().apply { fromString(item.noteList) }//SoundProperties.parseMetaDataString(item.noteList)
         noteView?.noteList = noteList
