@@ -1,0 +1,5 @@
+	Metronomo aplikazio sinplea, musika jo bitartean tempoa mantentzen laguntzeko oinarrizko ezaugarriak dituena. Honako ezaugarri hauek ditu:
+	* Tempoa "pultsuak minutuko" gisa zehaztu.
+	* Tempoa "ukitu" moduan zehaztu.
+	* Soinu ezberdinak aukeratu.
+	* Gorde eta kargatu zure uneko konfigurazioa.
