@@ -1,0 +1,1 @@
+Metronomo aplikazio sinplea, musika jo bitartean tempoa mantentzen laguntzen zaituena.
