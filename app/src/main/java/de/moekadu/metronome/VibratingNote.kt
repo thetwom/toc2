@@ -3,7 +3,6 @@ package de.moekadu.metronome
 import android.content.Context
 import android.os.VibrationEffect
 import android.os.Vibrator
-import android.util.Log
 import kotlin.math.*
 
 fun vibratingNoteHasHardwareSupport(context: Context?): Boolean {
@@ -13,8 +12,9 @@ fun vibratingNoteHasHardwareSupport(context: Context?): Boolean {
     return false
 }
 
-fun vibratingNote100ToLog2(value: Int) = 2.0f.pow((value-50) / 50f)
-fun vibratingNoteLog2To100(value: Float) = (50f * log2(value) + 50).toInt()
+const val maximumVibrationScaling = 2.0f
+fun vibratingNote100ToLog(value: Int) = maximumVibrationScaling.pow((value-50) / 50f)
+fun vibratingNoteLogTo100(value: Float) = (50f * log(value, maximumVibrationScaling) + 50).toInt()
 
 class VibratingNote(context: Context)  {
 
@@ -25,11 +25,11 @@ class VibratingNote(context: Context)  {
         set(value) {
 //            Log.v("Metronome", "VibratingNote.strength: $value")
             require(value in 0..100)
-            _strength = vibratingNote100ToLog2(value)
+            _strength = vibratingNote100ToLog(value)
 //            Log.v("Metronome", "VibratingNote.strength: $_strength")
         }
         get() {
-            return vibratingNoteLog2To100(_strength)
+            return vibratingNoteLogTo100(_strength)
         }
 
 

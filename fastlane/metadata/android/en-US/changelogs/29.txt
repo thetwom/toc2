@@ -17,3 +17,4 @@ v2.4.0:
 - Additionally highlight notes with outline when selected
 - Add button to reset notes
 - Fix minor visual issue volume sliders
+- Add Basque translation (thanks to Porrumentzio)
