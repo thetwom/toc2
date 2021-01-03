@@ -91,11 +91,11 @@
     <string name="yes">yes</string>
     <string name="no">no</string>
 
-    <string name="speed_too_small">Saved speed %s bpm is smaller than the minimum speed %s bpm.\n</string>
-    <string name="speed_too_large">Saved speed %s bpm is larger than the maximum speed %s bpm.\n</string>
+    <string name="saved_speed_too_small">Saved speed %s bpm is smaller than the minimum speed %s bpm.\n</string>
+    <string name="saved_speed_too_large">Saved speed %s bpm is larger than the maximum speed %s bpm.\n</string>
     <string name="max_speed_lower_minimum">Given maximum speed (%s) is lower than minimum speed (%s).</string>
     <string name="min_speed_higher_maximum">Given minimum speed (%s) is higher than maximum speed (%s).</string>
-    <string name="inconsistent_increment">Saved speed %s bpm cannot be resolved by the current speed increment %s bpm.\n</string>
+    <string name="inconsistent_saved_increment">Saved speed %s bpm cannot be resolved by the current speed increment %s bpm.\n</string>
     <string name="inconsistent_load_title">Inconsistent load</string>
     <string name="inconsistent_summary">\nChange your settings if you want to load the item correctly.</string>
     <string name="acknowledged">Acknowledged</string>
@@ -108,5 +108,10 @@
     <string name="medium_strength">Medium vibration strength (%.2f)</string>
     <string name="high_strength">High vibration strength (%.2f)</string>
     <string name="all_notes_deleted">All notes deleted.</string>
+    <string name="set_new_speed">Set new speed</string>
+    <string name="invalid_speed">"Invalid speed: "</string>
+    <string name="speed_too_small">Given speed (%s bpm) smaller than minimum speed (%s bpm).</string>
+    <string name="speed_too_large">Given speed (%s) larger than maximum speed (%s).</string>
+    <string name="inconsistent_increment">Given speed (%s bpm) cannot be resolved by current increment (%s bpm).</string>
 
 </resources>
