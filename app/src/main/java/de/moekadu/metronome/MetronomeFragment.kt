@@ -151,7 +151,7 @@ class MetronomeFragment : Fragment() {
 
                 val builder = AlertDialog.Builder(ctx).apply {
                     setTitle(R.string.set_new_speed)
-                    setPositiveButton(R.string.yes) { _, _ ->
+                    setPositiveButton(R.string.done) { _, _ ->
                         val newSpeedText = editText.text.toString()
                         val newSpeed = newSpeedText.toFloatOrNull()
                         if (newSpeed == null) {
