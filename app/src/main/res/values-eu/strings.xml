@@ -103,10 +103,5 @@
     <string name="medium_strength">Bibrazio-indar ertaina (%.2f)</string>
     <string name="high_strength">Bibrazio-indar handia (%.2f)</string>
     <string name="all_notes_deleted">Nota guztiak ezabatu dira.</string>
-    <string name="set_new_speed">Neue Geschwindigkeit</string>
-    <string name="invalid_speed">"Geschwindigkeit ungültig: "</string>
-    <string name="speed_too_small">Geschwindigkeit (%s bpm) ist kleiner als erlaubtes Minimum (%s bpm).</string>
-    <string name="speed_too_large">Geschwindigkeit (%s bpm) ist größer als erlaubtes Maximum (%s bpm).</string>
-    <string name="inconsistent_increment">Geschwindigkeit (%s bpm) kann nicht durch die Schrittweite (%s bpm) aufgelöst werden.</string>
 
 </resources>

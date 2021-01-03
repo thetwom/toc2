@@ -30,11 +30,13 @@ import android.os.IBinder
 import android.support.v4.media.session.PlaybackStateCompat
 import android.text.InputType
 import android.view.*
+import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
@@ -145,7 +147,8 @@ class MetronomeFragment : Fragment() {
                 }
 
                 editText.hint = getString(R.string.bpm, "")
-                editText.selectAll()
+                editText.setSelectAllOnFocus(true)
+
                 val builder = AlertDialog.Builder(ctx).apply {
                     setTitle(R.string.set_new_speed)
                     setPositiveButton(R.string.yes) { _, _ ->
@@ -164,7 +167,14 @@ class MetronomeFragment : Fragment() {
                     }
                     setView(editText)
                 }
-                builder.show()
+                val dialog = builder.create()
+                dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
+                // this seems only necessary on some devices ...
+                dialog.setOnDismissListener {
+                    dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
+                }
+                dialog.show()
+                editText.requestFocus()
             }
         }
 
