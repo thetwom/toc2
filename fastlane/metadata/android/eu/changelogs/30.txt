@@ -1,0 +1,23 @@
+v2.2.0:
+- Nota animatuak
+- Soinuak hobeto aukeratzea
+- Kolore-eskema sendoagoa
+- Inportatu/esportatu gordetako nota-zerrendak
+
+v2.3.0:
+Eskerrik asko Fabio Pesariri bibrazio-iradokizunengatik eta italierarako itzulpenengatik!
+- Baimendu eten/jo jakinarazpenaren bidez pantaila blokeatuta dagoenean
+- Konponduta: Uneko konfigurazioa gordetzea ez zebilen beti
+- Gehitu bibrazio-notetarako aukera
+- Italierarako itzulpenak
+
+v2.4.0:
+- Hari bereizi batean erreproduzitzen da
+- Bistaratu zenbakiak noten azpian
+- Gainera, nabarmendu aukeratutako notak inguruarekin
+- Notak berrezartzeko botoia gehitu
+- IBolumen-lerratzaileak kontu bisual txikiak zuzenduta
+- Euskal itzulpena gehitzea (Porrumentziori esker)
+
+v2.5.0:
+- Egin abiadura-testua hautagarri, abiadura berri bat idazteko
