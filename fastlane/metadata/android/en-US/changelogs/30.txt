@@ -18,3 +18,6 @@ v2.4.0:
 - Add button to reset notes
 - Fix minor visual issue volume sliders
 - Add Basque translation (thanks to Porrumentzio)
+
+v2.5.0:
+- Make speed text selectable to allow typing a new speed

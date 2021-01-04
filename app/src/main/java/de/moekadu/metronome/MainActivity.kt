@@ -25,7 +25,6 @@ import android.media.AudioManager
 import android.net.Uri
 import android.os.Bundle
 import android.text.InputType
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.WindowManager
@@ -242,7 +241,7 @@ class MainActivity : AppCompatActivity() {
         val builder = AlertDialog.Builder(this).apply {
             setTitle(R.string.load_saved_items)
             setNegativeButton(R.string.abort) {dialog,_  -> dialog.dismiss()}
-            setItems(R.array.load_saved_items_list) {dialog, which ->
+            setItems(R.array.load_saved_items_list) {_, which ->
                 val array = resources.getStringArray(R.array.load_saved_items_list)
                 val task = when(array[which]) {
                     getString(R.string.prepend_current_list) -> SavedItemDatabase.PREPEND
@@ -307,11 +306,11 @@ class MainActivity : AppCompatActivity() {
         val tolerance = 1.0e-6f
         val stringBuilder = StringBuilder()
         if(item.bpm < minimumSpeed - tolerance)
-            stringBuilder.append(getString(R.string.speed_too_small, Utilities.getBpmString(item.bpm), Utilities.getBpmString(minimumSpeed)))
+            stringBuilder.append(getString(R.string.saved_speed_too_small, Utilities.getBpmString(item.bpm), Utilities.getBpmString(minimumSpeed)))
         if(item.bpm > maximumSpeed + tolerance)
-            stringBuilder.append(getString(R.string.speed_too_large, Utilities.getBpmString(item.bpm), Utilities.getBpmString(maximumSpeed)))
+            stringBuilder.append(getString(R.string.saved_speed_too_large, Utilities.getBpmString(item.bpm), Utilities.getBpmString(maximumSpeed)))
         if(abs(item.bpm /  speedIncrement - (item.bpm / speedIncrement).roundToInt()) > tolerance)
-            stringBuilder.append(getString(R.string.inconsistent_increment, Utilities.getBpmString(item.bpm), Utilities.getBpmString(speedIncrement)))
+            stringBuilder.append(getString(R.string.inconsistent_saved_increment, Utilities.getBpmString(item.bpm), Utilities.getBpmString(speedIncrement)))
         if(stringBuilder.isNotEmpty()) {
             stringBuilder.append(getString(R.string.inconsistent_summary))
             val builder = AlertDialog.Builder(this)

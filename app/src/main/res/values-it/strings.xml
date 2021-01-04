@@ -86,11 +86,11 @@
     <string name="yes">si</string>
     <string name="no">no</string>
 
-    <string name="speed_too_small">La velocità salvata %s bpm è minore di quella minima di %s bpm.\n</string>
-    <string name="speed_too_large">La velocità salvata %s bpm è maggiore di quella massima di %s bpm.\n</string>
+    <string name="saved_speed_too_small">La velocità salvata %s bpm è minore di quella minima di %s bpm.\n</string>
+    <string name="saved_speed_too_large">La velocità salvata %s bpm è maggiore di quella massima di %s bpm.\n</string>
     <string name="max_speed_lower_minimum">La velocità massima fornita (%s) è minore di quella minima (%s).</string>
     <string name="min_speed_higher_maximum">La velocità minima fornita (%s) è maggiore di quella massima (%s).</string>
-    <string name="inconsistent_increment">La velocità salvata %s bpm non può essere variata dell\'attuale incremento di velocità di %s bpm.\n</string>
+    <string name="inconsistent_saved_increment">La velocità salvata %s bpm non può essere variata dell\'attuale incremento di velocità di %s bpm.\n</string>
     <string name="inconsistent_load_title">Caricamento impreciso</string>
     <string name="inconsistent_summary">\nCambia le impostazioni se vuoi caricare l\'elemento correttamente.</string>
     <string name="acknowledged">Riconosciuto</string>

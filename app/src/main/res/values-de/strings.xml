@@ -9,7 +9,7 @@
     <string name="dark_appearance_short">Dunkel</string>
     <string name="dismiss">Abbrechen</string>
     <string name="done">Fertig</string>
-    <string name="inconsistent_increment">Gespeicherte Geschwindigkeit %s bpm kann durch die aktuelle Schrittweite %s bpm nicht aufgelöst werden.</string>
+    <string name="inconsistent_saved_increment">Gespeicherte Geschwindigkeit %s bpm kann durch die aktuelle Schrittweite %s bpm nicht aufgelöst werden.</string>
     <string name="inconsistent_load_title">Inkonsistentes Auswahl</string>
     <string name="inconsistent_summary">Bitte passe die Einstellungen an, wenn du deine Auswahl korrekt laden möchtest.</string>
     <string name="item_deleted">Auswahl gelöscht</string>
@@ -32,8 +32,8 @@
     <string name="saved_item_message">Aktuelle Einstellungen gespeichert: %s</string>
     <string name="speed_sensitivity">Empfindlichkeit bei Geschwindigkeitsänderung</string>
     <string name="speed_sensitivity_summary">Geschwindigkeitsschritte pro cm: %.1f</string>
-    <string name="speed_too_large">Gespeicherte Geschwindigkeit %s bpm ist größer als die maximale Geschwindigkeit %s bpm.</string>
-    <string name="speed_too_small">Gespeicherte Geschwindigkeit %s bpm ist kleiner als die minimale Geschwindigkeit %s.</string>
+    <string name="saved_speed_too_large">Gespeicherte Geschwindigkeit %s bpm ist größer als die maximale Geschwindigkeit %s bpm.</string>
+    <string name="saved_speed_too_small">Gespeicherte Geschwindigkeit %s bpm ist kleiner als die minimale Geschwindigkeit %s.</string>
     <string name="speedincrement">Geschwindigkeits-Schrittweite</string>
     <string name="system_appearance">Erscheinungsbild folgt Systemeinstellungen</string>
     <string name="system_appearance_short">Auto</string>
@@ -68,4 +68,9 @@
     <string name="medium_strength">Mittlere Vibrationsstärke (%.2f)</string>
     <string name="high_strength">Hohe Vibrationsstärke (%.2f)</string>
     <string name="all_notes_deleted">Alle Noten gelöscht.</string>
+    <string name="set_new_speed">Neue Geschwindigkeit</string>
+    <string name="invalid_speed">"Geschwindigkeit ungültig: "</string>
+    <string name="speed_too_small">Geschwindigkeit (%s bpm) ist kleiner als erlaubtes Minimum (%s bpm).</string>
+    <string name="speed_too_large">Geschwindigkeit (%s bpm) ist größer als erlaubtes Maximum (%s bpm).</string>
+    <string name="inconsistent_increment">Geschwindigkeit (%s bpm) kann nicht durch die Schrittweite (%s bpm) aufgelöst werden.</string>
 </resources>

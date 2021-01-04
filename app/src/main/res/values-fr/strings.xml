@@ -73,11 +73,11 @@
     <string name="yes">oui</string>
     <string name="no">non</string>
 
-    <string name="speed_too_small">Le tempo du réglage %s bpm est en dessous du tempo minimum configuré %s bpm.\n</string>
-    <string name="speed_too_large">Le tempo du réglage %s bpm est au-dessus du tempo maximum configuré %s bpm.\n</string>
+    <string name="saved_speed_too_small">Le tempo du réglage %s bpm est en dessous du tempo minimum configuré %s bpm.\n</string>
+    <string name="saved_speed_too_large">Le tempo du réglage %s bpm est au-dessus du tempo maximum configuré %s bpm.\n</string>
     <string name="max_speed_lower_minimum">Le tempo maximum indiqué (%s) est au-dessus du tempo minimum (%s).</string>
     <string name="min_speed_higher_maximum">Le tempo minimum indiqué (%s) est en dessous du tempo maximum (%s).</string>
-    <string name="inconsistent_increment">Le tempo du réglage %s bpm n\'est pas compatible avec l\'incrémentation configurée %s bpm.</string>
+    <string name="inconsistent_saved_increment">Le tempo du réglage %s bpm n\'est pas compatible avec l\'incrémentation configurée %s bpm.</string>
     <string name="inconsistent_load_title">Chargement incorrect</string>
     <string name="inconsistent_summary">Modifiez votre configuration si vous voulez charger le réglage correctement.</string>
     <string name="acknowledged">Vu</string>

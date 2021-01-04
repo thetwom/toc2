@@ -254,10 +254,10 @@ class SettingsFragment: PreferenceFragmentCompat() {
 
     private fun getVibrationStrengthSummary(value: Int): String {
         return if (value in 0 until 25)
-            getString(R.string.low_strength, vibratingNote100ToLog2(value))
+            getString(R.string.low_strength, vibratingNote100ToLog(value))
         else if (value in 25 .. 75)
-            getString(R.string.medium_strength, vibratingNote100ToLog2(value))
+            getString(R.string.medium_strength, vibratingNote100ToLog(value))
         else
-            getString(R.string.high_strength, vibratingNote100ToLog2(value))
+            getString(R.string.high_strength, vibratingNote100ToLog(value))
     }
 }

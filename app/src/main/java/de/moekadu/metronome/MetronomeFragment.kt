@@ -28,13 +28,19 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Bundle
 import android.os.IBinder
 import android.support.v4.media.session.PlaybackStateCompat
+import android.text.InputType
 import android.view.*
+import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
-import androidx.coordinatorlayout.widget.CoordinatorLayout
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 
@@ -130,6 +136,47 @@ class MetronomeFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_metronome, container, false)
 
         speedText = view.findViewById(R.id.speed_text)
+        speedText?.setOnClickListener {
+            activity?.let { ctx ->
+                val editText = EditText(ctx)
+                editText.inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
+                val pad = Utilities.dp2px(20f).roundToInt()
+                editText.setPadding(pad, pad, pad, pad)
+                playerService?.speed?.let {speed ->
+                    editText.setText(Utilities.getBpmString(speed))
+                }
+
+                editText.hint = getString(R.string.bpm, "")
+                editText.setSelectAllOnFocus(true)
+
+                val builder = AlertDialog.Builder(ctx).apply {
+                    setTitle(R.string.set_new_speed)
+                    setPositiveButton(R.string.done) { _, _ ->
+                        val newSpeedText = editText.text.toString()
+                        val newSpeed = newSpeedText.toFloatOrNull()
+                        if (newSpeed == null) {
+                            Toast.makeText(ctx, "${getString(R.string.invalid_speed)}$newSpeedText",
+                                    Toast.LENGTH_LONG).show()
+                        }
+                        else if (checkSpeedAndShowToastOnFailure(newSpeed)) {
+                            playerService?.speed = newSpeed
+                        }
+                    }
+                    setNegativeButton(R.string.abort) { dialog, _ ->
+                        dialog?.cancel()
+                    }
+                    setView(editText)
+                }
+                val dialog = builder.create()
+                dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
+                // this seems only necessary on some devices ...
+                dialog.setOnDismissListener {
+                    dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
+                }
+                dialog.show()
+                editText.requestFocus()
+            }
+        }
 
         val speedPanel = view.findViewById(R.id.speed_panel) as SpeedPanel?
 
@@ -418,5 +465,29 @@ class MetronomeFragment : Fragment() {
             val serviceIntent = Intent(context, PlayerService::class.java)
             context.bindService(serviceIntent, playerConnection as ServiceConnection, Context.BIND_AUTO_CREATE)
         }
+    }
+
+    private fun checkSpeedAndShowToastOnFailure(speed: Float): Boolean {
+
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+        val minimumSpeedString = sharedPreferences.getString("minimumspeed", InitialValues.minimumSpeed.toString()) ?: InitialValues.minimumSpeed.toString()
+        val minimumSpeed = minimumSpeedString.toFloat()
+        val maximumSpeedString = sharedPreferences.getString("maximumspeed", InitialValues.maximumSpeed.toString()) ?: InitialValues.maximumSpeed.toString()
+        val maximumSpeed = maximumSpeedString.toFloat()
+        val speedIncrementIndex = sharedPreferences.getInt("speedincrement", InitialValues.speedIncrementIndex)
+        val speedIncrement = Utilities.speedIncrements[speedIncrementIndex]
+        val tolerance = 1.0e-6f
+        var message: String? = null
+        if(speed < minimumSpeed - tolerance)
+            message = getString(R.string.speed_too_small, Utilities.getBpmString(speed), Utilities.getBpmString(minimumSpeed))
+        if(speed > maximumSpeed + tolerance)
+            message = getString(R.string.speed_too_large, Utilities.getBpmString(speed), Utilities.getBpmString(maximumSpeed))
+        if(abs(speed / speedIncrement - (speed / speedIncrement).roundToInt()) > tolerance)
+            message = getString(R.string.inconsistent_increment, Utilities.getBpmString(speed), Utilities.getBpmString(speedIncrement))
+        if (message != null) {
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        }
+
+        return message == null
     }
 }
