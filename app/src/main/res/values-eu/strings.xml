@@ -88,13 +88,9 @@
 
     <string name="saved_speed_too_small">Gordetako abiadura (%s bmp) gutxieneko abiadura (%s bpm) baino txikiagoa da.\n</string>
     <string name="saved_speed_too_large">Gordetako abiadura (%s bmp) gehienezko abiadura (%s bpm) baino handiagoa da.\n</string>
-    <string name="inconsistent_saved_increment">Gordetako abiadura (%s bpm) ezin da lortu uneko abaidura handitzearekin (%s bpm).\n</string>
-    <string name="speed_too_small">Gordetako abiadura (%s bmp) gutxieneko abiadura (%s bpm) baino txikiagoa da.\n</string>
-    <string name="speed_too_large">Gordetako abiadura (%s bmp) gehienezko abiadura (%s bpm) baino handiagoa da.\n</string>
     <string name="max_speed_lower_minimum">Eskatutako gehienezko abiadura (%s) gutxienekoa baino txikiagoa da (%s).</string>
     <string name="min_speed_higher_maximum">Eskatutako gutxieneko abiadura (%s) gehienezkoa baino handiagoa da (%s).</string>
-    <string name="inconsistent_increment">Gordetako abiadura (%s bpm) ezin da lortu uneko abaidura handitzearekin (%s bpm).\n</string>
-
+    <string name="inconsistent_saved_increment">Gordetako abiadura (%s bpm) ezin da lortu uneko abaidura handitzearekin (%s bpm).\n</string>
     <string name="inconsistent_load_title">Funtsik gabeko karga</string>
     <string name="inconsistent_summary">\nAldatu zure ezarpenak elementua zuzenki kargatzeko.</string>
     <string name="acknowledged">Aitortua</string>
@@ -107,5 +103,11 @@
     <string name="medium_strength">Bibrazio-indar ertaina (%.2f)</string>
     <string name="high_strength">Bibrazio-indar handia (%.2f)</string>
     <string name="all_notes_deleted">Nota guztiak ezabatu dira.</string>
+	<string name="set_new_speed">Ezarri abiadura berria</string>
+    <string name="invalid_speed">"Abiadura baliogabea: "</string>
+    <string name="speed_too_small">Emandako abiadura (%s bpm) gutxienekoa baino txikiagoa da (%s bpm).</string>
+    <string name="speed_too_large">Emandako abiadura (%s bpm) gehienezkoa baino handiagoa da (%s bpm).</string>
+    <string name="inconsistent_increment">Emandako abiadura (%s bpm) ezin da lortu uneko abiadura handitzearekin (%s bpm).</string>
+
 
 </resources>
