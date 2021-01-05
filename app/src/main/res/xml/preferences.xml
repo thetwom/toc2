@@ -33,6 +33,13 @@
         android:dependency="vibrate"
         />
 
+    <SeekBarPreference
+        app:key="vibratedelay"
+        app:title="@string/vibrate_delay"
+        android:defaultValue="50"
+        />
+<!--    android:dependency="vibrate"-->
+
     <ListPreference
       app:key="appearance"
       app:title="@string/appearance"

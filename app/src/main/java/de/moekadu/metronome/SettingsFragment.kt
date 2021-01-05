@@ -85,6 +85,17 @@ class SettingsFragment: PreferenceFragmentCompat() {
             true
         }
 
+        val vibrationDelay = findPreference<SeekBarPreference>("vibratedelay") ?: throw RuntimeException("no vibrate delay setting")
+        vibrationDelay.updatesContinuously = true
+        vibrationDelay.seekBarIncrement = 1
+        vibrationDelay.min = 0
+        vibrationDelay.max = 100
+        vibrationDelay.summary = getVibrationDelaySummary(vibrationDelay.value)
+        vibrationDelay.setOnPreferenceChangeListener { _, newValue ->
+            vibrationDelay.summary = getVibrationDelaySummary(newValue as Int)
+            true
+        }
+
         val appearance = findPreference("appearance") as ListPreference?
         require(appearance != null)
         appearance.summary = getAppearanceSummary()
@@ -197,7 +208,6 @@ class SettingsFragment: PreferenceFragmentCompat() {
                             PreferenceManager.setDefaultValues(act, R.xml.preferences, true)
                             preferenceEditor.apply()
                             act.recreate()
-
                         }
                         .setNegativeButton(R.string.no) { dialog, _ -> dialog?.cancel() }
                 builder.show()
@@ -246,5 +256,9 @@ class SettingsFragment: PreferenceFragmentCompat() {
             getString(R.string.medium_strength, vibratingNote100ToLog(value))
         else
             getString(R.string.high_strength, vibratingNote100ToLog(value))
+    }
+
+    private fun getVibrationDelaySummary(value: Int): String {
+        return getString(R.string.milliseconds, vibratingNoteDelay100ToMillis(value).roundToInt())
     }
 }
