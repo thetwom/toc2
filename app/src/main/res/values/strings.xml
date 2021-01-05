@@ -113,5 +113,7 @@
     <string name="speed_too_small">Given speed (%s bpm) smaller than minimum speed (%s bpm).</string>
     <string name="speed_too_large">Given speed (%s) larger than maximum speed (%s).</string>
     <string name="inconsistent_increment">Given speed (%s bpm) cannot be resolved by current increment (%s bpm).</string>
+    <string name="vibrate_delay">Vibration delay</string>
+    <string name="milliseconds">%d ms</string>
 
 </resources>

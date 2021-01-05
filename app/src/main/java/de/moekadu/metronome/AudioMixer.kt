@@ -54,6 +54,7 @@ private class NoteStartedListenerAndFrame(val noteListItem: NoteListItem,
  * @param startDelay wait this number of frames until passing the track to our mixer
  * @param volume Track volume
  *   starts in this many frames.
+ *   TODO: do something different with startDelay. e.g. store starting frame... maybe also adapt nextampletomi
  */
 data class QueuedNotes(var nodeId : Int = 0, var nextSampleToMix : Int = 0, var startDelay : Int = 0, var volume : Float = 0f)
 
@@ -68,6 +69,13 @@ private data class NextNoteInfo(val nextNoteIndex: Int, val nextNoteFrame: Int)
 *   where n is a integer number.
 */
 private data class SynchronizeTimeInfo(val referenceTime: Long, val beatDuration: Float)
+
+/// Data class used for delay data to player thread.
+/**
+ * @param index Index of NoteListStartedListener in our array
+ * @param delayInMillis New delay in milliseconds to be set.
+ */
+private data class NoteListStartedListenerDelayInfo(val index: Int, val delayInMillis: Float)
 
 /// We use not the minimum buffer size but scale it with this integer value.
 private const val minBufferSizeFactor = 2
@@ -192,17 +200,18 @@ fun mixQueuedNotes(mixingBuffer: FloatArray, queuedNotes: InfiniteCircularBuffer
 //            Log.v("Metronome", "AudioMixer:mixAndQueueTracks : iTrack = $i, trackIndex=$trackIndex, startDelay=$startDelay")
         val samples = noteSamples[noteId]
 
-        val numSamplesToWrite = min(samples.size - sampleStart,mixingBuffer.size - startDelay)
+        val numSamplesToWrite = min(samples.size - sampleStart,max(mixingBuffer.size - startDelay, 0))
         val sampleEnd = sampleStart + numSamplesToWrite
 //            Log.v("Metronome", "AudioMixer:mixAndQueueTracks : sampleStart=$sampleStart, sampleEnd=$sampleEnd, sampleSize=${trackSamples.size}")
-
+        Log.v("Metronome", "AudioMixer:mixAndQueueTracks : sampleStart=$sampleStart, sampleEnd=$sampleEnd, sampleSize=${samples.size}, delay=$startDelay")
+        // TODO: something goes wrong ere since startDelay seems to become negative sometimes, but why???
         var j = startDelay
         for(k in sampleStart until sampleEnd) {
             mixingBuffer[j] = mixingBuffer[j] + volume * samples[k]
             ++j
         }
 
-        queuedItem.startDelay = max(0, startDelay - mixingBuffer.size) // should always give zeo
+        queuedItem.startDelay = max(0, startDelay - mixingBuffer.size)
         queuedItem.nextSampleToMix = sampleEnd
     }
 
@@ -236,7 +245,7 @@ private fun synchronizeTime(synchronizeTimeInfo: SynchronizeTimeInfo, noteList: 
     val sampleRate = player.sampleRate
     val currentTimeMillis = SystemClock.uptimeMillis()
     val currentTimeInFrames = player.playbackHeadPosition
-    val referenceTimeInFrames = (currentTimeInFrames
+    val referenceTimeInFrames = (currentTimeInFrames - delayInFrames
             + (synchronizeTimeInfo.referenceTime - currentTimeMillis).toInt() * sampleRate / 1000)
     val beatDurationInFrames = (synchronizeTimeInfo.beatDuration * sampleRate).roundToInt()
 
@@ -247,17 +256,16 @@ private fun synchronizeTime(synchronizeTimeInfo: SynchronizeTimeInfo, noteList: 
     for (i in 0 until nextNoteIndex)
         referenceTimeForNextNoteListItem += (max(0f, noteList[i].duration) * sampleRate).roundToInt()
 
-    // remove multiples of beat duration from our reference, so that it is always smaller than the nextTrackFrame
+    // remove multiples of beat duration from our reference, so that it is negative (and thus, smaller than the nextTrackFrame)
     if (referenceTimeForNextNoteListItem > 0)
-        referenceTimeForNextNoteListItem -= (referenceTimeForNextNoteListItem / beatDurationInFrames) * (beatDurationInFrames + 1)
+        referenceTimeForNextNoteListItem -= ((referenceTimeForNextNoteListItem / beatDurationInFrames) + 1) * beatDurationInFrames
     require(referenceTimeForNextNoteListItem <= nextNoteFrame)
 
     val correctedNextFrameIndex = (referenceTimeForNextNoteListItem +
-            ((nextNoteFrame - referenceTimeForNextNoteListItem).toFloat()
-                    / beatDurationInFrames).roundToInt()
+            ((nextNoteFrame - referenceTimeForNextNoteListItem).toFloat() / beatDurationInFrames).roundToInt()
             * beatDurationInFrames)
     // Log.v("AudioMixer", "AudioMixer.synchronizeTime : correctedNextFrame=$correctedNextFrameIndex, nextTrackFrame=$nextTrackFrame")
-    nextNoteFrame = correctedNextFrameIndex - delayInFrames
+    nextNoteFrame = correctedNextFrameIndex
     return NextNoteInfo(nextNoteIndex, nextNoteFrame)
 }
 
@@ -301,9 +309,10 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
     interface NoteStartedListener {
         /// Callback function which is called when a playlist item starts
         /**
-         * @param noteListItem note list item which is started.
+         * @param noteListItem Copy of note list item. To access the original,
+         *   use noteListItem.original, however, the original MUST ONLY used on main thread!
          */
-        fun onNoteStarted(noteListItem: NoteListItem?)
+        suspend fun onNoteStarted(noteListItem: NoteListItem?)
     }
 
     /// Callback when a track starts
@@ -321,13 +330,22 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
     /// Channel for transferring our synchronising information to the playing coroutine.
     private val synchronizeTimeChannel = Channel<SynchronizeTimeInfo>(Channel.CONFLATED)
 
+    // TODO: Instead of having a channel, we should just use a mutex, such that the registered listeners
+    //       can also be changed while we are playing
+    /// Channel for transferring NoteListStartedListener-delays to the playing coroutine.
+    private val noteListStartedListenerDelayChannel = Channel<NoteListStartedListenerDelayInfo>(Channel.UNLIMITED)
+    /// Temporary storage for saving NoteListStartedListener-delays.
+    private val noteListStartedListenerDelayTemporaryBuffer = ArrayList<NoteListStartedListenerDelayInfo>()
+
     /// Register a NoteStartedListener (this will stop player).
     /**
      * @param noteStartedListener Instance to be registered.
      * @param delayInMilliSeconds The NoteStartedListener will be started with the given delay after the
      *   note starts playing. Can be negative, in order to call this before the note starts.
      */
-    fun registerNoteStartedListener(noteStartedListener: NoteStartedListener, delayInMilliSeconds: Float = 0f) {
+    fun registerNoteStartedListener(noteStartedListener: NoteStartedListener?, delayInMilliSeconds: Float = 0f) {
+        if (noteStartedListener == null)
+            return
         stop()
         unregisterNoteStartedListener(noteStartedListener)
         noteStartedListeners.add(noteStartedListener)
@@ -338,7 +356,9 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
     /**
      * @param noteStartedListener Note started listener to unregister.
      */
-    fun unregisterNoteStartedListener(noteStartedListener: NoteStartedListener) {
+    fun unregisterNoteStartedListener(noteStartedListener: NoteStartedListener?) {
+        if (noteStartedListener == null)
+            return
         stop()
         noteStartedListenerDelaysInMillis.remove(noteStartedListener)
         noteStartedListeners.remove(noteStartedListener)
@@ -350,10 +370,25 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
      * @param delayInMilliSeconds The NoteStartedListener will be started with the given delay after the
      *   note starts playing. Can be negative, in order to call this before the note starts.
      */
-    fun setNoteStartedListenerDelay(noteStartedListener: NoteStartedListener, delayInMilliSeconds: Float) {
-        if (noteStartedListeners.contains(noteStartedListener)) {
-            noteStartedListenerDelaysInMillis[noteStartedListener] = delayInMilliSeconds
-            // TODO: send data to playing thread
+    fun setNoteStartedListenerDelay(noteStartedListener: NoteStartedListener?, delayInMilliSeconds: Float) {
+        if (noteStartedListener == null)
+            return
+        val index = noteStartedListeners.indexOf(noteStartedListener)
+        noteStartedListenerDelaysInMillis[noteStartedListener] = delayInMilliSeconds
+        if (index >= 0 && job != null) {
+            noteListStartedListenerDelayTemporaryBuffer.clear()
+
+            while (true) {
+                val delayInfo = noteListStartedListenerDelayChannel.poll()
+                if (delayInfo == null)
+                    break
+                else if (delayInfo.index != index)
+                    noteListStartedListenerDelayTemporaryBuffer.add(delayInfo)
+            }
+
+            for (delayInfo in noteListStartedListenerDelayTemporaryBuffer)
+                noteListStartedListenerDelayChannel.offer(delayInfo)
+            noteListStartedListenerDelayChannel.offer(NoteListStartedListenerDelayInfo(index, delayInMilliSeconds))
         }
     }
 
@@ -412,7 +447,17 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                 // update our local notelist copy
                 noteListCopy.assignIfNotLocked(noteList)
 
-                // TODO: reevaluate delays
+                // update NoteListStartedListener delay
+                var delayUpdated = false
+                while (true) {
+                    val delayInfo = noteListStartedListenerDelayChannel.poll() ?: break
+                    if (noteStartedListenersDelaysInMillisCopy[delayInfo.index] != delayInfo.delayInMillis) {
+                        noteStartedListenersDelaysInMillisCopy[delayInfo.index] = delayInfo.delayInMillis
+                        delayUpdated = true
+                    }
+                }
+                if (delayUpdated)
+                    delayInFrames = computeNoteDelayInFrames(noteStartedListenersDelaysInMillisCopy, player.sampleRate)
 
                 nextNoteInfo = queueNextNotes(nextNoteInfo, noteListCopy, queuedFrames,
                         mixingBuffer.size, queuedNoteStartedListeners, noteStartedListenersCopy,
@@ -428,13 +473,14 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
 
 //                Log.v("Metronome", "AudioMixer notificationMarkerPosition: ${player.notificationMarkerPosition}")
                 // call registered callbacks
-                // TODO: make sure, that this immediately returns -> send to a channel which is evaluated by an own thread
-                //       -> there we should also consider the originial notelistitem
                 val position = player.playbackHeadPosition
                 queuedNoteStartedListeners.filter {
                     it.frameNumber <= position
                 }.forEach {
-                    it.noteStartedListener.onNoteStarted(it.noteListItem)
+                    val noteListItemCopy = it.noteListItem.clone()
+                    launch {
+                        it.noteStartedListener.onNoteStarted(noteListItemCopy)
+                    }
                 }
                 queuedNoteStartedListeners.removeAll { q -> q.frameNumber <= position }
 
