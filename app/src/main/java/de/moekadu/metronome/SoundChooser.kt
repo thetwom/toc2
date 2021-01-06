@@ -99,6 +99,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
             addView(s)
             for (c in controlButtons.values)
                 c.visibility = View.GONE
+            updateControlButtonNumbering()
             setActiveNote(note, 200L)
         }
 
@@ -106,6 +107,8 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
             noteList?.let { notes ->
                 val s = controlButtons[note]
                 controlButtons.remove(note)
+                updateControlButtonNumbering()
+
                 if (s?.visibility == View.VISIBLE && choiceStatus == CHOICE_STATIC)
                     s.animate().alpha(0f).setDuration(200L).withEndAction { removeView(s) }.start()
                 else
@@ -120,6 +123,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         override fun onNoteMoved(note: NoteListItem, fromIndex: Int, toIndex: Int) {
 //            Log.v("Metronome", "SoundChooser.noteList.onNoteMoved: moving from $fromIndex to $toIndex")
             activeControlButton?.let { setControlButtonTargetTranslation(it) }
+            updateControlButtonNumbering()
             resetActiveNoteBoundingBox()
         }
 
@@ -153,6 +157,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
             }
 
             setActiveNote(noteList.last(), 200L)
+            updateControlButtonNumbering()
         }
     }
 
@@ -187,6 +192,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
                     controlButtons[n]?.visibility = View.GONE
                 }
             }
+            updateControlButtonNumbering()
         }
 
     interface StateChangedListener {
@@ -1002,5 +1008,12 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
             button.setBackgroundResource(R.drawable.choice_button_background_active)
         else
             button.setBackgroundResource(R.drawable.choice_button_background)
+    }
+
+    private fun updateControlButtonNumbering() {
+        noteList?.let { notes ->
+            for (i in notes.indices)
+                controlButtons[notes[i]]?.numberOffset = i
+        }
     }
 }

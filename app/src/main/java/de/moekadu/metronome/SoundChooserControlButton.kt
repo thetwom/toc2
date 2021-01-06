@@ -51,7 +51,7 @@ class SoundChooserControlButton(context: Context, note: NoteListItem, elevation:
         setBackgroundResource(R.drawable.control_button_background)
         this.elevation = elevation
         this.volumeColor = volumeColor
-
+        this.showNumbers = true
         val privateNoteList = NoteList()
         val privateNote = NoteListItem().apply {
             set(note)

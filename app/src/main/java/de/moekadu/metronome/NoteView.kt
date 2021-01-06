@@ -211,10 +211,19 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
     var onNoteClickListener : OnNoteClickListener? = null
 
-    private var showNumbers = false
+    var showNumbers = false
         set(value) {
             field = value
             makeSureWeHaveCorrectNumberOfNumberingViews()
+        }
+
+    var numberOffset = 0
+        set(value) {
+            if (value != field) {
+                field = value
+                for (i in numbering.indices)
+                    numbering[i].text = "${i + 1 + value}"
+            }
         }
 
     constructor(context: Context, attrs : AttributeSet? = null)
@@ -396,7 +405,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             numbering.add(
                     AppCompatTextView(context).apply {
                         gravity = Gravity.CENTER
-                        text = "${numbering.size + 1}"
+                        text = "${numbering.size + 1 + numberOffset}"
                         setTextColor(ContextCompat.getColorStateList(context, R.color.note_view_note))
                         background = null
                         setPadding(0, 0, 0, 0)
