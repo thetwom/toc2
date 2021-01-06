@@ -235,6 +235,7 @@ class PlayerService : LifecycleService() {
             }
         })
 
+        // callback for vibrator (is registered in audioMixer later on)
         noteStartedListener4Vibration = object : AudioMixer.NoteStartedListener {
             override suspend fun onNoteStarted(noteListItem: NoteListItem?) {
                 withContext(Dispatchers.Default) {
@@ -245,20 +246,7 @@ class PlayerService : LifecycleService() {
                 }
             }
         }
-        // TODO: do not register this if vibration is off
-        // callback for vibrator
-        audioMixer?.registerNoteStartedListener(noteStartedListener4Vibration,
-                vibratingNoteDelay100ToMillis(sharedPreferences.getInt("vibratedelay", 50)))
-//        audioMixer?.noteStartedListener = object : AudioMixer.NoteStartedListener {
-//            override fun onNoteStarted(noteListItem: NoteListItem?) {
-//                if(noteListItem != null) {
-//                    statusChangedListeners.forEach { s -> s.onNoteStarted(noteListItem) }
-//
-//                    if (getNoteVibrationDuration(noteListItem.id) > 0L)
-//                        vibrator?.vibrate(noteListItem.volume, noteListItem)
-//                }
-//            }
-//        }
+
         audioMixer?.noteList = noteList
 
         val activityIntent = Intent(this, MainActivity::class.java)
@@ -306,8 +294,12 @@ class PlayerService : LifecycleService() {
                         if (vibrate && vibrator == null) {
                             vibrator = VibratingNote(this@PlayerService)
                             vibrator?.strength = sharedPreferences.getInt("vibratestrength", 50)
+                            audioMixer?.registerNoteStartedListener(noteStartedListener4Vibration,
+                                    sharedPreferences.getInt("vibratedelay", 0).toFloat())
+
                         }
                         else if (!vibrate) {
+                            audioMixer?.unregisterNoteStartedListener(noteStartedListener4Vibration)
                             vibrator = null
                         }
                     }
@@ -315,7 +307,7 @@ class PlayerService : LifecycleService() {
                         vibrator?.strength = sharedPreferences.getInt("vibratestrength", 50)
                     }
                     "vibratedelay" -> {
-                        val delay = vibratingNoteDelay100ToMillis(sharedPreferences.getInt("vibratedelay", 50))
+                        val delay = sharedPreferences.getInt("vibratedelay", 0).toFloat()
                         audioMixer?.setNoteStartedListenerDelay(noteStartedListener4Vibration, delay)
                     }
                     "minimumspeed" -> {
@@ -344,6 +336,8 @@ class PlayerService : LifecycleService() {
         if (sharedPreferences.getBoolean("vibrate", false)) {
             vibrator = VibratingNote(this)
             vibrator?.strength = sharedPreferences.getInt("vibratestrength", 50)
+            val delay = sharedPreferences.getInt("vibratedelay", 0).toFloat()
+            audioMixer?.registerNoteStartedListener(noteStartedListener4Vibration, delay)
         }
     }
 

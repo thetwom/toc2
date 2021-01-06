@@ -29,10 +29,10 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
-import com.google.android.material.internal.ScrimInsetsFrameLayout
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -47,6 +47,15 @@ private class NoteStartedListenerAndFrame(val noteListItem: NoteListItem,
                                           val noteStartedListener: AudioMixer.NoteStartedListener,
                                           val frameNumber: Int)
 
+/// Note started listener together with delay.
+/**
+ * @param noteStartedListener NoteStartedListener
+ * @param delayInMillis Delay in milliseconds when the NoteStartedListener should be called after
+ *   the note started playing.
+ */
+private class NoteStartedListenerAndDelay(val noteStartedListener: AudioMixer.NoteStartedListener,
+                                          var delayInMillis: Float)
+
 /// Class which stores tracks which are queued for the playing
 /**
  * @param nodeId Note index in #availableNotes
@@ -56,7 +65,7 @@ private class NoteStartedListenerAndFrame(val noteListItem: NoteListItem,
  *   starts in this many frames.
  *   TODO: do something different with startDelay. e.g. store starting frame... maybe also adapt nextampletomi
  */
-data class QueuedNotes(var nodeId : Int = 0, var nextSampleToMix : Int = 0, var startDelay : Int = 0, var volume : Float = 0f)
+data class QueuedNotes(var nodeId: Int = 0, var nextSampleToMix: Int = 0, var startDelay: Int = 0, var volume: Float = 0f)
 
 private data class NextNoteInfo(val nextNoteIndex: Int, val nextNoteFrame: Int)
 
@@ -126,8 +135,7 @@ private fun createPlayer(): AudioTrack {
  * @param alreadyQueuedFrames Frame number up to which we did already queued the notes.
  * @param numFramesToQueue Number of frames after alreadyQueuedFrames, for which we should queue the notes.
  * @param noteStartedListenersAndFrames ArrayList where we will append all new noteStartedListeners
- * @param noteStartedListeners Array with all registered NoteStartedListeners.
- * @param noteStartedListenersDelaysInMillis Array with a delay for each NoteStartedListener.
+ * @param noteStartedListenersAndDelay Array with all registered NoteStartedListeners together with the delay.
  * @param sampleRate Currently used sample rate
  * @param queuedNotes This is the queue where we add our notes.
  * @param delayInFrames Note delay in frames.
@@ -138,8 +146,7 @@ private fun queueNextNotes(nextNoteInfo: NextNoteInfo,
                            alreadyQueuedFrames: Int,
                            numFramesToQueue: Int,
                            noteStartedListenersAndFrames: ArrayList<NoteStartedListenerAndFrame>,
-                           noteStartedListeners: Array<AudioMixer.NoteStartedListener>,
-                           noteStartedListenersDelaysInMillis: FloatArray,
+                           noteStartedListenersAndDelay: ArrayList<NoteStartedListenerAndDelay>,
                            sampleRate: Int,
                            queuedNotes: InfiniteCircularBuffer<QueuedNotes>,
                            delayInFrames: Int) : NextNoteInfo{
@@ -164,11 +171,11 @@ private fun queueNextNotes(nextNoteInfo: NextNoteInfo,
         queuedNote.nextSampleToMix = 0
         queuedNote.volume = noteListItem.volume
 
-        for (i in noteStartedListeners.indices) {
+        for (noteStartedListener in noteStartedListenersAndDelay) {
             noteStartedListenersAndFrames.add(
                     NoteStartedListenerAndFrame(noteListItem,
-                            noteStartedListeners[i],
-                            nextNoteFrame + delayInFrames + (noteStartedListenersDelaysInMillis[i] / 1000f * sampleRate).roundToInt())
+                            noteStartedListener.noteStartedListener,
+                            nextNoteFrame + delayInFrames + (noteStartedListener.delayInMillis / 1000f * sampleRate).roundToInt())
             )
         }
 
@@ -203,8 +210,8 @@ fun mixQueuedNotes(mixingBuffer: FloatArray, queuedNotes: InfiniteCircularBuffer
         val numSamplesToWrite = min(samples.size - sampleStart,max(mixingBuffer.size - startDelay, 0))
         val sampleEnd = sampleStart + numSamplesToWrite
 //            Log.v("Metronome", "AudioMixer:mixAndQueueTracks : sampleStart=$sampleStart, sampleEnd=$sampleEnd, sampleSize=${trackSamples.size}")
-        Log.v("Metronome", "AudioMixer:mixAndQueueTracks : sampleStart=$sampleStart, sampleEnd=$sampleEnd, sampleSize=${samples.size}, delay=$startDelay")
-        // TODO: something goes wrong ere since startDelay seems to become negative sometimes, but why???
+//        Log.v("Metronome", "AudioMixer:mixAndQueueTracks : sampleStart=$sampleStart, sampleEnd=$sampleEnd, sampleSize=${samples.size}, delay=$startDelay")
+
         var j = startDelay
         for(k in sampleStart until sampleEnd) {
             mixingBuffer[j] = mixingBuffer[j] + volume * samples[k]
@@ -285,14 +292,12 @@ private fun createNoteSamples(context: Context, sampleRate: Int) : Array<FloatAr
 /**
  * This is the absolute value of the largest negative value or 0.
  *
- * @param delayArray Array with a delay in millisecond for each registered NoteStartedListener.
- * @param sampleRate Sample rate used for player.
+ * @param noteStartedListenersWithDelay All available NoteStartedListeners with delay.
  * @return Required note delay which is >= 0.
  */
-private fun computeNoteDelayInFrames(delayArray: FloatArray, sampleRate: Int): Int {
-    val minimumDelay = delayArray.minOrNull() ?: 0f
-    val minimumDelayInFrames = (minimumDelay / 1000f * sampleRate).roundToInt()
-    return max(-minimumDelayInFrames, 0)
+private fun computeNoteDelayInMillis(noteStartedListenersWithDelay: ArrayList<NoteStartedListenerAndDelay>): Float {
+    val minimumDelay = noteStartedListenersWithDelay.minByOrNull { it.delayInMillis }?.delayInMillis ?: return 0f
+    return max(-minimumDelay, 0f)
 }
 
 /// Audio mixer class which mixes and plays a note list.
@@ -315,27 +320,20 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
         suspend fun onNoteStarted(noteListItem: NoteListItem?)
     }
 
-    /// Callback when a track starts
-    //var noteStartedListener : NoteStartedListener ?= null
+    /// Callbacks when a note starts together with delay.
+    private val noteStartedListeners = ArrayList<NoteStartedListenerAndDelay>()
 
-    /// Callbacks when a note starts
-    private val noteStartedListeners = ArrayList<NoteStartedListener>()
+    /// Delay when notes start playing. This is the absolute of the largest negative value in noteStartedListener
+    private var noteDelayInMillis = 0f
 
-    /// Delays for note started listener in milliseconds
-    private val noteStartedListenerDelaysInMillis = HashMap<NoteStartedListener, Float>()
+    /// Mutex to protect noteStartedListeners and noteDelayInMillis
+    private val noteStartedListenerLock = Mutex()
 
     /// Job which does the playing.
     private var job: Job? = null
 
     /// Channel for transferring our synchronising information to the playing coroutine.
     private val synchronizeTimeChannel = Channel<SynchronizeTimeInfo>(Channel.CONFLATED)
-
-    // TODO: Instead of having a channel, we should just use a mutex, such that the registered listeners
-    //       can also be changed while we are playing
-    /// Channel for transferring NoteListStartedListener-delays to the playing coroutine.
-    private val noteListStartedListenerDelayChannel = Channel<NoteListStartedListenerDelayInfo>(Channel.UNLIMITED)
-    /// Temporary storage for saving NoteListStartedListener-delays.
-    private val noteListStartedListenerDelayTemporaryBuffer = ArrayList<NoteListStartedListenerDelayInfo>()
 
     /// Register a NoteStartedListener (this will stop player).
     /**
@@ -346,10 +344,13 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
     fun registerNoteStartedListener(noteStartedListener: NoteStartedListener?, delayInMilliSeconds: Float = 0f) {
         if (noteStartedListener == null)
             return
-        stop()
-        unregisterNoteStartedListener(noteStartedListener)
-        noteStartedListeners.add(noteStartedListener)
-        noteStartedListenerDelaysInMillis[noteStartedListener] = delayInMilliSeconds
+        scope.launch(Dispatchers.Main) {
+            noteStartedListenerLock.withLock {
+                noteStartedListeners.removeAll {it.noteStartedListener === noteStartedListener}
+                noteStartedListeners.add(NoteStartedListenerAndDelay(noteStartedListener, delayInMilliSeconds))
+                noteDelayInMillis = computeNoteDelayInMillis(noteStartedListeners)
+            }
+        }
     }
 
     /// Unregister a NoteStartedListener (this will stop player).
@@ -359,45 +360,36 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
     fun unregisterNoteStartedListener(noteStartedListener: NoteStartedListener?) {
         if (noteStartedListener == null)
             return
-        stop()
-        noteStartedListenerDelaysInMillis.remove(noteStartedListener)
-        noteStartedListeners.remove(noteStartedListener)
+        scope.launch(Dispatchers.Main) {
+            noteStartedListenerLock.withLock {
+                noteStartedListeners.removeAll { it.noteStartedListener === noteStartedListener }
+                noteDelayInMillis = computeNoteDelayInMillis(noteStartedListeners)
+            }
+        }
     }
 
     /// Change delay for a given NoteStartedListener
     /**
      * @param noteStartedListener NoteStartedListener for which the delay should be changed
-     * @param delayInMilliSeconds The NoteStartedListener will be started with the given delay after the
+     * @param delayInMillis The NoteStartedListener will be started with the given delay after the
      *   note starts playing. Can be negative, in order to call this before the note starts.
      */
-    fun setNoteStartedListenerDelay(noteStartedListener: NoteStartedListener?, delayInMilliSeconds: Float) {
+    fun setNoteStartedListenerDelay(noteStartedListener: NoteStartedListener?, delayInMillis: Float) {
         if (noteStartedListener == null)
             return
-        val index = noteStartedListeners.indexOf(noteStartedListener)
-        noteStartedListenerDelaysInMillis[noteStartedListener] = delayInMilliSeconds
-        if (index >= 0 && job != null) {
-            noteListStartedListenerDelayTemporaryBuffer.clear()
 
-            while (true) {
-                val delayInfo = noteListStartedListenerDelayChannel.poll()
-                if (delayInfo == null)
-                    break
-                else if (delayInfo.index != index)
-                    noteListStartedListenerDelayTemporaryBuffer.add(delayInfo)
+        scope.launch(Dispatchers.Main) {
+            noteStartedListenerLock.withLock {
+                noteStartedListeners.find { it.noteStartedListener === noteStartedListener }?.let {
+                    it.delayInMillis = delayInMillis
+                    noteDelayInMillis = computeNoteDelayInMillis(noteStartedListeners)
+                }
             }
-
-            for (delayInfo in noteListStartedListenerDelayTemporaryBuffer)
-                noteListStartedListenerDelayChannel.offer(delayInfo)
-            noteListStartedListenerDelayChannel.offer(NoteListStartedListenerDelayInfo(index, delayInMilliSeconds))
         }
     }
 
     /// Start playing
     fun start() {
-        val noteStartedListenersCopy = Array(noteStartedListeners.size) {i -> noteStartedListeners[i]}
-        val noteStartedListenersDelaysInMillisCopy = FloatArray(noteStartedListenersCopy.size) {
-            i -> noteStartedListenerDelaysInMillis[noteStartedListeners[i]] ?: 0f
-        }
 
         job = scope.launch(Dispatchers.Default) {
         //job = scope.launch(newSingleThreadContext("Player")) {
@@ -408,15 +400,6 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
             val queuedNotes = InfiniteCircularBuffer(32) {QueuedNotes()}
 
             val queuedNoteStartedListeners = ArrayList<NoteStartedListenerAndFrame>()
-
-//            player.setPlaybackPositionUpdateListener(object: AudioTrack.OnPlaybackPositionUpdateListener {
-//                override fun onMarkerReached(track: AudioTrack?) {
-//                    notifiedMarker.poll()?.noteListItem?.original?.let {note ->
-//                        noteStartedListener?.onNoteStarted(note)
-//                    }
-//                }
-//                override fun onPeriodicNotification(track: AudioTrack?) {}
-//            }, Handler(Looper.getMainLooper()))
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 val sampleRate = player.sampleRate
@@ -429,8 +412,6 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
 
             val mixingBufferSize = min(player.bufferSizeInFrames / 2, 512)
             val mixingBuffer = FloatArray(mixingBufferSize)
-
-            var delayInFrames = computeNoteDelayInFrames(noteStartedListenersDelaysInMillisCopy, player.sampleRate)
 
             // Total number of frames for which we queued track for playing. Is zeroed when player starts.
             var queuedFrames = 0
@@ -447,21 +428,14 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                 // update our local notelist copy
                 noteListCopy.assignIfNotLocked(noteList)
 
-                // update NoteListStartedListener delay
-                var delayUpdated = false
-                while (true) {
-                    val delayInfo = noteListStartedListenerDelayChannel.poll() ?: break
-                    if (noteStartedListenersDelaysInMillisCopy[delayInfo.index] != delayInfo.delayInMillis) {
-                        noteStartedListenersDelaysInMillisCopy[delayInfo.index] = delayInfo.delayInMillis
-                        delayUpdated = true
-                    }
-                }
-                if (delayUpdated)
-                    delayInFrames = computeNoteDelayInFrames(noteStartedListenersDelaysInMillisCopy, player.sampleRate)
+                val delayInFrames = noteStartedListenerLock.withLock {
+                    val delay = (noteDelayInMillis / 1000f * player.sampleRate).roundToInt()
 
-                nextNoteInfo = queueNextNotes(nextNoteInfo, noteListCopy, queuedFrames,
-                        mixingBuffer.size, queuedNoteStartedListeners, noteStartedListenersCopy,
-                        noteStartedListenersDelaysInMillisCopy, player.sampleRate, queuedNotes, delayInFrames)
+                    nextNoteInfo = queueNextNotes(nextNoteInfo, noteListCopy, queuedFrames,
+                            mixingBuffer.size, queuedNoteStartedListeners, noteStartedListeners,
+                            player.sampleRate, queuedNotes, delay)
+                    delay
+                }
 
                 synchronizeTimeChannel.poll()?.let { synchronizeTimeInfo ->
                     nextNoteInfo = synchronizeTime(synchronizeTimeInfo, noteListCopy, nextNoteInfo, player, delayInFrames)

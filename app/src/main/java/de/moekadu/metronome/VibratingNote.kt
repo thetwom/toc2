@@ -12,13 +12,9 @@ fun vibratingNoteHasHardwareSupport(context: Context?): Boolean {
     return false
 }
 
-const val maximumVibrationScaling = 2.0f
+const val maximumVibrationScaling = 3.0f
 fun vibratingNote100ToLog(value: Int) = maximumVibrationScaling.pow((value - 50) / 50f)
 fun vibratingNoteLogTo100(value: Float) = (50f * log(value, maximumVibrationScaling) + 50).toInt()
-
-const val maximumVibrationDelayInMillis = 200f
-fun vibratingNoteDelay100ToMillis(value: Int) = maximumVibrationDelayInMillis * (value - 50) / 50f
-fun vibratingNoteDelayMillisTo100(value: Float) = (value / maximumVibrationDelayInMillis * 50f + 50).toInt()
 
 class VibratingNote(context: Context)  {
 
