@@ -28,7 +28,6 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
-import android.util.Log
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.sync.Mutex
@@ -59,13 +58,12 @@ private class NoteStartedListenerAndDelay(val noteStartedListener: AudioMixer.No
 /// Class which stores tracks which are queued for the playing
 /**
  * @param nodeId Note index in #availableNotes
- * @param nextSampleToMix Index of next sample inside the audio file which goes into our mixer
- * @param startDelay wait this number of frames until passing the track to our mixer
- * @param volume Track volume
+ * @param startFrame Frame index when this note starts playing
+  * @param volume Track volume
  *   starts in this many frames.
- *   TODO: do something different with startDelay. e.g. store starting frame... maybe also adapt nextampletomi
+ *   TODO: can we make these values constant?
  */
-data class QueuedNotes(var nodeId: Int = 0, var nextSampleToMix: Int = 0, var startDelay: Int = 0, var volume: Float = 0f)
+data class QueuedNotes(var nodeId: Int = 0, var startFrame: Int = 0, var volume: Float = 0f)
 
 private data class NextNoteInfo(val nextNoteIndex: Int, val nextNoteFrame: Int)
 
@@ -78,13 +76,6 @@ private data class NextNoteInfo(val nextNoteIndex: Int, val nextNoteFrame: Int)
 *   where n is a integer number.
 */
 private data class SynchronizeTimeInfo(val referenceTime: Long, val beatDuration: Float)
-
-/// Data class used for delay data to player thread.
-/**
- * @param index Index of NoteListStartedListener in our array
- * @param delayInMillis New delay in milliseconds to be set.
- */
-private data class NoteListStartedListenerDelayInfo(val index: Int, val delayInMillis: Float)
 
 /// We use not the minimum buffer size but scale it with this integer value.
 private const val minBufferSizeFactor = 2
@@ -167,8 +158,8 @@ private fun queueNextNotes(nextNoteInfo: NextNoteInfo,
 
         val queuedNote = queuedNotes.add()
         queuedNote.nodeId = noteListItem.id
-        queuedNote.startDelay = max(0, nextNoteFrame - alreadyQueuedFrames + delayInFrames)
-        queuedNote.nextSampleToMix = 0
+        queuedNote.startFrame = nextNoteFrame + delayInFrames // startDelay = max(0, nextNoteFrame - alreadyQueuedFrames + delayInFrames)
+        //queuedNote.nextSampleToMix = 0
         queuedNote.volume = noteListItem.volume
 
         for (noteStartedListener in noteStartedListenersAndDelay) {
@@ -189,10 +180,14 @@ private fun queueNextNotes(nextNoteInfo: NextNoteInfo,
 /// Mix all currently queued frames to the mixing buffer.
 /**
  * @param mixingBuffer Array where we will put the mixed notes.
+ * @param nextFrameToMix Next frame index for which we mix our audio. In other words
+ *    mixingBuffer[0] belongs to nextFrameToMix, mixingBuffer[1] belongs to nextFrameToMix+1, ...
  * @param queuedNotes Notes which are queued for playing.
  * @param noteSamples For each possible note, this contains the track samples as PCM float.
  */
-fun mixQueuedNotes(mixingBuffer: FloatArray, queuedNotes: InfiniteCircularBuffer<QueuedNotes>,
+fun mixQueuedNotes(mixingBuffer: FloatArray,
+                   nextFrameToMix: Int,
+                   queuedNotes: InfiniteCircularBuffer<QueuedNotes>,
                    noteSamples: Array<FloatArray>) {
     mixingBuffer.fill(0.0f)
 //    Log.v("Metronome", "AudioMixer queuedNotes.size: ${queuedNotes.size}")
@@ -201,31 +196,24 @@ fun mixQueuedNotes(mixingBuffer: FloatArray, queuedNotes: InfiniteCircularBuffer
         val queuedItem = queuedNotes[i]
 
         val noteId = queuedItem.nodeId
-        val sampleStart = queuedItem.nextSampleToMix
-        val startDelay = queuedItem.startDelay
+        val noteSamplePosition = max(0, nextFrameToMix - queuedItem.startFrame)
+        val mixingBufferPosition = max(0, queuedItem.startFrame - nextFrameToMix)
         val volume = queuedItem.volume
-//            Log.v("Metronome", "AudioMixer:mixAndQueueTracks : iTrack = $i, trackIndex=$trackIndex, startDelay=$startDelay")
         val samples = noteSamples[noteId]
 
-        val numSamplesToWrite = min(samples.size - sampleStart,max(mixingBuffer.size - startDelay, 0))
-        val sampleEnd = sampleStart + numSamplesToWrite
-//            Log.v("Metronome", "AudioMixer:mixAndQueueTracks : sampleStart=$sampleStart, sampleEnd=$sampleEnd, sampleSize=${trackSamples.size}")
-//        Log.v("Metronome", "AudioMixer:mixAndQueueTracks : sampleStart=$sampleStart, sampleEnd=$sampleEnd, sampleSize=${samples.size}, delay=$startDelay")
+        val numSamplesToWrite = max(0, min(mixingBuffer.size - mixingBufferPosition, samples.size - noteSamplePosition))
 
-        var j = startDelay
-        for(k in sampleStart until sampleEnd) {
-            mixingBuffer[j] = mixingBuffer[j] + volume * samples[k]
-            ++j
+        for (j in 0 until numSamplesToWrite) {
+            mixingBuffer[mixingBufferPosition + j] = mixingBuffer[mixingBufferPosition + j] + volume * samples[noteSamplePosition + j]
         }
-
-        queuedItem.startDelay = max(0, startDelay - mixingBuffer.size)
-        queuedItem.nextSampleToMix = sampleEnd
     }
 
+    val lastMixedFrame = nextFrameToMix + mixingBuffer.size
     while(queuedNotes.size > 0) {
         val queuedItem = queuedNotes.first()
-        val numSamples = noteSamples[queuedItem.nodeId].size
-        if (queuedItem.nextSampleToMix >= numSamples)
+        val endFrameOfNote = queuedItem.startFrame + noteSamples[queuedItem.nodeId].size
+
+        if (lastMixedFrame >= endFrameOfNote)
             queuedNotes.pop()
         else
             break
@@ -410,11 +398,11 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                 }, Handler(Looper.getMainLooper()))
             }
 
-            val mixingBufferSize = min(player.bufferSizeInFrames / 2, 512)
+            val mixingBufferSize = min(player.bufferSizeInFrames / 2, 128)
             val mixingBuffer = FloatArray(mixingBufferSize)
 
             // Total number of frames for which we queued track for playing. Is zeroed when player starts.
-            var queuedFrames = 0
+            var numMixedFrames = 0
             var nextNoteInfo = NextNoteInfo(0, player.bufferSizeInFrames / 2)
 
             val noteListCopy = NoteList()
@@ -431,7 +419,7 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                 val delayInFrames = noteStartedListenerLock.withLock {
                     val delay = (noteDelayInMillis / 1000f * player.sampleRate).roundToInt()
 
-                    nextNoteInfo = queueNextNotes(nextNoteInfo, noteListCopy, queuedFrames,
+                    nextNoteInfo = queueNextNotes(nextNoteInfo, noteListCopy, numMixedFrames,
                             mixingBuffer.size, queuedNoteStartedListeners, noteStartedListeners,
                             player.sampleRate, queuedNotes, delay)
                     delay
@@ -441,9 +429,10 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                     nextNoteInfo = synchronizeTime(synchronizeTimeInfo, noteListCopy, nextNoteInfo, player, delayInFrames)
                 }
 
-                queuedFrames += mixingBuffer.size
 //                Log.v("Metronome", "AudioMixer queuedNotes.size: ${queuedNotes.size}")
-                mixQueuedNotes(mixingBuffer, queuedNotes, noteSamples)
+                mixQueuedNotes(mixingBuffer, numMixedFrames, queuedNotes, noteSamples)
+
+                numMixedFrames += mixingBuffer.size
 
 //                Log.v("Metronome", "AudioMixer notificationMarkerPosition: ${player.notificationMarkerPosition}")
                 // call registered callbacks
