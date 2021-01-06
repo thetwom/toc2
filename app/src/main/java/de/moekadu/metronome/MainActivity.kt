@@ -67,6 +67,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 //        Log.v("Metronome", "MainActivity:onCreate")
 
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false)
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
 
         val appearance = sharedPreferences.getString("appearance", "auto")

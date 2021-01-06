@@ -188,29 +188,16 @@ class SettingsFragment: PreferenceFragmentCompat() {
         val resetSettings = findPreference("setdefault") as Preference?
         require(resetSettings != null)
         resetSettings.onPreferenceClickListener = Preference.OnPreferenceClickListener {
-            context?.let { ctx ->
-                val builder = AlertDialog.Builder(ctx)
+            activity?.let { act ->
+                val builder = AlertDialog.Builder(act)
                         .setTitle(R.string.reset_settings_prompt)
                         .setPositiveButton(R.string.yes) { _, _ ->
-                            vibratePreference.isChecked = false
-                            vibrationStrength.value = 50
-                            vibrationStrength.onPreferenceChangeListener.onPreferenceChange(vibrationStrength, 0)
+                            val preferenceEditor = PreferenceManager.getDefaultSharedPreferences(act).edit()
+                            preferenceEditor.clear()
+                            PreferenceManager.setDefaultValues(act, R.xml.preferences, true)
+                            preferenceEditor.apply()
+                            act.recreate()
 
-                            minimumSpeed.text = InitialValues.minimumSpeed.toString()
-                            minimumSpeed.onPreferenceChangeListener.onPreferenceChange(minimumSpeed, InitialValues.minimumSpeed.toString())
-                            maximumSpeed.text = InitialValues.maximumSpeed.toString()
-                            maximumSpeed.onPreferenceChangeListener.onPreferenceChange(maximumSpeed, InitialValues.maximumSpeed.toString())
-                            speedIncrement.value = 3
-                            speedIncrement.onPreferenceChangeListener.onPreferenceChange(speedIncrement, 3)
-
-                            speedSensitivity.value = 30
-                            speedSensitivity.onPreferenceChangeListener.onPreferenceChange(speedSensitivity, 30)
-
-                            appearance.value = "auto"
-                            appearance.onPreferenceChangeListener.onPreferenceChange(appearance, "auto")
-
-                            screenOnPreference.isChecked = false
-                            screenOnPreference.onPreferenceChangeListener.onPreferenceChange(screenOnPreference, false)
                         }
                         .setNegativeButton(R.string.no) { dialog, _ -> dialog?.cancel() }
                 builder.show()
