@@ -26,7 +26,6 @@ import android.graphics.drawable.Drawable
 import android.transition.AutoTransition
 import android.transition.TransitionManager
 import android.util.AttributeSet
-import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View

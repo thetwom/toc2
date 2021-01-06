@@ -19,11 +19,8 @@
 
 package de.moekadu.metronome
 
-import android.util.Log
-import java.security.KeyStore
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
-import kotlin.math.max
 import kotlin.math.min
 
 /// Item in note list

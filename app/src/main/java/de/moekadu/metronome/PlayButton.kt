@@ -170,21 +170,20 @@ class PlayButton(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 
         when(action) {
             MotionEvent.ACTION_DOWN -> {
-                if (radiusXY <= radius) {
+                return if (radiusXY <= radius) {
                     isPressed = true
-                    return true
+                    true
                 } else {
                     isPressed = false
-                    return false
+                    false
                 }
             }
             MotionEvent.ACTION_MOVE -> {
-                if (radiusXY <= radius && isPressed) {
-                    return true
-                }
-                else {
+                return if (radiusXY <= radius && isPressed) {
+                    true
+                } else {
                     isPressed = false
-                    return false
+                    false
                 }
             }
             MotionEvent.ACTION_UP -> {

@@ -20,7 +20,6 @@
 package de.moekadu.metronome
 
 import android.app.PendingIntent
-import android.app.Service
 import android.content.*
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.media.AudioManager
@@ -32,11 +31,9 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.withCreated
 import androidx.preference.PreferenceManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlin.collections.ArrayList
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -352,7 +349,7 @@ class PlayerService : LifecycleService() {
     }
 
 
-    override fun onBind(intent: Intent): IBinder? {
+    override fun onBind(intent: Intent): IBinder {
         super.onBind(intent)
         // Log.v("Metronome", "PlayerService:onBind")
 
