@@ -36,9 +36,11 @@
     <SeekBarPreference
         app:key="vibratedelay"
         app:title="@string/vibrate_delay"
-        android:defaultValue="50"
+        app:min="-200"
+        android:max="200"
+        android:defaultValue="0"
+        android:dependency="vibrate"
         />
-<!--    android:dependency="vibrate"-->
 
     <ListPreference
       app:key="appearance"

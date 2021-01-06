@@ -87,12 +87,9 @@ class SettingsFragment: PreferenceFragmentCompat() {
 
         val vibrationDelay = findPreference<SeekBarPreference>("vibratedelay") ?: throw RuntimeException("no vibrate delay setting")
         vibrationDelay.updatesContinuously = true
-        vibrationDelay.seekBarIncrement = 1
-        vibrationDelay.min = 0
-        vibrationDelay.max = 100
-        vibrationDelay.summary = getVibrationDelaySummary(vibrationDelay.value)
+        vibrationDelay.summary =  getString(R.string.milliseconds, vibrationDelay.value)
         vibrationDelay.setOnPreferenceChangeListener { _, newValue ->
-            vibrationDelay.summary = getVibrationDelaySummary(newValue as Int)
+            vibrationDelay.summary = getString(R.string.milliseconds, newValue as Int)
             true
         }
 
@@ -256,9 +253,5 @@ class SettingsFragment: PreferenceFragmentCompat() {
             getString(R.string.medium_strength, vibratingNote100ToLog(value))
         else
             getString(R.string.high_strength, vibratingNote100ToLog(value))
-    }
-
-    private fun getVibrationDelaySummary(value: Int): String {
-        return getString(R.string.milliseconds, vibratingNoteDelay100ToMillis(value).roundToInt())
     }
 }
