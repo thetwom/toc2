@@ -73,4 +73,6 @@
     <string name="speed_too_small">Geschwindigkeit (%s bpm) ist kleiner als erlaubtes Minimum (%s bpm).</string>
     <string name="speed_too_large">Geschwindigkeit (%s bpm) ist größer als erlaubtes Maximum (%s bpm).</string>
     <string name="inconsistent_increment">Geschwindigkeit (%s bpm) kann nicht durch die Schrittweite (%s bpm) aufgelöst werden.</string>
+    <string name="milliseconds">%d ms</string>
+    <string name="vibrate_delay">Vibrationsverzögerung</string>
 </resources>
