@@ -44,7 +44,6 @@ import kotlin.math.roundToInt
 class SaveDataFragment : Fragment() {
 
     private var savedItems: RecyclerView? = null
-    private var savedItemsManager: RecyclerView.LayoutManager? = null
     private val savedItemsAdapter = SavedItemDatabase()
 
     private var lastRemovedItemIndex = -1
@@ -55,7 +54,6 @@ class SaveDataFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
-        savedItemsManager = LinearLayoutManager(activity)
         activity?.let { savedItemsAdapter.loadData(it) }
     }
 
@@ -90,7 +88,7 @@ class SaveDataFragment : Fragment() {
 
         savedItems = view.findViewById(R.id.savedItems)
         savedItems?.setHasFixedSize(true)
-        savedItems?.layoutManager = savedItemsManager
+        savedItems?.layoutManager = LinearLayoutManager(requireContext())
         savedItems?.adapter = savedItemsAdapter
 
         val simpleTouchHelper = object: ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.LEFT) {

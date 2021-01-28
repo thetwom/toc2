@@ -61,7 +61,7 @@ private class NoteStartedListenerAndDelay(val noteStartedListener: AudioMixer.No
  * @param startFrame Frame index when this note starts playing.
  * @param volume Track volume.
  */
-data class QueuedNote(val noteId: Int, val startFrame: Int, val volume: Float)
+private data class QueuedNote(val noteId: Int, val startFrame: Int, val volume: Float)
 
 private data class NextNoteInfo(val nextNoteIndex: Int, val nextNoteFrame: Int)
 
@@ -180,7 +180,7 @@ private fun queueNextNotes(nextNoteInfo: NextNoteInfo,
  * @param queuedNotes Notes which are queued for playing.
  * @param noteSamples For each possible note, this contains the track samples as PCM float.
  */
-fun mixQueuedNotes(mixingBuffer: FloatArray,
+private fun mixQueuedNotes(mixingBuffer: FloatArray,
                    nextFrameToMix: Int,
                    queuedNotes: ArrayList<QueuedNote>,
                    noteSamples: Array<FloatArray>) {

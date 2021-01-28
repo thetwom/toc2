@@ -29,8 +29,7 @@ import android.os.Binder
 import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import androidx.lifecycle.LifecycleService
-import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.*
 import androidx.preference.PreferenceManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -39,36 +38,10 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
+
 class PlayerService : LifecycleService() {
 
     private val playerBinder = PlayerBinder()
-
-    companion object {
-        const val BROADCAST_PLAYERACTION = "de.moekadu.metronome.playeraction"
-        const val PLAYER_STATE = "de.moekadu.metronome.playerstate"
-        const val PLAYBACK_SPEED = "de.moekadu.metronome.playbackspeed"
-        const val INCREMENT_SPEED = "de.moekadu.metronome.incrementSpeed"
-        const val DECREMENT_SPEED = "de.moekadu.metronome.decrementSpeed"
-
-//        fun sendPlayIntent(context: Context) {
-//            val intent = Intent(BROADCAST_PLAYERACTION)
-//            intent.putExtra(PLAYERSTATE, PlaybackStateCompat.ACTION_PLAY)
-//            context.sendBroadcast(intent)
-//        }
-//
-//        fun sendPauseIntent(context: Context) {
-//            val intent = Intent(BROADCAST_PLAYERACTION)
-//            intent.putExtra(PLAYERSTATE, PlaybackStateCompat.ACTION_PAUSE)
-//            context.sendBroadcast(intent)
-//        }
-//
-//        fun sendChangeSpeedIntent(context: Context, speed: Float) {
-//            val intent = Intent(BROADCAST_PLAYERACTION)
-//            intent.putExtra(PLAYBACKSPEED, speed)
-//            context.sendBroadcast(intent)
-//        }
-    }
-
     interface StatusChangedListener {
         fun onPlay()
         fun onPause()
@@ -411,9 +384,9 @@ class PlayerService : LifecycleService() {
         notification?.postNotificationUpdate()
     }
 
-    fun syncClickWithUptimeMillis(time : Long) {
+    fun syncClickWithUptimeMillis(uptimeMillis : Long) {
         if(state == PlaybackStateCompat.STATE_PLAYING) {
-            audioMixer?.synchronizeTime(time, computeNoteDurationInSeconds(speed))
+            audioMixer?.synchronizeTime(uptimeMillis, computeNoteDurationInSeconds(speed))
         }
     }
 
@@ -429,5 +402,32 @@ class PlayerService : LifecycleService() {
         soundPool.play(soundHandles[noteListItem.id], noteListItem.volume, noteListItem.volume, 1, 0, 1.0f)
         if (vibrate && getNoteVibrationDuration(noteListItem.id) > 0L)
             vibrator?.vibrate(noteListItem.volume, noteListItem)
+    }
+
+
+    companion object {
+        const val BROADCAST_PLAYERACTION = "de.moekadu.metronome.playeraction"
+        const val PLAYER_STATE = "de.moekadu.metronome.playerstate"
+        const val PLAYBACK_SPEED = "de.moekadu.metronome.playbackspeed"
+        const val INCREMENT_SPEED = "de.moekadu.metronome.incrementSpeed"
+        const val DECREMENT_SPEED = "de.moekadu.metronome.decrementSpeed"
+
+//        fun sendPlayIntent(context: Context) {
+//            val intent = Intent(BROADCAST_PLAYERACTION)
+//            intent.putExtra(PLAYERSTATE, PlaybackStateCompat.ACTION_PLAY)
+//            context.sendBroadcast(intent)
+//        }
+//
+//        fun sendPauseIntent(context: Context) {
+//            val intent = Intent(BROADCAST_PLAYERACTION)
+//            intent.putExtra(PLAYERSTATE, PlaybackStateCompat.ACTION_PAUSE)
+//            context.sendBroadcast(intent)
+//        }
+//
+//        fun sendChangeSpeedIntent(context: Context, speed: Float) {
+//            val intent = Intent(BROADCAST_PLAYERACTION)
+//            intent.putExtra(PLAYBACKSPEED, speed)
+//            context.sendBroadcast(intent)
+//        }
     }
 }

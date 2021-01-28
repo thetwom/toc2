@@ -19,16 +19,10 @@
 
 package de.moekadu.metronome
 
-import android.annotation.SuppressLint
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Bundle
-import android.os.IBinder
-import android.support.v4.media.session.PlaybackStateCompat
 import android.text.InputType
+import android.util.Log
 import android.view.*
 import android.widget.EditText
 import android.widget.ImageButton
@@ -36,46 +30,71 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
 import kotlin.math.abs
 import kotlin.math.roundToInt
-
 
 /**
 
  */
 class MetronomeFragment : Fragment() {
 
+    private val viewModel by activityViewModels<MetronomeViewModel> {
+        //val playerConnection = PlayerServiceConnection.getInstance(requireContext())
+        val playerConnection = PlayerServiceConnection(requireContext())
+        MetronomeViewModel.Factory(playerConnection)
+    }
+
+    private val singleNotePlayer by lazy {
+        Log.v("Metronome", "MetronomeFragment: creating singleNotePlayer")
+        SingleNotePlayer(requireContext(), this)
+    }
+
+    private val vibratingNote by lazy {
+        if (vibratingNoteHasHardwareSupport(requireContext()))
+            VibratingNote(requireContext())
+        else
+            null
+    }
+    private var vibrate = false
+
     private var speedText: TextView? = null
     private var playButton: PlayButton? = null
-    private var noteView : NoteView? = null
-    private var plusButton : ImageButton? = null
-    private var clearAllButton : ImageButton? = null
+    private var noteView: NoteView? = null
+    private var plusButton: ImageButton? = null
+    private var clearAllButton: ImageButton? = null
 
     private val noteListChangeListener = object : NoteList.NoteListChangedListener {
 
-        override fun onNoteAdded(note: NoteListItem, index: Int) { }
-        override fun onNoteRemoved(note: NoteListItem, index: Int) { }
-        override fun onNoteMoved(note: NoteListItem, fromIndex: Int, toIndex: Int) { }
+        override fun onNoteAdded(note: NoteListItem, index: Int) {}
+        override fun onNoteRemoved(note: NoteListItem, index: Int) {}
+        override fun onNoteMoved(note: NoteListItem, fromIndex: Int, toIndex: Int) {}
 
         override fun onVolumeChanged(note: NoteListItem, index: Int) {
-            if(playerService?.state != PlaybackStateCompat.STATE_PLAYING)
-                playerService?.playSpecificSound(note, false)
+            if (viewModel.playerStatus.value != PlayerStatus.Playing && context != null) {
+                singleNotePlayer.play(note.id, note.volume)
+            }
         }
 
         override fun onNoteIdChanged(note: NoteListItem, index: Int) {
-            if(soundChooser?.choiceStatus == SoundChooser.CHOICE_STATIC && playerService?.state != PlaybackStateCompat.STATE_PLAYING)
-                playerService?.playSpecificSound(note, true)
+            if (soundChooser?.choiceStatus == SoundChooser.CHOICE_STATIC
+                    && viewModel.playerStatus.value != PlayerStatus.Playing
+                    && context != null) {
+                singleNotePlayer.play(note.id, note.volume)
+                if (vibrate)
+                    vibratingNote?.vibrate(note.volume, note)
+            }
         }
 
-        override fun onDurationChanged(note: NoteListItem, index: Int) { }
+        override fun onDurationChanged(note: NoteListItem, index: Int) {}
 
-        override fun onAllNotesReplaced(noteList: NoteList) { }
+        override fun onAllNotesReplaced(noteList: NoteList) {}
     }
 
     /// Note list, that contains current metronome notes.
-    var noteList : NoteList? = null
+    var noteList: NoteList? = null
         set(value) {
             field?.unregisterNoteListChangedListener(noteListChangeListener)
             field = value
@@ -93,35 +112,8 @@ class MetronomeFragment : Fragment() {
     private var volumeSliders: VolumeSliders? = null
     private var savedVolumeSlidersFolded = true
 
-    private var playerConnection: ServiceConnection? = null
-    private var playerService: PlayerService? = null
-    private var playerContext: Context? = null
-
     private var sharedPreferenceChangeListener: OnSharedPreferenceChangeListener? = null
     private var speedIncrement = Utilities.speedIncrements[InitialValues.speedIncrementIndex]
-
-    private val playerServiceStatusChangedListener = object : PlayerService.StatusChangedListener {
-
-        override fun onNoteStarted(noteListItem: NoteListItem) {
-            playerService?.let { tickVisualizer?.tick(Utilities.speed2dt(it.speed))}
-            noteView?.animateNote(noteListItem)
-            soundChooser?.animateNote(noteListItem)
-        }
-
-        override fun onPlay() {
-            playButton?.changeStatus(PlayButton.STATUS_PLAYING, true)
-        }
-
-        override fun onPause() {
-            tickVisualizer?.stop()
-            playButton?.changeStatus(PlayButton.STATUS_PAUSED, true)
-        }
-
-        override fun onSpeedChanged(speed: Float) {
-            if(isAdded)
-                speedText?.text = getString(R.string.bpm, Utilities.getBpmString(speed, speedIncrement))
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -129,7 +121,7 @@ class MetronomeFragment : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-         // Log.v("Metronome", "MetronomeFragment:onCreateView");
+        // Log.v("Metronome", "MetronomeFragment:onCreateView");
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_metronome, container, false)
 
@@ -140,7 +132,9 @@ class MetronomeFragment : Fragment() {
                 editText.inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
                 val pad = Utilities.dp2px(20f).roundToInt()
                 editText.setPadding(pad, pad, pad, pad)
-                playerService?.speed?.let {speed ->
+
+                //playerService?.speed?.let {speed ->
+                viewModel.speed.value?.let { speed ->
                     editText.setText(Utilities.getBpmString(speed))
                 }
 
@@ -155,9 +149,9 @@ class MetronomeFragment : Fragment() {
                         if (newSpeed == null) {
                             Toast.makeText(ctx, "${getString(R.string.invalid_speed)}$newSpeedText",
                                     Toast.LENGTH_LONG).show()
-                        }
-                        else if (checkSpeedAndShowToastOnFailure(newSpeed)) {
-                            playerService?.speed = newSpeed
+                        } else if (checkSpeedAndShowToastOnFailure(newSpeed)) {
+                            //playerService?.speed = newSpeed
+                            viewModel.setSpeed(newSpeed)
                         }
                     }
                     setNegativeButton(R.string.abort) { dialog, _ ->
@@ -177,55 +171,56 @@ class MetronomeFragment : Fragment() {
         }
 
         val speedPanel = view.findViewById(R.id.speed_panel) as SpeedPanel?
-
-        volumeSliders = view.findViewById(R.id.volume_sliders)
-        volumeSliders?.noteList = noteList
-
-        tickVisualizer = view.findViewById(R.id.tick_visualizer)
-
         speedPanel?.speedChangedListener = object : SpeedPanel.SpeedChangedListener {
             override fun onSpeedChanged(dSpeed: Float) {
-                playerService?.addValueToSpeed(dSpeed)
+                //playerService?.addValueToSpeed(dSpeed)
+                viewModel.speed.value?.let { currentSpeed ->
+                    viewModel.setSpeed(currentSpeed + dSpeed)
+                }
             }
 
             override fun onAbsoluteSpeedChanged(newSpeed: Float, nextClickTimeInMillis: Long) {
-                playerService?.speed = newSpeed
-                playerService?.syncClickWithUptimeMillis(nextClickTimeInMillis)
+                //playerService?.speed = newSpeed
+                viewModel.setSpeed(newSpeed)
+                viewModel.syncClickWithUptimeMillis(nextClickTimeInMillis)
+//                playerService?.syncClickWithUptimeMillis(nextClickTimeInMillis)
             }
         }
 
-        playButton = view.findViewById(R.id.play_button)
+        volumeSliders = view.findViewById(R.id.volume_sliders)
+        tickVisualizer = view.findViewById(R.id.tick_visualizer)
 
+        playButton = view.findViewById(R.id.play_button)
         playButton?.buttonClickedListener = object : PlayButton.ButtonClickedListener {
             override fun onPause() {
                 // Log.v("Metronome", "playButton:onPause()")
-                playerService?.stopPlay()
+                //playerService?.stopPlay()
+                viewModel.pause()
             }
 
             override fun onPlay() {
                 // Log.v("Metronome", "playButton:onPause()")
-                playerService?.startPlay()
+//                playerService?.startPlay()
+                viewModel.play()
             }
         }
 
         noteView = view.findViewById(R.id.note_view)
-        noteView?.noteList = noteList
-
         noteView?.onNoteClickListener = object : NoteView.OnNoteClickListener {
             override fun onDown(event: MotionEvent?, note: NoteListItem?, noteIndex: Int): Boolean {
 //                Log.v("Metronome", "MetronomeFragment.noteView.onClickListener.onDown: noteIndex=$noteIndex")
-                if(note != null) {
+                if (note != null) {
                     soundChooser?.setActiveNote(note)
                     noteView?.highlightNote(note, true)
                 }
                 return false
             }
 
-            override fun onUp(event: MotionEvent?, note: NoteListItem?,noteIndex: Int): Boolean {
+            override fun onUp(event: MotionEvent?, note: NoteListItem?, noteIndex: Int): Boolean {
                 return true
             }
 
-            override fun onMove(event: MotionEvent?, note: NoteListItem?,noteIndex: Int): Boolean {
+            override fun onMove(event: MotionEvent?, note: NoteListItem?, noteIndex: Int): Boolean {
                 return true
             }
         }
@@ -250,17 +245,16 @@ class MetronomeFragment : Fragment() {
 
         plusButton = view.findViewById(R.id.plus_button)
         plusButton?.setOnClickListener {
-            if(noteList?.size == 0) {
+            if (noteList?.size == 0) {
                 noteList?.add(NoteListItem(defaultNote, 1.0f, -1.0f))
-            }
-            else {
+            } else {
                 noteList?.let {
                     val n = it.last().clone()
                     it.add(n)
                 }
             }
 
-            if(soundChooser?.choiceStatus == SoundChooser.CHOICE_STATIC) {
+            if (soundChooser?.choiceStatus == SoundChooser.CHOICE_STATIC) {
                 noteList?.let { notes ->
                     val noteIndex = notes.size - 1
                     val note = notes[noteIndex]
@@ -289,11 +283,9 @@ class MetronomeFragment : Fragment() {
         }
 
         soundChooser = view.findViewById(R.id.sound_chooser)
-        soundChooser?.noteList = noteList
-
         soundChooser?.stateChangedListener = object : SoundChooser.StateChangedListener {
             override fun onSoundChooserDeactivated(note: NoteListItem?) {
-                if(note != null)
+                if (note != null)
                     noteView?.highlightNote(note, false)
             }
         }
@@ -309,11 +301,16 @@ class MetronomeFragment : Fragment() {
                     val newSpeedSensitivity = sharedPreferences!!.getInt("speedsensitivity", (Utilities.sensitivity2percentage(InitialValues.speedSensitivity)).roundToInt()).toFloat()
                     speedPanel?.sensitivity = Utilities.percentage2sensitivity(newSpeedSensitivity)
                 }
+                "vibrate" -> {
+                    vibrate = sharedPreferences.getBoolean("vibrate", false)
+                }
+                "vibratestrength" -> {
+                    vibratingNote?.strength = sharedPreferences.getInt("vibratestrength", 50)
+                }
             }
         }
 
-        require(context != null)
-        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
         val speedIncrementIndex = sharedPreferences.getInt("speedincrement", InitialValues.speedIncrementIndex)
         speedIncrement = Utilities.speedIncrements[speedIncrementIndex]
         speedPanel?.speedIncrement = speedIncrement
@@ -321,41 +318,73 @@ class MetronomeFragment : Fragment() {
         val speedSensitivity = sharedPreferences.getInt("speedsensitivity", (Utilities.sensitivity2percentage(InitialValues.speedSensitivity)).roundToInt()).toFloat()
         speedPanel?.sensitivity = Utilities.percentage2sensitivity(speedSensitivity)
 
-        savedSoundChooserNoteIndex = savedInstanceState?.getInt("soundChooserNoteIndex", -1) ?: -1
-        savedVolumeSlidersFolded = savedInstanceState?.getBoolean("volumeSlidersFolded", true) ?: true
-        return view
-    }
+        vibrate = sharedPreferences.getBoolean("vibrate", false)
+        vibratingNote?.strength = sharedPreferences.getInt("vibratestrength", 50)
 
-    override fun onResume() {
-//        Log.v("Metronome", "MetronomeFragment:onResume")
-        super.onResume()
-        require(context != null)
-        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
-        sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener)
-        // We can bind service only after our fragment is fully inflated since while binding,
-        // we call commands which require our view fully set up!
-        val run = Runnable {
-            val act = activity as MainActivity?
-            if(act != null) {
-                bindService(act.applicationContext)
+        savedSoundChooserNoteIndex = savedInstanceState?.getInt("soundChooserNoteIndex", -1) ?: -1
+        savedVolumeSlidersFolded = savedInstanceState?.getBoolean("volumeSlidersFolded", true)
+                ?: true
+
+        // register all observers
+        viewModel.speed.observe(viewLifecycleOwner) {
+            Log.v("Metronome", "MetronomeFragment: viewModel.speed: $it")
+            speedText?.text = getString(R.string.bpm, Utilities.getBpmString(it, speedIncrement))
+        }
+
+        viewModel.playerStatus.observe(viewLifecycleOwner) {
+            Log.v("Metronome", "MetronomeFragment: viewModel.playerStatus: $it")
+            when (it) {
+                PlayerStatus.Playing -> {
+                    playButton?.changeStatus(PlayButton.STATUS_PLAYING, true)
+                }
+                PlayerStatus.Paused, null -> {
+                    tickVisualizer?.stop()
+                    playButton?.changeStatus(PlayButton.STATUS_PAUSED, true)
+                }
             }
         }
 
-        view?.post(run)
+        viewModel.noteStartedEvent.observe(viewLifecycleOwner) {
+            viewModel.speed.value?.let { speed -> tickVisualizer?.tick(Utilities.speed2dt(speed)) }
+            noteView?.animateNote(it)
+            soundChooser?.animateNote(it)
+        }
+
+        viewModel.noteList.observe(viewLifecycleOwner) {
+            viewModel.noteList.value?.let {
+                noteList = it
+            }
+        }
+
+        if (!savedVolumeSlidersFolded || savedSoundChooserNoteIndex >= 0) {
+            view.post {
+                noteList?.let { notes ->
+                    if (savedSoundChooserNoteIndex >= 0 && savedSoundChooserNoteIndex < notes.size) {
+                        val note = notes[savedSoundChooserNoteIndex]
+                        soundChooser?.setActiveNote(note)
+                        noteView?.highlightNote(note, true)
+                        soundChooser?.activateStaticChoices(0L)
+                    }
+                }
+
+                if (!savedVolumeSlidersFolded)
+                    volumeSliders?.unfold(0L)
+            }
+        }
+        return view
     }
 
-    override fun onPause() {
-//        Log.v("Metronome", "MetronomeFragment:onPause")
-        require(context != null)
-        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+
+    override fun onStart() {
+        super.onStart()
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
+        sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener)
+    }
+
+    override fun onStop() {
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener)
-        unbindPlayerService()
-        super.onPause()
-    }
-
-    override fun onDestroy() {
-        noteList = null
-        super.onDestroy()
+        super.onStop()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -391,79 +420,24 @@ class MetronomeFragment : Fragment() {
         clearAll?.isVisible = false
     }
 
-    private fun unbindPlayerService() {
-        if (playerService == null)
-            return
-        playerService?.unregisterStatusChangedListener(playerServiceStatusChangedListener)
-        // playerService?.unregisterMediaControllerCallback(mediaControllerCallback)
-        playerConnection?.let { playerContext?.unbindService(it) }
-        playerService = null
-    }
-
-    @SuppressLint("SwitchIntDef")
-    private fun updateView() {
-//        Log.v("Metronome", "MetronomeFragment.updateView")
-        playerService?.playbackState?.let { playbackState ->
-            when(playbackState.state) {
-                PlaybackStateCompat.STATE_PLAYING -> {
-                    playButton?.changeStatus(PlayButton.STATUS_PLAYING, false)
-                }
-                PlaybackStateCompat.STATE_PAUSED -> {
-                    tickVisualizer?.stop()
-                    playButton?.changeStatus(PlayButton.STATUS_PAUSED, false)
-                }
-            }
-            true // we have to add this true to since the "let" expects a return value
-        }
-
-        speedText?.text = getString(R.string.bpm, Utilities.getBpmString(playerService?.speed ?: InitialValues.speed, speedIncrement))
-    }
-
-    private fun bindService(context : Context?) {
-        if(context == null)
-        {
-            // we should throw some error here
-            return
-        }
-
-        if(playerService == null) {
-            playerConnection = object : ServiceConnection {
-                override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-//                    Log.v("Metronome", "PlayerService:onServiceConnected")
-                    // We've bound to LocalService, cast the IBinder and get LocalService instance
-                    val binder = service as PlayerService.PlayerBinder
-                    playerService = binder.service
-                    playerContext = context
-                    playerService?.registerStatusChangedListener(playerServiceStatusChangedListener)
-                    noteList = playerService?.noteList
-                    updateView()
-//                    updateSpeedIndicatorMarksAndVolumeSliders()
-
-                    noteList?.let { notes ->
-                        if (savedSoundChooserNoteIndex >= 0 && savedSoundChooserNoteIndex < notes.size) {
-                            val note = notes[savedSoundChooserNoteIndex]
-                            soundChooser?.setActiveNote(note)
-                            noteView?.highlightNote(note, true)
-                            soundChooser?.activateStaticChoices(0L)
-                        }
-                    }
-
-                    if(!savedVolumeSlidersFolded)
-                        volumeSliders?.unfold(0L)
-                }
-
-                override fun onServiceDisconnected(name: ComponentName?) {
-                    // Log.v("Metronome", "PlayerService:onServiceDisconnected")
-                    playerService?.unregisterStatusChangedListener(playerServiceStatusChangedListener)
-                    playerService = null
-                    playerContext = null
-                }
-            }
-
-            val serviceIntent = Intent(context, PlayerService::class.java)
-            context.bindService(serviceIntent, playerConnection as ServiceConnection, Context.BIND_AUTO_CREATE)
-        }
-    }
+//    @SuppressLint("SwitchIntDef")
+//    private fun updateView() {
+////        Log.v("Metronome", "MetronomeFragment.updateView")
+//        //playerService?.playbackState?.let { playbackState ->
+//        when(viewModel.playerStatus.value) {
+//            PlayerStatus.Playing -> {
+//                playButton?.changeStatus(PlayButton.STATUS_PLAYING, false)
+//            }
+//            PlayerStatus.Paused, null -> {
+//                tickVisualizer?.stop()
+//                playButton?.changeStatus(PlayButton.STATUS_PAUSED, false)
+//            }
+//        }
+//
+//        viewModel.speed.value?.let {
+//            speedText?.text = getString(R.string.bpm, Utilities.getBpmString(it, speedIncrement))
+//        }
+//    }
 
     private fun checkSpeedAndShowToastOnFailure(speed: Float): Boolean {
 

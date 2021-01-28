@@ -52,15 +52,13 @@ class MainActivity : AppCompatActivity() {
         private const val METRONOME_FRAGMENT_TAG = "metronomeFragment"
         private const val PLAYER_FRAGMENT_TAG = "playerFragment"
         private const val SETTINGS_FRAGMENT_TAG = "settingsFragment"
-//        private const val SOUND_CHOOSER_FRAGMENT_TAG = "soundChooserDialog"
         private const val SAVE_DATA_FRAGMENT_TAG = "saveDataFragment"
         private const val FILE_CREATE = 1
         private const val FILE_OPEN = 2
     }
 
-    private var playerFrag : PlayerFragment? = null
-    private var settingsFrag : SettingsFragment? = null
-    // private var soundChooserDialog : SoundChooserDialog? = null
+    private var playerFragment : PlayerFragment? = null
+    private var settingsFragment : SettingsFragment? = null
     private var saveDataFragment : SaveDataFragment? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -93,22 +91,22 @@ class MainActivity : AppCompatActivity() {
 
         volumeControlStream = AudioManager.STREAM_MUSIC
 
-        playerFrag = supportFragmentManager.findFragmentByTag(PLAYER_FRAGMENT_TAG) as PlayerFragment?
-        if(playerFrag == null) {
-            playerFrag = PlayerFragment()
-            playerFrag?.let {
+        playerFragment = supportFragmentManager.findFragmentByTag(PLAYER_FRAGMENT_TAG) as PlayerFragment?
+        if(playerFragment == null) {
+            playerFragment = PlayerFragment()
+            playerFragment?.let {
                 supportFragmentManager.beginTransaction().add(it, PLAYER_FRAGMENT_TAG).commit()
             }
         }
 
-        var metrFrag = supportFragmentManager.findFragmentByTag(METRONOME_FRAGMENT_TAG) as MetronomeFragment?
-        if(metrFrag == null) {
-            metrFrag = MetronomeFragment()
+        var metronomeFragment = supportFragmentManager.findFragmentByTag(METRONOME_FRAGMENT_TAG) as MetronomeFragment?
+        if(metronomeFragment == null) {
+            metronomeFragment = MetronomeFragment()
         }
 
-        settingsFrag = supportFragmentManager.findFragmentByTag(SETTINGS_FRAGMENT_TAG) as SettingsFragment?
-        if(settingsFrag == null) {
-            settingsFrag = SettingsFragment()
+        settingsFragment = supportFragmentManager.findFragmentByTag(SETTINGS_FRAGMENT_TAG) as SettingsFragment?
+        if(settingsFragment == null) {
+            settingsFragment = SettingsFragment()
         }
 
         saveDataFragment = supportFragmentManager.findFragmentByTag(SAVE_DATA_FRAGMENT_TAG) as SaveDataFragment?
@@ -123,7 +121,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         if(supportFragmentManager.fragments.size == 0)
-            supportFragmentManager.beginTransaction().replace(R.id.mainframe, metrFrag, METRONOME_FRAGMENT_TAG).commit()
+            supportFragmentManager.beginTransaction().replace(R.id.mainframe, metronomeFragment, METRONOME_FRAGMENT_TAG).commit()
 
         setDisplayHomeButton()
         supportFragmentManager.addOnBackStackChangedListener { setDisplayHomeButton() }
@@ -147,13 +145,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item : MenuItem) : Boolean{
-        //    // Handle action bar item clicks here. The action bar will
-        //    // automatically handle clicks on the Home/Up button, so long
-        //    // as you specify a parent activity in AndroidManifest.xml.
-        //    //noinspection SimplifiableIfStatement
+
         when (item.itemId) {
             R.id.action_properties -> {
-                settingsFrag?.let {
+                settingsFragment?.let {
                     supportFragmentManager.beginTransaction()
                             .replace(R.id.mainframe, it, SETTINGS_FRAGMENT_TAG)
                             .addToBackStack("blub")
@@ -265,7 +260,6 @@ class MainActivity : AppCompatActivity() {
     private fun saveCurrentSettings() {
 //        Log.v("Metronome", "MainActivity:saveCurrentSettings");
         val editText = EditText(this)
-//        editText.setPadding(dp_to_px(8), dp_to_px(8), dp_to_px(8), dp_to_px(8));
         editText.setHint(R.string.save_name)
         val dialogBuilder = AlertDialog.Builder(this)
         editText.inputType = InputType.TYPE_CLASS_TEXT
@@ -282,8 +276,8 @@ class MainActivity : AppCompatActivity() {
                     item.date = dateFormat.format(date)
                     item.time = timeFormat.format(date)
 
-                    item.bpm = playerFrag?.playerService?.speed ?: InitialValues.speed
-                    item.noteList = playerFrag?.playerService?.noteList?.toString() ?: ""
+                    item.bpm = playerFragment?.playerService?.speed ?: InitialValues.speed
+                    item.noteList = playerFragment?.playerService?.noteList?.toString() ?: ""
                     //                    Log.v("Metronome", item.playList);
                     if (item.title.length > 200) {
                         item.title = item.title.substring(0, 200)
@@ -321,8 +315,8 @@ class MainActivity : AppCompatActivity() {
             builder.show()
         }
 
-        playerFrag?.playerService?.speed = item.bpm
-        playerFrag?.playerService?.noteList?.fromString(item.noteList)
+        playerFragment?.playerService?.speed = item.bpm
+        playerFragment?.playerService?.noteList?.fromString(item.noteList)
         Toast.makeText(this, getString(R.string.loaded_message, item.title), Toast.LENGTH_SHORT).show()
     }
 }

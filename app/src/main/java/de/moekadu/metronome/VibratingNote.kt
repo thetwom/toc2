@@ -16,9 +16,12 @@ const val maximumVibrationScaling = 3.0f
 fun vibratingNote100ToLog(value: Int) = maximumVibrationScaling.pow((value - 50) / 50f)
 fun vibratingNoteLogTo100(value: Float) = (50f * log(value, maximumVibrationScaling) + 50).toInt()
 
-class VibratingNote(context: Context)  {
+class VibratingNote(context: Context) {
 
-    private val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator?
+    private val applicationContext = context.applicationContext
+    private val vibrator by lazy {
+        applicationContext.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator?
+    }
     private var earliestNextVibrationTime = 0L
     private var _strength = 1.0f
     var strength: Int
