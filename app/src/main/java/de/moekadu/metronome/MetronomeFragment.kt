@@ -42,8 +42,8 @@ import kotlin.math.roundToInt
 class MetronomeFragment : Fragment() {
 
     private val viewModel by activityViewModels<MetronomeViewModel> {
-        //val playerConnection = PlayerServiceConnection.getInstance(requireContext())
-        val playerConnection = PlayerServiceConnection(requireContext())
+        val playerConnection = PlayerServiceConnection.getInstance(requireContext())
+        //val playerConnection = PlayerServiceConnection(requireContext())
         MetronomeViewModel.Factory(playerConnection)
     }
 

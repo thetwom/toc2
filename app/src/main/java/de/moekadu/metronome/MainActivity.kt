@@ -30,6 +30,7 @@ import android.view.MenuItem
 import android.view.WindowManager
 import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -47,14 +48,12 @@ class MainActivity : AppCompatActivity() {
 
     // TODO: test different device formats
     // TODO: translations
-
-    companion object {
-        private const val METRONOME_FRAGMENT_TAG = "metronomeFragment"
-        private const val PLAYER_FRAGMENT_TAG = "playerFragment"
-        private const val SETTINGS_FRAGMENT_TAG = "settingsFragment"
-        private const val SAVE_DATA_FRAGMENT_TAG = "saveDataFragment"
-        private const val FILE_CREATE = 1
-        private const val FILE_OPEN = 2
+    private val metronomeViewModel by viewModels<MetronomeViewModel> {
+        val playerConnection = PlayerServiceConnection.getInstance(this)
+        MetronomeViewModel.Factory(playerConnection)
+    }
+    private val saveDataViewModel by viewModels<SaveDataViewModel> {
+        SaveDataViewModel.Factory(this)
     }
 
     private var playerFragment : PlayerFragment? = null
@@ -113,8 +112,8 @@ class MainActivity : AppCompatActivity() {
         if(saveDataFragment == null) {
             saveDataFragment = SaveDataFragment()
         }
-        saveDataFragment?.onItemClickedListener = object : SavedItemDatabase.OnItemClickedListener {
-            override fun onItemClicked(item: SavedItemDatabase.SavedItem, position: Int) {
+        saveDataFragment?.onItemClickedListener = object : SavedItemAdapter.OnItemClickedListener {
+            override fun onItemClicked(item: SavedItem, position: Int) {
                 loadSettings(item)
                 supportFragmentManager.popBackStack()
             }
@@ -168,7 +167,8 @@ class MainActivity : AppCompatActivity() {
                 saveCurrentSettings()
             }
             R.id.action_archive -> {
-                if (saveDataFragment?.databaseSize ?: 0 == 0) {
+                //if (saveDataFragment?.databaseSize ?: 0 == 0) {
+                if (saveDataViewModel.savedItems.value?.size ?: 0 == 0) {
                     Toast.makeText(this, R.string.database_empty, Toast.LENGTH_LONG).show()
                 }
                 else {
@@ -215,7 +215,9 @@ class MainActivity : AppCompatActivity() {
             setTitle(R.string.clear_all_question)
             setNegativeButton(R.string.no) { dialog, _ -> dialog.dismiss() }
             setPositiveButton(R.string.yes) { _, _ ->
-                saveDataFragment?.clearDatabase()
+                saveDataViewModel.savedItems.value?.clear()
+                saveDataViewModel.saveDatabaseInAppPreferences(this@MainActivity)
+                // saveDataFragment?.clearDatabase()
             }
         }
         builder.show()
@@ -224,7 +226,8 @@ class MainActivity : AppCompatActivity() {
     private fun archiveSavedItems(uri: Uri?) {
         if (uri == null)
             return
-        val databaseString = saveDataFragment?.getCurrentDatabaseString() ?: ""
+        //val databaseString = saveDataFragment?.getCurrentDatabaseString() ?: ""
+        val databaseString = saveDataViewModel.savedItems.value?.getSaveDataString() ?: ""
         // Log.v("Metronome", "MainActivity.archiveSavedItems: databaseString = $databaseString")
         contentResolver?.openOutputStream(uri)?.use { stream ->
             stream.write(databaseString.toByteArray())
@@ -248,7 +251,9 @@ class MainActivity : AppCompatActivity() {
                 contentResolver?.openInputStream(uri)?.use { stream ->
                     stream.reader().use {
                         val databaseString = it.readText()
-                        saveDataFragment?.loadFromDatabaseString(databaseString, task)
+                        //saveDataFragment?.loadFromDatabaseString(databaseString, task)
+                        saveDataViewModel.savedItems.value?.loadDataFromString(databaseString, task)
+                        saveDataViewModel.saveDatabaseInAppPreferences(this@MainActivity)
                     }
                 }
             }
@@ -268,7 +273,7 @@ class MainActivity : AppCompatActivity() {
                 .setView(editText)
                 .setPositiveButton(R.string.save
                 ) { _, _ ->
-                    val item = SavedItemDatabase.SavedItem()
+                    val item = SavedItem()
                     item.title = editText.text.toString()
                     val dateFormat = SimpleDateFormat("dd.MM.yyyy")
                     val timeFormat = SimpleDateFormat("HH:mm")
@@ -276,20 +281,21 @@ class MainActivity : AppCompatActivity() {
                     item.date = dateFormat.format(date)
                     item.time = timeFormat.format(date)
 
-                    item.bpm = playerFragment?.playerService?.speed ?: InitialValues.speed
-                    item.noteList = playerFragment?.playerService?.noteList?.toString() ?: ""
+                    item.bpm = metronomeViewModel.speed.value ?: InitialValues.speed
+                    item.noteList = metronomeViewModel.noteList.value?.toString() ?: ""
                     //                    Log.v("Metronome", item.playList);
                     if (item.title.length > 200) {
                         item.title = item.title.substring(0, 200)
                         Toast.makeText(this@MainActivity, getString(R.string.max_allowed_characters, 200), Toast.LENGTH_SHORT).show()
                     }
-                    saveDataFragment?.saveItem(this@MainActivity, item)
+                    saveDataViewModel.savedItems.value?.add(item)
+                    saveDataViewModel.saveDatabaseInAppPreferences(this)
                     Toast.makeText(this@MainActivity, getString(R.string.saved_item_message, item.title), Toast.LENGTH_SHORT).show()
                 }.setNegativeButton(R.string.dismiss) { dialog, _ -> dialog.cancel() }
         dialogBuilder.show()
     }
 
-    private fun loadSettings(item : SavedItemDatabase.SavedItem) {
+    private fun loadSettings(item : SavedItem) {
 //        Log.v("Metronome", "MainActivity:loadSettings");
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
         val minimumSpeedString = sharedPreferences.getString("minimumspeed", InitialValues.minimumSpeed.toString()) ?: InitialValues.minimumSpeed.toString()
@@ -315,8 +321,17 @@ class MainActivity : AppCompatActivity() {
             builder.show()
         }
 
-        playerFragment?.playerService?.speed = item.bpm
-        playerFragment?.playerService?.noteList?.fromString(item.noteList)
+        metronomeViewModel.setSpeed(item.bpm)
+        metronomeViewModel.noteList.value?.fromString(item.noteList)
         Toast.makeText(this, getString(R.string.loaded_message, item.title), Toast.LENGTH_SHORT).show()
+    }
+
+    companion object {
+        private const val METRONOME_FRAGMENT_TAG = "metronomeFragment"
+        private const val PLAYER_FRAGMENT_TAG = "playerFragment"
+        private const val SETTINGS_FRAGMENT_TAG = "settingsFragment"
+        private const val SAVE_DATA_FRAGMENT_TAG = "saveDataFragment"
+        private const val FILE_CREATE = 1
+        private const val FILE_OPEN = 2
     }
 }

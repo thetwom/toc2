@@ -148,14 +148,14 @@ class PlayerServiceConnection(context: Context) {
         }
     }
 
-//    companion object {
-//        @Volatile
-//        private var instance: PlayerServiceConnection? = null
-//
-//        fun getInstance(context: Context) =
-//                instance ?: synchronized(this) {
-//                instance ?: PlayerServiceConnection(context)
-//                        .also { instance = it }
-//            }
-//    }
+    companion object {
+        @Volatile
+        private var instance: PlayerServiceConnection? = null
+
+        fun getInstance(context: Context) =
+                instance ?: synchronized(this) {
+                instance ?: PlayerServiceConnection(context)
+                        .also { instance = it }
+            }
+    }
 }

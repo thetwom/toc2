@@ -21,21 +21,21 @@ package de.moekadu.metronome
 
 import android.graphics.Canvas
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import android.widget.Toast
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
-import de.moekadu.metronome.SavedItemDatabase.SavedItem
+// import de.moekadu.metronome.SavedItemAdapter.SavedItem
 import kotlin.math.absoluteValue
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -43,8 +43,13 @@ import kotlin.math.roundToInt
 
 class SaveDataFragment : Fragment() {
 
-    private var savedItems: RecyclerView? = null
-    private val savedItemsAdapter = SavedItemDatabase()
+    private val viewModel by activityViewModels<SaveDataViewModel> {
+        val act = activity ?: throw RuntimeException("Activity not available")
+        SaveDataViewModel.Factory(act)
+    }
+
+    private var savedItemRecyclerView: RecyclerView? = null
+    private val savedItemsAdapter = SavedItemAdapter()
 
     private var lastRemovedItemIndex = -1
     private var lastRemovedItem: SavedItem? = null
@@ -54,7 +59,6 @@ class SaveDataFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
-        activity?.let { savedItemsAdapter.loadData(it) }
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {
@@ -86,12 +90,12 @@ class SaveDataFragment : Fragment() {
         noSavedItemsMessage = view.findViewById(R.id.noSavedItemsMessage)
         updateNoSavedItemsMessage()
 
-        savedItems = view.findViewById(R.id.savedItems)
-        savedItems?.setHasFixedSize(true)
-        savedItems?.layoutManager = LinearLayoutManager(requireContext())
-        savedItems?.adapter = savedItemsAdapter
+        savedItemRecyclerView = view.findViewById(R.id.savedItems)
+        savedItemRecyclerView?.setHasFixedSize(true)
+        savedItemRecyclerView?.layoutManager = LinearLayoutManager(requireContext())
+        savedItemRecyclerView?.adapter = savedItemsAdapter
 
-        val simpleTouchHelper = object: ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.LEFT) {
+        val simpleTouchHelper = object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.LEFT) {
 
             val background = activity?.let { ContextCompat.getDrawable(it, R.drawable.saved_item_below_background) }
             val deleteIcon = activity?.let { ContextCompat.getDrawable(it, R.drawable.saved_item_delete) }
@@ -100,8 +104,7 @@ class SaveDataFragment : Fragment() {
                 val fromPos = viewHolder.adapterPosition
                 val toPos = target.adapterPosition
                 if(fromPos != toPos) {
-//                    Log.v("Metronome", "SaveDataFragment:onMove from $fromPos to $toPos")
-                    savedItemsAdapter.moveItem(fromPos, toPos, activity)
+                    viewModel.savedItems.value?.move(fromPos, toPos)
                 }
                 return true
             }
@@ -110,23 +113,22 @@ class SaveDataFragment : Fragment() {
                 // Log.v("Metronome", "SaveDataFragment:onSwiped " + viewHolder.getAdapterPosition())
 
                 lastRemovedItemIndex = viewHolder.adapterPosition
-                lastRemovedItem = savedItemsAdapter.remove(lastRemovedItemIndex, activity)
-                updateNoSavedItemsMessage()
+                lastRemovedItem = viewModel.savedItems.value?.remove(lastRemovedItemIndex)
 
                 (getView() as CoordinatorLayout?)?.let { coLayout ->
-                    activity?.let { act ->
-                        lastRemovedItem?.let { removedItem ->
-                            Snackbar.make(coLayout, getString(R.string.item_deleted), Snackbar.LENGTH_LONG)
-                                    .setAction(R.string.undo) {
-                                        if (lastRemovedItem != null) {
-                                            savedItemsAdapter.addItem(act, removedItem, lastRemovedItemIndex)
-                                            lastRemovedItem = null
-                                            lastRemovedItemIndex = -1
-                                            updateNoSavedItemsMessage()
-                                        }
-                                    }.show()
-                        }
+                    lastRemovedItem?.let { removedItem ->
+                        Snackbar.make(coLayout, getString(R.string.item_deleted), Snackbar.LENGTH_LONG)
+                                .setAction(R.string.undo) {
+                                    if (lastRemovedItem != null) {
+                                        viewModel.savedItems.value?.add(lastRemovedItemIndex, removedItem)
+                                        // savedItemsAdapter.addItem(act, removedItem, lastRemovedItemIndex)
+                                        lastRemovedItem = null
+                                        lastRemovedItemIndex = -1
+                                        // updateNoSavedItemsMessage()
+                                    }
+                                }.show()
                     }
+
                 }
             }
 
@@ -158,25 +160,18 @@ class SaveDataFragment : Fragment() {
         }
 
         val touchHelper = ItemTouchHelper(simpleTouchHelper)
-        touchHelper.attachToRecyclerView(savedItems)
+        touchHelper.attachToRecyclerView(savedItemRecyclerView)
 
+        viewModel.savedItems.observe(viewLifecycleOwner) {
+            Log.v("Metronome", "SaveDataFragment: submitting new data base list to adapter: size: ${it.savedItems.size}")
+            savedItemsAdapter.submitList(ArrayList(it.savedItems))
+            activity?.let{viewModel.saveDatabaseInAppPreferences(it)}
+            updateNoSavedItemsMessage()
+        }
         return view
     }
 
-    override fun onDetach() {
-        activity?.let { savedItemsAdapter.saveData(it) }
-        super.onDetach()
-    }
-
-    fun saveItem(activity : FragmentActivity, item : SavedItem)
-    {
-        savedItemsAdapter.addItem(activity, item)
-        // Log.v("Metronome", "SaveDataFragment.saveItem: item=${item}")
-        updateNoSavedItemsMessage()
-    }
-
-
-    var onItemClickedListener: SavedItemDatabase.OnItemClickedListener?
+    var onItemClickedListener: SavedItemAdapter.OnItemClickedListener?
         set(value) {
             savedItemsAdapter.onItemClickedListener = value
         }
@@ -193,29 +188,4 @@ class SaveDataFragment : Fragment() {
             noSavedItemsMessage?.visibility = View.GONE
         }
     }
-
-    fun getCurrentDatabaseString() : String{
-        return savedItemsAdapter.getSaveDataString()
-    }
-
-     fun loadFromDatabaseString(databaseString: String, mode: Int = SavedItemDatabase.REPLACE) {
-         val check = savedItemsAdapter.loadDataFromString(activity, databaseString, mode)
-         activity?.let { context ->
-             when (check) {
-                 SavedItemDatabase.FILE_EMPTY ->
-                     Toast.makeText(context, R.string.file_empty, Toast.LENGTH_LONG).show()
-                 SavedItemDatabase.FILE_INVALID ->
-                     Toast.makeText(context, R.string.file_invalid, Toast.LENGTH_LONG).show()
-             }
-         }
-         updateNoSavedItemsMessage()
-     }
-
-    fun clearDatabase() {
-        savedItemsAdapter.clearDatabase(activity)
-        updateNoSavedItemsMessage()
-    }
-
-    val databaseSize
-        get() = savedItemsAdapter.itemCount
 }
