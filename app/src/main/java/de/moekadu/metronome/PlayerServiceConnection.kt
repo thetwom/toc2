@@ -9,7 +9,8 @@ import android.os.IBinder
 import android.util.Log
 import androidx.lifecycle.*
 
-class PlayerServiceConnection(context: Context) {
+class PlayerServiceConnection(
+        context: Context, private val initialSpeed: Float, private val initialNoteList: NoteList) {
 
     private val _noteList = MutableLiveData<NoteList>()
     val noteList: LiveData<NoteList> get() = _noteList
@@ -58,6 +59,9 @@ class PlayerServiceConnection(context: Context) {
                     // TODO: make service to use PlayerStatus and then enable this again
                     //if (_playerStatus.value != service.playbackState)
                     //    _playbackState.value = service.playbackState
+                    setSpeed(initialSpeed)
+                    service.noteList.set(initialNoteList)
+
                     if (_speed.value != service.speed)
                         _speed.value = service.speed
                     if (_noteList.value != service.noteList)
@@ -152,9 +156,9 @@ class PlayerServiceConnection(context: Context) {
         @Volatile
         private var instance: PlayerServiceConnection? = null
 
-        fun getInstance(context: Context) =
+        fun getInstance(context: Context, initialSpeed: Float, initialNoteList: NoteList) =
                 instance ?: synchronized(this) {
-                instance ?: PlayerServiceConnection(context)
+                instance ?: PlayerServiceConnection(context, initialSpeed, initialNoteList)
                         .also { instance = it }
             }
     }

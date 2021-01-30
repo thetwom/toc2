@@ -49,14 +49,16 @@ class MainActivity : AppCompatActivity() {
     // TODO: test different device formats
     // TODO: translations
     private val metronomeViewModel by viewModels<MetronomeViewModel> {
-        val playerConnection = PlayerServiceConnection.getInstance(this)
+        val playerConnection = PlayerServiceConnection.getInstance(this,
+                AppPreferences.readMetronomeSpeed(this),
+                AppPreferences.readMetronomeNoteList(this)
+        )
         MetronomeViewModel.Factory(playerConnection)
     }
     private val saveDataViewModel by viewModels<SaveDataViewModel> {
-        SaveDataViewModel.Factory(this)
+        SaveDataViewModel.Factory(AppPreferences.readSavedItemsDatabase(this))
     }
 
-    private var playerFragment : PlayerFragment? = null
     private var settingsFragment : SettingsFragment? = null
     private var saveDataFragment : SaveDataFragment? = null
 
@@ -90,14 +92,6 @@ class MainActivity : AppCompatActivity() {
 
         volumeControlStream = AudioManager.STREAM_MUSIC
 
-        playerFragment = supportFragmentManager.findFragmentByTag(PLAYER_FRAGMENT_TAG) as PlayerFragment?
-        if(playerFragment == null) {
-            playerFragment = PlayerFragment()
-            playerFragment?.let {
-                supportFragmentManager.beginTransaction().add(it, PLAYER_FRAGMENT_TAG).commit()
-            }
-        }
-
         var metronomeFragment = supportFragmentManager.findFragmentByTag(METRONOME_FRAGMENT_TAG) as MetronomeFragment?
         if(metronomeFragment == null) {
             metronomeFragment = MetronomeFragment()
@@ -127,6 +121,11 @@ class MainActivity : AppCompatActivity() {
 //        Log.v("Metronome", "MainActivity:onCreate: end");
     }
 
+    override fun onStop() {
+        AppPreferences.writeMetronomeState(
+                metronomeViewModel.speed.value, metronomeViewModel.noteList.value, this)
+        super.onStop()
+    }
     override fun onSupportNavigateUp() : Boolean{
         supportFragmentManager.popBackStack()
         return true
@@ -216,8 +215,7 @@ class MainActivity : AppCompatActivity() {
             setNegativeButton(R.string.no) { dialog, _ -> dialog.dismiss() }
             setPositiveButton(R.string.yes) { _, _ ->
                 saveDataViewModel.savedItems.value?.clear()
-                saveDataViewModel.saveDatabaseInAppPreferences(this@MainActivity)
-                // saveDataFragment?.clearDatabase()
+                AppPreferences.writeSavedItemsDatabase(saveDataViewModel.savedItemsAsString, this@MainActivity)
             }
         }
         builder.show()
@@ -253,7 +251,7 @@ class MainActivity : AppCompatActivity() {
                         val databaseString = it.readText()
                         //saveDataFragment?.loadFromDatabaseString(databaseString, task)
                         saveDataViewModel.savedItems.value?.loadDataFromString(databaseString, task)
-                        saveDataViewModel.saveDatabaseInAppPreferences(this@MainActivity)
+                        AppPreferences.writeSavedItemsDatabase(saveDataViewModel.savedItemsAsString, this@MainActivity)
                     }
                 }
             }
@@ -289,7 +287,7 @@ class MainActivity : AppCompatActivity() {
                         Toast.makeText(this@MainActivity, getString(R.string.max_allowed_characters, 200), Toast.LENGTH_SHORT).show()
                     }
                     saveDataViewModel.savedItems.value?.add(item)
-                    saveDataViewModel.saveDatabaseInAppPreferences(this)
+                    AppPreferences.writeSavedItemsDatabase(saveDataViewModel.savedItemsAsString, this@MainActivity)
                     Toast.makeText(this@MainActivity, getString(R.string.saved_item_message, item.title), Toast.LENGTH_SHORT).show()
                 }.setNegativeButton(R.string.dismiss) { dialog, _ -> dialog.cancel() }
         dialogBuilder.show()
@@ -328,7 +326,6 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val METRONOME_FRAGMENT_TAG = "metronomeFragment"
-        private const val PLAYER_FRAGMENT_TAG = "playerFragment"
         private const val SETTINGS_FRAGMENT_TAG = "settingsFragment"
         private const val SAVE_DATA_FRAGMENT_TAG = "saveDataFragment"
         private const val FILE_CREATE = 1

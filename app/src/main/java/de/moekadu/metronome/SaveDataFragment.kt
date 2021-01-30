@@ -35,7 +35,6 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
-// import de.moekadu.metronome.SavedItemAdapter.SavedItem
 import kotlin.math.absoluteValue
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -44,8 +43,7 @@ import kotlin.math.roundToInt
 class SaveDataFragment : Fragment() {
 
     private val viewModel by activityViewModels<SaveDataViewModel> {
-        val act = activity ?: throw RuntimeException("Activity not available")
-        SaveDataViewModel.Factory(act)
+        SaveDataViewModel.Factory(AppPreferences.readSavedItemsDatabase(requireActivity()))
     }
 
     private var savedItemRecyclerView: RecyclerView? = null
@@ -165,7 +163,7 @@ class SaveDataFragment : Fragment() {
         viewModel.savedItems.observe(viewLifecycleOwner) {
             Log.v("Metronome", "SaveDataFragment: submitting new data base list to adapter: size: ${it.savedItems.size}")
             savedItemsAdapter.submitList(ArrayList(it.savedItems))
-            activity?.let{viewModel.saveDatabaseInAppPreferences(it)}
+            activity?.let{AppPreferences.writeSavedItemsDatabase(viewModel.savedItemsAsString, it)}
             updateNoSavedItemsMessage()
         }
         return view
