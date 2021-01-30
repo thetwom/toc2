@@ -22,21 +22,16 @@ package de.moekadu.metronome
 import android.app.PendingIntent
 import android.content.*
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
-import android.media.AudioManager
-import android.media.AudioTrack
-import android.media.SoundPool
 import android.os.Binder
 import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import androidx.lifecycle.*
+import androidx.lifecycle.LifecycleService
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.roundToInt
 
 
 class PlayerService : LifecycleService() {
@@ -50,21 +45,14 @@ class PlayerService : LifecycleService() {
     }
 
     private val statusChangedListeners = mutableSetOf<StatusChangedListener>()
+    private val speedLimiter by lazy {
+        SpeedLimiter(PreferenceManager.getDefaultSharedPreferences(this), this)
+    }
 
     var speed = InitialValues.speed
         set(value) {
-            val tolerance = 1.0e-6f
-            var newSpeed = value
-            newSpeed = min(newSpeed, maximumSpeed)
-            newSpeed = max(newSpeed, minimumSpeed)
-            // Make speed match the increment
-            newSpeed = (newSpeed / speedIncrement).roundToInt() * speedIncrement
-
-            if(newSpeed < minimumSpeed - tolerance)
-                newSpeed += speedIncrement
-            if(newSpeed > maximumSpeed + tolerance)
-                newSpeed -= speedIncrement
-
+            val newSpeed = speedLimiter.limit(value)
+            val tolerance = 1e-6
             if (abs(field - newSpeed) < tolerance)
                 return
 
@@ -83,43 +71,12 @@ class PlayerService : LifecycleService() {
     val state
         get() = playbackState.state
 
-    private var minimumSpeed = 0f
-        set(value) {
-            if(value > maximumSpeed)
-                return
-            field = value
-            if (speed < minimumSpeed)
-                speed = minimumSpeed
-        }
-
-    private var maximumSpeed = Float.MAX_VALUE
-        set(value) {
-            if(value < minimumSpeed)
-                return
-            field = value
-            if (speed > maximumSpeed)
-                speed = maximumSpeed
-        }
-
-    private var speedIncrement = 0f
-        set(value) {
-            field = value
-            speed = speed // Make sure that current speed fits speedIncrement (so reassigning is intentionally here)
-            notification?.speedIncrement = value
-            notification?.postNotificationUpdate()
-        }
-
     private var notification: PlayerNotification? = null
 
     private var mediaSession : MediaSessionCompat? = null
     private val playbackStateBuilder = PlaybackStateCompat.Builder()
     var playbackState: PlaybackStateCompat = playbackStateBuilder.build()
         private set
-
-    /// Sound pool which is used for playing sample sounds when selected in the sound chooser.
-    private val soundPool = SoundPool.Builder().setMaxStreams(3).build()
-    /// Handles of the available sound used by the sound pool.
-    private val soundHandles = ArrayList<Int>()
 
     /// The audio mixer plays is the instance which does plays the metronome.
     private var audioMixer : AudioMixer? = null
@@ -169,9 +126,9 @@ class PlayerService : LifecycleService() {
             if (newSpeed > 0)
                 speed = newSpeed
             if (incrementSpeed)
-                speed += speedIncrement
+                speed += speedLimiter.speedIncrement.value!!
             if (decrementSpeed)
-                speed -= speedIncrement
+                speed -= speedLimiter.speedIncrement.value!!
 
             if (myAction == PlaybackStateCompat.ACTION_PLAY) {
                 // Log.v("Metronome", "ActionReceiver:onReceive : set state to playing");
@@ -191,6 +148,16 @@ class PlayerService : LifecycleService() {
         registerReceiver(actionReceiver, filter)
 
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+
+        speedLimiter.minimumSpeed.observe(this) {
+            speed = speedLimiter.limit(speed)
+        }
+        speedLimiter.maximumSpeed.observe(this) {
+            speed = speedLimiter.limit(speed)
+        }
+        speedLimiter.speedIncrement.observe(this) {
+            speed = speedLimiter.limit(speed)
+        }
 
         audioMixer = AudioMixer(applicationContext, lifecycleScope)
 
@@ -280,29 +247,12 @@ class PlayerService : LifecycleService() {
                         val delay = sharedPreferences.getInt("vibratedelay", 0).toFloat()
                         audioMixer?.setNoteStartedListenerDelay(noteStartedListener4Vibration, delay)
                     }
-                    "minimumspeed" -> {
-                        val newMinimumSpeed = sharedPreferences.getString("minimumspeed", InitialValues.minimumSpeed.toString())
-                        minimumSpeed = newMinimumSpeed!!.toFloat()
-                    }
-                    "maximumspeed" -> {
-                        val newMaximumSpeed = sharedPreferences.getString("maximumspeed", InitialValues.maximumSpeed.toString())
-                        maximumSpeed = newMaximumSpeed!!.toFloat()
-                    }
-                    "speedincrement" -> {
-                        val newSpeedIncrementIndex = sharedPreferences.getInt("speedincrement", InitialValues.speedIncrementIndex)
-                        val newSpeedIncrement = Utilities.speedIncrements[newSpeedIncrementIndex]
-                        speedIncrement = newSpeedIncrement
-                    }
                 }
             }
         }
 
         sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener)
 
-        minimumSpeed = sharedPreferences.getString("minimumspeed", InitialValues.minimumSpeed.toString())!!.toFloat()
-        maximumSpeed = sharedPreferences.getString("maximumspeed", InitialValues.maximumSpeed.toString())!!.toFloat()
-        val speedIncrementIndex = sharedPreferences.getInt("speedincrement", InitialValues.speedIncrementIndex)
-        speedIncrement = Utilities.speedIncrements[speedIncrementIndex]
         if (sharedPreferences.getBoolean("vibrate", false)) {
             vibrator = VibratingNote(this)
             vibrator?.strength = sharedPreferences.getInt("vibratestrength", 50)
@@ -325,21 +275,12 @@ class PlayerService : LifecycleService() {
     override fun onBind(intent: Intent): IBinder {
         super.onBind(intent)
         // Log.v("Metronome", "PlayerService:onBind")
-
-        val numSounds = getNumAvailableNotes()
-        for (i in 0 until numSounds) {
-            val soundID = getNoteAudioResourceID(i, AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC))
-            soundHandles.add(soundPool.load(this, soundID, 1))
-        }
         return playerBinder
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
         // Log.v("Metronome", "PlayerService:onUnbind");
         stopPlay()
-        for (sH in soundHandles) {
-            soundPool.unload(sH)
-        }
         return super.onUnbind(intent)
     }
 
@@ -348,10 +289,7 @@ class PlayerService : LifecycleService() {
     }
 
     fun addValueToSpeed(dSpeed : Float) {
-        var newSpeed = speed + dSpeed
-        newSpeed = min(newSpeed, maximumSpeed)
-        newSpeed = max(newSpeed, minimumSpeed)
-        speed = newSpeed
+        speed += dSpeed
     }
 
     fun startPlay() {
@@ -397,13 +335,6 @@ class PlayerService : LifecycleService() {
     fun unregisterStatusChangedListener(statusChangedListener: StatusChangedListener) {
         statusChangedListeners.remove(statusChangedListener)
     }
-
-    fun playSpecificSound(noteListItem: NoteListItem, vibrate: Boolean) {
-        soundPool.play(soundHandles[noteListItem.id], noteListItem.volume, noteListItem.volume, 1, 0, 1.0f)
-        if (vibrate && getNoteVibrationDuration(noteListItem.id) > 0L)
-            vibrator?.vibrate(noteListItem.volume, noteListItem)
-    }
-
 
     companion object {
         const val BROADCAST_PLAYERACTION = "de.moekadu.metronome.playeraction"

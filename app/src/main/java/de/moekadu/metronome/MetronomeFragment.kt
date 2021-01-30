@@ -64,6 +64,9 @@ class MetronomeFragment : Fragment() {
     }
     private var vibrate = false
 
+    private val speedLimiter by lazy {
+        SpeedLimiter(PreferenceManager.getDefaultSharedPreferences(requireContext()), this)
+    }
     private var speedText: TextView? = null
     private var playButton: PlayButton? = null
     private var noteView: NoteView? = null
@@ -153,7 +156,8 @@ class MetronomeFragment : Fragment() {
                         if (newSpeed == null) {
                             Toast.makeText(ctx, "${getString(R.string.invalid_speed)}$newSpeedText",
                                     Toast.LENGTH_LONG).show()
-                        } else if (checkSpeedAndShowToastOnFailure(newSpeed)) {
+                        //} else if (checkSpeedAndShowToastOnFailure(newSpeed)) {
+                        } else if (speedLimiter.checkNewSpeedAndShowToast(newSpeed, ctx)) {
                             //playerService?.speed = newSpeed
                             viewModel.setSpeed(newSpeed)
                         }
@@ -331,12 +335,12 @@ class MetronomeFragment : Fragment() {
 
         // register all observers
         viewModel.speed.observe(viewLifecycleOwner) {
-            Log.v("Metronome", "MetronomeFragment: viewModel.speed: $it")
+//            Log.v("Metronome", "MetronomeFragment: viewModel.speed: $it")
             speedText?.text = getString(R.string.bpm, Utilities.getBpmString(it, speedIncrement))
         }
 
         viewModel.playerStatus.observe(viewLifecycleOwner) {
-            Log.v("Metronome", "MetronomeFragment: viewModel.playerStatus: $it")
+//            Log.v("Metronome", "MetronomeFragment: viewModel.playerStatus: $it")
             when (it) {
                 PlayerStatus.Playing -> {
                     playButton?.changeStatus(PlayButton.STATUS_PLAYING, true)
@@ -422,48 +426,5 @@ class MetronomeFragment : Fragment() {
 
         val clearAll = menu.findItem(R.id.action_clear_all)
         clearAll?.isVisible = false
-    }
-
-//    @SuppressLint("SwitchIntDef")
-//    private fun updateView() {
-////        Log.v("Metronome", "MetronomeFragment.updateView")
-//        //playerService?.playbackState?.let { playbackState ->
-//        when(viewModel.playerStatus.value) {
-//            PlayerStatus.Playing -> {
-//                playButton?.changeStatus(PlayButton.STATUS_PLAYING, false)
-//            }
-//            PlayerStatus.Paused, null -> {
-//                tickVisualizer?.stop()
-//                playButton?.changeStatus(PlayButton.STATUS_PAUSED, false)
-//            }
-//        }
-//
-//        viewModel.speed.value?.let {
-//            speedText?.text = getString(R.string.bpm, Utilities.getBpmString(it, speedIncrement))
-//        }
-//    }
-
-    private fun checkSpeedAndShowToastOnFailure(speed: Float): Boolean {
-
-        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
-        val minimumSpeedString = sharedPreferences.getString("minimumspeed", InitialValues.minimumSpeed.toString()) ?: InitialValues.minimumSpeed.toString()
-        val minimumSpeed = minimumSpeedString.toFloat()
-        val maximumSpeedString = sharedPreferences.getString("maximumspeed", InitialValues.maximumSpeed.toString()) ?: InitialValues.maximumSpeed.toString()
-        val maximumSpeed = maximumSpeedString.toFloat()
-        val speedIncrementIndex = sharedPreferences.getInt("speedincrement", InitialValues.speedIncrementIndex)
-        val speedIncrement = Utilities.speedIncrements[speedIncrementIndex]
-        val tolerance = 1.0e-6f
-        var message: String? = null
-        if(speed < minimumSpeed - tolerance)
-            message = getString(R.string.speed_too_small, Utilities.getBpmString(speed), Utilities.getBpmString(minimumSpeed))
-        if(speed > maximumSpeed + tolerance)
-            message = getString(R.string.speed_too_large, Utilities.getBpmString(speed), Utilities.getBpmString(maximumSpeed))
-        if(abs(speed / speedIncrement - (speed / speedIncrement).roundToInt()) > tolerance)
-            message = getString(R.string.inconsistent_increment, Utilities.getBpmString(speed), Utilities.getBpmString(speedIncrement))
-        if (message != null) {
-            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
-        }
-
-        return message == null
     }
 }

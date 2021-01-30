@@ -37,8 +37,6 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.preference.PreferenceManager
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.abs
-import kotlin.math.roundToInt
 
 class MainActivity : AppCompatActivity() {
 
@@ -61,6 +59,10 @@ class MainActivity : AppCompatActivity() {
 
     private var settingsFragment : SettingsFragment? = null
     private var saveDataFragment : SaveDataFragment? = null
+
+    private val speedLimiter by lazy {
+        SpeedLimiter(PreferenceManager.getDefaultSharedPreferences(this), this)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -224,7 +226,7 @@ class MainActivity : AppCompatActivity() {
     private fun archiveSavedItems(uri: Uri?) {
         if (uri == null)
             return
-        //val databaseString = saveDataFragment?.getCurrentDatabaseString() ?: ""
+
         val databaseString = saveDataViewModel.savedItems.value?.getSaveDataString() ?: ""
         // Log.v("Metronome", "MainActivity.archiveSavedItems: databaseString = $databaseString")
         contentResolver?.openOutputStream(uri)?.use { stream ->
@@ -294,32 +296,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadSettings(item : SavedItem) {
-//        Log.v("Metronome", "MainActivity:loadSettings");
-        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
-        val minimumSpeedString = sharedPreferences.getString("minimumspeed", InitialValues.minimumSpeed.toString()) ?: InitialValues.minimumSpeed.toString()
-        val minimumSpeed = minimumSpeedString.toFloat()
-        val maximumSpeedString = sharedPreferences.getString("maximumspeed", InitialValues.maximumSpeed.toString()) ?: InitialValues.maximumSpeed.toString()
-        val maximumSpeed = maximumSpeedString.toFloat()
-        val speedIncrementIndex = sharedPreferences.getInt("speedincrement", InitialValues.speedIncrementIndex)
-        val speedIncrement = Utilities.speedIncrements[speedIncrementIndex]
-        val tolerance = 1.0e-6f
-        val stringBuilder = StringBuilder()
-        if(item.bpm < minimumSpeed - tolerance)
-            stringBuilder.append(getString(R.string.saved_speed_too_small, Utilities.getBpmString(item.bpm), Utilities.getBpmString(minimumSpeed)))
-        if(item.bpm > maximumSpeed + tolerance)
-            stringBuilder.append(getString(R.string.saved_speed_too_large, Utilities.getBpmString(item.bpm), Utilities.getBpmString(maximumSpeed)))
-        if(abs(item.bpm /  speedIncrement - (item.bpm / speedIncrement).roundToInt()) > tolerance)
-            stringBuilder.append(getString(R.string.inconsistent_saved_increment, Utilities.getBpmString(item.bpm), Utilities.getBpmString(speedIncrement)))
-        if(stringBuilder.isNotEmpty()) {
-            stringBuilder.append(getString(R.string.inconsistent_summary))
-            val builder = AlertDialog.Builder(this)
-                    .setTitle(R.string.inconsistent_load_title)
-                    .setMessage(stringBuilder.toString())
-                    .setNegativeButton(R.string.acknowledged) { dialog, _ -> dialog.dismiss() }
-            builder.show()
-        }
-
-        metronomeViewModel.setSpeed(item.bpm)
+        speedLimiter.checkSavedItemSpeedAndAlert(item.bpm, this)
+        metronomeViewModel.setSpeed(speedLimiter.limit(item.bpm))
         metronomeViewModel.noteList.value?.fromString(item.noteList)
         Toast.makeText(this, getString(R.string.loaded_message, item.title), Toast.LENGTH_SHORT).show()
     }
