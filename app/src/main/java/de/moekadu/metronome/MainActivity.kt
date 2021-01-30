@@ -19,23 +19,19 @@
 
 package de.moekadu.metronome
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Bundle
-import android.text.InputType
 import android.view.Menu
 import android.view.MenuItem
 import android.view.WindowManager
-import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.preference.PreferenceManager
-import java.text.SimpleDateFormat
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
@@ -261,38 +257,12 @@ class MainActivity : AppCompatActivity() {
         builder.show()
     }
 
-    @SuppressLint("SimpleDateFormat")
     private fun saveCurrentSettings() {
-//        Log.v("Metronome", "MainActivity:saveCurrentSettings");
-        val editText = EditText(this)
-        editText.setHint(R.string.save_name)
-        val dialogBuilder = AlertDialog.Builder(this)
-        editText.inputType = InputType.TYPE_CLASS_TEXT
-        dialogBuilder
-                .setTitle(R.string.save_settings_dialog_title)
-                .setView(editText)
-                .setPositiveButton(R.string.save
-                ) { _, _ ->
-                    val item = SavedItem()
-                    item.title = editText.text.toString()
-                    val dateFormat = SimpleDateFormat("dd.MM.yyyy")
-                    val timeFormat = SimpleDateFormat("HH:mm")
-                    val date = Calendar.getInstance().time
-                    item.date = dateFormat.format(date)
-                    item.time = timeFormat.format(date)
-
-                    item.bpm = metronomeViewModel.speed.value ?: InitialValues.speed
-                    item.noteList = metronomeViewModel.noteList.value?.toString() ?: ""
-                    //                    Log.v("Metronome", item.playList);
-                    if (item.title.length > 200) {
-                        item.title = item.title.substring(0, 200)
-                        Toast.makeText(this@MainActivity, getString(R.string.max_allowed_characters, 200), Toast.LENGTH_SHORT).show()
-                    }
-                    saveDataViewModel.savedItems.value?.add(item)
-                    AppPreferences.writeSavedItemsDatabase(saveDataViewModel.savedItemsAsString, this@MainActivity)
-                    Toast.makeText(this@MainActivity, getString(R.string.saved_item_message, item.title), Toast.LENGTH_SHORT).show()
-                }.setNegativeButton(R.string.dismiss) { dialog, _ -> dialog.cancel() }
-        dialogBuilder.show()
+        SaveDataDialog.save(this, metronomeViewModel.speed.value, metronomeViewModel.noteList.value) { item ->
+            saveDataViewModel.savedItems.value?.add(item)
+            AppPreferences.writeSavedItemsDatabase(saveDataViewModel.savedItemsAsString, this)
+            true
+        }
     }
 
     private fun loadSettings(item : SavedItem) {
