@@ -115,5 +115,6 @@
     <string name="inconsistent_increment">Given speed (%s bpm) cannot be resolved by current increment (%s bpm).</string>
     <string name="vibrate_delay">Vibration delay</string>
     <string name="milliseconds">%d ms</string>
+    <string name="database_saved">Writing data to \"%s\".</string>
 
 </resources>

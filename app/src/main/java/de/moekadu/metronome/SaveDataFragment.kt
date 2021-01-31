@@ -54,6 +54,14 @@ class SaveDataFragment : Fragment() {
 
     private var noSavedItemsMessage: TextView? = null
 
+    var onItemClickedListener: SavedItemAdapter.OnItemClickedListener?
+        set(value) {
+            savedItemsAdapter.onItemClickedListener = value
+        }
+        get() {
+            return savedItemsAdapter.onItemClickedListener
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
@@ -86,7 +94,6 @@ class SaveDataFragment : Fragment() {
 //        deleteTextSize = Utilities.sp_to_px(18);
 
         noSavedItemsMessage = view.findViewById(R.id.noSavedItemsMessage)
-        updateNoSavedItemsMessage()
 
         savedItemRecyclerView = view.findViewById(R.id.savedItems)
         savedItemRecyclerView?.setHasFixedSize(true)
@@ -161,29 +168,15 @@ class SaveDataFragment : Fragment() {
         touchHelper.attachToRecyclerView(savedItemRecyclerView)
 
         viewModel.savedItems.observe(viewLifecycleOwner) {
-            Log.v("Metronome", "SaveDataFragment: submitting new data base list to adapter: size: ${it.savedItems.size}")
+//            Log.v("Metronome", "SaveDataFragment: submitting new data base list to adapter: size: ${it.savedItems.size}")
             savedItemsAdapter.submitList(ArrayList(it.savedItems))
             activity?.let{AppPreferences.writeSavedItemsDatabase(viewModel.savedItemsAsString, it)}
-            updateNoSavedItemsMessage()
+
+            if(it.size == 0)
+                noSavedItemsMessage?.visibility = View.VISIBLE
+            else
+                noSavedItemsMessage?.visibility = View.GONE
         }
         return view
-    }
-
-    var onItemClickedListener: SavedItemAdapter.OnItemClickedListener?
-        set(value) {
-            savedItemsAdapter.onItemClickedListener = value
-        }
-        get() {
-            return savedItemsAdapter.onItemClickedListener
-        }
-
-
-    private fun updateNoSavedItemsMessage() {
-        if(savedItemsAdapter.itemCount == 0){
-            noSavedItemsMessage?.visibility = View.VISIBLE
-        }
-        else{
-            noSavedItemsMessage?.visibility = View.GONE
-        }
     }
 }

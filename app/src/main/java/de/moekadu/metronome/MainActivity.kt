@@ -21,7 +21,6 @@ package de.moekadu.metronome
 
 import android.content.Intent
 import android.media.AudioManager
-import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -58,6 +57,9 @@ class MainActivity : AppCompatActivity() {
 
     private val speedLimiter by lazy {
         SpeedLimiter(PreferenceManager.getDefaultSharedPreferences(this), this)
+    }
+    private val saveDataArchiving by lazy {
+        SaveDataArchiving(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -164,29 +166,10 @@ class MainActivity : AppCompatActivity() {
                 saveCurrentSettings()
             }
             R.id.action_archive -> {
-                //if (saveDataFragment?.databaseSize ?: 0 == 0) {
-                if (saveDataViewModel.savedItems.value?.size ?: 0 == 0) {
-                    Toast.makeText(this, R.string.database_empty, Toast.LENGTH_LONG).show()
-                }
-                else {
-                    val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
-                        addCategory(Intent.CATEGORY_OPENABLE)
-                        type = "text/plain"
-                        putExtra(Intent.EXTRA_TITLE, "metronome.txt")
-                        // default path
-                        // putExtra(DocumentsContract.EXTRA_INITIAL_URI, pickerInitialUri)
-                    }
-                    startActivityForResult(intent, FILE_CREATE)
-                }
+                saveDataArchiving.sendArchivingIntent(saveDataViewModel.savedItems.value)
             }
             R.id.action_unarchive -> {
-                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                    addCategory(Intent.CATEGORY_OPENABLE)
-                    type = "text/plain"
-                    // default path
-                    // putExtra(DocumentsContract.EXTRA_INITIAL_URI, pickerInitialUri)
-                }
-                startActivityForResult(intent, FILE_OPEN)
+                saveDataArchiving.sendUnarchivingIntent()
             }
             R.id.action_clear_all -> {
                 clearAllSavedItems()
@@ -201,10 +184,16 @@ class MainActivity : AppCompatActivity() {
         if (resultCode != RESULT_OK)
             return
 
-        if (requestCode == FILE_CREATE)
-            archiveSavedItems(data?.data)
-        else if (requestCode == FILE_OPEN)
-            unarchiveSavedItems(data?.data)
+        if (requestCode == FILE_CREATE) {
+            saveDataArchiving.archiveSavedItems(data?.data,
+                    saveDataViewModel.savedItems.value?.getSaveDataString())
+        }
+        else if (requestCode == FILE_OPEN) {
+            saveDataArchiving.unarchiveSaveItems(data?.data) { databaseString, task ->
+                saveDataViewModel.savedItems.value?.loadDataFromString(databaseString, task)
+                AppPreferences.writeSavedItemsDatabase(saveDataViewModel.savedItemsAsString, this)
+            }
+        }
     }
 
     private fun clearAllSavedItems() {
@@ -214,44 +203,6 @@ class MainActivity : AppCompatActivity() {
             setPositiveButton(R.string.yes) { _, _ ->
                 saveDataViewModel.savedItems.value?.clear()
                 AppPreferences.writeSavedItemsDatabase(saveDataViewModel.savedItemsAsString, this@MainActivity)
-            }
-        }
-        builder.show()
-    }
-
-    private fun archiveSavedItems(uri: Uri?) {
-        if (uri == null)
-            return
-
-        val databaseString = saveDataViewModel.savedItems.value?.getSaveDataString() ?: ""
-        // Log.v("Metronome", "MainActivity.archiveSavedItems: databaseString = $databaseString")
-        contentResolver?.openOutputStream(uri)?.use { stream ->
-            stream.write(databaseString.toByteArray())
-        }
-    }
-
-    private fun unarchiveSavedItems(uri: Uri?) {
-        if (uri == null)
-            return
-        val builder = AlertDialog.Builder(this).apply {
-            setTitle(R.string.load_saved_items)
-            setNegativeButton(R.string.abort) {dialog,_  -> dialog.dismiss()}
-            setItems(R.array.load_saved_items_list) {_, which ->
-                val array = resources.getStringArray(R.array.load_saved_items_list)
-                val task = when(array[which]) {
-                    getString(R.string.prepend_current_list) -> SavedItemDatabase.PREPEND
-                    getString(R.string.append_current_list) -> SavedItemDatabase.APPEND
-                    else -> SavedItemDatabase.REPLACE
-                }
-
-                contentResolver?.openInputStream(uri)?.use { stream ->
-                    stream.reader().use {
-                        val databaseString = it.readText()
-                        //saveDataFragment?.loadFromDatabaseString(databaseString, task)
-                        saveDataViewModel.savedItems.value?.loadDataFromString(databaseString, task)
-                        AppPreferences.writeSavedItemsDatabase(saveDataViewModel.savedItemsAsString, this@MainActivity)
-                    }
-                }
             }
         }
         builder.show()
@@ -276,7 +227,7 @@ class MainActivity : AppCompatActivity() {
         private const val METRONOME_FRAGMENT_TAG = "metronomeFragment"
         private const val SETTINGS_FRAGMENT_TAG = "settingsFragment"
         private const val SAVE_DATA_FRAGMENT_TAG = "saveDataFragment"
-        private const val FILE_CREATE = 1
-        private const val FILE_OPEN = 2
+        const val FILE_CREATE = 1
+        const val FILE_OPEN = 2
     }
 }
