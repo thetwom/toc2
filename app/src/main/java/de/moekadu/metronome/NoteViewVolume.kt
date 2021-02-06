@@ -40,57 +40,32 @@ class NoteViewVolume(context : Context) : View(context) {
         }
 
     private val path = Path()
-
     private val volumes = ArrayList<Float>(0)
 
-    private val noteListChangedListener = object: NoteList.NoteListChangedListener {
-        override fun onNoteAdded(note: NoteListItem, index: Int) {
-            volumes.add(index, note.volume)
-            invalidate()
-        }
-
-        override fun onNoteRemoved(note: NoteListItem, index: Int) {
-            volumes.removeAt(index)
-            invalidate()
-        }
-
-        override fun onNoteMoved(note: NoteListItem, fromIndex: Int, toIndex: Int) {
-            noteList?.let { notes ->
-                require(notes.size == volumes.size)
-                for (i in notes.indices)
-                    volumes[i] = notes[i].volume
-                invalidate()
-            }
-        }
-
-        override fun onVolumeChanged(note: NoteListItem, index: Int) {
-            volumes[index] = note.volume
-            invalidate()
-        }
-
-        override fun onNoteIdChanged(note: NoteListItem, index: Int) { }
-        override fun onDurationChanged(note: NoteListItem, index: Int) { }
-
-        override fun onAllNotesReplaced(noteList: NoteList) {
-            volumes.clear()
-            for (n in noteList)
-                volumes.add(n.volume)
+    fun setVolume(index: Int, volume: Float) {
+        if (index in volumes.indices && volumes[index] != volume) {
+            volumes[index] = volume
             invalidate()
         }
     }
 
-    var noteList : NoteList? = null
-        set(value) {
-            field?.unregisterNoteListChangedListener(noteListChangedListener)
-            field = value
-            field?.registerNoteListChangedListener(noteListChangedListener)
-            field?.let { notes ->
-                volumes.clear()
-                for (n in notes)
-                    volumes.add(n.volume)
+    fun setVolumes(noteList: ArrayList<NoteListItem>) {
+        var modified = false
+        if (noteList.size != volumes.size) {
+            volumes.clear()
+            noteList.forEach { volumes.add(it.volume) }
+            modified = true
+        } else {
+            noteList.forEachIndexed {index, noteListItem ->
+                if (volumes[index] != noteListItem.volume) {
+                    volumes[index] = noteListItem.volume
+                    modified = true
+                }
             }
-            invalidate()
         }
+        if (modified)
+            invalidate()
+    }
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)

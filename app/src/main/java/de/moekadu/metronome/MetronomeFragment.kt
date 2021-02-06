@@ -33,7 +33,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.preference.PreferenceManager
 import com.google.android.material.snackbar.Snackbar
-import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
@@ -47,7 +46,6 @@ class MetronomeFragment : Fragment() {
                 AppPreferences.readMetronomeSpeed(requireActivity()),
                 AppPreferences.readMetronomeNoteList(requireActivity())
         )
-        //val playerConnection = PlayerServiceConnection(requireContext())
         MetronomeViewModel.Factory(playerConnection)
     }
 
@@ -73,45 +71,7 @@ class MetronomeFragment : Fragment() {
     private var plusButton: ImageButton? = null
     private var clearAllButton: ImageButton? = null
 
-    private val noteListChangeListener = object : NoteList.NoteListChangedListener {
-
-        override fun onNoteAdded(note: NoteListItem, index: Int) {}
-        override fun onNoteRemoved(note: NoteListItem, index: Int) {}
-        override fun onNoteMoved(note: NoteListItem, fromIndex: Int, toIndex: Int) {}
-
-        override fun onVolumeChanged(note: NoteListItem, index: Int) {
-            if (viewModel.playerStatus.value != PlayerStatus.Playing && context != null) {
-                singleNotePlayer.play(note.id, note.volume)
-            }
-        }
-
-        override fun onNoteIdChanged(note: NoteListItem, index: Int) {
-            if (soundChooser?.choiceStatus == SoundChooser.CHOICE_STATIC
-                    && viewModel.playerStatus.value != PlayerStatus.Playing
-                    && context != null) {
-                singleNotePlayer.play(note.id, note.volume)
-                if (vibrate)
-                    vibratingNote?.vibrate(note.volume, note)
-            }
-        }
-
-        override fun onDurationChanged(note: NoteListItem, index: Int) {}
-
-        override fun onAllNotesReplaced(noteList: NoteList) {}
-    }
-
-    /// Note list, that contains current metronome notes.
-    var noteList: NoteList? = null
-        set(value) {
-            field?.unregisterNoteListChangedListener(noteListChangeListener)
-            field = value
-            field?.registerNoteListChangedListener(noteListChangeListener)
-            noteView?.noteList = value
-            volumeSliders?.noteList = value
-            soundChooser?.noteList = value
-        }
-
-    private val noteListBackup = NoteList()
+    private val noteListBackup = ArrayList<NoteListItem>()
 
     private var tickVisualizer: TickVisualizer? = null
     private var soundChooser: SoundChooser? = null
@@ -140,7 +100,6 @@ class MetronomeFragment : Fragment() {
                 val pad = Utilities.dp2px(20f).roundToInt()
                 editText.setPadding(pad, pad, pad, pad)
 
-                //playerService?.speed?.let {speed ->
                 viewModel.speed.value?.let { speed ->
                     editText.setText(Utilities.getBpmString(speed))
                 }
@@ -156,9 +115,7 @@ class MetronomeFragment : Fragment() {
                         if (newSpeed == null) {
                             Toast.makeText(ctx, "${getString(R.string.invalid_speed)}$newSpeedText",
                                     Toast.LENGTH_LONG).show()
-                        //} else if (checkSpeedAndShowToastOnFailure(newSpeed)) {
                         } else if (speedLimiter.checkNewSpeedAndShowToast(newSpeed, ctx)) {
-                            //playerService?.speed = newSpeed
                             viewModel.setSpeed(newSpeed)
                         }
                     }
@@ -181,54 +138,57 @@ class MetronomeFragment : Fragment() {
         val speedPanel = view.findViewById(R.id.speed_panel) as SpeedPanel?
         speedPanel?.speedChangedListener = object : SpeedPanel.SpeedChangedListener {
             override fun onSpeedChanged(dSpeed: Float) {
-                //playerService?.addValueToSpeed(dSpeed)
                 viewModel.speed.value?.let { currentSpeed ->
                     viewModel.setSpeed(currentSpeed + dSpeed)
                 }
             }
 
             override fun onAbsoluteSpeedChanged(newSpeed: Float, nextClickTimeInMillis: Long) {
-                //playerService?.speed = newSpeed
                 viewModel.setSpeed(newSpeed)
                 viewModel.syncClickWithUptimeMillis(nextClickTimeInMillis)
-//                playerService?.syncClickWithUptimeMillis(nextClickTimeInMillis)
             }
         }
 
         volumeSliders = view.findViewById(R.id.volume_sliders)
+        volumeSliders?.volumeChangedListener = VolumeSliders.VolumeChangedListener {index, volume ->
+            viewModel.setNoteListVolume(index, volume)
+            if (viewModel.playerStatus.value != PlayerStatus.Playing && context != null) {
+                viewModel.noteList.value?.get(index)?.let { noteListItem ->
+                    singleNotePlayer.play(noteListItem.id, noteListItem.volume)
+                }
+            }
+        }
         tickVisualizer = view.findViewById(R.id.tick_visualizer)
 
         playButton = view.findViewById(R.id.play_button)
         playButton?.buttonClickedListener = object : PlayButton.ButtonClickedListener {
             override fun onPause() {
                 // Log.v("Metronome", "playButton:onPause()")
-                //playerService?.stopPlay()
                 viewModel.pause()
             }
 
             override fun onPlay() {
                 // Log.v("Metronome", "playButton:onPause()")
-//                playerService?.startPlay()
                 viewModel.play()
             }
         }
 
         noteView = view.findViewById(R.id.note_view)
         noteView?.onNoteClickListener = object : NoteView.OnNoteClickListener {
-            override fun onDown(event: MotionEvent?, note: NoteListItem?, noteIndex: Int): Boolean {
+            override fun onDown(event: MotionEvent?, uid: UId?, noteIndex: Int): Boolean {
 //                Log.v("Metronome", "MetronomeFragment.noteView.onClickListener.onDown: noteIndex=$noteIndex")
-                if (note != null) {
-                    soundChooser?.setActiveNote(note)
-                    noteView?.highlightNote(note, true)
+                if (uid != null) {
+                    soundChooser?.setActiveControlButton(uid)
+                    noteView?.highlightNote(uid, true)
                 }
                 return false
             }
 
-            override fun onUp(event: MotionEvent?, note: NoteListItem?, noteIndex: Int): Boolean {
+            override fun onUp(event: MotionEvent?, uid: UId?, noteIndex: Int): Boolean {
                 return true
             }
 
-            override fun onMove(event: MotionEvent?, note: NoteListItem?, noteIndex: Int): Boolean {
+            override fun onMove(event: MotionEvent?, uid: UId?, noteIndex: Int): Boolean {
                 return true
             }
         }
@@ -253,38 +213,29 @@ class MetronomeFragment : Fragment() {
 
         plusButton = view.findViewById(R.id.plus_button)
         plusButton?.setOnClickListener {
-            if (noteList?.size == 0) {
-                noteList?.add(NoteListItem(defaultNote, 1.0f, -1.0f))
-            } else {
-                noteList?.let {
-                    val n = it.last().clone()
-                    it.add(n)
-                }
-            }
+            val newNote = viewModel.noteList.value?.lastOrNull()?.clone()?.apply { uid = UId.create() }
+                    ?: NoteListItem(defaultNote, 1.0f, 1.0f)
+            viewModel.addNote(newNote)
 
             if (soundChooser?.choiceStatus == SoundChooser.CHOICE_STATIC) {
-                noteList?.let { notes ->
-                    val noteIndex = notes.size - 1
-                    val note = notes[noteIndex]
-                    soundChooser?.setActiveNote(note)
-                    noteView?.highlightNote(note, true)
-                }
+                noteView?.highlightNote(newNote.uid, true)
             }
         }
 
         clearAllButton = view.findViewById(R.id.clear_all_button)
         clearAllButton?.setOnClickListener {
 
-            noteList?.let { notes ->
-                noteListBackup.set(notes)
-                val newNoteList = NoteList()
-                newNoteList.add(NoteListItem(defaultNote), 0)
-                notes.set(newNoteList)
+            viewModel.noteList.value?.let { notes ->
+                deepCopyNoteList(notes, noteListBackup)
+                val newNoteList = ArrayList<NoteListItem>()
+                newNoteList.add(NoteListItem(defaultNote))
+                viewModel.setNoteList(newNoteList)
 
                 getView()?.let { view ->
                     Snackbar.make(view, getString(R.string.all_notes_deleted), Snackbar.LENGTH_LONG)
                             .setAction(R.string.undo) {
-                                noteList?.set(noteListBackup)
+                                viewModel.setNoteList(noteListBackup)
+                                //noteList?.set(noteListBackup)
                             }.show()
                 }
             }
@@ -292,9 +243,36 @@ class MetronomeFragment : Fragment() {
 
         soundChooser = view.findViewById(R.id.sound_chooser)
         soundChooser?.stateChangedListener = object : SoundChooser.StateChangedListener {
-            override fun onSoundChooserDeactivated(note: NoteListItem?) {
-                if (note != null)
-                    noteView?.highlightNote(note, false)
+            override fun onSoundChooserDeactivated(uid: UId?) {
+                if (uid != null)
+                    noteView?.highlightNote(uid, false)
+            }
+            override fun onNoteIdChanged(uid: UId, noteId: Int) {
+                viewModel.setNoteListId(uid, noteId)
+                if (viewModel.playerStatus.value != PlayerStatus.Playing && context != null) {
+                    viewModel.noteList.value?.firstOrNull { it.uid == uid }?.let { noteListItem ->
+                        singleNotePlayer.play(noteListItem.id, noteListItem.volume)
+                        if (vibrate)
+                            vibratingNote?.vibrate(noteListItem.volume, noteListItem)
+                    }
+                }
+            }
+
+            override fun onVolumeChanged(uid: UId, volume: Float) {
+                viewModel.setNoteListVolume(uid, volume)
+                if (viewModel.playerStatus.value != PlayerStatus.Playing && context != null) {
+                    viewModel.noteList.value?.firstOrNull { it.uid == uid }?.let { noteListItem ->
+                        singleNotePlayer.play(noteListItem.id, noteListItem.volume)
+                    }
+                }
+            }
+
+            override fun onNoteRemoved(uid: UId) {
+                viewModel.removeNote(uid)
+            }
+
+            override fun onNoteMoved(uid: UId, toIndex: Int) {
+                viewModel.moveNote(uid, toIndex)
             }
         }
 
@@ -354,23 +332,25 @@ class MetronomeFragment : Fragment() {
 
         viewModel.noteStartedEvent.observe(viewLifecycleOwner) {
             viewModel.speed.value?.let { speed -> tickVisualizer?.tick(Utilities.speed2dt(speed)) }
-            noteView?.animateNote(it)
-            soundChooser?.animateNote(it)
+            noteView?.animateNote(it.uid)
+            soundChooser?.animateNote(it.uid)
         }
 
         viewModel.noteList.observe(viewLifecycleOwner) {
             viewModel.noteList.value?.let {
-                noteList = it
+                noteView?.setNoteList(it)
+                soundChooser?.setNoteList(it)
+                volumeSliders?.setNoteList(it)
             }
         }
 
         if (!savedVolumeSlidersFolded || savedSoundChooserNoteIndex >= 0) {
             view.post {
-                noteList?.let { notes ->
+                viewModel.noteList.value?.let { notes ->
                     if (savedSoundChooserNoteIndex >= 0 && savedSoundChooserNoteIndex < notes.size) {
                         val note = notes[savedSoundChooserNoteIndex]
-                        soundChooser?.setActiveNote(note)
-                        noteView?.highlightNote(note, true)
+                        soundChooser?.setActiveControlButton(note.uid)
+                        noteView?.highlightNote(note.uid, true)
                         soundChooser?.activateStaticChoices(0L)
                     }
                 }
@@ -381,7 +361,6 @@ class MetronomeFragment : Fragment() {
         }
         return view
     }
-
 
     override fun onStart() {
         super.onStart()
@@ -397,9 +376,10 @@ class MetronomeFragment : Fragment() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         if(soundChooser?.choiceStatus == SoundChooser.CHOICE_STATIC) {
-            noteList?.let { notes ->
-                val noteIndex = notes.indexOf(soundChooser?.activeNote)
-                outState.putInt("soundChooserNoteIndex", noteIndex)
+            viewModel.noteList.value?.let { notes ->
+                val noteIndex = notes.indexOfFirst { it.uid == soundChooser?.activeNoteUid }
+                if (noteIndex >= 0)
+                    outState.putInt("soundChooserNoteIndex", noteIndex)
             }
         }
         outState.putBoolean("volumeSlidersFolded", volumeSliders?.folded ?: true)

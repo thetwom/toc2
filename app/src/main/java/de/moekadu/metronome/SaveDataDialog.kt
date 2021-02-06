@@ -27,11 +27,12 @@ import android.widget.EditText
 import android.widget.Toast
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
 
 class SaveDataDialog {
     companion object {
         @SuppressLint("SimpleDateFormat")
-        fun save(context: Context, speed: Float?, noteList: NoteList?, saveItem: (SavedItem) -> Boolean) {
+        fun save(context: Context, speed: Float?, noteList: ArrayList<NoteListItem>?, saveItem: (SavedItem) -> Boolean) {
             if (speed == null || noteList == null)
                 return
 

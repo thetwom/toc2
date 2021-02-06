@@ -82,13 +82,27 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     var volume: Float = 0f
         private set
 
+    /// Cached volume
+    /** This is needed when the volume is set from outside while the used is moving the slider. We
+     * will then store the new volume until the user releases the button and set the volume.
+     * Values smaller than 0.0 mean that there is no cached volume.
+     */
+    private var volumeCached = -1.0f
+    /// Cached animation duration to be used in conjuction with the cached volume.
+    private var animationDurationCached = 0L
+
     fun setVolume(newVolume: Float, animationDuration: Long = 0L) {
         if (volume == newVolume)
             return
 
-        volume = newVolume
-        setSliderToMatchVolume(animationDuration)
-        resetSliderButtonIcon()
+        if (sliderButton.isPressed) {
+            volumeCached = newVolume
+            animationDurationCached = animationDuration
+        } else {
+            volume = newVolume
+            setSliderToMatchVolume(animationDuration)
+            resetSliderButtonIcon()
+        }
     }
 
     private fun setSliderToMatchVolume(animationDuration: Long = 0L) {
@@ -130,7 +144,7 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         scaleBelowSliderView(sliderTranslation, animationDuration)
     }
 
-    interface OnVolumeChangedListener {
+    fun interface OnVolumeChangedListener {
         fun onVolumeChanged(volume: Float)
     }
 
@@ -288,6 +302,10 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 //                Log.v("Metronome", "VolumeControl.onTouchEvent : ACTION_UP")
                 onVolumeChangedListener?.onVolumeChanged(volume)
                 isPressed = false
+                if (volumeCached >= 0.0f) {
+                    setVolume(volumeCached, animationDurationCached)
+                    volumeCached = -1.0f
+                }
                 return true
             }
         }

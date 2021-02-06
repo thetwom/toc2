@@ -41,7 +41,8 @@ class PlayerService : LifecycleService() {
         fun onPlay()
         fun onPause()
         fun onNoteStarted(noteListItem: NoteListItem)
-        fun onSpeedChanged(speed : Float)
+        fun onSpeedChanged(speed: Float)
+        fun onNoteListChanged(noteList: ArrayList<NoteListItem>)
     }
 
     private val statusChangedListeners = mutableSetOf<StatusChangedListener>()
@@ -61,8 +62,9 @@ class PlayerService : LifecycleService() {
 
             val duration = computeNoteDurationInSeconds(field)
             for(i in noteList.indices) {
-                noteList.setDuration(i, duration)
+                noteList[i].duration = duration
             }
+            audioMixer?.noteList = noteList
 
             notification?.speed = field
             notification?.postNotificationUpdate()
@@ -83,24 +85,17 @@ class PlayerService : LifecycleService() {
 
     private var vibrator: VibratingNote? = null
 
-    /// The current note list played by the metronome. This list shares its items with all the other classes
-    val noteList = NoteList().apply {
-        registerNoteListChangedListener(object : NoteList.NoteListChangedListener {
-            override fun onNoteAdded(note: NoteListItem, index: Int) {
-                setDuration(indexOf(note), computeNoteDurationInSeconds(speed))
-            }
-            override fun onNoteRemoved(note: NoteListItem, index: Int) { }
-            override fun onNoteMoved(note: NoteListItem, fromIndex: Int, toIndex: Int) { }
-            override fun onVolumeChanged(note: NoteListItem, index: Int) { }
-            override fun onNoteIdChanged(note: NoteListItem, index: Int) { }
-            override fun onDurationChanged(note: NoteListItem, index: Int) { }
-            override fun onAllNotesReplaced(noteList: NoteList) {
-                val d = computeNoteDurationInSeconds(speed)
-                for (i in noteList.indices)
-                    setDuration(i, d)
-            }
-        })
-    }
+    /// The current note list played by the metronome.
+    var noteList = ArrayList<NoteListItem>()
+        set(value) {
+            deepCopyNoteList(value, field)
+            val duration = computeNoteDurationInSeconds(speed)
+            for(i in field.indices)
+                field[i].duration = duration
+            audioMixer?.noteList = field
+            for (s in statusChangedListeners)
+                s.onNoteListChanged(field)
+        }
 
     private var sharedPreferenceChangeListener: OnSharedPreferenceChangeListener? = null
 
@@ -160,12 +155,13 @@ class PlayerService : LifecycleService() {
         }
 
         audioMixer = AudioMixer(applicationContext, lifecycleScope)
+        audioMixer?.noteList = noteList
 
         // callback for ui stuff
         audioMixer?.registerNoteStartedListener(object : AudioMixer.NoteStartedListener {
             override suspend fun onNoteStarted(noteListItem: NoteListItem?) {
                 withContext(Dispatchers.Main) {
-                    noteListItem?.original?.let {
+                    noteListItem?.let {
                         statusChangedListeners.forEach { s -> s.onNoteStarted(it) }
                     }
                 }
@@ -184,14 +180,12 @@ class PlayerService : LifecycleService() {
             }
         }
 
-        audioMixer?.noteList = noteList
-
         val activityIntent = Intent(this, MainActivity::class.java)
         val launchActivity = PendingIntent.getActivity(this, 0, activityIntent, 0)
 
         notification = PlayerNotification(this)
 
-        mediaSession = MediaSessionCompat(this, "toc2") // TODO: change tag to de.moekadu.metronome
+        mediaSession = MediaSessionCompat(this, "de.moekadu.metronome")
         mediaSession?.setSessionActivity(launchActivity)
 
         mediaSession?.setCallback(object : MediaSessionCompat.Callback() {
@@ -334,6 +328,15 @@ class PlayerService : LifecycleService() {
 
     fun unregisterStatusChangedListener(statusChangedListener: StatusChangedListener) {
         statusChangedListeners.remove(statusChangedListener)
+    }
+
+    fun modifyNoteList(op: (ArrayList<NoteListItem>) -> Boolean) {
+        val modified = op(noteList)
+        if (modified) {
+            audioMixer?.noteList = noteList
+            for (s in statusChangedListeners)
+                s.onNoteListChanged(noteList)
+        }
     }
 
     companion object {

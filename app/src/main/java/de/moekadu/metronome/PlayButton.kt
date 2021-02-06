@@ -52,8 +52,6 @@ class PlayButton(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                 fillType = Path.FillType.EVEN_ODD
             }
 
-//    private var clickInitiated = false
-
     private var playPercentage = 0.0
 
     private val centerX
@@ -63,7 +61,6 @@ class PlayButton(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         get() = (0.5f * height).toInt()
 
     interface ButtonClickedListener {
-        //void onButtonClicked();
         fun onPlay()
         fun onPause()
     }

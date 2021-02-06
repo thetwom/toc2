@@ -31,34 +31,35 @@ class SoundChooserControlButton(context: Context, note: NoteListItem, elevation:
     var translationYInit = 0f
     var translationXTarget = 0f
     var translationYTarget = 0f
+    val uid = note.uid
 
-    fun animateAllNotes() {
-        noteList?.let { notes ->
-            for (n in notes)
-                animateNote(n)
-        }
-    }
-
-    var volume
-        get() = noteList?.get(0)?.volume ?: 0f
-        set(value) {noteList?.setVolume(0, value)}
-
-     var noteId
-        get() = noteList?.get(0)?.id ?: defaultNote
-        set(value) {noteList?.setNote(0, value)}
+    var volume = note.volume
+        private set
+    var noteId = note.id
+        private set
 
     init {
         setBackgroundResource(R.drawable.control_button_background)
         this.elevation = elevation
         this.volumeColor = volumeColor
         this.showNumbers = true
-        val privateNoteList = NoteList()
-        val privateNote = NoteListItem().apply {
-            set(note)
-        }
-        privateNoteList.add(privateNote)
-        noteList = privateNoteList
+        val noteList = ArrayList<NoteListItem>()
+        noteList.add(note)
+        setNoteList(noteList)
         highlightNote(0, true)
+    }
+
+    fun set(noteListItem: NoteListItem) {
+        require(noteListItem.uid == uid)
+        setNoteId(0, noteListItem.id)
+        setVolume(0, noteListItem.volume)
+        noteId = noteListItem.id
+        volume = noteListItem.volume
+    }
+
+    fun animateAllNotes() {
+        for (i in 0 until size)
+            animateNote(i)
     }
 
     fun moveToTarget(animationDuration: Long = 0L) {

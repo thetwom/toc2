@@ -91,8 +91,6 @@ class SaveDataFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_save_data, container, false)
 
-//        deleteTextSize = Utilities.sp_to_px(18);
-
         noSavedItemsMessage = view.findViewById(R.id.noSavedItemsMessage)
 
         savedItemRecyclerView = view.findViewById(R.id.savedItems)

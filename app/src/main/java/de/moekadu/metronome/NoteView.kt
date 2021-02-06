@@ -18,6 +18,7 @@
  */
 package de.moekadu.metronome
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Rect
@@ -68,6 +69,8 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         backgroundTintList = ContextCompat.getColorStateList(context, R.color.note_view_line)
     }
 
+    val size get() = notes.size
+
     var volumeColor : Int = Color.GREEN
         set(value) {
             volumeView.color = value
@@ -75,7 +78,10 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         }
     private val volumeView = NoteViewVolume(context)
 
-    inner class Note (val note : NoteListItem) {
+    inner class Note (noteListItem: NoteListItem) {
+
+        private val noteListItem = noteListItem.clone()
+        val uid get() = noteListItem.uid
 
         var highlight : Boolean = false
             set(value) {
@@ -83,7 +89,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                 field = value
             }
 
-        private var drawableID = getNoteDrawableResourceID(note.id)
+        private var drawableID = getNoteDrawableResourceID(noteListItem.id)
             set(value) {
                 if (field != value)
                     noteImage.setImageResource(value)
@@ -103,12 +109,26 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
         init {
             highlight = false
-            update()
+            drawableID = getNoteDrawableResourceID(noteListItem.id)
         }
 
-        /// Check if anything changed in our note since the last call and update the internal parameters
-        fun update() {
-            drawableID = getNoteDrawableResourceID(note.id)
+        fun set(newNoteListItem: NoteListItem) {
+            require(noteListItem.uid == newNoteListItem.uid)
+            if (newNoteListItem.id != noteListItem.id)
+                drawableID = getNoteDrawableResourceID(newNoteListItem.id)
+            noteListItem.set(newNoteListItem)
+        }
+
+
+        fun setNoteId(id: Int) {
+            if (id != noteListItem.id) {
+                drawableID = getNoteDrawableResourceID(id)
+                noteListItem.id = id
+            }
+        }
+
+        fun setVolume(volume: Float) {
+            noteListItem.volume = volume
         }
     }
 
@@ -131,82 +151,10 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
     private val transition = AutoTransition().apply { duration = 300L }
 
-    private val noteListChangedListener = object: NoteList.NoteListChangedListener {
-        override fun onNoteAdded(note: NoteListItem, index: Int) {
-            TransitionManager.beginDelayedTransition(this@NoteView, transition)
-            val newNote = Note(note)
-            notes.add(index, newNote)
-            addView(newNote.noteImage)
-            makeSureWeHaveCorrectNumberOfNumberingViews()
-        }
-
-        override fun onNoteRemoved(note: NoteListItem, index: Int) {
-            TransitionManager.beginDelayedTransition(this@NoteView, transition)
-            removeView(notes[index].noteImage)
-            notes.removeAt(index)
-            makeSureWeHaveCorrectNumberOfNumberingViews()
-        }
-
-        override fun onNoteMoved(note: NoteListItem, fromIndex: Int, toIndex: Int) {
-            TransitionManager.beginDelayedTransition(this@NoteView, transition)
-            val noteToBeMoved = notes[fromIndex]
-            notes.removeAt(fromIndex)
-            notes.add(toIndex, noteToBeMoved)
-            if (noteToBeMoved.highlight)
-                highlightNumber(toIndex, true)
-            requestLayout()
-        }
-
-        override fun onVolumeChanged(note: NoteListItem, index: Int) { }
-
-        override fun onNoteIdChanged(note: NoteListItem, index: Int) {
-            for(n in notes) {
-                if (n.note === note)
-                    n.update()
-            }
-        }
-
-        override fun onDurationChanged(note: NoteListItem, index: Int) { }
-
-        override fun onAllNotesReplaced(noteList: NoteList) {
-            TransitionManager.beginDelayedTransition(this@NoteView, transition)
-            for (n in notes)
-                removeView(n.noteImage)
-            notes.clear()
-            for (n in noteList) {
-                val newNote = Note(n)
-                notes.add(newNote)
-                addView(newNote.noteImage)
-            }
-            makeSureWeHaveCorrectNumberOfNumberingViews()
-        }
-
-    }
-
-    var noteList : NoteList? = null
-        set(value) {
-            field?.unregisterNoteListChangedListener(noteListChangedListener)
-            field = value
-            field?.registerNoteListChangedListener(noteListChangedListener)
-            volumeView.noteList = noteList
-
-            for(n in notes)
-                removeView(n.noteImage)
-            notes.clear()
-
-            value?.let {
-                for (n in it) {
-                    notes.add(Note(n))
-                    addView(notes.last().noteImage)
-                }
-            }
-            makeSureWeHaveCorrectNumberOfNumberingViews()
-        }
-
     interface OnNoteClickListener {
-        fun onDown(event: MotionEvent?, note : NoteListItem?, noteIndex : Int) : Boolean
-        fun onUp(event: MotionEvent?, note : NoteListItem?, noteIndex : Int) : Boolean
-        fun onMove(event: MotionEvent?, note : NoteListItem?, noteIndex : Int) : Boolean
+        fun onDown(event: MotionEvent?, uid: UId?, noteIndex: Int) : Boolean
+        fun onUp(event: MotionEvent?, uid: UId?, noteIndex: Int) : Boolean
+        fun onMove(event: MotionEvent?, uid: UId?, noteIndex: Int) : Boolean
     }
 
     var onNoteClickListener : OnNoteClickListener? = null
@@ -218,6 +166,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         }
 
     var numberOffset = 0
+        @SuppressLint("SetTextI18n")
         set(value) {
             if (value != field) {
                 field = value
@@ -276,6 +225,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }
+
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         val totalWidth = r - l - paddingLeft - paddingRight
 
@@ -339,45 +289,47 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             horizontalPositionLeft = horizontalPositionRight
         }
         //Log.v("Notes", "NoteView:onTouchEvent: overNoteIndex=$overNoteIndex")
-        var overNote : NoteListItem? = null
+        var overNoteUid: UId? = null
         if(overNoteIndex >= 0)
-            overNote = notes[overNoteIndex].note
+            overNoteUid = notes[overNoteIndex].uid
 
         return when(action) {
             MotionEvent.ACTION_DOWN -> {
 //                Log.v("Notes", "NoteViw action down: $overNote")
-                onNoteClickListener?.onDown(event, overNote, overNoteIndex) ?: false
+                onNoteClickListener?.onDown(event, overNoteUid, overNoteIndex) ?: false
             }
             MotionEvent.ACTION_UP -> {
-                onNoteClickListener?.onUp(event, overNote, overNoteIndex) ?: false
+                onNoteClickListener?.onUp(event, overNoteUid, overNoteIndex) ?: false
             }
             else -> {
-                onNoteClickListener?.onMove(event, overNote, overNoteIndex) ?: false
+                onNoteClickListener?.onMove(event, overNoteUid, overNoteIndex) ?: false
             }
         }
     }
 
-    fun highlightNote(i : Int, flag : Boolean) {
+    fun highlightNote(index: Int, flag: Boolean) {
         for(j in notes.indices) {
-            if(i == j)
+            if(index == j)
                 notes[j].highlight = flag
             else
                 notes[j].highlight = false
         }
-        highlightNumber(i, flag)
+        highlightNumber(index, flag)
     }
 
-    fun highlightNote(noteListItem : NoteListItem?, flag : Boolean) {
-        if(noteListItem == null)
+    fun highlightNote(uid: UId?, flag : Boolean) {
+        if(uid == null)
             return
         for(n in notes) {
-            if(n.note === noteListItem)
+            if(n.uid == uid)
                 n.highlight = flag
             else
                 n.highlight = false
         }
 
-        noteList?.indexOf(noteListItem)?.let {highlightNumber(it, flag)}
+        val index = notes.indexOfFirst { uid == it.uid }
+        if (index >= 0)
+            highlightNumber(index, flag)
     }
 
     private fun highlightNumber(index: Int, flag: Boolean) {
@@ -387,10 +339,68 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         }
     }
 
-    fun animateNote(note: NoteListItem?) {
+    fun setNoteList(noteList: ArrayList<NoteListItem>) {
+        volumeView.setVolumes(noteList)
+
+        val uidEqual = if (noteList.size == notes.size) {
+            var flag = true
+            for (i in notes.indices) {
+                flag = (notes[i].uid == noteList[i].uid)
+                if (!flag)
+                    break
+            }
+            flag
+        } else {
+            false
+        }
+
+        if (uidEqual) {
+            noteList.zip(notes) { source, target -> target.set(source) }
+        } else {
+            TransitionManager.beginDelayedTransition(this@NoteView, transition)
+            val map = notes.map {it.uid to it}.toMap().toMutableMap()
+            notes.clear()
+            for (note in noteList) {
+                val n = map.remove(note.uid)
+                if (n != null) {
+                    n.set(note)
+                    notes.add(n)
+                } else {
+                    notes.add(Note(note))
+                    addView(notes.last().noteImage)
+                }
+            }
+            map.forEach { removeView(it.value.noteImage)}
+
+            makeSureWeHaveCorrectNumberOfNumberingViews()
+
+            notes.forEachIndexed { index, note ->
+                if (note.highlight)
+                    highlightNumber(index, true)
+            }
+            requestLayout()
+        }
+    }
+
+    fun setNoteId(index: Int, id: Int) {
+        notes.getOrNull(index)?.setNoteId(id)
+    }
+
+    fun setVolume(index: Int, volume: Float) {
+        notes.getOrNull(index)?.setVolume(volume)
+        volumeView.setVolume(index, volume)
+    }
+
+    fun animateNote(index: Int) {
+        val drawable = notes.getOrNull(index)?.drawable as Animatable?
+        drawable?.stop()
+        drawable?.start()
+    }
+
+    fun animateNote(uid: UId?) {
 //        Log.v("Metronome", "NoteView:animateNote : note.id=${note?.id}")
         for (n in notes)
-            if (n.note === note) {
+            if (n.uid == uid) {
 //                Log.v("Metronome", "NoteView:animateNote : found note  to animate")
                 val drawable = n.drawable as Animatable?
                 drawable?.stop()
@@ -398,6 +408,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun makeSureWeHaveCorrectNumberOfNumberingViews() {
         val numNumbers = if (showNumbers) notes.size else 0
 

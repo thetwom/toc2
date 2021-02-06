@@ -29,10 +29,10 @@ import android.util.Log
 import androidx.lifecycle.*
 
 class PlayerServiceConnection(
-        context: Context, private val initialSpeed: Float, private val initialNoteList: NoteList) {
+        context: Context, private val initialSpeed: Float, private val initialNoteList: ArrayList<NoteListItem>) {
 
-    private val _noteList = MutableLiveData<NoteList>()
-    val noteList: LiveData<NoteList> get() = _noteList
+    private val _noteList = MutableLiveData<ArrayList<NoteListItem> >()
+    val noteList: LiveData<ArrayList<NoteListItem> > get() = _noteList
 
     private val _speed = MutableLiveData<Float>()
     val speed: LiveData<Float> get() = _speed
@@ -64,6 +64,10 @@ class PlayerServiceConnection(
             if (_speed.value != speed)
                 _speed.value = speed
         }
+
+        override fun onNoteListChanged(noteList: ArrayList<NoteListItem>) {
+            _noteList.value = noteList
+        }
     }
 
     private val connection = object : ServiceConnection {
@@ -79,7 +83,7 @@ class PlayerServiceConnection(
                     //if (_playerStatus.value != service.playbackState)
                     //    _playbackState.value = service.playbackState
                     setSpeed(initialSpeed)
-                    service.noteList.set(initialNoteList)
+                    service.noteList = initialNoteList
 
                     if (_speed.value != service.speed)
                         _speed.value = service.speed
@@ -133,6 +137,24 @@ class PlayerServiceConnection(
         }
     }
 
+    fun setNoteList(noteList: ArrayList<NoteListItem>) {
+        try {
+            serviceBinder?.service?.noteList = noteList
+        }
+        catch (_: DeadObjectException) {
+            serviceBinder = null
+        }
+    }
+
+    fun modifyNoteList(op: (ArrayList<NoteListItem>) -> Boolean) {
+        try {
+            serviceBinder?.service?.modifyNoteList(op)
+        }
+        catch (_: DeadObjectException) {
+            serviceBinder = null
+        }
+    }
+
     fun syncClickWithUptimeMillis(uptimeMillis : Long) {
         try {
             serviceBinder?.service?.syncClickWithUptimeMillis(uptimeMillis)
@@ -175,7 +197,7 @@ class PlayerServiceConnection(
         @Volatile
         private var instance: PlayerServiceConnection? = null
 
-        fun getInstance(context: Context, initialSpeed: Float, initialNoteList: NoteList) =
+        fun getInstance(context: Context, initialSpeed: Float, initialNoteList: ArrayList<NoteListItem>) =
                 instance ?: synchronized(this) {
                 instance ?: PlayerServiceConnection(context, initialSpeed, initialNoteList)
                         .also { instance = it }

@@ -19,10 +19,9 @@
 
 package de.moekadu.metronome
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import kotlin.math.min
 
 class MetronomeViewModel(private val playerConnection: PlayerServiceConnection): ViewModel() {
 
@@ -33,6 +32,73 @@ class MetronomeViewModel(private val playerConnection: PlayerServiceConnection):
 
     fun setSpeed(value: Float) {
         playerConnection.setSpeed(value)
+    }
+
+    fun setNoteList(noteList: ArrayList<NoteListItem>) {
+        playerConnection.setNoteList(noteList)
+    }
+
+    fun setNoteListVolume(index: Int, volume: Float) {
+        playerConnection.modifyNoteList { noteList ->
+            if (index in 0 until noteList.size) {
+                noteList[index].volume = volume
+                true
+            } else {
+                false
+            }
+        }
+    }
+
+    fun setNoteListVolume(uid: UId, volume: Float) {
+        playerConnection.modifyNoteList { noteList ->
+            var success = false
+            noteList.filter { uid == it.uid }.forEach {
+                it.volume = volume
+                success = true
+            }
+            success
+        }
+    }
+
+    fun setNoteListId(uid: UId, id: Int) {
+        playerConnection.modifyNoteList { noteList ->
+            var success = false
+            noteList.filter { uid == it.uid }.forEach {
+                it.id = id
+                success = true
+            }
+            success
+        }
+    }
+
+    fun addNote(noteListItem: NoteListItem, index: Int? = null) {
+        playerConnection.modifyNoteList { noteList ->
+            val i = if (index == null) noteList.size else min(index, noteList.size)
+            noteList.add(i, noteListItem)
+            true
+        }
+    }
+
+    fun removeNote(uid: UId) {
+        playerConnection.modifyNoteList { noteList ->
+            noteList.removeAll { it.uid == uid }
+        }
+    }
+
+    fun moveNote(uid: UId, toIndex: Int) {
+        playerConnection.modifyNoteList { noteList ->
+            val toIndexCorrected = min(toIndex, noteList.size - 1)
+            val fromIndex = noteList.indexOfFirst { it.uid == uid }
+            if (toIndexCorrected == fromIndex) {
+                false
+            } else if (fromIndex == -1) {
+                false
+            } else {
+                val note = noteList.removeAt(fromIndex)
+                noteList.add(toIndexCorrected, note)
+                true
+            }
+        }
     }
 
     fun play() {

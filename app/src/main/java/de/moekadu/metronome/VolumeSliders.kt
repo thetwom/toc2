@@ -19,7 +19,6 @@
 
 package de.moekadu.metronome
 
-//import androidx.core.view.setPadding
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Rect
@@ -78,88 +77,11 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     private var surfaceBackgroundColor = Color.WHITE
     private var belowSliderColor =  Color.WHITE
 
-    private val noteListChangedListener = object: NoteList.NoteListChangedListener {
-        override fun onNoteAdded(note: NoteListItem, index: Int) {
-            noteList?.let{
-                onAllNotesReplaced(it)
-            }
-        }
-
-        override fun onNoteRemoved(note: NoteListItem, index: Int) {
-            noteList?.let{
-                onAllNotesReplaced(it)
-            }
-        }
-
-        override fun onNoteMoved(note: NoteListItem, fromIndex: Int, toIndex: Int) {
-            if (volumeControls.size != noteList?.size)
-                return
-            noteList?.let { notes ->
-                for (i in notes.indices)
-                    volumeControls[i].setVolume(notes[i].volume, if (folded) 0L else 300L)
-            }
-        }
-
-        override fun onVolumeChanged(note: NoteListItem, index: Int) {
-            if (index in 0 until volumeControls.size)
-                volumeControls[index].setVolume(note.volume, if (folded) 0 else 300L)
-        }
-
-        override fun onNoteIdChanged(note: NoteListItem, index: Int) { }
-        override fun onDurationChanged(note: NoteListItem, index: Int) { }
-
-        override fun onAllNotesReplaced(noteList: NoteList) {
-            noteList.let { notes ->
-                if (!folded) {
-                    TransitionManager.beginDelayedTransition(
-                            this@VolumeSliders,
-                            AutoTransition().apply { duration = 300L }
-                    )
-                }
-
-                while (volumeControls.size < notes.size) {
-                    val vC = createVolumeControl()
-                    addView(vC)
-                    volumeControls.add(vC)
-                }
-
-                while (volumeControls.size > notes.size) {
-                    val vC = volumeControls.last()
-                    removeView(vC)
-                    volumeControls.remove(vC)
-                }
-
-                if (folded) {
-                    for (i in volumeControls.indices)
-                        volumeControls[i].setVolume(notes[i].volume, 0L)
-                }
-                else {
-                    post {
-                        for (i in volumeControls.indices)
-                            volumeControls[i].setVolume(notes[i].volume, 300L)
-                    }
-                }
-            }
-        }
+    fun interface VolumeChangedListener {
+        fun onVolumeChanged(index: Int, volume: Float)
     }
 
-    var noteList: NoteList? = null
-        set(value){
-            field?.unregisterNoteListChangedListener(noteListChangedListener)
-            field = value
-            field?.registerNoteListChangedListener(noteListChangedListener)
-            for (vC in volumeControls)
-                removeView(vC)
-            volumeControls.clear()
-            value?.let { notes ->
-                for (n in notes) {
-                    val vC = createVolumeControl()
-                    vC.setVolume(n.volume)
-                    addView(vC)
-                    volumeControls.add(vC)
-                }
-            }
-        }
+    var volumeChangedListener: VolumeChangedListener? = null
 
     constructor(context: Context, attrs: AttributeSet? = null)
             :this(context, attrs, R.attr.volumeSlidersStyle)
@@ -209,11 +131,9 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         val tunerHeight =  (min(maxHeight, defaultHeight) - elementPadding - buttonTunerSpacing).toInt()
 
         var tunerWidth = noteViewBoundingBox.width()
-        noteList?.let { notes ->
-            for (i in notes.indices) {
-                NoteView.computeBoundingBox(i, notes.size, noteViewBoundingBox.width(), noteViewBoundingBox.height(), boundingBox)
-                tunerWidth = min((boundingBox.width() - tunerSpacing).toInt(), tunerWidth)
-            }
+        for (i in volumeControls.indices) {
+            NoteView.computeBoundingBox(i, volumeControls.size, noteViewBoundingBox.width(), noteViewBoundingBox.height(), boundingBox)
+            tunerWidth = min((boundingBox.width() - tunerSpacing).toInt(), tunerWidth)
         }
 
         tunerWidth = min((tunerHeight / 7f).toInt(), tunerWidth)
@@ -230,10 +150,9 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         background.layout(0, 0, background.measuredWidth, background.measuredHeight)
         val h = b - t
 //        Log.v("Metronome", "VolumeSliders.onLayout: folded=$folded, volumeControls.size=${volumeControls.size}")
-        val buttonTop = if(folded || volumeControls.size == 0) {
+        val buttonTop = if (folded || volumeControls.size == 0) {
             h - (elementPadding + button.measuredHeight).toInt()
-        }
-        else {
+        } else {
             val tunerHeight = volumeControls[0].measuredHeight
             h - (elementPadding + tunerHeight + buttonTunerSpacing + button.measuredHeight).toInt()
         }
@@ -241,34 +160,62 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         button.layout(paddingLeft, buttonTop, paddingLeft + button.measuredWidth, buttonTop + button.measuredHeight
         )
 
-        val notes = noteList
-        if (volumeControls.size  > 0 && notes != null && noteViewBoundingBox.width() > 0) {
+        if (volumeControls.size > 0 && noteViewBoundingBox.width() > 0) {
             val tunerHeight = volumeControls[0].measuredHeight
             val vT = (h - (elementPadding + tunerHeight)).toInt()
             for (i in volumeControls.indices) {
-                if (i < notes.size) {
-                    NoteView.computeBoundingBox(i, notes.size, noteViewBoundingBox.width(), noteViewBoundingBox.height(), boundingBox)
-                    boundingBox.offset(noteViewBoundingBox.left - l, noteViewBoundingBox.top - t)
-                    val vL = (boundingBox.centerX() - l - translationX - 0.5f * volumeControls[i].measuredWidth).toInt()
-//                    val vL = (boundingBoxes[i].centerX() - l - translationX - 0.5f * volumeControls[i].measuredWidth).toInt()
-                    volumeControls[i].layout(vL, vT, vL + volumeControls[i].measuredWidth, vT + volumeControls[i].measuredHeight)
-                }
+                NoteView.computeBoundingBox(i, volumeControls.size, noteViewBoundingBox.width(), noteViewBoundingBox.height(), boundingBox)
+                boundingBox.offset(noteViewBoundingBox.left - l, noteViewBoundingBox.top - t)
+                val vL = (boundingBox.centerX() - l - translationX - 0.5f * volumeControls[i].measuredWidth).toInt()
+                volumeControls[i].layout(vL, vT, vL + volumeControls[i].measuredWidth, vT + volumeControls[i].measuredHeight)
             }
         }
     }
 
-      fun setNoteViewBoundingBox(left: Int, top: Int, right: Int, bottom: Int) {
-          if (noteViewBoundingBox.left != left
-                  || noteViewBoundingBox.top != top
-                  || noteViewBoundingBox.right != right
-                  || noteViewBoundingBox.bottom != bottom) {
-              noteViewBoundingBox.left = left
-              noteViewBoundingBox.top = top
-              noteViewBoundingBox.right = right
-              noteViewBoundingBox.bottom = bottom
-              requestLayout()
-          }
-      }
+    fun setNoteList(noteList: ArrayList<NoteListItem>) {
+        if (!folded) {
+            TransitionManager.beginDelayedTransition(
+                    this@VolumeSliders,
+                    AutoTransition().apply { duration = 300L }
+            )
+        }
+
+        while (volumeControls.size < noteList.size) {
+            val vC = createVolumeControl()
+            addView(vC)
+            volumeControls.add(vC)
+        }
+
+        while (volumeControls.size > noteList.size) {
+            val vC = volumeControls.last()
+            removeView(vC)
+            volumeControls.remove(vC)
+        }
+
+        if (folded) {
+            for (i in volumeControls.indices)
+                volumeControls[i].setVolume(noteList[i].volume, 0L)
+        }
+        else {
+            post {
+                for (i in volumeControls.indices)
+                    volumeControls[i].setVolume(noteList[i].volume, 300L)
+            }
+        }
+    }
+
+    fun setNoteViewBoundingBox(left: Int, top: Int, right: Int, bottom: Int) {
+        if (noteViewBoundingBox.left != left
+                || noteViewBoundingBox.top != top
+                || noteViewBoundingBox.right != right
+                || noteViewBoundingBox.bottom != bottom) {
+            noteViewBoundingBox.left = left
+            noteViewBoundingBox.top = top
+            noteViewBoundingBox.right = right
+            noteViewBoundingBox.bottom = bottom
+            requestLayout()
+        }
+    }
 
     private fun createVolumeControl() : VolumeControl {
         val volumeControl = VolumeControl(context, null)
@@ -276,11 +223,10 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         volumeControl.vertical = true
         volumeControl.setPadding(0,0,0,0)
 
-        volumeControl.onVolumeChangedListener = object : VolumeControl.OnVolumeChangedListener {
-            override fun onVolumeChanged(volume: Float) {
-                val index = volumeControls.indexOf(volumeControl)
-                noteList?.setVolume(index, volume)
-            }
+        volumeControl.onVolumeChangedListener = VolumeControl.OnVolumeChangedListener { volume ->
+            val index = volumeControls.indexOf(volumeControl)
+            if (index >= 0)
+                volumeChangedListener?.onVolumeChanged(index, volume)
         }
 
           if (folded)

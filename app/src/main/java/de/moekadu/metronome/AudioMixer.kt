@@ -28,6 +28,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.util.Log
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.sync.Mutex
@@ -131,7 +132,7 @@ private fun createPlayer(): AudioTrack {
  * @return An updated nextNoteInfo which serves as input to this function on the next cycle.
  */
 private fun queueNextNotes(nextNoteInfo: NextNoteInfo,
-                           noteList: NoteList,
+                           noteList: ArrayList<NoteListItem>,
                            alreadyQueuedFrames: Int,
                            numFramesToQueue: Int,
                            noteStartedListenersAndFrames: ArrayList<NoteStartedListenerAndFrame>,
@@ -213,7 +214,7 @@ private fun mixQueuedNotes(mixingBuffer: FloatArray,
  * @param delayInFrames Delay which is used for playing notes.
  * @return Info about next note to be played.
  */
-private fun synchronizeTime(synchronizeTimeInfo: SynchronizeTimeInfo, noteList: NoteList,
+private fun synchronizeTime(synchronizeTimeInfo: SynchronizeTimeInfo, noteList: ArrayList<NoteListItem>,
                             nextNoteInfo: NextNoteInfo, player: AudioTrack, delayInFrames: Int): NextNoteInfo {
     if (noteList.isEmpty())
         return nextNoteInfo
@@ -280,15 +281,23 @@ private fun computeNoteDelayInMillis(noteStartedListenersWithDelay: ArrayList<No
 class AudioMixer (val context: Context, private val scope: CoroutineScope) {
 
     ///  Note list with tracks which are played in a loop
-    var noteList : NoteList? = null
+    var noteList = ArrayList<NoteListItem>()
+        set(value) {
+            scope.launch(Dispatchers.Main) {
+                noteListLock.withLock {
+                    deepCopyNoteList(value, field)
+                }
+            }
+        }
+
+    /// Lock which is active when we access the noteList.
+    private val noteListLock = Mutex()
 
     /// Interface for listener which is used when a new note list item starts
     interface NoteStartedListener {
         /// Callback function which is called when a playlist item starts
         /**
-         * @param noteListItem Copy of note list item. To access the original,
-         *   use noteListItem.original, however, the original MUST ONLY used on main thread!
-         */
+         * @param noteListItem Note list item which is started. */
         suspend fun onNoteStarted(noteListItem: NoteListItem?)
     }
 
@@ -388,7 +397,7 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
             var numMixedFrames = 0
             var nextNoteInfo = NextNoteInfo(0, player.bufferSizeInFrames / 2)
 
-            val noteListCopy = NoteList()
+            val noteListCopy = ArrayList<NoteListItem>()
 
             player.play()
 
@@ -396,8 +405,17 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                 if (!isActive)
                     break
 
-                // update our local notelist copy
-                noteListCopy.assignIfNotLocked(noteList)
+                // update our local noteList copy
+                if (noteListLock.tryLock()) {
+                    try {
+                        deepCopyNoteList(noteList, noteListCopy)
+                    }
+                    finally {
+                        noteListLock.unlock()
+                    }
+                }
+//                noteListCopy.assignIfNotLocked(noteList)
+                //Log.v("Metronome", "AudioMixer noteList.size: ${noteList.size}")
 
                 val delayInFrames = noteStartedListenerLock.withLock {
                     val delay = (noteDelayInMillis / 1000f * player.sampleRate).roundToInt()

@@ -41,6 +41,7 @@ class MainActivity : AppCompatActivity() {
 
     // TODO: test different device formats
     // TODO: translations
+
     private val metronomeViewModel by viewModels<MetronomeViewModel> {
         val playerConnection = PlayerServiceConnection.getInstance(this,
                 AppPreferences.readMetronomeSpeed(this),
@@ -219,7 +220,7 @@ class MainActivity : AppCompatActivity() {
     private fun loadSettings(item : SavedItem) {
         speedLimiter.checkSavedItemSpeedAndAlert(item.bpm, this)
         metronomeViewModel.setSpeed(speedLimiter.limit(item.bpm))
-        metronomeViewModel.noteList.value?.fromString(item.noteList)
+        metronomeViewModel.setNoteList(stringToNoteList(item.noteList))
         Toast.makeText(this, getString(R.string.loaded_message, item.title), Toast.LENGTH_SHORT).show()
     }
 

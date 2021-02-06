@@ -19,237 +19,85 @@
 
 package de.moekadu.metronome
 
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 import kotlin.math.min
+
+data class UId private constructor(private val id: Int) {
+    companion object {
+        @Volatile
+        private var c = 0
+        fun create(): UId {
+            val i = synchronized(this) {
+                c += 1
+                c
+            }
+            return UId(i)
+        }
+    }
+}
 
 /// Item in note list
 /**
  * @param id Id identifying which note is played
  * @param volume Note volume (0.0f <= volume <= 1.0f
  * @param duration Note duration in seconds
- * @param original Note list item from which this is a copy of. This is only set inside the method
- *   assignIfNotLocked in the NoteList-class
+ * @param uid Identifier which defines if two items are the same
  */
 class NoteListItem(var id : Int = 0, var volume : Float = 1.0f, var duration : Float = 1.0f,
-                   var original: NoteListItem? = null) {
+                   var uid: UId = UId.create()) {
     fun set(value : NoteListItem) {
         id = value.id
         volume = value.volume
         duration = value.duration
-        original = value.original
+        uid = value.uid
     }
 
     fun clone() : NoteListItem {
-        val c = NoteListItem()
-        c.set(this)
+        val c = NoteListItem(id, volume, duration, uid)
         return c
     }
 }
 
-class NoteList : Collection<NoteListItem>{
-    companion object {
-        const val STRING_OK = true
-        const val STRING_INVALID = false
-
-        fun checkString(string: String): Boolean {
-            val elements = string.split(" ")
-            for(i in 0 until elements.size / 2) {
-                try {
-                    elements[2 * i].toInt()
-                    elements[2 * i + 1].toFloat()
-                }
-                catch (e: NumberFormatException) {
-                    return STRING_INVALID
-                }
-            }
-            return STRING_OK
-        }
-    }
-    private val notes = ArrayList<NoteListItem>()
-
-    private val lock = ReentrantLock()
-
-    /// Set note list to given note list by copying the notes.
-    /**
-     * @note This function is threadsafe in means that it guards against write operations on the
-     *   input note list. However, it is not allowed to read from the current note list while
-     *   calling this method.
-     *   In this function we will set the "original"-property of each note, to the note from the
-     *   input note list.
-     */
-    fun assignIfNotLocked(noteList: NoteList?) {
-        if (noteList == null)
-            return
-
-        if (noteList.lock.tryLock()) {
-            try {
-                lock.withLock {
-                    while (notes.size > noteList.size)
-                        notes.removeLast()
-                    while (notes.size < noteList.size)
-                        notes.add(NoteListItem())
-                    noteList.zip(notes).forEach { (origin, target) ->
-                        target.set(origin)
-                        target.original = origin
-                    }
-                }
-            }
-            finally {
-                noteList.lock.unlock()
-            }
-        }
-    }
-
-    override val size get() = notes.size
-    operator fun get(index: Int) = notes[index]
-
-    interface NoteListChangedListener {
-        fun onNoteAdded(note: NoteListItem, index: Int)
-        fun onNoteRemoved(note: NoteListItem, index: Int)
-        fun onNoteMoved(note: NoteListItem, fromIndex: Int, toIndex: Int)
-        fun onVolumeChanged(note: NoteListItem, index: Int)
-        fun onNoteIdChanged(note: NoteListItem, index: Int)
-        fun onDurationChanged(note: NoteListItem, index: Int)
-        fun onAllNotesReplaced(noteList: NoteList)
-    }
-
-    private val noteListChangedListener = ArrayList<NoteListChangedListener>()
-
-    fun set(newNoteList: NoteList) {
-        lock.withLock {
-            notes.clear()
-//            Log.v("Metronome", "NoteList.set:newNoteList.size=${newNoteList.size}")
-            notes.addAll(newNoteList)
-        }
-        for (n in noteListChangedListener)
-            n.onAllNotesReplaced(this)
-    }
-
-    fun add(note: NoteListItem, index : Int = size) {
-        require(notes.indexOf(note) < 0) // make sure that each note only exists once!!
-        lock.withLock { notes.add(index, note) }
-
-        // Log.v("Metronome", "NoteList.add: noteListChangedListener.size = ${noteListChangedListener.size}")
-        for (n in noteListChangedListener) {
-            n.onNoteAdded(note, index)
-            // Log.v("Metronome", "NoteList.add: called onNoteAdded")
-        }
-    }
-
-    fun remove(note: NoteListItem) {
-        val index = notes.indexOf(note)
-        if (index >= 0) {
-            lock.withLock { notes.remove(note) }
-            for (n in noteListChangedListener)
-                n.onNoteRemoved(note, index)
-
-        }
-    }
-
-    fun move(fromIndex : Int, toIndex : Int) {
-        if(fromIndex in 0 until notes.size && toIndex >= 0) {
-            val note = notes[fromIndex]
-            lock.withLock {
-                notes.removeAt(fromIndex)
-                notes.add(min(notes.size, toIndex), note)
-            }
-            for (n in noteListChangedListener)
-                n.onNoteMoved(note, fromIndex, toIndex)
-        }
-    }
-
-    fun setVolume(index: Int, volume: Float) {
-        if (index in 0 until notes.size && notes[index].volume != volume) {
-            lock.withLock { notes[index].volume = volume }
-            for (n in noteListChangedListener)
-                n.onVolumeChanged(notes[index], index)
-        }
-    }
-
-    fun setNote(index: Int, noteId: Int) {
-        if (index in 0 until notes.size && notes[index].id != noteId) {
-            lock.withLock { notes[index].id = noteId }
-            for (n in noteListChangedListener) {
-                n.onNoteIdChanged(notes[index], index)
-            }
-        }
-    }
-
-    /// Set not duration in seconds.
-    /**
-     * @param index Note index.
-     * @param duration Duration in seconds.
-     */
-    fun setDuration(index: Int, duration: Float) {
-        if (index in 0 until notes.size && notes[index].duration != duration) {
-            lock.withLock { notes[index].duration = duration }
-            for (n in noteListChangedListener) {
-                n.onDurationChanged(notes[index], index)
-            }
-        }
-
-    }
-
-    fun indexOf(note: NoteListItem): Int {
-        for(i in notes.indices) {
-            if (notes[i] === note)
-                return i
-        }
-        return -1
-    }
-
-    fun last(): NoteListItem {
-        return notes.last()
-    }
-
-    override fun isEmpty(): Boolean {
-        return notes.isEmpty()
-    }
-
-    fun registerNoteListChangedListener(noteListChangedListener: NoteListChangedListener) {
-        this.noteListChangedListener.add(noteListChangedListener)
-    }
-
-    fun unregisterNoteListChangedListener(noteListChangedListener: NoteListChangedListener) {
-        this.noteListChangedListener.remove(noteListChangedListener)
-    }
-
-    override fun toString(): String {
-        var s = ""
-        for (note in notes) {
-            s += "${note.id} ${note.volume} "
-        }
-        return s
-    }
-
-    fun fromString(string: String) {
-        val elements = string.split(" ")
-        lock.withLock {
-            notes.clear()
-            for (i in 0 until elements.size / 2) {
-                val noteId = min(elements[2 * i].toInt(), getNumAvailableNotes() - 1)
-                val volume = elements[2 * i + 1].toFloat()
-//                Log.v("Metronome", "NoteList.fromString: noteId = $noteId, ${elements[2*i].toInt()} available = ${getNumAvailableNotes()}")
-                notes.add(NoteListItem(noteId, volume, -1f))
-            }
-        }
-        for (n in noteListChangedListener)
-            n.onAllNotesReplaced(this)
-    }
-
-    override fun iterator(): Iterator<NoteListItem> {
-        return notes.iterator()
-    }
-
-    override fun contains(element: NoteListItem): Boolean {
-        return notes.contains(element)
-    }
-
-    override fun containsAll(elements: Collection<NoteListItem>): Boolean {
-        return notes.containsAll(elements)
-    }
+fun deepCopyNoteList(origin: ArrayList<NoteListItem>, target: ArrayList<NoteListItem>) {
+    if (target.size > origin.size)
+        target.subList(origin.size, target.size).clear()
+    for (i in target.indices)
+        target[i].set(origin[i])
+    for (i in target.size until origin.size)
+        target.add(origin[i].clone())
 }
+
+fun isNoteListStringValid(string: String): Boolean {
+    val elements = string.split(" ")
+    for(i in 0 until elements.size / 2) {
+        try {
+            elements[2 * i].toInt()
+            elements[2 * i + 1].toFloat()
+        }
+        catch (e: NumberFormatException) {
+            return false
+        }
+    }
+    return true
+}
+fun noteListToString(noteList: ArrayList<NoteListItem>): String {
+    var s = ""
+    for (note in noteList) {
+        s += "${note.id} ${note.volume} "
+    }
+    return s
+}
+
+fun stringToNoteList(string: String): ArrayList<NoteListItem> {
+    val noteList = ArrayList<NoteListItem>()
+    val elements = string.split(" ")
+    for (i in 0 until elements.size / 2) {
+        val noteId = min(elements[2 * i].toInt(), getNumAvailableNotes() - 1)
+        val volume = elements[2 * i + 1].toFloat()
+        noteList.add(NoteListItem(noteId, volume, -1f))
+    }
+    return noteList
+}
+
 
 data class NoteInfo(val audio44ResourceID: Int, val audio48ResourceID: Int,
                     val stringResourceID: Int, val drawableResourceID: Int,

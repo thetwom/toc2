@@ -64,8 +64,8 @@ class SavedItemAdapter : ListAdapter<SavedItem, SavedItemAdapter.ViewHolder>(Sav
         speedView?.text = holder.view.context.getString(R.string.bpm, Utilities.getBpmString(item.bpm))
 //        Log.v("Metronome", "SavedItemDatabase.onBindViewHolder: item.noteList = ${item.noteList}")
         val noteView = holder.view.findViewById(R.id.saved_item_sounds) as NoteView?
-        val noteList = NoteList().apply { fromString(item.noteList) }//SoundProperties.parseMetaDataString(item.noteList)
-        noteView?.noteList = noteList
+        val noteList = stringToNoteList(item.noteList)
+        noteView?.setNoteList(noteList)
 
         holder.view.setOnClickListener {
             onItemClickedListener?.onItemClicked(getItem(holder.adapterPosition), holder.adapterPosition)

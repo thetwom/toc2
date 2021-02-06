@@ -48,22 +48,24 @@ class AppPreferences {
             editor.apply()
         }
 
-        fun writeMetronomeState(speed: Float?, noteList: NoteList?, activity: FragmentActivity) {
+        fun writeMetronomeState(speed: Float?, noteList: ArrayList<NoteListItem>?, activity: FragmentActivity) {
             if (speed != null)
                 writePreferenceFloat("speed", speed, activity)
             if (noteList != null)
-                writePreferenceString("sound", noteList.toString(), activity)
+                writePreferenceString("sound", noteListToString(noteList), activity)
         }
 
         fun readMetronomeSpeed(activity: FragmentActivity): Float {
             return readPreferenceFloat("speed", InitialValues.speed, activity)
         }
-        fun readMetronomeNoteList(activity: FragmentActivity): NoteList {
-            val noteList = NoteList()
 
+        fun readMetronomeNoteList(activity: FragmentActivity): ArrayList<NoteListItem> {
             readPreferenceString("sound", activity)?.let { noteListString ->
-                noteList.fromString(noteListString)
+                return stringToNoteList(noteListString)
             }
+
+            val noteList = ArrayList<NoteListItem>()
+            noteList.add(NoteListItem(defaultNote, 1.0f, -1.0f))
             return noteList
         }
 

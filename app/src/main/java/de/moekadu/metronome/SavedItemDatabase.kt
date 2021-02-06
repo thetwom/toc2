@@ -119,7 +119,7 @@ class SavedItemDatabase {
             if(noteListEnd == -1)
                 return FILE_INVALID
             si.noteList = dataString.substring(pos, noteListEnd)
-            if (NoteList.checkString(si.noteList) == NoteList.STRING_INVALID)
+            if (!isNoteListStringValid(si.noteList))
                 return FILE_INVALID
             pos = noteListEnd + 3
 
