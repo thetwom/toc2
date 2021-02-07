@@ -21,7 +21,6 @@ package de.moekadu.metronome
 
 import android.graphics.Canvas
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.View
@@ -165,12 +164,12 @@ class SaveDataFragment : Fragment() {
         val touchHelper = ItemTouchHelper(simpleTouchHelper)
         touchHelper.attachToRecyclerView(savedItemRecyclerView)
 
-        viewModel.savedItems.observe(viewLifecycleOwner) {
+        viewModel.savedItems.observe(viewLifecycleOwner) { database ->
 //            Log.v("Metronome", "SaveDataFragment: submitting new data base list to adapter: size: ${it.savedItems.size}")
-            savedItemsAdapter.submitList(ArrayList(it.savedItems))
+            savedItemsAdapter.submitList(ArrayList(database.savedItems))
             activity?.let{AppPreferences.writeSavedItemsDatabase(viewModel.savedItemsAsString, it)}
 
-            if(it.size == 0)
+            if(database.size == 0)
                 noSavedItemsMessage?.visibility = View.VISIBLE
             else
                 noSavedItemsMessage?.visibility = View.GONE

@@ -71,10 +71,10 @@ class SingleNotePlayer(context: Context, private val lifecycleOwner: LifecycleOw
     }
 
     private fun getSoundHandle(noteId: Int, sampleRate: Int): Int? {
-        if (sampleRate == 44100) {
-            return soundHandles44[noteId]
+        return if (sampleRate == 44100) {
+            soundHandles44[noteId]
         } else {
-            return soundHandles48[noteId]
+            soundHandles48[noteId]
         }
     }
 

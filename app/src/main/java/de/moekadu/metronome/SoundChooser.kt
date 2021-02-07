@@ -193,13 +193,11 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         addView(volumeControl)
         volumeControl.elevation = elementElevation
         volumeControl.visibility = View.GONE
-        volumeControl.onVolumeChangedListener = object : VolumeControl.OnVolumeChangedListener {
-            override fun onVolumeChanged(volume: Float) {
-                activeControlButton?.let { controlButton ->
-                    if (controlButton.volume != volume) {
-                        controlButton.setVolume(0, volume)
-                        stateChangedListener?.onVolumeChanged(controlButton.uid, volume)
-                    }
+        volumeControl.onVolumeChangedListener = VolumeControl.OnVolumeChangedListener { volume ->
+            activeControlButton?.let { controlButton ->
+                if (controlButton.volume != volume) {
+                    controlButton.setVolume(0, volume)
+                    stateChangedListener?.onVolumeChanged(controlButton.uid, volume)
                 }
             }
         }

@@ -89,14 +89,18 @@ class MetronomeViewModel(private val playerConnection: PlayerServiceConnection):
         playerConnection.modifyNoteList { noteList ->
             val toIndexCorrected = min(toIndex, noteList.size - 1)
             val fromIndex = noteList.indexOfFirst { it.uid == uid }
-            if (toIndexCorrected == fromIndex) {
-                false
-            } else if (fromIndex == -1) {
-                false
-            } else {
-                val note = noteList.removeAt(fromIndex)
-                noteList.add(toIndexCorrected, note)
-                true
+            when {
+                toIndexCorrected == fromIndex -> {
+                    false
+                }
+                fromIndex == -1 -> {
+                    false
+                }
+                else -> {
+                    val note = noteList.removeAt(fromIndex)
+                    noteList.add(toIndexCorrected, note)
+                    true
+                }
             }
         }
     }

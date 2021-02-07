@@ -17,6 +17,8 @@
  * along with Metronome.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+@file:Suppress("DataClassPrivateConstructor")
+
 package de.moekadu.metronome
 
 import kotlin.math.min
@@ -52,8 +54,7 @@ class NoteListItem(var id : Int = 0, var volume : Float = 1.0f, var duration : F
     }
 
     fun clone() : NoteListItem {
-        val c = NoteListItem(id, volume, duration, uid)
-        return c
+        return NoteListItem(id, volume, duration, uid)
     }
 }
 
