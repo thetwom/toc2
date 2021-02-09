@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt">
+
+    <aapt:attr name="android:drawable">
+        <vector
+            android:height="100dp"
+            android:width="100dp"
+            android:viewportHeight="100"
+            android:viewportWidth="100">
+
+            <group
+                android:name="play"
+                android:pivotX="50"
+                android:pivotY="50">
+                <path
+                    android:name="play_path"
+                    android:fillColor="?attr/colorOnPrimary"
+                    android:pathData="M27.5,88.97L27.5,11.03L61.25,30.515L61.25,69.485zM61.25,30.515L95,50L61.25,69.485L61.25,69.485z"
+                    />
+            </group>
+        </vector>
+    </aapt:attr>
+
+    <target android:name="play_path">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="500"
+                android:valueFrom="M27.5,88.97L27.5,11.03L61.25,30.515L61.25,69.485zM61.25,30.515L95,50L61.25,69.485L61.25,69.485z"
+                android:valueTo="M9.5,88.97L9.5,11.03L39.5,11.03L39.5,88.97zM60.5,88.97L90.5,88.97L90.5,11.03L60.5,11.03z"
+                android:propertyName="pathData"
+                android:valueType="pathType"
+                >
+            </objectAnimator>
+        </aapt:attr>
+    </target>
+
+    <target android:name="play">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="500"
+                android:valueFrom="0"
+                android:valueTo="360"
+                android:propertyName="rotation"
+                >
+            </objectAnimator>
+        </aapt:attr>
+    </target>
+
+</animated-vector>

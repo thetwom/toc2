@@ -116,5 +116,6 @@
     <string name="vibrate_delay">Vibration delay</string>
     <string name="milliseconds">%d ms</string>
     <string name="database_saved">Writing data to \"%s\".</string>
+    <string name="play_pause">play and pause</string>
 
 </resources>

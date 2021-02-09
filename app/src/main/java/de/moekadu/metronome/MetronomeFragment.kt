@@ -217,7 +217,7 @@ class MetronomeFragment : Fragment() {
                     ?: NoteListItem(defaultNote, 1.0f, 1.0f)
             viewModel.addNote(newNote)
 
-            if (soundChooser?.choiceStatus == SoundChooser.CHOICE_STATIC) {
+            if (soundChooser?.choiceStatus == SoundChooser.Status.Static) {
                 noteView?.highlightNote(newNote.uid, true)
             }
         }
@@ -247,9 +247,9 @@ class MetronomeFragment : Fragment() {
                 if (uid != null)
                     noteView?.highlightNote(uid, false)
             }
-            override fun onNoteIdChanged(uid: UId, noteId: Int) {
+            override fun onNoteIdChanged(uid: UId, noteId: Int, status: SoundChooser.Status) {
                 viewModel.setNoteListId(uid, noteId)
-                if (viewModel.playerStatus.value != PlayerStatus.Playing && context != null) {
+                if (viewModel.playerStatus.value != PlayerStatus.Playing && status == SoundChooser.Status.Static && context != null) {
                     viewModel.noteList.value?.firstOrNull { it.uid == uid }?.let { noteListItem ->
                         singleNotePlayer.play(noteListItem.id, noteListItem.volume)
                         if (vibrate)
@@ -258,7 +258,7 @@ class MetronomeFragment : Fragment() {
                 }
             }
 
-            override fun onVolumeChanged(uid: UId, volume: Float) {
+            override fun onVolumeChanged(uid: UId, volume: Float, status: SoundChooser.Status) {
                 viewModel.setNoteListVolume(uid, volume)
                 if (viewModel.playerStatus.value != PlayerStatus.Playing && context != null) {
                     viewModel.noteList.value?.firstOrNull { it.uid == uid }?.let { noteListItem ->
@@ -375,7 +375,7 @@ class MetronomeFragment : Fragment() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        if(soundChooser?.choiceStatus == SoundChooser.CHOICE_STATIC) {
+        if(soundChooser?.choiceStatus == SoundChooser.Status.Static) {
             viewModel.noteList.value?.let { notes ->
                 val noteIndex = notes.indexOfFirst { it.uid == soundChooser?.activeNoteUid }
                 if (noteIndex >= 0)

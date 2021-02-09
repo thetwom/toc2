@@ -20,6 +20,7 @@
 package de.moekadu.metronome
 
 import android.graphics.Canvas
+import android.graphics.drawable.Animatable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -33,6 +34,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import kotlin.math.absoluteValue
 import kotlin.math.min
@@ -44,6 +46,14 @@ class SaveDataFragment : Fragment() {
     private val viewModel by activityViewModels<SaveDataViewModel> {
         SaveDataViewModel.Factory(AppPreferences.readSavedItemsDatabase(requireActivity()))
     }
+    private val metronomeViewModel by activityViewModels<MetronomeViewModel> {
+        val playerConnection = PlayerServiceConnection.getInstance(
+                requireContext(),
+                AppPreferences.readMetronomeSpeed(requireActivity()),
+                AppPreferences.readMetronomeNoteList(requireActivity())
+        )
+        MetronomeViewModel.Factory(playerConnection)
+    }
 
     private var savedItemRecyclerView: RecyclerView? = null
     private val savedItemsAdapter = SavedItemAdapter()
@@ -52,6 +62,9 @@ class SaveDataFragment : Fragment() {
     private var lastRemovedItem: SavedItem? = null
 
     private var noSavedItemsMessage: TextView? = null
+
+    private var playFab: FloatingActionButton? = null
+    private var playFabStatus = PlayerStatus.Paused
 
     var onItemClickedListener: SavedItemAdapter.OnItemClickedListener?
         set(value) {
@@ -91,6 +104,15 @@ class SaveDataFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_save_data, container, false)
 
         noSavedItemsMessage = view.findViewById(R.id.noSavedItemsMessage)
+
+        playFab = view.findViewById(R.id.play_fab)
+
+        playFab?.setOnClickListener {
+            if (metronomeViewModel.playerStatus.value == PlayerStatus.Playing)
+                metronomeViewModel.pause()
+            else
+                metronomeViewModel.play()
+        }
 
         savedItemRecyclerView = view.findViewById(R.id.savedItems)
         savedItemRecyclerView?.setHasFixedSize(true)
@@ -173,6 +195,24 @@ class SaveDataFragment : Fragment() {
                 noSavedItemsMessage?.visibility = View.VISIBLE
             else
                 noSavedItemsMessage?.visibility = View.GONE
+        }
+
+        if (metronomeViewModel.playerStatus.value == PlayerStatus.Playing)
+            playFab?.setImageResource(R.drawable.ic_play_to_pause)
+        else
+            playFab?.setImageResource(R.drawable.ic_pause_to_play)
+        playFabStatus = metronomeViewModel.playerStatus.value ?: PlayerStatus.Paused
+
+        metronomeViewModel.playerStatus.observe(viewLifecycleOwner) { playerStatus ->
+            if (playerStatus != playFabStatus) {
+                if (playerStatus == PlayerStatus.Playing)
+                    playFab?.setImageResource(R.drawable.ic_pause_to_play)
+                else
+                    playFab?.setImageResource(R.drawable.ic_play_to_pause)
+                playFabStatus = playerStatus
+                val drawable = playFab?.drawable as Animatable?
+                drawable?.start()
+            }
         }
         return view
     }

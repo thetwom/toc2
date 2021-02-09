@@ -42,6 +42,9 @@ class MainActivity : AppCompatActivity() {
     // TODO: test different device formats
     // TODO: translations
 
+    // TODO: don't play sample sounds for dynamic sound chooser
+    // TODO: volume control shouldnt't animate if volume changes only one step
+
     private val metronomeViewModel by viewModels<MetronomeViewModel> {
         val playerConnection = PlayerServiceConnection.getInstance(this,
                 AppPreferences.readMetronomeSpeed(this),
