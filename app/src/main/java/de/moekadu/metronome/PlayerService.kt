@@ -316,10 +316,13 @@ class PlayerService : LifecycleService() {
         notification?.postNotificationUpdate()
     }
 
-    fun syncClickWithUptimeMillis(uptimeMillis : Long) {
-        if(state == PlaybackStateCompat.STATE_PLAYING) {
+    fun syncClickWithUptimeMillis(uptimeMillis: Long) {
+        if(state == PlaybackStateCompat.STATE_PLAYING)
             audioMixer?.synchronizeTime(uptimeMillis, computeNoteDurationInSeconds(speed))
-        }
+    }
+
+    fun setNextNoteIndex(index: Int) {
+        audioMixer?.setNextNoteIndex(index)
     }
 
     fun registerStatusChangedListener(statusChangedListener: StatusChangedListener) {

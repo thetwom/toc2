@@ -316,6 +316,9 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
     /// Channel for transferring our synchronising information to the playing coroutine.
     private val synchronizeTimeChannel = Channel<SynchronizeTimeInfo>(Channel.CONFLATED)
 
+    /// Channel for modifying the index of the next note to be played.
+    private val nextNoteIndexModificationChannel = Channel<Int>(Channel.CONFLATED)
+
     /// Register a NoteStartedListener (this will stop player).
     /**
      * @param noteStartedListener Instance to be registered.
@@ -416,6 +419,9 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                 }
 //                noteListCopy.assignIfNotLocked(noteList)
                 //Log.v("Metronome", "AudioMixer noteList.size: ${noteList.size}")
+                nextNoteIndexModificationChannel.poll()?.let { index ->
+                    nextNoteInfo = nextNoteInfo.copy(nextNoteIndex = index)
+                }
 
                 val delayInFrames = noteStartedListenerLock.withLock {
                     val delay = (noteDelayInMillis / 1000f * player.sampleRate).roundToInt()
@@ -487,6 +493,11 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
      */
     fun synchronizeTime(referenceTime : Long, beatDuration : Float) {
         synchronizeTimeChannel.offer(SynchronizeTimeInfo(referenceTime, beatDuration))
+    }
+
+    /// Modify the index of the next note to be played.
+    fun setNextNoteIndex(index: Int) {
+        nextNoteIndexModificationChannel.offer(index)
     }
 }
 

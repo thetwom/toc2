@@ -155,9 +155,18 @@ class PlayerServiceConnection(
         }
     }
 
-    fun syncClickWithUptimeMillis(uptimeMillis : Long) {
+    fun syncClickWithUptimeMillis(uptimeMillis: Long) {
         try {
             serviceBinder?.service?.syncClickWithUptimeMillis(uptimeMillis)
+        }
+        catch (_: DeadObjectException) {
+            serviceBinder = null
+        }
+    }
+
+    fun setNextNoteIndex(index: Int) {
+        try {
+            serviceBinder?.service?.setNextNoteIndex(index)
         }
         catch (_: DeadObjectException) {
             serviceBinder = null

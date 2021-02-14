@@ -20,6 +20,7 @@
 package de.moekadu.metronome
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.content.res.Resources
 import android.graphics.Color
 import android.graphics.Rect
@@ -78,6 +79,8 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
     private val choiceButtonSpacing = choiceButtonSpacingInDp * Resources.getSystem().displayMetrics.density
 
     private var volumePaintColor = Color.BLACK
+    private var noteColor: ColorStateList? = null
+    private var noteHighlightColor: ColorStateList? = null
 
     private val transitionEndListener = object : Transition.TransitionListener {
         override fun onTransitionEnd(transition: Transition) {
@@ -136,6 +139,8 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
             activeTranslationZ = ta.getDimension(R.styleable.SoundChooser_activeTranslationZ, activeTranslationZ)
             elementPadding = ta.getDimension(R.styleable.SoundChooser_elementPadding, elementPadding)
             volumePaintColor = ta.getColor(R.styleable.SoundChooser_volumeColor, volumePaintColor)
+            noteColor = ta.getColorStateList(R.styleable.SoundChooser_noteColor)
+            noteHighlightColor = ta.getColorStateList(R.styleable.SoundChooser_noteHighlightColor)
             backgroundView.setBackgroundColor(ta.getColor(R.styleable.SoundChooser_backgroundViewColor, Color.WHITE))
             ta.recycle()
         }
@@ -162,6 +167,8 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
             val c = choiceButtons[noteId]
             c.elevation = elementElevation
             c.volumeColor = volumePaintColor
+            c.noteColor = noteColor
+            c.noteHighlightColor = noteHighlightColor
 
             addView(c)
             c.visibility = View.GONE
@@ -427,6 +434,8 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
         if (event == null)
             return super.onTouchEvent(event)
 
+        super.onTouchEvent(event)
+
         val action = event.actionMasked
         val x = event.x
         val y = event.y
@@ -526,7 +535,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
                     n.set(note)
                     controlButtons.add(n)
                 } else {
-                    val s = SoundChooserControlButton(context, note, elementElevation + tolerance, volumePaintColor)
+                    val s = SoundChooserControlButton(context, note, elementElevation + tolerance, volumePaintColor, noteColor, noteHighlightColor)
                     s.visibility = View.GONE
                     controlButtons.add(s)
                     addView(s)
@@ -979,9 +988,4 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
     enum class TransitionStatus {
         Finished, Deactivating, ActivatingStatic
     }
-//    companion object{
-//        const val TRANSITION_FINISHED = 4
-//        const val TRANSITION_DEACTIVATING = 5
-//        const val TRANSITION_ACTIVATING_STATIC = 6
-//    }
 }

@@ -42,8 +42,7 @@ class MainActivity : AppCompatActivity() {
     // TODO: test different device formats
     // TODO: translations
 
-    // TODO: don't play sample sounds for dynamic sound chooser
-    // TODO: volume control shouldnt't animate if volume changes only one step
+    // TODO: volume control shouldn't animate if volume changes only one step
 
     private val metronomeViewModel by viewModels<MetronomeViewModel> {
         val playerConnection = PlayerServiceConnection.getInstance(this,
@@ -109,12 +108,6 @@ class MainActivity : AppCompatActivity() {
         saveDataFragment = supportFragmentManager.findFragmentByTag(SAVE_DATA_FRAGMENT_TAG) as SaveDataFragment?
         if(saveDataFragment == null) {
             saveDataFragment = SaveDataFragment()
-        }
-        saveDataFragment?.onItemClickedListener = object : SavedItemAdapter.OnItemClickedListener {
-            override fun onItemClicked(item: SavedItem, position: Int) {
-                loadSettings(item)
-                supportFragmentManager.popBackStack()
-            }
         }
 
         if(supportFragmentManager.fragments.size == 0)

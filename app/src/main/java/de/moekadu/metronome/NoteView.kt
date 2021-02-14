@@ -20,6 +20,7 @@ package de.moekadu.metronome
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Rect
 import android.graphics.drawable.Animatable
@@ -27,6 +28,7 @@ import android.graphics.drawable.Drawable
 import android.transition.AutoTransition
 import android.transition.TransitionManager
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
@@ -71,11 +73,40 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
     val size get() = notes.size
 
-    var volumeColor : Int = Color.GREEN
+    var volumeColor: Int = Color.GREEN
         set(value) {
             volumeView.color = value
             field = value
         }
+
+    var noteColor: ColorStateList? = null
+        set(value){
+            if (value != null) {
+                for (i in notes.indices) {
+                    if (!notes[i].highlight) {
+                        notes[i].noteImage.imageTintList = value
+                        if (i < numbering.size)
+                            numbering[i].setTextColor(value)
+                    }
+                }
+            }
+            field = value
+        }
+
+    var noteHighlightColor: ColorStateList? = null
+        set(value){
+            if (value != null) {
+                for (i in notes.indices) {
+                    if (notes[i].highlight) {
+                        notes[i].noteImage.imageTintList = value
+                        if (i <= numbering.size)
+                            numbering[i].setTextColor(value)
+                    }
+                }
+            }
+            field = value
+        }
+
     private val volumeView = NoteViewVolume(context)
 
     inner class Note (noteListItem: NoteListItem) {
@@ -85,7 +116,11 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
         var highlight : Boolean = false
             set(value) {
-                noteImage.isSelected = value
+                if (value)
+                    noteHighlightColor?.let {noteImage.imageTintList = it}
+                else
+                    noteColor?.let{noteImage.imageTintList = it}
+                //noteImage.isSelected = value
                 field = value
             }
 
@@ -101,7 +136,11 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             setPadding(0, 0, 0, 0)
             background = null
             scaleType = ImageView.ScaleType.CENTER_INSIDE
-            imageTintList = ContextCompat.getColorStateList(context, R.color.note_view_note)
+            if (noteColor != null && !highlight)
+                imageTintList = noteColor
+            if (noteHighlightColor != null && highlight)
+                imageTintList = noteHighlightColor
+            // imageTintList = ContextCompat.getColorStateList(context, R.color.note_view_note)
         }
 
         val drawable: Drawable
@@ -118,7 +157,6 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                 drawableID = getNoteDrawableResourceID(newNoteListItem.id)
             noteListItem.set(newNoteListItem)
         }
-
 
         fun setNoteId(id: Int) {
             if (id != noteListItem.id) {
@@ -188,6 +226,8 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             )
 
             volumeColor = ta.getColor(R.styleable.NoteView_volumeColor, volumeColor)
+            noteColor = ta.getColorStateList(R.styleable.NoteView_noteColor)
+            noteHighlightColor = ta.getColorStateList(R.styleable.NoteView_noteHighlightColor)
             showNumbers = ta.getBoolean(R.styleable.NoteView_showNumbers, showNumbers)
             ta.recycle()
         }
@@ -260,16 +300,18 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     }
 
     override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
+//        return (onNoteClickListener != null && ev != null)
 //        Log.v("Metronome", "NoteView.onInterceptTouchEvent")
         return true
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
-        if(onNoteClickListener == null)
+        if(onNoteClickListener == null || event == null)
             return super.onTouchEvent(event)
 //        Log.v("Metronome", "NoteView.onTouchEvent")
-        if(event == null)
-            return super.onTouchEvent(event)
+//        if(event == null)
+//            return super.onTouchEvent(event)
+        super.onTouchEvent(event)
 
         val action = event.actionMasked
         val x = event.x
@@ -295,10 +337,12 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
         return when(action) {
             MotionEvent.ACTION_DOWN -> {
+                isPressed = true // this is needed to work with ripple drawables
 //                Log.v("Notes", "NoteViw action down: $overNote")
                 onNoteClickListener?.onDown(event, overNoteUid, overNoteIndex) ?: false
             }
             MotionEvent.ACTION_UP -> {
+                isPressed = false // this is needed to work with ripple drawables
                 onNoteClickListener?.onUp(event, overNoteUid, overNoteIndex) ?: false
             }
             else -> {
@@ -417,12 +461,15 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                     AppCompatTextView(context).apply {
                         gravity = Gravity.CENTER
                         text = "${numbering.size + 1 + numberOffset}"
-                        setTextColor(ContextCompat.getColorStateList(context, R.color.note_view_note))
+                        //setTextColor(ContextCompat.getColorStateList(context, R.color.note_view_note))
+                        if (noteColor != null)
+                            setTextColor(noteColor)
                         background = null
                         setPadding(0, 0, 0, 0)
                     }
             )
-            TextViewCompat.setAutoSizeTextTypeWithDefaults(numbering.last(), TextViewCompat.AUTO_SIZE_TEXT_TYPE_UNIFORM)
+            //TextViewCompat.setAutoSizeTextTypeWithDefaults(numbering.last(), TextViewCompat.AUTO_SIZE_TEXT_TYPE_UNIFORM)
+            TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(numbering.last(), 6, 112, 1, TypedValue.COMPLEX_UNIT_SP)
             addView(numbering.last())
         }
 

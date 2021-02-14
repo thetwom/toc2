@@ -113,10 +113,13 @@ class MetronomeViewModel(private val playerConnection: PlayerServiceConnection):
         playerConnection.pause()
     }
 
-    fun syncClickWithUptimeMillis(uptimeMillis : Long) {
+    fun syncClickWithUptimeMillis(uptimeMillis: Long) {
         playerConnection.syncClickWithUptimeMillis(uptimeMillis)
     }
 
+    fun setNextNoteIndex(index: Int) {
+        playerConnection.setNextNoteIndex(index)
+    }
     override fun onCleared() {
         playerConnection.onDestroy()
         super.onCleared()

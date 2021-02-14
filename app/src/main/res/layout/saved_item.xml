@@ -21,7 +21,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="@drawable/saved_item_background"
+    android:background="@drawable/choice_button_background"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
@@ -56,12 +56,13 @@
     <de.moekadu.metronome.NoteView
         android:id="@+id/saved_item_sounds"
         android:layout_width="0dp"
-        android:layout_height="50dp"
+        android:layout_height="65dp"
         android:paddingStart="4dp"
         android:paddingTop="4dp"
         android:paddingBottom="4dp"
         android:paddingEnd="0dp"
         android:clipToPadding="false"
+        app:showNumbers="true"
         app:normalColor="?attr/colorBackgroundFloating"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/saved_item_speed"

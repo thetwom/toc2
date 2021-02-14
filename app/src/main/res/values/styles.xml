@@ -59,47 +59,34 @@
 
     <declare-styleable name="NoteView">
         <attr name="volumeColor"/>
+        <attr name="noteColor"/>
+        <attr name="noteHighlightColor"/>
         <attr name="showNumbers"/>
     </declare-styleable>
 
     <style name="Widget.AppTheme.NoteViewStyle" parent="">
         <item name="volumeColor">?attr/colorPrimaryFaint</item>
+        <item name="noteColor">?attr/colorPrimary</item>
         <item name="showNumbers">false</item>
     </style>
 
     <declare-styleable name="SoundChooser">
-        <attr name="lineColor"/>
         <attr name="noteColor"/>
         <attr name="noteHighlightColor"/>
-        <attr name="minimumDeleteButtonHeight"/>
         <attr name="elementElevation"/>
-        <attr name="activeElementTranslationZ"/>
         <attr name="activeTranslationZ"/>
         <attr name="elementPadding"/>
-        <attr name="volumeStrokeWidth"/>
         <attr name="volumeColor"/>
-        <attr name="volumeControlBackgroundColor"/>
-        <attr name="volumeControlSliderColor"/>
-        <attr name="volumeControlOnSliderColor"/>
-        <attr name="volumeControlBelowSliderColor"/>
         <attr name="backgroundViewColor"/>
     </declare-styleable>
 
     <style name="Widget.AppTheme.SoundChooserStyle" parent="">
-        <item name="lineColor">?attr/colorOnBackground</item>
         <item name="noteColor">?attr/colorPrimary</item>
-        <item name="noteHighlightColor">?attr/colorSecondary</item>
-        <item name="minimumDeleteButtonHeight">50dp</item>
+        <item name="noteHighlightColor">?attr/colorPrimary</item>
         <item name="elementElevation">5dp</item>
-        <item name="activeElementTranslationZ">10dp</item>
         <item name="activeTranslationZ">30dp</item>
         <item name="elementPadding">4dp</item>
-        <item name="volumeStrokeWidth">1.5dp</item>
         <item name="volumeColor">?attr/colorPrimaryFaint</item>
-        <item name="volumeControlBackgroundColor">?attr/colorBackgroundFloating</item>
-        <item name="volumeControlSliderColor">?attr/colorPrimary</item>
-        <item name="volumeControlBelowSliderColor">?attr/colorPrimaryFaint</item>
-        <item name="volumeControlOnSliderColor">?attr/colorOnPrimary</item>
         <item name="backgroundViewColor">?android:colorBackground</item>
     </style>
 

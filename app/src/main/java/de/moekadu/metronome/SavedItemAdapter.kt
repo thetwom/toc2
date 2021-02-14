@@ -19,6 +19,7 @@
 
 package de.moekadu.metronome
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -29,7 +30,7 @@ import androidx.recyclerview.widget.RecyclerView
 
 class SavedItemDiffCallback : DiffUtil.ItemCallback<SavedItem>() {
     override fun areItemsTheSame(oldItem: SavedItem, newItem: SavedItem): Boolean {
-        return oldItem === newItem
+        return oldItem.stableId == newItem.stableId
     }
 
     override fun areContentsTheSame(oldItem: SavedItem, newItem: SavedItem): Boolean {
@@ -39,37 +40,93 @@ class SavedItemDiffCallback : DiffUtil.ItemCallback<SavedItem>() {
 
 class SavedItemAdapter : ListAdapter<SavedItem, SavedItemAdapter.ViewHolder>(SavedItemDiffCallback()) {
 
-    var onItemClickedListener : OnItemClickedListener? = null
+    var onItemClickedListener: OnItemClickedListener? = null
+    private var activatedStableId = SavedItem.NO_STABLE_ID
 
-    class ViewHolder(val view : View) : RecyclerView.ViewHolder(view)
+    inner class ViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
+        var isActivated = false
+            set(value) {
+                field = value
+                if (value) {
+                    view.setBackgroundResource(R.drawable.choice_button_background_active)
+//                    titleView?.setTextColor(Color.RED)
+                }
+                else {
+                    view.setBackgroundResource(R.drawable.choice_button_background)
+//                    titleView?.setTextColor(Color.GREEN)
+                }
+            }
 
-    interface OnItemClickedListener {
-        fun onItemClicked(item : SavedItem, position : Int)
+        var titleView: TextView? = null
+        var dateView: TextView? = null
+        var speedView: TextView? = null
+        var noteView: NoteView? = null
+    }
+
+    fun interface OnItemClickedListener {
+        //fun onItemClicked(item: SavedItem, position: Int)
+        fun onItemClicked(stableId: Long)
+    }
+
+    init {
+        setHasStableIds(true)
+    }
+
+    fun setActiveStableId(stableId: Long, recyclerView: RecyclerView?) {
+        activatedStableId = stableId
+        if (recyclerView != null) {
+            for (i in 0 until recyclerView.childCount) {
+                val child = recyclerView.getChildAt(i)
+                (recyclerView.getChildViewHolder(child) as SavedItemAdapter.ViewHolder).let { viewHolder ->
+                    viewHolder.isActivated = (stableId == viewHolder.itemId)
+                }
+            }
+        }
+    }
+
+    fun animateNote(index: Int, recyclerView: RecyclerView?) {
+        if (recyclerView == null)
+            return
+
+        for (i in 0 until recyclerView.childCount) {
+            val child = recyclerView.getChildAt(i)
+            (recyclerView.getChildViewHolder(child) as SavedItemAdapter.ViewHolder).let { viewHolder ->
+                if (viewHolder.isActivated)
+                    viewHolder.noteView?.animateNote(index)
+            }
+        }
+    }
+
+    override fun getItemId(position: Int): Long {
+        return getItem(position).stableId
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.saved_item, parent, false)
-        return ViewHolder(view)
+        return ViewHolder(view).apply {
+           titleView = view.findViewById(R.id.saved_item_title) as TextView?
+           dateView = view.findViewById(R.id.saved_item_date) as TextView?
+           speedView = view.findViewById(R.id.saved_item_speed) as TextView?
+           noteView = view.findViewById(R.id.saved_item_sounds) as NoteView?
+           view.setOnClickListener {
+               activatedStableId = itemId
+               onItemClickedListener?.onItemClicked(itemId)
+           }
+       }
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item = getItem(position)//dataBase?.get(position) ?: return
+        val item = getItem(position)
 
-        val titleView = holder.view.findViewById(R.id.saved_item_title) as TextView?
-        val dateView = holder.view.findViewById(R.id.saved_item_date) as TextView?
-        val speedView = holder.view.findViewById(R.id.saved_item_speed) as TextView?
 
-        titleView?.text = item.title
-        dateView?.text = item.date + "\n" + item.time
-        speedView?.text = holder.view.context.getString(R.string.bpm, Utilities.getBpmString(item.bpm))
+        holder.isActivated = (item.stableId == activatedStableId)
+        holder.titleView?.text = item.title
+        holder.dateView?.text = item.date + "\n" + item.time
+        holder.speedView?.text = holder.view.context.getString(R.string.bpm, Utilities.getBpmString(item.bpm))
 //        Log.v("Metronome", "SavedItemDatabase.onBindViewHolder: item.noteList = ${item.noteList}")
-        val noteView = holder.view.findViewById(R.id.saved_item_sounds) as NoteView?
-        val noteList = stringToNoteList(item.noteList)
-        noteView?.setNoteList(noteList)
 
-        holder.view.setOnClickListener {
-            onItemClickedListener?.onItemClicked(getItem(holder.adapterPosition), holder.adapterPosition)
-        }
+        val noteList = stringToNoteList(item.noteList)
+        holder.noteView?.setNoteList(noteList)
         // Log.v("Metronome", "SavedItemDatabase:onBindViewHolder (position = " + position + ")")
     }
 }

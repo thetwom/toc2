@@ -21,9 +21,12 @@ package de.moekadu.metronome
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.ColorStateList
 
 @SuppressLint("ViewConstructor")
-class SoundChooserControlButton(context: Context, note: NoteListItem, elevation: Float, volumeColor: Int) : NoteView(context) {
+class SoundChooserControlButton(
+        context: Context, note: NoteListItem, elevation: Float, volumeColor: Int,
+        noteColor: ColorStateList?, noteHighlightColor: ColorStateList?) : NoteView(context) {
 
     var eventXOnDown = 0f
     var eventYOnDown = 0f
@@ -43,6 +46,8 @@ class SoundChooserControlButton(context: Context, note: NoteListItem, elevation:
         this.elevation = elevation
         this.volumeColor = volumeColor
         this.showNumbers = true
+        this.noteColor = noteColor
+        this.noteColor = noteHighlightColor
         val noteList = ArrayList<NoteListItem>()
         noteList.add(note)
         setNoteList(noteList)

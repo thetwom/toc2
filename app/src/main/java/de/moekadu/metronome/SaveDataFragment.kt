@@ -31,6 +31,10 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.recyclerview.selection.SelectionPredicates
+import androidx.recyclerview.selection.SelectionTracker
+import androidx.recyclerview.selection.StableIdKeyProvider
+import androidx.recyclerview.selection.StorageStrategy
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -56,7 +60,11 @@ class SaveDataFragment : Fragment() {
     }
 
     private var savedItemRecyclerView: RecyclerView? = null
-    private val savedItemsAdapter = SavedItemAdapter()
+    private val savedItemsAdapter = SavedItemAdapter().apply {
+        onItemClickedListener = SavedItemAdapter.OnItemClickedListener { stableId ->
+            viewModel.setActiveStableId(stableId)
+        }
+    }
 
     private var lastRemovedItemIndex = -1
     private var lastRemovedItem: SavedItem? = null
@@ -65,14 +73,6 @@ class SaveDataFragment : Fragment() {
 
     private var playFab: FloatingActionButton? = null
     private var playFabStatus = PlayerStatus.Paused
-
-    var onItemClickedListener: SavedItemAdapter.OnItemClickedListener?
-        set(value) {
-            savedItemsAdapter.onItemClickedListener = value
-        }
-        get() {
-            return savedItemsAdapter.onItemClickedListener
-        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -118,6 +118,7 @@ class SaveDataFragment : Fragment() {
         savedItemRecyclerView?.setHasFixedSize(true)
         savedItemRecyclerView?.layoutManager = LinearLayoutManager(requireContext())
         savedItemRecyclerView?.adapter = savedItemsAdapter
+//        setSelectionTracker()
 
         val simpleTouchHelper = object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.LEFT) {
 
@@ -125,8 +126,8 @@ class SaveDataFragment : Fragment() {
             val deleteIcon = activity?.let { ContextCompat.getDrawable(it, R.drawable.saved_item_delete) }
 
             override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
-                val fromPos = viewHolder.adapterPosition
-                val toPos = target.adapterPosition
+                val fromPos = viewHolder.absoluteAdapterPosition
+                val toPos = target.absoluteAdapterPosition
                 if(fromPos != toPos) {
                     viewModel.savedItems.value?.move(fromPos, toPos)
                 }
@@ -136,7 +137,7 @@ class SaveDataFragment : Fragment() {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 // Log.v("Metronome", "SaveDataFragment:onSwiped " + viewHolder.getAdapterPosition())
 
-                lastRemovedItemIndex = viewHolder.adapterPosition
+                lastRemovedItemIndex = viewHolder.absoluteAdapterPosition
                 lastRemovedItem = viewModel.savedItems.value?.remove(lastRemovedItemIndex)
 
                 (getView() as CoordinatorLayout?)?.let { coLayout ->
@@ -161,7 +162,7 @@ class SaveDataFragment : Fragment() {
                 val itemView = viewHolder.itemView
 
                 // not sure why, but this method get's called for viewholder that are already swiped away
-                if (viewHolder.adapterPosition == -1) {
+                if (viewHolder.bindingAdapterPosition == RecyclerView.NO_POSITION) {
                     // not interested in those
                     return
                 }
@@ -186,6 +187,47 @@ class SaveDataFragment : Fragment() {
         val touchHelper = ItemTouchHelper(simpleTouchHelper)
         touchHelper.attachToRecyclerView(savedItemRecyclerView)
 
+        metronomeViewModel.noteList.observe(viewLifecycleOwner) {noteList ->
+            // all this complicated code just checks is the notelist of the active stable id
+            // is equal to the notelist in the metronome and if it is not equal, we make sure
+            // that the active saved items are unselected
+            var areNoteListsEqual = false
+            viewModel.activeStableId.value?.let { stableId ->
+                viewModel.savedItems.value?.savedItems?.firstOrNull { it.stableId == stableId }?.noteList?.let { activeNoteListString ->
+                    val activeNoteList = stringToNoteList(activeNoteListString)
+                    areNoteListsEqual = true
+                    if (activeNoteList.size != noteList.size) {
+                        areNoteListsEqual = false
+                    } else {
+                      noteList.zip(activeNoteList) {a, b ->
+                          if (a.id != b.id || a.volume != b.volume)
+                              areNoteListsEqual = false
+                      }
+                    }
+                }
+            }
+            if (!areNoteListsEqual)
+                viewModel.setActiveStableId(SavedItem.NO_STABLE_ID)
+        }
+
+        metronomeViewModel.speed.observe(viewLifecycleOwner) { speed ->
+            // unselect active item if the speed doesn't match the metronome speed
+            viewModel.activeStableId.value?.let { stableId ->
+                viewModel.savedItems.value?.savedItems?.firstOrNull { it.stableId == stableId }?.bpm?.let { activeSpeed ->
+                    if (activeSpeed != speed)
+                        viewModel.setActiveStableId(SavedItem.NO_STABLE_ID)
+                }
+            }
+        }
+
+        metronomeViewModel.noteStartedEvent.observe(viewLifecycleOwner) { noteListItem ->
+            metronomeViewModel.noteList.value?.let { noteList ->
+                val index = noteList.indexOfFirst { it.uid == noteListItem.uid }
+                if (index >= 0)
+                    savedItemsAdapter.animateNote(index, savedItemRecyclerView)
+            }
+        }
+
         viewModel.savedItems.observe(viewLifecycleOwner) { database ->
 //            Log.v("Metronome", "SaveDataFragment: submitting new data base list to adapter: size: ${it.savedItems.size}")
             savedItemsAdapter.submitList(ArrayList(database.savedItems))
@@ -195,6 +237,19 @@ class SaveDataFragment : Fragment() {
                 noSavedItemsMessage?.visibility = View.VISIBLE
             else
                 noSavedItemsMessage?.visibility = View.GONE
+        }
+
+        viewModel.activeStableId.observe(viewLifecycleOwner) { stableId ->
+            viewModel.savedItems.value?.getItem(stableId)?.let { item ->
+                val newNoteList = stringToNoteList(item.noteList)
+                if (newNoteList.size > 0)
+                    metronomeViewModel.setNoteList(newNoteList)
+                // TODO: Add speed checks (see loadSettings from MainActivity)
+                metronomeViewModel.setSpeed(item.bpm)
+                metronomeViewModel.setNextNoteIndex(0)
+            }
+
+            savedItemsAdapter.setActiveStableId(stableId, savedItemRecyclerView)
         }
 
         if (metronomeViewModel.playerStatus.value == PlayerStatus.Playing)
@@ -216,4 +271,5 @@ class SaveDataFragment : Fragment() {
         }
         return view
     }
+
 }
