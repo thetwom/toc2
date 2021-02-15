@@ -20,7 +20,6 @@
 package de.moekadu.metronome
 
 import android.util.Log
-import kotlinx.coroutines.newFixedThreadPoolContext
 import java.util.*
 import kotlin.math.min
 
@@ -121,8 +120,8 @@ class SavedItemDatabase {
         val stringBuilder = StringBuilder()
         stringBuilder.append(String.format(Locale.ENGLISH, "%50s", BuildConfig.VERSION_NAME))
         for (si in savedItems) {
-            stringBuilder.append(String.format(Locale.ENGLISH, "%200s%10s%5s%12.5f%10d%sEND",
-                    si.title, si.date, si.time, si.bpm, si.stableId, si.noteList))
+            stringBuilder.append(String.format(Locale.ENGLISH, "%200s%10s%5s%12.5f%sEND",
+                    si.title, si.date, si.time, si.bpm, si.noteList))
         }
         return stringBuilder.toString()
     }
@@ -138,8 +137,8 @@ class SavedItemDatabase {
         else if(dataString.length < 50)
             return FILE_INVALID
 
-        val version = dataString.substring(0, 50).trim()
-        Log.v("Metronome", "SavedItemDatabase.loadDataFromString: version = $version, ${isVersion1LargerThanVersion2(BuildConfig.VERSION_NAME, version)}")
+        // val version = dataString.substring(0, 50).trim()
+//        Log.v("Metronome", "SavedItemDatabase.loadDataFromString: version = $version, ${isVersion1LargerThanVersion2(BuildConfig.VERSION_NAME, version)}")
         var pos = 50
         var numItemsRead = 0
 
@@ -167,19 +166,6 @@ class SavedItemDatabase {
             }
             pos += 12
 
-            val stableId = if (isVersion1LargerThanVersion2(version, "2.5.0")) {
-                val id = try {
-                    (dataString.substring(pos, pos + 10).trim()).toLong()
-                }
-                catch (e: NumberFormatException) {
-                    return FILE_INVALID
-                }
-                pos += 10
-                id
-            } else {
-                SavedItem.NO_STABLE_ID
-            }
-
             val noteListEnd = dataString.indexOf("END", pos)
             if(noteListEnd == -1)
                 return FILE_INVALID
@@ -188,7 +174,7 @@ class SavedItemDatabase {
                 return FILE_INVALID
             pos = noteListEnd + 3
 
-            val si = SavedItem(title, date, time, bpm, noteList, stableId)
+            val si = SavedItem(title, date, time, bpm, noteList, SavedItem.NO_STABLE_ID)
             if (mode == PREPEND)
                 newSavedItems.add(numItemsRead, si)
             else

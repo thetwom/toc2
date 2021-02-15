@@ -58,9 +58,6 @@ class MainActivity : AppCompatActivity() {
     private var settingsFragment : SettingsFragment? = null
     private var saveDataFragment : SaveDataFragment? = null
 
-    private val speedLimiter by lazy {
-        SpeedLimiter(PreferenceManager.getDefaultSharedPreferences(this), this)
-    }
     private val saveDataArchiving by lazy {
         SaveDataArchiving(this)
     }
@@ -211,13 +208,6 @@ class MainActivity : AppCompatActivity() {
             AppPreferences.writeSavedItemsDatabase(saveDataViewModel.savedItemsAsString, this)
             true
         }
-    }
-
-    private fun loadSettings(item : SavedItem) {
-        speedLimiter.checkSavedItemSpeedAndAlert(item.bpm, this)
-        metronomeViewModel.setSpeed(speedLimiter.limit(item.bpm))
-        metronomeViewModel.setNoteList(stringToNoteList(item.noteList))
-        Toast.makeText(this, getString(R.string.loaded_message, item.title), Toast.LENGTH_SHORT).show()
     }
 
     companion object {

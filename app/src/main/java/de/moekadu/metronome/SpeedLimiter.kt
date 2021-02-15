@@ -62,10 +62,16 @@ class SpeedLimiter(private val sharedPreferences: SharedPreferences, private val
     init {
         lifecycleOwner.lifecycle.addObserver(this)
         sharedPreferences.registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener)
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_START)
+    private fun readPreferences() {
         sharedPreferences.getString("minimumspeed", _minimumSpeed.toString())?.let {
+//            Log.v("Metronome", "SpeedLimiter.init: loading minimum speed: ${it.toFloat()}")
             _minimumSpeed.value = it.toFloat()
         }
         sharedPreferences.getString("maximumspeed", _maximumSpeed.toString())?.let {
+//            Log.v("Metronome", "SpeedLimiter.init: loading maximum speed: ${it.toFloat()}")
             _maximumSpeed.value = it.toFloat()
         }
         val speedIncrementIndex = sharedPreferences.getInt("speedincrement", InitialValues.speedIncrementIndex)
@@ -138,6 +144,7 @@ class SpeedLimiter(private val sharedPreferences: SharedPreferences, private val
 
     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     private fun onDestroy() {
+//        Log.v("Metronome", "SpeedLimiter.onDestroy")
         lifecycleOwner.lifecycle.removeObserver(this)
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener)
     }

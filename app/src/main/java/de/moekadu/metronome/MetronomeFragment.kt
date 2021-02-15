@@ -62,9 +62,8 @@ class MetronomeFragment : Fragment() {
     }
     private var vibrate = false
 
-    private val speedLimiter by lazy {
-        SpeedLimiter(PreferenceManager.getDefaultSharedPreferences(requireContext()), this)
-    }
+    private var speedLimiter: SpeedLimiter? = null
+
     private var speedText: TextView? = null
     private var playButton: PlayButton? = null
     private var noteView: NoteView? = null
@@ -92,6 +91,8 @@ class MetronomeFragment : Fragment() {
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_metronome, container, false)
 
+        speedLimiter = SpeedLimiter(PreferenceManager.getDefaultSharedPreferences(requireContext()), viewLifecycleOwner)
+
         speedText = view.findViewById(R.id.speed_text)
         speedText?.setOnClickListener {
             activity?.let { ctx ->
@@ -115,7 +116,7 @@ class MetronomeFragment : Fragment() {
                         if (newSpeed == null) {
                             Toast.makeText(ctx, "${getString(R.string.invalid_speed)}$newSpeedText",
                                     Toast.LENGTH_LONG).show()
-                        } else if (speedLimiter.checkNewSpeedAndShowToast(newSpeed, ctx)) {
+                        } else if (speedLimiter?.checkNewSpeedAndShowToast(newSpeed, ctx) == true) {
                             viewModel.setSpeed(newSpeed)
                         }
                     }
@@ -317,6 +318,13 @@ class MetronomeFragment : Fragment() {
             speedText?.text = getString(R.string.bpm, Utilities.getBpmString(it, speedIncrement))
         }
 
+        // set status without animation on load ...
+        if (viewModel.playerStatus.value == PlayerStatus.Playing)
+            playButton?.changeStatus(PlayButton.STATUS_PLAYING, false)
+        else
+            playButton?.changeStatus(PlayButton.STATUS_PAUSED, false)
+
+        // then start observing ...
         viewModel.playerStatus.observe(viewLifecycleOwner) {
 //            Log.v("Metronome", "MetronomeFragment: viewModel.playerStatus: $it")
             when (it) {
