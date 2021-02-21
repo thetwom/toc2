@@ -60,7 +60,7 @@ class SaveDataDialog {
                         Toast.makeText(context, context.getString(R.string.max_allowed_characters, 200), Toast.LENGTH_SHORT).show()
                     }
 
-                    val item = SavedItem(title, date, time, bpm, noteList.toString(), SavedItem.NO_STABLE_ID)
+                    val item = SavedItem(title, date, time, bpm, noteListToString(noteList), SavedItem.NO_STABLE_ID)
                     val success = saveItem(item)
                     if (success) {
                         Toast.makeText(context, context.getString(R.string.saved_item_message, item.title),

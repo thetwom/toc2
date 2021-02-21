@@ -183,7 +183,7 @@ class PlayButton(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                     false
                 }
             }
-            MotionEvent.ACTION_UP -> {
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 if (radiusXY <= radius && isPressed) {
                     isPressed = false
                     performClick()

@@ -22,8 +22,10 @@ package de.moekadu.metronome
 import android.content.Intent
 import android.media.AudioManager
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -31,6 +33,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.preference.PreferenceManager
+import androidx.viewpager2.widget.ViewPager2
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
@@ -55,8 +58,7 @@ class MainActivity : AppCompatActivity() {
         SaveDataViewModel.Factory(AppPreferences.readSavedItemsDatabase(this))
     }
 
-    private var settingsFragment : SettingsFragment? = null
-    private var saveDataFragment : SaveDataFragment? = null
+    private lateinit var viewPager: ViewPager2
 
     private val saveDataArchiving by lazy {
         SaveDataArchiving(this)
@@ -92,26 +94,22 @@ class MainActivity : AppCompatActivity() {
 
         volumeControlStream = AudioManager.STREAM_MUSIC
 
-        var metronomeFragment = supportFragmentManager.findFragmentByTag(METRONOME_FRAGMENT_TAG) as MetronomeFragment?
-        if(metronomeFragment == null) {
-            metronomeFragment = MetronomeFragment()
-        }
+        viewPager = findViewById(R.id.viewpager)
+        viewPager.adapter = ViewPagerAdapter(this)
+        viewPager.currentItem = ViewPagerAdapter.METRONOME
+        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                val showDisplayHomeButton = (position != ViewPagerAdapter.METRONOME)
+                supportActionBar?.setDisplayHomeAsUpEnabled(showDisplayHomeButton)
+                super.onPageSelected(position)
+            }
+        })
 
-        settingsFragment = supportFragmentManager.findFragmentByTag(SETTINGS_FRAGMENT_TAG) as SettingsFragment?
-        if(settingsFragment == null) {
-            settingsFragment = SettingsFragment()
+        metronomeViewModel.disableViewPageUserInput.observe(this) {
+            viewPager.isUserInputEnabled = !it
         }
-
-        saveDataFragment = supportFragmentManager.findFragmentByTag(SAVE_DATA_FRAGMENT_TAG) as SaveDataFragment?
-        if(saveDataFragment == null) {
-            saveDataFragment = SaveDataFragment()
-        }
-
-        if(supportFragmentManager.fragments.size == 0)
-            supportFragmentManager.beginTransaction().replace(R.id.mainframe, metronomeFragment, METRONOME_FRAGMENT_TAG).commit()
 
         setDisplayHomeButton()
-        supportFragmentManager.addOnBackStackChangedListener { setDisplayHomeButton() }
 //        Log.v("Metronome", "MainActivity:onCreate: end");
     }
 
@@ -125,8 +123,14 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
+    override fun onBackPressed() {
+        Log.v("Metronome", "MainActivity.onBackPressed()")
+        viewPager.currentItem = ViewPagerAdapter.METRONOME
+    }
+
     private fun setDisplayHomeButton() {
-        val showDisplayHomeButton = supportFragmentManager.backStackEntryCount > 0
+        //val showDisplayHomeButton = supportFragmentManager.backStackEntryCount > 0
+        val showDisplayHomeButton = (viewPager.currentItem != ViewPagerAdapter.METRONOME)
         supportActionBar?.setDisplayHomeAsUpEnabled(showDisplayHomeButton)
     }
 
@@ -139,24 +143,16 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item : MenuItem) : Boolean{
 
         when (item.itemId) {
+            android.R.id.home -> {
+                onBackPressed()
+            }
             R.id.action_properties -> {
-                settingsFragment?.let {
-                    supportFragmentManager.beginTransaction()
-                            .replace(R.id.mainframe, it, SETTINGS_FRAGMENT_TAG)
-                            .addToBackStack("blub")
-                            .commit()
-                }
+                viewPager.currentItem = ViewPagerAdapter.SETTINGS
             }
             R.id.action_load -> {
-                saveDataFragment?.let {
-                    supportFragmentManager.beginTransaction()
-                            .replace(R.id.mainframe, it, SAVE_DATA_FRAGMENT_TAG)
-                            .addToBackStack("blub")
-                            .commit()
-                }
+            viewPager.currentItem = ViewPagerAdapter.SAVE_DATA
             }
             R.id.action_save -> {
-//                Log.v("Metronome", "MainActivity.onOptionsItemSelected: action_save")
                 saveCurrentSettings()
             }
             R.id.action_archive -> {
@@ -211,9 +207,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val METRONOME_FRAGMENT_TAG = "metronomeFragment"
-        private const val SETTINGS_FRAGMENT_TAG = "settingsFragment"
-        private const val SAVE_DATA_FRAGMENT_TAG = "saveDataFragment"
         const val FILE_CREATE = 1
         const val FILE_OPEN = 2
     }

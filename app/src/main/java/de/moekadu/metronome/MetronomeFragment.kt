@@ -87,11 +87,29 @@ class MetronomeFragment : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        // Log.v("Metronome", "MetronomeFragment:onCreateView");
+        Log.v("Metronome", "MetronomeFragment:onCreateView");
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_metronome, container, false)
 
         speedLimiter = SpeedLimiter(PreferenceManager.getDefaultSharedPreferences(requireContext()), viewLifecycleOwner)
+
+//        val constraintLayout = view.findViewById<ConstraintLayout>(R.id.metronome_layout)
+//        constraintLayout.setOnTouchListener(object : View.OnTouchListener {
+//            override fun onTouch(v: View?, event: MotionEvent?): Boolean {
+//                val action = event?.actionMasked
+//                when(action) {
+//                    MotionEvent.ACTION_DOWN -> {
+//                        Log.v("Metronome", "MetronomeFragment.ConstraintLayout: onDown")
+//                        return true
+//                    }
+//                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+//                        Log.v("Metronome", "MetronomeFragment.ConstraintLayout: onUp")
+//                        return true
+//                    }
+//                }
+//                return false
+//            }
+//        })
 
         speedText = view.findViewById(R.id.speed_text)
         speedText?.setOnClickListener {
@@ -148,15 +166,32 @@ class MetronomeFragment : Fragment() {
                 viewModel.setSpeed(newSpeed)
                 viewModel.syncClickWithUptimeMillis(nextClickTimeInMillis)
             }
+
+            override fun onDown() {
+                viewModel.setDisableViewPagerUserInput(true)
+            }
+
+            override fun onUp() {
+                viewModel.setDisableViewPagerUserInput(false)
+            }
         }
 
         volumeSliders = view.findViewById(R.id.volume_sliders)
-        volumeSliders?.volumeChangedListener = VolumeSliders.VolumeChangedListener {index, volume ->
-            viewModel.setNoteListVolume(index, volume)
-            if (viewModel.playerStatus.value != PlayerStatus.Playing && context != null) {
-                viewModel.noteList.value?.get(index)?.let { noteListItem ->
-                    singleNotePlayer.play(noteListItem.id, noteListItem.volume)
+        volumeSliders?.volumeChangedListener = object : VolumeSliders.VolumeChangedListener {
+            override fun onVolumeChanged(index: Int, volume: Float) {
+                viewModel.setNoteListVolume(index, volume)
+                if (viewModel.playerStatus.value != PlayerStatus.Playing && context != null) {
+                    viewModel.noteList.value?.get(index)?.let { noteListItem ->
+                        singleNotePlayer.play(noteListItem.id, noteListItem.volume)
+                    }
                 }
+            }
+
+            override fun onDown(index: Int) {
+                viewModel.setDisableViewPagerUserInput(true)
+            }
+            override fun onUp(index: Int, volume: Float) {
+                viewModel.setDisableViewPagerUserInput(false)
             }
         }
         tickVisualizer = view.findViewById(R.id.tick_visualizer)
@@ -275,6 +310,13 @@ class MetronomeFragment : Fragment() {
             override fun onNoteMoved(uid: UId, toIndex: Int) {
                 viewModel.moveNote(uid, toIndex)
             }
+
+            override fun onStatusChanged(status: SoundChooser.Status) {
+                when (status) {
+                    SoundChooser.Status.Off -> viewModel.setDisableViewPagerUserInput(false)
+                    else -> viewModel.setDisableViewPagerUserInput(true)
+                }
+            }
         }
 
         sharedPreferenceChangeListener = OnSharedPreferenceChangeListener { sharedPreferences, key ->
@@ -371,6 +413,7 @@ class MetronomeFragment : Fragment() {
     }
 
     override fun onStart() {
+        Log.v("Metronome", "MetronomeFragment.onStart()")
         super.onStart()
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
         sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener)
@@ -396,6 +439,7 @@ class MetronomeFragment : Fragment() {
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {
+        Log.v("Metronome", "MetronomeFragment.onPrepareOptionsMenu")
 //        super.onPrepareOptionsMenu(menu);
         val settingsItem = menu.findItem(R.id.action_properties)
         settingsItem?.isVisible = true

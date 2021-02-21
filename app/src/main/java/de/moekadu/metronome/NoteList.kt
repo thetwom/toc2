@@ -21,6 +21,7 @@
 
 package de.moekadu.metronome
 
+import android.util.Log
 import kotlin.math.min
 
 data class UId private constructor(private val id: Int) {
@@ -91,6 +92,7 @@ fun noteListToString(noteList: ArrayList<NoteListItem>): String {
 fun stringToNoteList(string: String): ArrayList<NoteListItem> {
     val noteList = ArrayList<NoteListItem>()
     val elements = string.split(" ")
+    Log.v("Metronome", "NoteList: stringToNoteList: string: $string")
     for (i in 0 until elements.size / 2) {
         val noteId = min(elements[2 * i].toInt(), getNumAvailableNotes() - 1)
         val volume = elements[2 * i + 1].toFloat()

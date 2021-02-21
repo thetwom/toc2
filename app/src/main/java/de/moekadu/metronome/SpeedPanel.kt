@@ -87,6 +87,8 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     interface SpeedChangedListener {
         fun onSpeedChanged(dSpeed: Float)
         fun onAbsoluteSpeedChanged(newSpeed: Float, nextClickTimeInMillis: Long)
+        fun onDown()
+        fun onUp()
     }
 
     var speedChangedListener: SpeedChangedListener? = null
@@ -239,6 +241,7 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                 if (radiusXY > radius * 1.1) {
                     return false
                 }
+                speedChangedListener?.onDown()
 
                 val angle = 180.0 * atan2(y, x) / PI
                 plusStepInitiated = false
@@ -296,13 +299,14 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                 }
                 return true
             }
-            MotionEvent.ACTION_UP -> {
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 if (plusStepInitiated) {
                     speedChangedListener?.onSpeedChanged(speedIncrement)
                 }
                 else if (minusStepInitiated) {
                     speedChangedListener?.onSpeedChanged(-speedIncrement)
                 }
+                speedChangedListener?.onUp()
 
                 changingSpeed = false
                 plusStepInitiated = false

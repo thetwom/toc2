@@ -146,6 +146,8 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 
     fun interface OnVolumeChangedListener {
         fun onVolumeChanged(volume: Float)
+        fun onDown() { }
+        fun onUp(volume: Float) { }
     }
 
     var onVolumeChangedListener: OnVolumeChangedListener? = null
@@ -271,8 +273,9 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         when (action) {
             MotionEvent.ACTION_DOWN -> {
                 sliderButton.isPressed = true
+                onVolumeChangedListener?.onDown()
             }
-            MotionEvent.ACTION_UP -> {
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 sliderButton.isPressed = false
             }
         }
@@ -298,9 +301,10 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                 }
                 return true
             }
-            MotionEvent.ACTION_UP -> {
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
 //                Log.v("Metronome", "VolumeControl.onTouchEvent : ACTION_UP")
                 onVolumeChangedListener?.onVolumeChanged(volume)
+                onVolumeChangedListener?.onUp(volume)
                 isPressed = false
                 if (volumeCached >= 0.0f) {
                     setVolume(volumeCached, animationDurationCached)

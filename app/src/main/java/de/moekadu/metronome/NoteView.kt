@@ -341,7 +341,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 //                Log.v("Notes", "NoteViw action down: $overNote")
                 onNoteClickListener?.onDown(event, overNoteUid, overNoteIndex) ?: false
             }
-            MotionEvent.ACTION_UP -> {
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 isPressed = false // this is needed to work with ripple drawables
                 onNoteClickListener?.onUp(event, overNoteUid, overNoteIndex) ?: false
             }

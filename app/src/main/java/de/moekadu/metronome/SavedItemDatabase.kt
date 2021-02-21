@@ -123,6 +123,7 @@ class SavedItemDatabase {
             stringBuilder.append(String.format(Locale.ENGLISH, "%200s%10s%5s%12.5f%sEND",
                     si.title, si.date, si.time, si.bpm, si.noteList))
         }
+        Log.v("Metronome", "SavedItemDatabase.getSaveDataString: string= ${stringBuilder}")
         return stringBuilder.toString()
     }
 

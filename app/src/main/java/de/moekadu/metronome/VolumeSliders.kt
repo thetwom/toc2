@@ -79,6 +79,8 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
     fun interface VolumeChangedListener {
         fun onVolumeChanged(index: Int, volume: Float)
+        fun onDown(index: Int) { }
+        fun onUp(index: Int, volume: Float) { }
     }
 
     var volumeChangedListener: VolumeChangedListener? = null
@@ -223,10 +225,24 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         volumeControl.vertical = true
         volumeControl.setPadding(0,0,0,0)
 
-        volumeControl.onVolumeChangedListener = VolumeControl.OnVolumeChangedListener { volume ->
-            val index = volumeControls.indexOf(volumeControl)
-            if (index >= 0)
-                volumeChangedListener?.onVolumeChanged(index, volume)
+        volumeControl.onVolumeChangedListener = object : VolumeControl.OnVolumeChangedListener {
+            override fun onVolumeChanged(volume: Float) {
+                val index = volumeControls.indexOf(volumeControl)
+                if (index >= 0)
+                    volumeChangedListener?.onVolumeChanged(index, volume)
+            }
+
+            override fun onDown() {
+                val index = volumeControls.indexOf(volumeControl)
+                if (index >= 0)
+                    volumeChangedListener?.onDown(index)
+            }
+
+            override fun onUp(volume: Float) {
+                val index = volumeControls.indexOf(volumeControl)
+                if (index >= 0)
+                    volumeChangedListener?.onUp(index, volume)
+            }
         }
 
           if (folded)

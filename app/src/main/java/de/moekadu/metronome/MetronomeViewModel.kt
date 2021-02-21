@@ -19,6 +19,8 @@
 
 package de.moekadu.metronome
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import kotlin.math.min
@@ -29,6 +31,9 @@ class MetronomeViewModel(private val playerConnection: PlayerServiceConnection):
     val playerStatus get() = playerConnection.playerStatus
     val noteStartedEvent get() = playerConnection.noteStartedEvent
     val noteList get() = playerConnection.noteList
+
+    private val _disableViewPageUserInput = MutableLiveData(false)
+    val disableViewPageUserInput: LiveData<Boolean> get() = _disableViewPageUserInput
 
     fun setSpeed(value: Float) {
         playerConnection.setSpeed(value)
@@ -120,6 +125,11 @@ class MetronomeViewModel(private val playerConnection: PlayerServiceConnection):
     fun setNextNoteIndex(index: Int) {
         playerConnection.setNextNoteIndex(index)
     }
+
+    fun setDisableViewPagerUserInput(disable: Boolean) {
+        _disableViewPageUserInput.value = disable
+    }
+
     override fun onCleared() {
         playerConnection.onDestroy()
         super.onCleared()

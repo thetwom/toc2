@@ -38,13 +38,19 @@
           android:background="?android:attr/colorBackground"
           android:elevation="4dp"/>
 
-      <FrameLayout
-          android:id="@+id/mainframe"
+<!--      <FrameLayout-->
+<!--          android:id="@+id/mainframe"-->
+<!--          android:layout_width="match_parent"-->
+<!--          android:layout_height="match_parent"-->
+<!--          android:layout_margin="0dp"-->
+<!--          />-->
+
+      <androidx.viewpager2.widget.ViewPager2
+          android:id="@+id/viewpager"
           android:layout_width="match_parent"
           android:layout_height="match_parent"
           android:layout_margin="0dp"
           />
-
    </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
