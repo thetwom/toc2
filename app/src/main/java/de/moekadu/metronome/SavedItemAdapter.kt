@@ -19,6 +19,7 @@
 
 package de.moekadu.metronome
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -33,6 +34,7 @@ class SavedItemDiffCallback : DiffUtil.ItemCallback<SavedItem>() {
     }
 
     override fun areContentsTheSame(oldItem: SavedItem, newItem: SavedItem): Boolean {
+//        Log.v("Metronome", "SavedItemDiffCallback.areContentsTheSame: $oldItem, $newItem, ${oldItem == newItem}")
         return oldItem == newItem
     }
 }
@@ -117,12 +119,11 @@ class SavedItemAdapter : ListAdapter<SavedItem, SavedItemAdapter.ViewHolder>(Sav
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = getItem(position)
 
-
         holder.isActivated = (item.stableId == activatedStableId)
         holder.titleView?.text = item.title
         holder.dateView?.text = item.date + "\n" + item.time
         holder.speedView?.text = holder.view.context.getString(R.string.bpm, Utilities.getBpmString(item.bpm))
-//        Log.v("Metronome", "SavedItemDatabase.onBindViewHolder: item.noteList = ${item.noteList}")
+        Log.v("Metronome", "SavedItemDatabase.onBindViewHolder: item.noteList = ${item.noteList}, item.bpm = ${item.bpm}")
 
         val noteList = stringToNoteList(item.noteList)
         holder.noteView?.setNoteList(noteList)

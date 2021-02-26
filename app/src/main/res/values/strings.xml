@@ -117,5 +117,8 @@
     <string name="milliseconds">%d ms</string>
     <string name="database_saved">Writing data to \"%s\".</string>
     <string name="play_pause">play and pause</string>
+    <string name="edit">Edit</string>
+    <string name="editing_item">Editing: %s</string>
+    <string name="rename_saved_item">Rename</string>
 
 </resources>

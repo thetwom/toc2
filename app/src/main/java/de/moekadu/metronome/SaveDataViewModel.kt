@@ -34,6 +34,11 @@ class SaveDataViewModel(initialDatabaseString: String) : ViewModel() {
     private val _activeStableId = MutableLiveData(SavedItem.NO_STABLE_ID)
     val activeStableId: LiveData<Long> get() = _activeStableId
 
+    private val _editingStableId = MutableLiveData(SavedItem.NO_STABLE_ID)
+    val editingStableId: LiveData<Long> get() = _editingStableId
+    private var _editedName = MutableLiveData<String>()
+    val editedName: LiveData<String> get() = _editedName
+
     init  {
         savedItemDatabase.databaseChangedListener = SavedItemDatabase.DatabaseChangedListener {
 //            Log.v("Metronome", "SaveDataViewModel.init: database changed")
@@ -44,6 +49,14 @@ class SaveDataViewModel(initialDatabaseString: String) : ViewModel() {
 
     fun setActiveStableId(stableId: Long) {
         _activeStableId.value = stableId
+    }
+
+    fun setEditingStableId(stableId: Long) {
+        _editingStableId.value = stableId
+    }
+
+    fun setEditedName(name: String) {
+        _editedName.value = name
     }
 
     class Factory(private val initialDatabaseString: String) : ViewModelProvider.Factory {

@@ -22,18 +22,24 @@ package de.moekadu.metronome
 import android.content.Intent
 import android.media.AudioManager
 import android.os.Bundle
+import android.text.InputType
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.WindowManager
+import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.widget.AppCompatTextView
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.widget.TextViewCompat
 import androidx.preference.PreferenceManager
 import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.button.MaterialButton
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
@@ -59,6 +65,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private lateinit var viewPager: ViewPager2
+
+    private lateinit var editItemOverlay: ConstraintLayout
+    private lateinit var editItemTitle: AppCompatTextView
 
     private val saveDataArchiving by lazy {
         SaveDataArchiving(this)
@@ -105,10 +114,63 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        metronomeViewModel.disableViewPageUserInput.observe(this) {
-            viewPager.isUserInputEnabled = !it
+        editItemOverlay = findViewById(R.id.edit_item)
+        editItemTitle = findViewById(R.id.edit_item_text)
+        val editItemDoneButton = findViewById<MaterialButton>(R.id.edit_item_done)
+        editItemDoneButton.setOnClickListener {
+            saveDataViewModel.editingStableId.value?.let { stableId ->
+                val bpm = metronomeViewModel.speed.value
+                val noteList = metronomeViewModel.noteList.value?.let { n -> noteListToString(n) }
+                val title = saveDataViewModel.editedName.value
+                // TODO: maybe date and time
+                saveDataViewModel.savedItems.value?.editItem(stableId, title = title, bpm = bpm, noteList = noteList)
+                // saveCurrentSettings() // double check that this is already saved by savedatafragment
+                saveDataViewModel.setActiveStableId(stableId)
+                saveDataViewModel.setEditingStableId(SavedItem.NO_STABLE_ID)
+                editItemOverlay.visibility = View.GONE
+                viewPager.currentItem = ViewPagerAdapter.SAVE_DATA
+            }
         }
 
+        val editItemAbortButton = findViewById<MaterialButton>(R.id.edit_item_abort)
+        editItemAbortButton.setOnClickListener {
+            saveDataViewModel.setEditingStableId(SavedItem.NO_STABLE_ID)
+            editItemOverlay.visibility = View.GONE
+        }
+
+        val editItemRenameButton = findViewById<MaterialButton>(R.id.edit_item_rename)
+
+        editItemRenameButton.setOnClickListener {
+            val editText = EditText(this).apply {
+                setHint(R.string.save_name)
+                inputType = InputType.TYPE_CLASS_TEXT
+            }
+            val dialogBuilder = AlertDialog.Builder(this).apply {
+                setTitle(R.string.rename_saved_item)
+                setView(editText)
+                setNegativeButton(R.string.dismiss) { dialog, _ -> dialog.cancel() }
+                setPositiveButton(R.string.done) { _, _ ->
+                    var newName = editText.text.toString()
+                    if (newName.length > 200) {
+                        newName = newName.substring(0, 200)
+                        Toast.makeText(this@MainActivity, getString(R.string.max_allowed_characters, 200), Toast.LENGTH_SHORT).show()
+                    }
+                    saveDataViewModel.setEditedName(newName)
+                }
+            }
+            dialogBuilder.show()
+        }
+
+        metronomeViewModel.disableViewPageUserInput.observe(this) {
+            lockViewPager()
+        }
+
+        saveDataViewModel.editedName.observe(this) {
+            editItemTitle.text = getString(R.string.editing_item, it)
+        }
+        saveDataViewModel.editingStableId.observe(this) {
+            lockViewPager()
+        }
         setDisplayHomeButton()
 //        Log.v("Metronome", "MainActivity:onCreate: end");
     }
@@ -164,6 +226,17 @@ class MainActivity : AppCompatActivity() {
             R.id.action_clear_all -> {
                 clearAllSavedItems()
             }
+            R.id.action_edit -> {
+                val stableId = saveDataViewModel.activeStableId.value
+                if (stableId != null && stableId != SavedItem.NO_STABLE_ID) {
+                    saveDataViewModel.savedItems.value?.getItem(stableId)?.title?.let { title ->
+                        saveDataViewModel.setEditedName(title)
+                    }
+                    saveDataViewModel.setEditingStableId(stableId)
+                    editItemOverlay.visibility = View.VISIBLE
+                    viewPager.currentItem = ViewPagerAdapter.METRONOME
+                }
+            }
         }
 
         return super.onOptionsItemSelected(item)
@@ -204,6 +277,17 @@ class MainActivity : AppCompatActivity() {
             AppPreferences.writeSavedItemsDatabase(saveDataViewModel.savedItemsAsString, this)
             true
         }
+    }
+
+    private fun lockViewPager() {
+        var lock: Boolean = false
+        if (metronomeViewModel.disableViewPageUserInput.value == true)
+            lock = true
+        saveDataViewModel.editingStableId.value?.let {
+            if (it != SavedItem.NO_STABLE_ID)
+                lock = true
+        }
+        viewPager.isUserInputEnabled = !lock
     }
 
     companion object {

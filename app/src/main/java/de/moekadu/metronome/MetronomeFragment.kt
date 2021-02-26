@@ -458,5 +458,8 @@ class MetronomeFragment : Fragment() {
 
         val clearAll = menu.findItem(R.id.action_clear_all)
         clearAll?.isVisible = false
+
+        val editItem = menu.findItem(R.id.action_edit)
+        editItem?.isVisible = false
     }
 }

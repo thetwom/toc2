@@ -74,6 +74,16 @@ class SavedItemDatabase {
         return savedItems.firstOrNull { it.stableId == stableId }
     }
 
+    fun editItem(stableId: Long?, title: String? = null, bpm: Float? = null, noteList: String? = null) {
+        if (stableId == null)
+            return
+        val item = getItem(stableId) ?: return
+        title?.let { item.title = it }
+        bpm?.let { item.bpm = it }
+        noteList?.let { item.noteList = it }
+        databaseChangedListener?.onChanged(this)
+    }
+
     fun remove(position: Int) : SavedItem {
         if (BuildConfig.DEBUG && position >= _savedItems.size)
             throw RuntimeException("Invalid position")

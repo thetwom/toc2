@@ -22,6 +22,7 @@ package de.moekadu.metronome
 import android.graphics.Canvas
 import android.graphics.drawable.Animatable
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.View
@@ -97,6 +98,9 @@ class SaveDataFragment : Fragment() {
 
         val clearAll = menu.findItem(R.id.action_clear_all)
         clearAll?.isVisible = true
+
+        val editItem = menu.findItem(R.id.action_edit)
+        editItem?.isVisible = viewModel.activeStableId.value != SavedItem.NO_STABLE_ID
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -228,8 +232,10 @@ class SaveDataFragment : Fragment() {
         }
 
         viewModel.savedItems.observe(viewLifecycleOwner) { database ->
-//            Log.v("Metronome", "SaveDataFragment: submitting new data base list to adapter: size: ${it.savedItems.size}")
-            savedItemsAdapter.submitList(ArrayList(database.savedItems))
+//            Log.v("Metronome", "SaveDataFragment: submitting new data base list to adapter: size: ${database.savedItems.size}")
+            val databaseCopy = ArrayList<SavedItem>(database.savedItems.size)
+            database.savedItems.forEach { databaseCopy.add(it.copy()) }
+            savedItemsAdapter.submitList(databaseCopy)
             activity?.let{AppPreferences.writeSavedItemsDatabase(viewModel.savedItemsAsString, it)}
 
             if(database.size == 0)
@@ -248,8 +254,10 @@ class SaveDataFragment : Fragment() {
                     metronomeViewModel.setSpeed(it.limit(item.bpm))
                 }
                 metronomeViewModel.setNextNoteIndex(0)
+
                 // we don't show this since it is rather obvious and it would also be shown when fragment is loaded
                 //Toast.makeText(requireContext(), getString(R.string.loaded_message, item.title), Toast.LENGTH_SHORT).show()
+                activity?.invalidateOptionsMenu()
             }
 
             savedItemsAdapter.setActiveStableId(stableId, savedItemRecyclerView)

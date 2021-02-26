@@ -69,6 +69,14 @@
         android:icon="@drawable/ic_clear_all"
         app:showAsAction="ifRoom"
         />
+
+    <item
+        android:id="@+id/action_edit"
+        android:orderInCategory="94"
+        android:title="@string/edit"
+        android:icon="@drawable/ic_edit"
+        app:showAsAction="ifRoom"
+        />
     <!--<item-->
         <!--android:id="@+id/test_setting"-->
         <!--android:orderInCategory="99"-->
