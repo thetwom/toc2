@@ -103,11 +103,12 @@
     <string name="medium_strength">Bibrazio-indar ertaina (%.2f)</string>
     <string name="high_strength">Bibrazio-indar handia (%.2f)</string>
     <string name="all_notes_deleted">Nota guztiak ezabatu dira.</string>
-	<string name="set_new_speed">Ezarri abiadura berria</string>
+    <string name="set_new_speed">Ezarri abiadura berria</string>
     <string name="invalid_speed">"Abiadura baliogabea: "</string>
     <string name="speed_too_small">Emandako abiadura (%s bpm) gutxienekoa baino txikiagoa da (%s bpm).</string>
     <string name="speed_too_large">Emandako abiadura (%s bpm) gehienezkoa baino handiagoa da (%s bpm).</string>
     <string name="inconsistent_increment">Emandako abiadura (%s bpm) ezin da lortu uneko abiadura handitzearekin (%s bpm).</string>
-
+    <string name="vibrate_delay">Bibrazioaren atzerapena</string>
+    <string name="milliseconds">%d ms</string>
 
 </resources>
