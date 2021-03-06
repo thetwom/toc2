@@ -49,6 +49,10 @@ class MetronomeFragment : Fragment() {
         MetronomeViewModel.Factory(playerConnection)
     }
 
+    private val saveDataViewModel by activityViewModels<SaveDataViewModel> {
+        SaveDataViewModel.Factory(AppPreferences.readSavedItemsDatabase(requireActivity()))
+    }
+
     private val singleNotePlayer by lazy {
         Log.v("Metronome", "MetronomeFragment: creating singleNotePlayer")
         SingleNotePlayer(requireContext(), this)
@@ -69,6 +73,7 @@ class MetronomeFragment : Fragment() {
     private var noteView: NoteView? = null
     private var plusButton: ImageButton? = null
     private var clearAllButton: ImageButton? = null
+    private var scene: TextView? = null
 
     private val noteListBackup = ArrayList<NoteListItem>()
 
@@ -92,24 +97,6 @@ class MetronomeFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_metronome, container, false)
 
         speedLimiter = SpeedLimiter(PreferenceManager.getDefaultSharedPreferences(requireContext()), viewLifecycleOwner)
-
-//        val constraintLayout = view.findViewById<ConstraintLayout>(R.id.metronome_layout)
-//        constraintLayout.setOnTouchListener(object : View.OnTouchListener {
-//            override fun onTouch(v: View?, event: MotionEvent?): Boolean {
-//                val action = event?.actionMasked
-//                when(action) {
-//                    MotionEvent.ACTION_DOWN -> {
-//                        Log.v("Metronome", "MetronomeFragment.ConstraintLayout: onDown")
-//                        return true
-//                    }
-//                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-//                        Log.v("Metronome", "MetronomeFragment.ConstraintLayout: onUp")
-//                        return true
-//                    }
-//                }
-//                return false
-//            }
-//        })
 
         speedText = view.findViewById(R.id.speed_text)
         speedText?.setOnClickListener {
@@ -319,6 +306,30 @@ class MetronomeFragment : Fragment() {
             }
         }
 
+        scene = view.findViewById(R.id.scene)
+        scene?.setOnClickListener {
+            if (saveDataViewModel.editingStableId.value != SavedItem.NO_STABLE_ID) {
+                val editText = EditText(requireContext()).apply {
+                    setHint(R.string.save_name)
+                    inputType = InputType.TYPE_CLASS_TEXT
+                }
+                val dialogBuilder = AlertDialog.Builder(requireContext()).apply {
+                    setTitle(R.string.rename_saved_item)
+                    setView(editText)
+                    setNegativeButton(R.string.dismiss) { dialog, _ -> dialog.cancel() }
+                    setPositiveButton(R.string.done) { _, _ ->
+                        var newName = editText.text.toString()
+                        if (newName.length > 200) {
+                            newName = newName.substring(0, 200)
+                            Toast.makeText(requireContext(), getString(R.string.max_allowed_characters, 200), Toast.LENGTH_SHORT).show()
+                        }
+                        viewModel.setScene(newName)
+                    }
+                }
+                dialogBuilder.show()
+            }
+        }
+
         sharedPreferenceChangeListener = OnSharedPreferenceChangeListener { sharedPreferences, key ->
             when (key) {
                 "speedincrement" -> {
@@ -391,6 +402,38 @@ class MetronomeFragment : Fragment() {
                 noteView?.setNoteList(it)
                 soundChooser?.setNoteList(it)
                 volumeSliders?.setNoteList(it)
+            }
+        }
+
+        viewModel.scene.observe(viewLifecycleOwner) {
+            Log.v("Metronome", "MetronomeFragment: observing scene: $it")
+            if (it == null) {
+                scene?.text = getString(R.string.scene, "###")
+                scene?.visibility = View.GONE
+            }
+            else {
+                scene?.text = getString(R.string.scene, it)
+                scene?.visibility = View.VISIBLE
+            }
+        }
+
+        saveDataViewModel.activeStableId.observe(viewLifecycleOwner) { stableId ->
+            Log.v("Metronome", "MetronomeFragment: observing activeStableId")
+            if (saveDataViewModel.editingStableId.value == SavedItem.NO_STABLE_ID)
+                viewModel.setScene(saveDataViewModel.savedItems.value?.getItem(stableId)?.title)
+        }
+
+        saveDataViewModel.editingStableId.observe(viewLifecycleOwner) { stableId ->
+            val activeStableId = saveDataViewModel.activeStableId.value
+
+            if (stableId != SavedItem.NO_STABLE_ID) {
+                viewModel.setScene(saveDataViewModel.savedItems.value?.getItem(stableId)?.title)
+            }
+            else if (activeStableId != null && activeStableId != SavedItem.NO_STABLE_ID) {
+                viewModel.setScene(saveDataViewModel.savedItems.value?.getItem(activeStableId)?.title)
+            }
+            else {
+                viewModel.setScene(null)
             }
         }
 

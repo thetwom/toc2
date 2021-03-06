@@ -19,6 +19,7 @@
 
 package de.moekadu.metronome
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -36,8 +37,6 @@ class SaveDataViewModel(initialDatabaseString: String) : ViewModel() {
 
     private val _editingStableId = MutableLiveData(SavedItem.NO_STABLE_ID)
     val editingStableId: LiveData<Long> get() = _editingStableId
-    private var _editedName = MutableLiveData<String>()
-    val editedName: LiveData<String> get() = _editedName
 
     init  {
         savedItemDatabase.databaseChangedListener = SavedItemDatabase.DatabaseChangedListener {
@@ -48,6 +47,7 @@ class SaveDataViewModel(initialDatabaseString: String) : ViewModel() {
     }
 
     fun setActiveStableId(stableId: Long) {
+        Log.v("Metronome", "SaveDataViewModel.setStableActiveId: $stableId")
         _activeStableId.value = stableId
     }
 
@@ -55,13 +55,10 @@ class SaveDataViewModel(initialDatabaseString: String) : ViewModel() {
         _editingStableId.value = stableId
     }
 
-    fun setEditedName(name: String) {
-        _editedName.value = name
-    }
-
     class Factory(private val initialDatabaseString: String) : ViewModelProvider.Factory {
         @Suppress("unchecked_cast")
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+            Log.v("Metronome", "SaveDataViewModel.factory.create")
             return SaveDataViewModel(initialDatabaseString) as T
         }
     }

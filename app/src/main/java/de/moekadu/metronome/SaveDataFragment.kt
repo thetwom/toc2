@@ -209,16 +209,18 @@ class SaveDataFragment : Fragment() {
                     }
                 }
             }
-            if (!areNoteListsEqual)
+            if (!areNoteListsEqual) {
                 viewModel.setActiveStableId(SavedItem.NO_STABLE_ID)
+            }
         }
 
         metronomeViewModel.speed.observe(viewLifecycleOwner) { speed ->
             // unselect active item if the speed doesn't match the metronome speed
             viewModel.activeStableId.value?.let { stableId ->
                 viewModel.savedItems.value?.savedItems?.firstOrNull { it.stableId == stableId }?.bpm?.let { activeSpeed ->
-                    if (activeSpeed != speed)
+                    if (activeSpeed != speed) {
                         viewModel.setActiveStableId(SavedItem.NO_STABLE_ID)
+                    }
                 }
             }
         }
@@ -245,6 +247,7 @@ class SaveDataFragment : Fragment() {
         }
 
         viewModel.activeStableId.observe(viewLifecycleOwner) { stableId ->
+            Log.v("Metronome", "SaveDataFragment: observing stable id: $stableId")
             viewModel.savedItems.value?.getItem(stableId)?.let { item ->
                 val newNoteList = stringToNoteList(item.noteList)
                 if (newNoteList.size > 0)
@@ -270,6 +273,7 @@ class SaveDataFragment : Fragment() {
         playFabStatus = metronomeViewModel.playerStatus.value ?: PlayerStatus.Paused
 
         metronomeViewModel.playerStatus.observe(viewLifecycleOwner) { playerStatus ->
+            Log.v("Metronome", "SaveDataFragment: observing playerStatus")
             if (playerStatus != playFabStatus) {
                 if (playerStatus == PlayerStatus.Playing)
                     playFab?.setImageResource(R.drawable.ic_pause_to_play)

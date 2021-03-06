@@ -57,6 +57,18 @@
         app:layout_constraintGuide_percent="0.5"
         />
 
+    <TextView
+        android:id="@+id/scene"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        android:text="@string/scene"
+        android:textColor="?attr/colorPrimary"
+        android:paddingTop="8dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:visibility="gone"
+        />
 
     <de.moekadu.metronome.SpeedPanel
         android:id="@+id/speed_panel"
@@ -160,7 +172,7 @@
         android:maxLines="1"
         app:autoSizeTextType="uniform"
         android:gravity="center"
-        android:textColor="?attr/colorSecondary"
+        android:textColor="?attr/colorPrimary"
         app:layout_constraintBottom_toBottomOf="@id/text_lower_guideline"
         app:layout_constraintEnd_toStartOf="@id/speed_panel"
         app:layout_constraintStart_toStartOf="parent"

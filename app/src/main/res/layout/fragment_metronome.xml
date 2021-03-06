@@ -24,6 +24,8 @@
     android:id="@+id/metronome_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
     tools:context=".MetronomeFragment">
     <!--tools:context=".MainActivity"-->
 
@@ -59,7 +61,7 @@
         app:layout_constraintBottom_toTopOf="@id/lower_guideline"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/upper_guideline"
+        app:layout_constraintTop_toBottomOf="@id/speed_text"
         app:layout_constraintDimensionRatio="1:1"
         tools:layout_conversion_wrapHeight="577"
         tools:layout_conversion_wrapWidth="577" />
@@ -135,6 +137,19 @@
      app:layout_constraintVertical_weight="0.08"/>
 
     <TextView
+        android:id="@+id/scene"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        android:text="@string/scene"
+        android:textColor="?attr/colorPrimary"
+        android:paddingTop="8dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:visibility="gone"
+        />
+
+    <TextView
         android:id="@+id/speed_text"
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -145,11 +160,11 @@
         android:text="SPEED"
         android:textAlignment="center"
         app:autoSizeTextType="uniform"
-        android:textColor="?attr/colorSecondary"
+        android:textColor="?attr/colorPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/upper_guideline"
+        app:layout_constraintTop_toBottomOf="@id/scene"
+        app:layout_constraintHeight_percent="0.1"
         tools:layout_conversion_wrapHeight="108"
         tools:layout_conversion_wrapWidth="239"
         tools:ignore="HardcodedText" />

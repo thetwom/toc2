@@ -19,6 +19,7 @@
 
 package de.moekadu.metronome
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -34,6 +35,9 @@ class MetronomeViewModel(private val playerConnection: PlayerServiceConnection):
 
     private val _disableViewPageUserInput = MutableLiveData(false)
     val disableViewPageUserInput: LiveData<Boolean> get() = _disableViewPageUserInput
+
+    private val _scene = MutableLiveData<String?>(null)
+    val scene: LiveData<String?> get() = _scene
 
     fun setSpeed(value: Float) {
         playerConnection.setSpeed(value)
@@ -110,6 +114,10 @@ class MetronomeViewModel(private val playerConnection: PlayerServiceConnection):
         }
     }
 
+    fun setScene(name: String?) {
+        _scene.value = name
+    }
+
     fun play() {
         playerConnection.play()
     }
@@ -138,6 +146,7 @@ class MetronomeViewModel(private val playerConnection: PlayerServiceConnection):
     class Factory(private val playerConnection: PlayerServiceConnection) : ViewModelProvider.Factory {
         @Suppress("unchecked_cast")
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+            Log.v("Metronome", "MetronomeViewModel.factory.create")
             return MetronomeViewModel(playerConnection) as T
         }
     }

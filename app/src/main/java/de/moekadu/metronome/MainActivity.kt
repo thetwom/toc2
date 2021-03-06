@@ -22,21 +22,18 @@ package de.moekadu.metronome
 import android.content.Intent
 import android.media.AudioManager
 import android.os.Bundle
-import android.text.InputType
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.WindowManager
-import android.widget.EditText
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.widget.AppCompatImageButton
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.widget.TextViewCompat
 import androidx.preference.PreferenceManager
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.button.MaterialButton
@@ -115,13 +112,13 @@ class MainActivity : AppCompatActivity() {
         })
 
         editItemOverlay = findViewById(R.id.edit_item)
-        editItemTitle = findViewById(R.id.edit_item_text)
-        val editItemDoneButton = findViewById<MaterialButton>(R.id.edit_item_done)
+        editItemTitle = findViewById(R.id.editing_scene)
+        val editItemDoneButton = findViewById<AppCompatImageButton>(R.id.edit_item_done)
         editItemDoneButton.setOnClickListener {
             saveDataViewModel.editingStableId.value?.let { stableId ->
                 val bpm = metronomeViewModel.speed.value
                 val noteList = metronomeViewModel.noteList.value?.let { n -> noteListToString(n) }
-                val title = saveDataViewModel.editedName.value
+                val title = metronomeViewModel.scene.value
                 // TODO: maybe date and time
                 saveDataViewModel.savedItems.value?.editItem(stableId, title = title, bpm = bpm, noteList = noteList)
                 // saveCurrentSettings() // double check that this is already saved by savedatafragment
@@ -132,43 +129,19 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        val editItemAbortButton = findViewById<MaterialButton>(R.id.edit_item_abort)
+        val editItemAbortButton = findViewById<AppCompatImageButton>(R.id.edit_item_abort)
         editItemAbortButton.setOnClickListener {
             saveDataViewModel.setEditingStableId(SavedItem.NO_STABLE_ID)
             editItemOverlay.visibility = View.GONE
         }
 
-        val editItemRenameButton = findViewById<MaterialButton>(R.id.edit_item_rename)
-
-        editItemRenameButton.setOnClickListener {
-            val editText = EditText(this).apply {
-                setHint(R.string.save_name)
-                inputType = InputType.TYPE_CLASS_TEXT
-            }
-            val dialogBuilder = AlertDialog.Builder(this).apply {
-                setTitle(R.string.rename_saved_item)
-                setView(editText)
-                setNegativeButton(R.string.dismiss) { dialog, _ -> dialog.cancel() }
-                setPositiveButton(R.string.done) { _, _ ->
-                    var newName = editText.text.toString()
-                    if (newName.length > 200) {
-                        newName = newName.substring(0, 200)
-                        Toast.makeText(this@MainActivity, getString(R.string.max_allowed_characters, 200), Toast.LENGTH_SHORT).show()
-                    }
-                    saveDataViewModel.setEditedName(newName)
-                }
-            }
-            dialogBuilder.show()
-        }
-
         metronomeViewModel.disableViewPageUserInput.observe(this) {
+            Log.v("Metronome", "MainActivity: observing disableViewPagerUserInput = $it")
             lockViewPager()
         }
 
-        saveDataViewModel.editedName.observe(this) {
-            editItemTitle.text = getString(R.string.editing_item, it)
-        }
         saveDataViewModel.editingStableId.observe(this) {
+            Log.v("Metronome", "MainActivity: observing editingStableId = $it")
             lockViewPager()
         }
         setDisplayHomeButton()
@@ -228,10 +201,8 @@ class MainActivity : AppCompatActivity() {
             }
             R.id.action_edit -> {
                 val stableId = saveDataViewModel.activeStableId.value
+                Log.v("Metronome", "MainActivity: onOptionsItemSelected: R.id.action_edit, stableId = $stableId")
                 if (stableId != null && stableId != SavedItem.NO_STABLE_ID) {
-                    saveDataViewModel.savedItems.value?.getItem(stableId)?.title?.let { title ->
-                        saveDataViewModel.setEditedName(title)
-                    }
                     saveDataViewModel.setEditingStableId(stableId)
                     editItemOverlay.visibility = View.VISIBLE
                     viewPager.currentItem = ViewPagerAdapter.METRONOME
