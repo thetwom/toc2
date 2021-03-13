@@ -22,7 +22,6 @@ package de.moekadu.metronome
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Bundle
 import android.text.InputType
-import android.transition.TransitionManager
 import android.util.Log
 import android.view.*
 import android.widget.EditText
@@ -34,6 +33,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.preference.PreferenceManager
+import androidx.transition.TransitionManager
 import com.google.android.material.snackbar.Snackbar
 import kotlin.math.roundToInt
 
@@ -77,6 +77,8 @@ class MetronomeFragment : Fragment() {
     private var clearAllButton: ImageButton? = null
     private var scene: TextView? = null
 
+    private var dummyViewGroupWithTransition: DummyViewGroupWithTransition? = null
+
     private val noteListBackup = ArrayList<NoteListItem>()
 
     private var tickVisualizer: TickVisualizer? = null
@@ -97,6 +99,8 @@ class MetronomeFragment : Fragment() {
         Log.v("Metronome", "MetronomeFragment:onCreateView");
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_metronome, container, false)
+
+        dummyViewGroupWithTransition = view.findViewById(R.id.dummy_view_group)
 
         speedLimiter = SpeedLimiter(PreferenceManager.getDefaultSharedPreferences(requireContext()), viewLifecycleOwner)
 
@@ -410,12 +414,13 @@ class MetronomeFragment : Fragment() {
         val rootView = view.findViewById<ConstraintLayout>(R.id.metronome_layout)
         viewModel.scene.observe(viewLifecycleOwner) {
             Log.v("Metronome", "MetronomeFragment: observing scene: $it")
-            if (it == null) {
+            if (it == null && scene?.visibility != View.GONE) {
                 //scene?.text = getString(R.string.scene, "###")
-                //TransitionManager.beginDelayedTransition(rootView)
+                if (soundChooser?.choiceStatus == SoundChooser.Status.Off) // dont animate since otherwise animations will clash
+                    TransitionManager.beginDelayedTransition(rootView)
                 scene?.visibility = View.GONE
             }
-            else {
+            else if (it != null) {
                 scene?.text = getString(R.string.scene, it)
                 scene?.visibility = View.VISIBLE
             }
@@ -466,6 +471,14 @@ class MetronomeFragment : Fragment() {
         sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener)
     }
 
+    override fun onResume() {
+        Log.v("Metronome", "MetronomeFragment.onResume()")
+        super.onResume()
+        // we need this transition, since after viewpager activity, the first transition is skipped
+        // so we do this dummy transition, which is allowed to be skipped
+        dummyViewGroupWithTransition?.dummyTransition()
+    }
+
     override fun onStop() {
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener)
@@ -486,7 +499,7 @@ class MetronomeFragment : Fragment() {
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {
-        Log.v("Metronome", "MetronomeFragment.onPrepareOptionsMenu")
+//        Log.v("Metronome", "MetronomeFragment.onPrepareOptionsMenu")
 //        super.onPrepareOptionsMenu(menu);
         val settingsItem = menu.findItem(R.id.action_properties)
         settingsItem?.isVisible = true
