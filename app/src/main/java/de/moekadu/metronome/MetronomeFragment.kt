@@ -30,6 +30,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.preference.PreferenceManager
@@ -437,12 +438,23 @@ class MetronomeFragment : Fragment() {
 
             if (stableId != SavedItem.NO_STABLE_ID) {
                 viewModel.setScene(saveDataViewModel.savedItems.value?.getItem(stableId)?.title)
+                scene?.translationZ = 5f
+                scene?.isClickable = true
+                context?.let {
+                    scene?.background = ContextCompat.getDrawable(it, R.drawable.edit_scene_background)
+                }
             }
             else if (activeStableId != null && activeStableId != SavedItem.NO_STABLE_ID) {
                 viewModel.setScene(saveDataViewModel.savedItems.value?.getItem(activeStableId)?.title)
+                scene?.translationZ = 0f
+                scene?.isClickable = false
+                scene?.background = null
             }
             else {
                 viewModel.setScene(null)
+                scene?.translationZ = 0f
+                scene?.isClickable = false
+                scene?.background = null
             }
         }
 

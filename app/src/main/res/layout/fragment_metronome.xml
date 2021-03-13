@@ -27,7 +27,6 @@
     android:focusable="true"
     android:focusableInTouchMode="true"
     tools:context=".MetronomeFragment">
-    <!--tools:context=".MainActivity"-->
 
     <!-- Dummy transition view group which helps to prevent ViewPager2 error, that first transition after page change is skipped -->
     <de.moekadu.metronome.DummyViewGroupWithTransition
@@ -37,7 +36,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         />
-
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/upper_guideline"
@@ -152,9 +150,8 @@
         app:layout_constraintTop_toTopOf="parent"
         android:text="@string/scene"
         android:textColor="?attr/colorPrimary"
-        android:paddingTop="8dp"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp"
+        android:padding="4dp"
+        android:layout_margin="4dp"
         android:visibility="gone"
         />
 

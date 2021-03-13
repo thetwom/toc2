@@ -53,11 +53,6 @@ class MainActivity : AppCompatActivity() {
 
     // TODO: volume control shouldn't animate if volume changes only one step
     // TODO: rename "saved item" to scene
-    // TODO: Highlight scene-view when it is editable
-    // TODO: animate when the scene-text disappears
-    // TODO: When we are in setting menu and change the appearance, that "backbutton" disappears
-    // TODO: Other icon to delete all saved scenes
-    // TODO: Find workaround to have animations after going to other view pager fragment
 
     private val metronomeViewModel by viewModels<MetronomeViewModel> {
         val playerConnection = PlayerServiceConnection.getInstance(this,
