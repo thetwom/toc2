@@ -27,4 +27,5 @@
     <color name="colorMyBackground">#FFFFFF</color>
     <color name="colorMyOnBackground">#000000</color>
     <color name="colorMyBackgroundFloating">#f5f5f5</color>
+    <color name="myColorError">#B00020</color>
 </resources>

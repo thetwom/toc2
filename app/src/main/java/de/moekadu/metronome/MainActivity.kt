@@ -31,12 +31,15 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.view.ActionMode
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.fragment.app.add
+import androidx.fragment.app.commit
+import androidx.fragment.app.replace
 import androidx.preference.PreferenceManager
 import androidx.viewpager2.widget.ViewPager2
-import com.google.android.material.button.MaterialButton
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
@@ -49,6 +52,12 @@ class MainActivity : AppCompatActivity() {
     // TODO: translations
 
     // TODO: volume control shouldn't animate if volume changes only one step
+    // TODO: rename "saved item" to scene
+    // TODO: Highlight scene-view when it is editable
+    // TODO: animate when the scene-text disappears
+    // TODO: When we are in setting menu and change the appearance, that "backbutton" disappears
+    // TODO: Other icon to delete all saved scenes
+    // TODO: Find workaround to have animations after going to other view pager fragment
 
     private val metronomeViewModel by viewModels<MetronomeViewModel> {
         val playerConnection = PlayerServiceConnection.getInstance(this,
@@ -61,13 +70,47 @@ class MainActivity : AppCompatActivity() {
         SaveDataViewModel.Factory(AppPreferences.readSavedItemsDatabase(this))
     }
 
-    private lateinit var viewPager: ViewPager2
-
-    private lateinit var editItemOverlay: ConstraintLayout
-    private lateinit var editItemTitle: AppCompatTextView
+//    private lateinit var viewPager: ViewPager2
 
     private val saveDataArchiving by lazy {
         SaveDataArchiving(this)
+    }
+
+    private val editSceneCallback = object : ActionMode.Callback {
+        override fun onCreateActionMode(mode: ActionMode?, menu: Menu?): Boolean {
+            menuInflater.inflate(R.menu.edit, menu)
+            return true
+        }
+
+        override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?): Boolean {
+            return false
+        }
+
+        override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
+            return when (item?.itemId) {
+                R.id.action_edit_done -> {
+                    saveDataViewModel.editingStableId.value?.let { stableId ->
+                        val bpm = metronomeViewModel.speed.value
+                        val noteList = metronomeViewModel.noteList.value?.let { n -> noteListToString(n) }
+                        val title = metronomeViewModel.scene.value
+                        // TODO: maybe date and time
+                        saveDataViewModel.savedItems.value?.editItem(stableId, title = title, bpm = bpm, noteList = noteList)
+                        // saveCurrentSettings() // double check that this is already saved by savedatafragment
+                        saveDataViewModel.setActiveStableId(stableId)
+                        saveDataViewModel.setEditingStableId(SavedItem.NO_STABLE_ID)
+                        setMetronomeAndSaveDataViewPagerId(ViewPagerAdapter.SAVE_DATA)
+                        // viewPager.currentItem = ViewPagerAdapter.SAVE_DATA
+                    }
+                    mode?.finish()
+                    true
+                }
+                else -> false
+            }
+        }
+
+        override fun onDestroyActionMode(mode: ActionMode?) {
+            saveDataViewModel.setEditingStableId(SavedItem.NO_STABLE_ID)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -100,50 +143,45 @@ class MainActivity : AppCompatActivity() {
 
         volumeControlStream = AudioManager.STREAM_MUSIC
 
-        viewPager = findViewById(R.id.viewpager)
-        viewPager.adapter = ViewPagerAdapter(this)
-        viewPager.currentItem = ViewPagerAdapter.METRONOME
-        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                val showDisplayHomeButton = (position != ViewPagerAdapter.METRONOME)
-                supportActionBar?.setDisplayHomeAsUpEnabled(showDisplayHomeButton)
-                super.onPageSelected(position)
-            }
-        })
-
-        editItemOverlay = findViewById(R.id.edit_item)
-        editItemTitle = findViewById(R.id.editing_scene)
-        val editItemDoneButton = findViewById<AppCompatImageButton>(R.id.edit_item_done)
-        editItemDoneButton.setOnClickListener {
-            saveDataViewModel.editingStableId.value?.let { stableId ->
-                val bpm = metronomeViewModel.speed.value
-                val noteList = metronomeViewModel.noteList.value?.let { n -> noteListToString(n) }
-                val title = metronomeViewModel.scene.value
-                // TODO: maybe date and time
-                saveDataViewModel.savedItems.value?.editItem(stableId, title = title, bpm = bpm, noteList = noteList)
-                // saveCurrentSettings() // double check that this is already saved by savedatafragment
-                saveDataViewModel.setActiveStableId(stableId)
-                saveDataViewModel.setEditingStableId(SavedItem.NO_STABLE_ID)
-                editItemOverlay.visibility = View.GONE
-                viewPager.currentItem = ViewPagerAdapter.SAVE_DATA
+        if (savedInstanceState == null) {
+            supportFragmentManager.commit {
+                setReorderingAllowed(true)
+                //add<MetronomeAndSaveDataFragment>(R.id.fragment_container)
+                replace<MetronomeAndSaveDataFragment>(R.id.fragment_container)
             }
         }
 
-        val editItemAbortButton = findViewById<AppCompatImageButton>(R.id.edit_item_abort)
-        editItemAbortButton.setOnClickListener {
-            saveDataViewModel.setEditingStableId(SavedItem.NO_STABLE_ID)
-            editItemOverlay.visibility = View.GONE
-        }
+//        viewPager = findViewById(R.id.viewpager)
+//        viewPager.adapter = ViewPagerAdapter(this)
+//        //viewPager.currentItem = ViewPagerAdapter.METRONOME
+//        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+//            override fun onPageSelected(position: Int) {
+//                when (position) {
+//                    ViewPagerAdapter.METRONOME -> {
+//                        supportActionBar?.setDisplayHomeAsUpEnabled(false)
+//                    }
+//                    ViewPagerAdapter.SAVE_DATA ->{
+//                        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+//                    }
+//                    ViewPagerAdapter.SETTINGS -> {
+//                        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+//                    }
+//                }
+//                lockViewPager()
+//                super.onPageSelected(position)
+//            }
+//        })
 
-        metronomeViewModel.disableViewPageUserInput.observe(this) {
-            Log.v("Metronome", "MainActivity: observing disableViewPagerUserInput = $it")
-            lockViewPager()
-        }
+//        metronomeViewModel.disableViewPageUserInput.observe(this) {
+//            Log.v("Metronome", "MainActivity: observing disableViewPagerUserInput = $it")
+//            lockViewPager()
+//        }
+//
+//        saveDataViewModel.editingStableId.observe(this) {
+//            Log.v("Metronome", "MainActivity: observing editingStableId = $it")
+//            lockViewPager()
+//        }
 
-        saveDataViewModel.editingStableId.observe(this) {
-            Log.v("Metronome", "MainActivity: observing editingStableId = $it")
-            lockViewPager()
-        }
         setDisplayHomeButton()
 //        Log.v("Metronome", "MainActivity:onCreate: end");
     }
@@ -153,20 +191,52 @@ class MainActivity : AppCompatActivity() {
                 metronomeViewModel.speed.value, metronomeViewModel.noteList.value, this)
         super.onStop()
     }
-    override fun onSupportNavigateUp() : Boolean{
-        supportFragmentManager.popBackStack()
-        return true
-    }
+//    override fun onSupportNavigateUp() : Boolean{
+//        supportFragmentManager.popBackStack()
+//        return true
+//    }
 
     override fun onBackPressed() {
-        Log.v("Metronome", "MainActivity.onBackPressed()")
-        viewPager.currentItem = ViewPagerAdapter.METRONOME
+        Log.v("Metronome", "MainActivity.onBackPressed():  backStackEntryCount = ${supportFragmentManager.backStackEntryCount}")
+       // viewPager.currentItem = ViewPagerAdapter.METRONOME
+        when (supportFragmentManager.findFragmentById(R.id.fragment_container)) {
+            is MetronomeAndSaveDataFragment -> {
+                setMetronomeAndSaveDataViewPagerId(ViewPagerAdapter.METRONOME)
+                return
+            }
+        }
+
+        supportFragmentManager.popBackStack()
+        supportActionBar?.setDisplayHomeAsUpEnabled(false)
     }
 
-    private fun setDisplayHomeButton() {
-        //val showDisplayHomeButton = supportFragmentManager.backStackEntryCount > 0
-        val showDisplayHomeButton = (viewPager.currentItem != ViewPagerAdapter.METRONOME)
-        supportActionBar?.setDisplayHomeAsUpEnabled(showDisplayHomeButton)
+    private fun setMetronomeAndSaveDataViewPagerId(id: Int) {
+        when (val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)) {
+            is MetronomeAndSaveDataFragment -> {
+                currentFragment.viewPager?.currentItem = id
+                supportActionBar?.setDisplayHomeAsUpEnabled(id != ViewPagerAdapter.METRONOME)
+            }
+        }
+    }
+
+    fun setDisplayHomeButton() {
+        //Log.v("Metronome", "MainActivity:setDisplayHomeButton: viewPager.currentItem = ${viewPager.currentItem}");
+        Log.v("Metronome", "MainActivity:setDisplayHomeButton: backStackEntryCount = ${supportFragmentManager.backStackEntryCount}");
+        if (supportFragmentManager.backStackEntryCount > 0) {
+            supportActionBar?.setDisplayHomeAsUpEnabled(true)
+            return
+        }
+
+        when (val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)) {
+            is MetronomeAndSaveDataFragment -> {
+                val id =  currentFragment.viewPager?.currentItem
+                if (id != ViewPagerAdapter.METRONOME && id != null) {
+                    supportActionBar?.setDisplayHomeAsUpEnabled(true)
+                    return
+                }
+            }
+        }
+        supportActionBar?.setDisplayHomeAsUpEnabled(false)
     }
 
     override fun onCreateOptionsMenu(menu : Menu) : Boolean{
@@ -182,10 +252,18 @@ class MainActivity : AppCompatActivity() {
                 onBackPressed()
             }
             R.id.action_properties -> {
-                viewPager.currentItem = ViewPagerAdapter.SETTINGS
+                supportFragmentManager.commit {
+                    setReorderingAllowed(true)
+                    replace<SettingsFragment>(R.id.fragment_container)
+                    addToBackStack("main")
+                 //   setDisplayHomeButton()
+                }
+                supportActionBar?.setDisplayHomeAsUpEnabled(true)
+            //    viewPager.currentItem = ViewPagerAdapter.SETTINGS
             }
             R.id.action_load -> {
-            viewPager.currentItem = ViewPagerAdapter.SAVE_DATA
+                setMetronomeAndSaveDataViewPagerId(ViewPagerAdapter.SAVE_DATA)
+            //    viewPager.currentItem = ViewPagerAdapter.SAVE_DATA
             }
             R.id.action_save -> {
                 saveCurrentSettings()
@@ -200,12 +278,14 @@ class MainActivity : AppCompatActivity() {
                 clearAllSavedItems()
             }
             R.id.action_edit -> {
+                val actionMode = startSupportActionMode(editSceneCallback)
+                actionMode?.title = getString(R.string.editing_scene)
                 val stableId = saveDataViewModel.activeStableId.value
-                Log.v("Metronome", "MainActivity: onOptionsItemSelected: R.id.action_edit, stableId = $stableId")
+//                Log.v("Metronome", "MainActivity: onOptionsItemSelected: R.id.action_edit, stableId = $stableId")
                 if (stableId != null && stableId != SavedItem.NO_STABLE_ID) {
                     saveDataViewModel.setEditingStableId(stableId)
-                    editItemOverlay.visibility = View.VISIBLE
-                    viewPager.currentItem = ViewPagerAdapter.METRONOME
+                    setMetronomeAndSaveDataViewPagerId(ViewPagerAdapter.METRONOME)
+                    // viewPager.currentItem = ViewPagerAdapter.METRONOME
                 }
             }
         }
@@ -250,16 +330,22 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun lockViewPager() {
-        var lock: Boolean = false
-        if (metronomeViewModel.disableViewPageUserInput.value == true)
-            lock = true
-        saveDataViewModel.editingStableId.value?.let {
-            if (it != SavedItem.NO_STABLE_ID)
-                lock = true
-        }
-        viewPager.isUserInputEnabled = !lock
-    }
+//    private fun lockViewPager() {
+//        var lock = false
+//
+//        if (metronomeViewModel.disableViewPageUserInput.value == true)
+//            lock = true
+//
+//        saveDataViewModel.editingStableId.value?.let {
+//            if (it != SavedItem.NO_STABLE_ID)
+//                lock = true
+//        }
+//
+////        if (viewPager.currentItem == ViewPagerAdapter.SETTINGS)
+////            lock = true
+////
+////        viewPager.isUserInputEnabled = !lock
+//    }
 
     companion object {
         const val FILE_CREATE = 1

@@ -40,109 +40,24 @@
           app:layout_constraintTop_toTopOf="parent"
           />
 
-      <androidx.constraintlayout.widget.ConstraintLayout
-          android:id="@+id/edit_item"
-          android:layout_width="0dp"
-          android:layout_height="0dp"
-          android:elevation="5dp"
-          android:background="?attr/colorPrimary"
-          app:layout_constraintBottom_toBottomOf="@id/toolbar"
-          app:layout_constraintTop_toTopOf="@id/toolbar"
-          app:layout_constraintStart_toStartOf="@id/toolbar"
-          app:layout_constraintEnd_toEndOf="@id/toolbar"
-          android:visibility="gone"
-      >
-
-         <androidx.appcompat.widget.AppCompatTextView
-             android:id="@+id/editing_scene"
-             android:layout_width="0dp"
-             android:layout_height="match_parent"
-             app:layout_constraintTop_toTopOf="parent"
-             app:layout_constraintStart_toStartOf="parent"
-             app:layout_constraintEnd_toStartOf="@id/edit_item_done"
-             android:gravity="center_vertical"
-             android:layout_marginStart="8dp"
-             android:textColor="?attr/colorOnPrimary"
-             android:text="@string/editing_scene"
-             android:textStyle="bold"
-             />
-
-         <androidx.appcompat.widget.AppCompatImageButton
-             android:id="@+id/edit_item_done"
-             android:layout_width="0dp"
-             android:layout_height="match_parent"
-             app:layout_constraintTop_toTopOf="parent"
-             app:layout_constraintEnd_toStartOf="@id/edit_item_abort"
-             app:layout_constraintDimensionRatio="1:1"
-             android:tint="?attr/colorOnPrimary"
-             android:background="@drawable/plus_button_background"
-             android:text="@string/done"
-             android:src="@drawable/ic_done"
-             android:layout_margin="4dp"
-             />
-
-         <androidx.appcompat.widget.AppCompatImageButton
-             android:id="@+id/edit_item_abort"
-             android:layout_width="0dp"
-             android:layout_height="match_parent"
-             app:layout_constraintTop_toTopOf="parent"
-             app:layout_constraintEnd_toEndOf="parent"
-             app:layout_constraintDimensionRatio="1:1"
-             android:tint="?attr/colorOnPrimary"
-             android:background="@drawable/plus_button_background"
-             android:text="@string/abort"
-             android:src="@drawable/ic_close"
-             android:layout_margin="4dp"
-             />
-
-         <!--         <com.google.android.material.button.MaterialButton-->
-         <!--             android:id="@+id/edit_item_abort"-->
-         <!--             android:layout_width="0dp"-->
-         <!--             android:layout_height="0dp"-->
-         <!--             app:layout_constraintTop_toTopOf="parent"-->
-         <!--             app:layout_constraintBottom_toBottomOf="parent"-->
-         <!--             app:layout_constraintStart_toEndOf="@id/editing_scene"-->
-         <!--             app:layout_constraintEnd_toStartOf="@id/edit_item_done"-->
-         <!--             android:textColor="?attr/colorOnPrimary"-->
-         <!--             app:rippleColor="?attr/colorPrimaryFaint"-->
-         <!--             style="@style/Widget.MaterialComponents.Button.TextButton"-->
-         <!--             android:text="@string/abort"-->
-         <!--             android:padding="4dp"-->
-         <!--             />-->
-
-
-         <!--         <com.google.android.material.button.MaterialButton-->
-<!--             android:id="@+id/edit_item_done"-->
-<!--             android:layout_width="0dp"-->
-<!--             android:layout_height="0dp"-->
-<!--             app:layout_constraintTop_toTopOf="parent"-->
-<!--             app:layout_constraintBottom_toBottomOf="parent"-->
-<!--             app:layout_constraintStart_toEndOf="@id/edit_item_abort"-->
-<!--             app:layout_constraintEnd_toEndOf="parent"-->
-<!--             android:textColor="?attr/colorOnPrimary"-->
-<!--             app:rippleColor="?attr/colorPrimaryFaint"-->
-<!--             style="@style/Widget.MaterialComponents.Button.TextButton"-->
-<!--             android:text="@string/done"-->
-<!--             android:padding="4dp"-->
-<!--             />-->
-
-      </androidx.constraintlayout.widget.ConstraintLayout>
-
-<!--      <FrameLayout-->
-<!--          android:id="@+id/mainframe"-->
+<!--      <androidx.viewpager2.widget.ViewPager2-->
+<!--          android:id="@+id/viewpager"-->
 <!--          android:layout_width="match_parent"-->
-<!--          android:layout_height="match_parent"-->
+<!--          android:layout_height="0dp"-->
 <!--          android:layout_margin="0dp"-->
+<!--          app:layout_constraintTop_toBottomOf="@id/toolbar"-->
+<!--          app:layout_constraintBottom_toBottomOf="parent"-->
 <!--          />-->
-
-      <androidx.viewpager2.widget.ViewPager2
-          android:id="@+id/viewpager"
+      <androidx.fragment.app.FragmentContainerView
+          android:id="@+id/fragment_container"
           android:layout_width="match_parent"
           android:layout_height="0dp"
           android:layout_margin="0dp"
           app:layout_constraintTop_toBottomOf="@id/toolbar"
           app:layout_constraintBottom_toBottomOf="parent"
           />
+
+
    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

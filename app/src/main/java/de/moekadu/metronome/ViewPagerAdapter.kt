@@ -18,9 +18,9 @@ class ViewPagerAdapter(activity: FragmentActivity, ) : FragmentStateAdapter(acti
             SAVE_DATA -> {
                 SaveDataFragment()
             }
-            SETTINGS -> {
-                SettingsFragment()
-            }
+//            SETTINGS -> {
+//                SettingsFragment()
+//            }
             else -> {
                 throw RuntimeException("No fragment for position $position")
             }
@@ -28,9 +28,10 @@ class ViewPagerAdapter(activity: FragmentActivity, ) : FragmentStateAdapter(acti
     }
 
     companion object {
-        const val SETTINGS = 0
-        const val METRONOME = 1
-        const val SAVE_DATA = 2
-        const val NUM_FRAGMENTS = 3
+        const val METRONOME = 0
+        const val SAVE_DATA = 1
+        //const val SETTINGS = 2
+        //const val NUM_FRAGMENTS = 3
+        const val NUM_FRAGMENTS = 2
     }
 }

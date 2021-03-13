@@ -82,7 +82,7 @@ class SaveDataFragment : Fragment() {
     override fun onPrepareOptionsMenu(menu: Menu) {
 //        super.onPrepareOptionsMenu(menu);
         val settingsItem = menu.findItem(R.id.action_properties)
-        settingsItem?.isVisible = false
+        settingsItem?.isVisible = true
 
         val loadDataItem = menu.findItem(R.id.action_load)
         loadDataItem?.isVisible = false

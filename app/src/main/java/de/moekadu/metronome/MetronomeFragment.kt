@@ -22,6 +22,7 @@ package de.moekadu.metronome
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Bundle
 import android.text.InputType
+import android.transition.TransitionManager
 import android.util.Log
 import android.view.*
 import android.widget.EditText
@@ -29,6 +30,7 @@ import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.preference.PreferenceManager
@@ -405,10 +407,12 @@ class MetronomeFragment : Fragment() {
             }
         }
 
+        val rootView = view.findViewById<ConstraintLayout>(R.id.metronome_layout)
         viewModel.scene.observe(viewLifecycleOwner) {
             Log.v("Metronome", "MetronomeFragment: observing scene: $it")
             if (it == null) {
-                scene?.text = getString(R.string.scene, "###")
+                //scene?.text = getString(R.string.scene, "###")
+                //TransitionManager.beginDelayedTransition(rootView)
                 scene?.visibility = View.GONE
             }
             else {
