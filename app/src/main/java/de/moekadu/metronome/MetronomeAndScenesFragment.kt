@@ -8,7 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.viewpager2.widget.ViewPager2
 
-class MetronomeAndSaveDataFragment : Fragment() {
+class MetronomeAndScenesFragment : Fragment() {
 
     private val metronomeViewModel by activityViewModels<MetronomeViewModel> {
         val playerConnection = PlayerServiceConnection.getInstance(
@@ -19,8 +19,8 @@ class MetronomeAndSaveDataFragment : Fragment() {
         MetronomeViewModel.Factory(playerConnection)
     }
 
-    private val saveDataViewModel by activityViewModels<SaveDataViewModel> {
-        SaveDataViewModel.Factory(AppPreferences.readSavedItemsDatabase(requireActivity()))
+    private val scenesViewModel by activityViewModels<ScenesViewModel> {
+        ScenesViewModel.Factory(AppPreferences.readScenesDatabase(requireActivity()))
     }
 
     var viewPager: ViewPager2? = null
@@ -33,7 +33,7 @@ class MetronomeAndSaveDataFragment : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val view = inflater.inflate(R.layout.fragment_metronome_and_save_data, container, false)
+        val view = inflater.inflate(R.layout.fragment_metronome_and_scenes, container, false)
 
         viewPager = view.findViewById(R.id.viewpager)
         viewPager?.adapter = ViewPagerAdapter(requireActivity())
@@ -46,7 +46,7 @@ class MetronomeAndSaveDataFragment : Fragment() {
             lockViewPager()
         }
 
-        saveDataViewModel.editingStableId.observe(viewLifecycleOwner) {
+        scenesViewModel.editingStableId.observe(viewLifecycleOwner) {
             lockViewPager()
         }
         return view
@@ -63,8 +63,8 @@ class MetronomeAndSaveDataFragment : Fragment() {
         if (metronomeViewModel.disableViewPageUserInput.value == true)
             lock = true
 
-        saveDataViewModel.editingStableId.value?.let {
-            if (it != SavedItem.NO_STABLE_ID)
+        scenesViewModel.editingStableId.value?.let {
+            if (it != Scene.NO_STABLE_ID)
                 lock = true
         }
 

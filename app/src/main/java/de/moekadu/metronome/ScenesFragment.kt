@@ -22,7 +22,6 @@ package de.moekadu.metronome
 import android.graphics.Canvas
 import android.graphics.drawable.Animatable
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.View
@@ -43,10 +42,10 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 
 
-class SaveDataFragment : Fragment() {
+class ScenesFragment : Fragment() {
 
-    private val viewModel by activityViewModels<SaveDataViewModel> {
-        SaveDataViewModel.Factory(AppPreferences.readSavedItemsDatabase(requireActivity()))
+    private val viewModel by activityViewModels<ScenesViewModel> {
+        ScenesViewModel.Factory(AppPreferences.readScenesDatabase(requireActivity()))
     }
     private val metronomeViewModel by activityViewModels<MetronomeViewModel> {
         val playerConnection = PlayerServiceConnection.getInstance(
@@ -59,15 +58,15 @@ class SaveDataFragment : Fragment() {
     private var speedLimiter: SpeedLimiter? = null
 
     private var savedItemRecyclerView: RecyclerView? = null
-    private val savedItemsAdapter = SavedItemAdapter().apply {
-        onItemClickedListener = SavedItemAdapter.OnItemClickedListener { stableId ->
+    private val savedItemsAdapter = ScenesAdapter().apply {
+        onSceneClickedListener = ScenesAdapter.OnSceneClickedListener { stableId ->
             // this will lead to loading the clicked item
             viewModel.setActiveStableId(stableId)
         }
     }
 
     private var lastRemovedItemIndex = -1
-    private var lastRemovedItem: SavedItem? = null
+    private var lastRemovedItem: Scene? = null
 
     private var noSavedItemsMessage: TextView? = null
 
@@ -87,8 +86,8 @@ class SaveDataFragment : Fragment() {
         val loadDataItem = menu.findItem(R.id.action_load)
         loadDataItem?.isVisible = false
 
-        val saveDataItem = menu.findItem(R.id.action_save)
-        saveDataItem.isVisible = false
+        val scenesItem = menu.findItem(R.id.action_save)
+        scenesItem.isVisible = false
 
         val archive = menu.findItem(R.id.action_archive)
         archive?.isVisible = true
@@ -100,13 +99,13 @@ class SaveDataFragment : Fragment() {
         clearAll?.isVisible = true
 
         val editItem = menu.findItem(R.id.action_edit)
-        editItem?.isVisible = viewModel.activeStableId.value != SavedItem.NO_STABLE_ID
+        editItem?.isVisible = viewModel.activeStableId.value != Scene.NO_STABLE_ID
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val view = inflater.inflate(R.layout.fragment_save_data, container, false)
+        val view = inflater.inflate(R.layout.fragment_scenes, container, false)
 
-        noSavedItemsMessage = view.findViewById(R.id.noSavedItemsMessage)
+        noSavedItemsMessage = view.findViewById(R.id.noScenesMessage)
 
         playFab = view.findViewById(R.id.play_fab)
 
@@ -117,7 +116,7 @@ class SaveDataFragment : Fragment() {
                 metronomeViewModel.play()
         }
 
-        savedItemRecyclerView = view.findViewById(R.id.savedItems)
+        savedItemRecyclerView = view.findViewById(R.id.scenes)
         savedItemRecyclerView?.setHasFixedSize(true)
         savedItemRecyclerView?.layoutManager = LinearLayoutManager(requireContext())
         savedItemRecyclerView?.adapter = savedItemsAdapter
@@ -125,34 +124,32 @@ class SaveDataFragment : Fragment() {
 
         val simpleTouchHelper = object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.LEFT) {
 
-            val background = activity?.let { ContextCompat.getDrawable(it, R.drawable.saved_item_below_background) }
-            val deleteIcon = activity?.let { ContextCompat.getDrawable(it, R.drawable.saved_item_delete) }
+            val background = activity?.let { ContextCompat.getDrawable(it, R.drawable.scene_below_background) }
+            val deleteIcon = activity?.let { ContextCompat.getDrawable(it, R.drawable.scene_delete) }
 
             override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
                 val fromPos = viewHolder.absoluteAdapterPosition
                 val toPos = target.absoluteAdapterPosition
                 if(fromPos != toPos) {
-                    viewModel.savedItems.value?.move(fromPos, toPos)
+                    viewModel.scenes.value?.move(fromPos, toPos)
                 }
                 return true
             }
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                // Log.v("Metronome", "SaveDataFragment:onSwiped " + viewHolder.getAdapterPosition())
+                // Log.v("Metronome", "ScenesFragment:onSwiped " + viewHolder.getAdapterPosition())
 
                 lastRemovedItemIndex = viewHolder.absoluteAdapterPosition
-                lastRemovedItem = viewModel.savedItems.value?.remove(lastRemovedItemIndex)
+                lastRemovedItem = viewModel.scenes.value?.remove(lastRemovedItemIndex)
 
                 (getView() as CoordinatorLayout?)?.let { coLayout ->
                     lastRemovedItem?.let { removedItem ->
-                        Snackbar.make(coLayout, getString(R.string.item_deleted), Snackbar.LENGTH_LONG)
+                        Snackbar.make(coLayout, getString(R.string.scene_deleted), Snackbar.LENGTH_LONG)
                                 .setAction(R.string.undo) {
                                     if (lastRemovedItem != null) {
-                                        viewModel.savedItems.value?.add(lastRemovedItemIndex, removedItem)
-                                        // savedItemsAdapter.addItem(act, removedItem, lastRemovedItemIndex)
+                                        viewModel.scenes.value?.add(lastRemovedItemIndex, removedItem)
                                         lastRemovedItem = null
                                         lastRemovedItemIndex = -1
-                                        // updateNoSavedItemsMessage()
                                     }
                                 }.show()
                     }
@@ -192,11 +189,11 @@ class SaveDataFragment : Fragment() {
 
         metronomeViewModel.noteList.observe(viewLifecycleOwner) {noteList ->
             // all this complicated code just checks is the notelist of the active stable id
-            // is equal to the notelist in the metronome and if it is not equal, we make sure
+            // is equal to the note list in the metronome and if it is not equal, we make sure
             // that the active saved items are unselected
             var areNoteListsEqual = false
             viewModel.activeStableId.value?.let { stableId ->
-                viewModel.savedItems.value?.savedItems?.firstOrNull { it.stableId == stableId }?.noteList?.let { activeNoteListString ->
+                viewModel.scenes.value?.scenes?.firstOrNull { it.stableId == stableId }?.noteList?.let { activeNoteListString ->
                     val activeNoteList = stringToNoteList(activeNoteListString)
                     areNoteListsEqual = true
                     if (activeNoteList.size != noteList.size) {
@@ -210,16 +207,16 @@ class SaveDataFragment : Fragment() {
                 }
             }
             if (!areNoteListsEqual) {
-                viewModel.setActiveStableId(SavedItem.NO_STABLE_ID)
+                viewModel.setActiveStableId(Scene.NO_STABLE_ID)
             }
         }
 
         metronomeViewModel.speed.observe(viewLifecycleOwner) { speed ->
             // unselect active item if the speed doesn't match the metronome speed
             viewModel.activeStableId.value?.let { stableId ->
-                viewModel.savedItems.value?.savedItems?.firstOrNull { it.stableId == stableId }?.bpm?.let { activeSpeed ->
+                viewModel.scenes.value?.scenes?.firstOrNull { it.stableId == stableId }?.bpm?.let { activeSpeed ->
                     if (activeSpeed != speed) {
-                        viewModel.setActiveStableId(SavedItem.NO_STABLE_ID)
+                        viewModel.setActiveStableId(Scene.NO_STABLE_ID)
                     }
                 }
             }
@@ -233,12 +230,12 @@ class SaveDataFragment : Fragment() {
             }
         }
 
-        viewModel.savedItems.observe(viewLifecycleOwner) { database ->
-//            Log.v("Metronome", "SaveDataFragment: submitting new data base list to adapter: size: ${database.savedItems.size}")
-            val databaseCopy = ArrayList<SavedItem>(database.savedItems.size)
-            database.savedItems.forEach { databaseCopy.add(it.copy()) }
+        viewModel.scenes.observe(viewLifecycleOwner) { database ->
+//            Log.v("Metronome", "ScenesFragment: submitting new data base list to adapter: size: ${database.savedItems.size}")
+            val databaseCopy = ArrayList<Scene>(database.scenes.size)
+            database.scenes.forEach { databaseCopy.add(it.copy()) }
             savedItemsAdapter.submitList(databaseCopy)
-            activity?.let{AppPreferences.writeSavedItemsDatabase(viewModel.savedItemsAsString, it)}
+            activity?.let{AppPreferences.writeScenesDatabase(viewModel.scenesAsString, it)}
 
             if(database.size == 0)
                 noSavedItemsMessage?.visibility = View.VISIBLE
@@ -247,8 +244,8 @@ class SaveDataFragment : Fragment() {
         }
 
         viewModel.activeStableId.observe(viewLifecycleOwner) { stableId ->
-            Log.v("Metronome", "SaveDataFragment: observing stable id: $stableId")
-            viewModel.savedItems.value?.getItem(stableId)?.let { item ->
+//            Log.v("Metronome", "ScenesFragment: observing stable id: $stableId")
+            viewModel.scenes.value?.getScene(stableId)?.let { item ->
                 val newNoteList = stringToNoteList(item.noteList)
                 if (newNoteList.size > 0)
                     metronomeViewModel.setNoteList(newNoteList)
@@ -273,7 +270,7 @@ class SaveDataFragment : Fragment() {
         playFabStatus = metronomeViewModel.playerStatus.value ?: PlayerStatus.Paused
 
         metronomeViewModel.playerStatus.observe(viewLifecycleOwner) { playerStatus ->
-            Log.v("Metronome", "SaveDataFragment: observing playerStatus")
+//            Log.v("Metronome", "ScenesFragment: observing playerStatus")
             if (playerStatus != playFabStatus) {
                 if (playerStatus == PlayerStatus.Playing)
                     playFab?.setImageResource(R.drawable.ic_pause_to_play)

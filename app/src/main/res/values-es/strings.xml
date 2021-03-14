@@ -6,8 +6,8 @@
     <string name="mute">silenciar</string>
     <string name="bpm">%s bpm</string>
 
-    <string name="load_data">Cargar datos</string>
-    <string name="save_data">Guardar datos</string>
+    <string name="scenes">Cargar datos</string>
+    <string name="save_scene">Guardar datos</string>
     <string name="load_from_disc">Cargar datos desde archivo</string>
     <string name="save_to_disc">Guardar datos desde archivo</string>
     <string name="clear_all">Limpiar todo</string>
@@ -34,16 +34,16 @@
     <string name="about">Acerca de</string>
 
     <string name="undo">Deshacer</string>
-    <string name="item_deleted">Elemento borrado</string>
+    <string name="scene_deleted">Elemento borrado</string>
 
     <string name="save_settings_dialog_title">Guardar la configuración actual</string>
     <string name="save_name">Nombre</string>
-    <string name="saved_item_message">Ajustes actuales guardados: %s</string>
+    <string name="saved_scene_message">Ajustes actuales guardados: %s</string>
     <string name="save">Guardar</string>
     <string name="dismiss">Omitir</string>
     <string name="max_allowed_characters">Número máximo de caracteres: %d</string>
 
-    <string name="load_saved_items">Load saved items</string>
+    <string name="load_scenes">Load saved items</string>
     <string name="abort">Abortar</string>
     <string name="replace_current_list">Reemplazar lista actual</string>
     <string name="prepend_current_list">Anteponer a la lista actual</string>
@@ -51,7 +51,7 @@
 
     <string name="cannot_delete_last_note">No se puede borrar la última nota.</string>
     
-    <string name="no_saved_items">Actualmente sin elementos guardados</string>
+    <string name="no_scenes">Actualmente sin elementos guardados</string>
 
     <string name="loaded_message">Ajustes cargados: %s</string>
 

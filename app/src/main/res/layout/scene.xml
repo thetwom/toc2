@@ -21,7 +21,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="@drawable/choice_button_background"
+    android:background="@drawable/scene_background"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
@@ -43,18 +43,18 @@
 <!--        app:layout_constraintStart_toStartOf="parent"/>-->
 
     <TextView
-        android:id="@+id/saved_item_title"
+        android:id="@+id/scene_title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:padding="4dp"
         android:textSize="18sp"
         android:text="@string/title"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/saved_item_date"
+        app:layout_constraintEnd_toStartOf="@id/scene_date"
         app:layout_constraintTop_toTopOf="parent" />
 
     <de.moekadu.metronome.NoteView
-        android:id="@+id/saved_item_sounds"
+        android:id="@+id/scene_sounds"
         android:layout_width="0dp"
         android:layout_height="65dp"
         android:paddingStart="4dp"
@@ -65,11 +65,11 @@
         app:showNumbers="true"
         app:normalColor="?attr/colorBackgroundFloating"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/saved_item_speed"
-        app:layout_constraintTop_toBottomOf="@id/saved_item_title"/>
+        app:layout_constraintStart_toEndOf="@id/scene_speed"
+        app:layout_constraintTop_toBottomOf="@id/scene_title"/>
 
     <TextView
-        android:id="@+id/saved_item_date"
+        android:id="@+id/scene_date"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding="4dp"
@@ -81,7 +81,7 @@
         tools:ignore="HardcodedText" />
 
     <TextView
-        android:id="@+id/saved_item_speed"
+        android:id="@+id/scene_speed"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:padding="4dp"
@@ -91,9 +91,9 @@
         android:textColor="?attr/colorSecondary"
         android:minWidth="70dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/saved_item_sounds"
-        app:layout_constraintBottom_toBottomOf="@id/saved_item_sounds"
-        app:layout_constraintEnd_toStartOf="@id/saved_item_sounds"
+        app:layout_constraintTop_toTopOf="@id/scene_sounds"
+        app:layout_constraintBottom_toBottomOf="@id/scene_sounds"
+        app:layout_constraintEnd_toStartOf="@id/scene_sounds"
         tools:ignore="HardcodedText" />
 
 

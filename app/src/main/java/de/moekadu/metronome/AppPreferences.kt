@@ -20,7 +20,6 @@
 package de.moekadu.metronome
 
 import android.content.Context
-import android.util.Log
 import androidx.fragment.app.FragmentActivity
 
 class AppPreferences {
@@ -69,13 +68,13 @@ class AppPreferences {
             return noteList
         }
 
-        fun writeSavedItemsDatabase(databaseString: String?, activity: FragmentActivity) {
-            Log.v("Metronome", "AppPreferences.writeSavedItemsDatabase: $databaseString")
+        fun writeScenesDatabase(databaseString: String?, activity: FragmentActivity) {
+//            Log.v("Metronome", "AppPreferences.writeSavedItemsDatabase: $databaseString")
             if (databaseString != null && databaseString != "")
                 writePreferenceString("savedDatabase", databaseString, activity)
         }
-        fun readSavedItemsDatabase(activity: FragmentActivity): String {
-            Log.v("Metronome", "AppPreferences.readSavedItemsDatabase: ${readPreferenceString("savedDatabase", activity) ?: ""}")
+        fun readScenesDatabase(activity: FragmentActivity): String {
+//            Log.v("Metronome", "AppPreferences.readScenesDatabase: ${readPreferenceString("savedDatabase", activity) ?: ""}")
             return readPreferenceString("savedDatabase", activity) ?: ""
         }
     }

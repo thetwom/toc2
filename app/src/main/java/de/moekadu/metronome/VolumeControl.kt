@@ -88,7 +88,7 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
      * Values smaller than 0.0 mean that there is no cached volume.
      */
     private var volumeCached = -1.0f
-    /// Cached animation duration to be used in conjuction with the cached volume.
+    /// Cached animation duration to be used in conjunction with the cached volume.
     private var animationDurationCached = 0L
 
     fun setVolume(newVolume: Float, animationDuration: Long = 0L) {

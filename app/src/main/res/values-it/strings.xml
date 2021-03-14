@@ -25,8 +25,8 @@
     <string name="mute">muto</string>
     <string name="bpm">%s bpm</string>
 
-    <string name="load_data">Carica dati</string>
-    <string name="save_data">Salva dati</string>
+    <string name="scenes">Carica dati</string>
+    <string name="save_scene">Salva dati</string>
     <string name="load_from_disc">Carica dati da file</string>
     <string name="save_to_disc">Salva data in file</string>
     <string name="clear_all">Azzera</string>
@@ -55,16 +55,16 @@
     <string name="about">Informazioni</string>
 
     <string name="undo">Annulla</string>
-    <string name="item_deleted">Elemento rimosso</string>
+    <string name="scene_deleted">Elemento rimosso</string>
 
     <string name="save_settings_dialog_title">Salva impostazioni attuali</string>
     <string name="save_name">Nome</string>
-    <string name="saved_item_message">Impostazioni attuali salvate: %s</string>
+    <string name="saved_scene_message">Impostazioni attuali salvate: %s</string>
     <string name="save">Salva</string>
     <string name="dismiss">Annulla</string>
     <string name="max_allowed_characters">Lunghezza massima (caratteri): %d</string>
 
-    <string name="load_saved_items">Carica elementi salvati</string>
+    <string name="load_scenes">Carica elementi salvati</string>
     <string name="abort">Annulla</string>
     <string name="replace_current_list">Sostituisci lista attuale</string>
     <string name="prepend_current_list">Inserisci all\'inizio della lista attuale</string>
@@ -75,7 +75,7 @@
 
     <string name="cannot_delete_last_note">Impossibile cancellare l\'ultima nota.</string>
 
-    <string name="no_saved_items">Nessun elemento salvato al momento"</string>
+    <string name="no_scenes">Nessun elemento salvato al momento"</string>
 
     <string name="loaded_message">Impostazioni caricate: %s</string>
 

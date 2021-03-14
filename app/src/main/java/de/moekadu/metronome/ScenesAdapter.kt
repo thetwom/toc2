@@ -28,21 +28,21 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 
-class SavedItemDiffCallback : DiffUtil.ItemCallback<SavedItem>() {
-    override fun areItemsTheSame(oldItem: SavedItem, newItem: SavedItem): Boolean {
-        return oldItem.stableId == newItem.stableId
+class ScenesDiffCallback : DiffUtil.ItemCallback<Scene>() {
+    override fun areItemsTheSame(oldScene: Scene, newScene: Scene): Boolean {
+        return oldScene.stableId == newScene.stableId
     }
 
-    override fun areContentsTheSame(oldItem: SavedItem, newItem: SavedItem): Boolean {
-//        Log.v("Metronome", "SavedItemDiffCallback.areContentsTheSame: $oldItem, $newItem, ${oldItem == newItem}")
-        return oldItem == newItem
+    override fun areContentsTheSame(oldScene: Scene, newScene: Scene): Boolean {
+//        Log.v("Metronome", "SavedItemDiffCallback.areContentsTheSame: $oldScene, $newScene, ${oldScene == newScene}")
+        return oldScene == newScene
     }
 }
 
-class SavedItemAdapter : ListAdapter<SavedItem, SavedItemAdapter.ViewHolder>(SavedItemDiffCallback()) {
+class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCallback()) {
 
-    var onItemClickedListener: OnItemClickedListener? = null
-    private var activatedStableId = SavedItem.NO_STABLE_ID
+    var onSceneClickedListener: OnSceneClickedListener? = null
+    private var activatedStableId = Scene.NO_STABLE_ID
 
     inner class ViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
         var isActivated = false
@@ -64,9 +64,8 @@ class SavedItemAdapter : ListAdapter<SavedItem, SavedItemAdapter.ViewHolder>(Sav
         var noteView: NoteView? = null
     }
 
-    fun interface OnItemClickedListener {
-        //fun onItemClicked(item: SavedItem, position: Int)
-        fun onItemClicked(stableId: Long)
+    fun interface OnSceneClickedListener {
+        fun onSceneClicked(stableId: Long)
     }
 
     init {
@@ -78,7 +77,7 @@ class SavedItemAdapter : ListAdapter<SavedItem, SavedItemAdapter.ViewHolder>(Sav
         if (recyclerView != null) {
             for (i in 0 until recyclerView.childCount) {
                 val child = recyclerView.getChildAt(i)
-                (recyclerView.getChildViewHolder(child) as SavedItemAdapter.ViewHolder).let { viewHolder ->
+                (recyclerView.getChildViewHolder(child) as ScenesAdapter.ViewHolder).let { viewHolder ->
                     viewHolder.isActivated = (stableId == viewHolder.itemId)
                 }
             }
@@ -91,7 +90,7 @@ class SavedItemAdapter : ListAdapter<SavedItem, SavedItemAdapter.ViewHolder>(Sav
 
         for (i in 0 until recyclerView.childCount) {
             val child = recyclerView.getChildAt(i)
-            (recyclerView.getChildViewHolder(child) as SavedItemAdapter.ViewHolder).let { viewHolder ->
+            (recyclerView.getChildViewHolder(child) as ScenesAdapter.ViewHolder).let { viewHolder ->
                 if (viewHolder.isActivated)
                     viewHolder.noteView?.animateNote(index)
             }
@@ -103,30 +102,30 @@ class SavedItemAdapter : ListAdapter<SavedItem, SavedItemAdapter.ViewHolder>(Sav
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.saved_item, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.scene, parent, false)
         return ViewHolder(view).apply {
-           titleView = view.findViewById(R.id.saved_item_title) as TextView?
-           dateView = view.findViewById(R.id.saved_item_date) as TextView?
-           speedView = view.findViewById(R.id.saved_item_speed) as TextView?
-           noteView = view.findViewById(R.id.saved_item_sounds) as NoteView?
+           titleView = view.findViewById(R.id.scene_title) as TextView?
+           dateView = view.findViewById(R.id.scene_date) as TextView?
+           speedView = view.findViewById(R.id.scene_speed) as TextView?
+           noteView = view.findViewById(R.id.scene_sounds) as NoteView?
            view.setOnClickListener {
                activatedStableId = itemId
-               onItemClickedListener?.onItemClicked(itemId)
+               onSceneClickedListener?.onSceneClicked(itemId)
            }
        }
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item = getItem(position)
+        val scene = getItem(position)
 
-        holder.isActivated = (item.stableId == activatedStableId)
-        holder.titleView?.text = item.title
-        holder.dateView?.text = item.date + "\n" + item.time
-        holder.speedView?.text = holder.view.context.getString(R.string.bpm, Utilities.getBpmString(item.bpm))
-        Log.v("Metronome", "SavedItemDatabase.onBindViewHolder: item.noteList = ${item.noteList}, item.bpm = ${item.bpm}")
+        holder.isActivated = (scene.stableId == activatedStableId)
+        holder.titleView?.text = scene.title
+        holder.dateView?.text = scene.date + "\n" + scene.time
+        holder.speedView?.text = holder.view.context.getString(R.string.bpm, Utilities.getBpmString(scene.bpm))
+        Log.v("Metronome", "SceneDatabase.onBindViewHolder: scene.noteList = ${scene.noteList}, scene.bpm = ${scene.bpm}")
 
-        val noteList = stringToNoteList(item.noteList)
+        val noteList = stringToNoteList(scene.noteList)
         holder.noteView?.setNoteList(noteList)
-        // Log.v("Metronome", "SavedItemDatabase:onBindViewHolder (position = " + position + ")")
+        // Log.v("Metronome", "SceneDatabase:onBindViewHolder (position = " + position + ")")
     }
 }

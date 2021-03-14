@@ -22,24 +22,18 @@ package de.moekadu.metronome
 import android.content.Intent
 import android.media.AudioManager
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.view.WindowManager
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.view.ActionMode
-import androidx.appcompat.widget.AppCompatImageButton
-import androidx.appcompat.widget.AppCompatTextView
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.fragment.app.add
 import androidx.fragment.app.commit
 import androidx.fragment.app.replace
 import androidx.preference.PreferenceManager
-import androidx.viewpager2.widget.ViewPager2
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
@@ -52,7 +46,8 @@ class MainActivity : AppCompatActivity() {
     // TODO: translations
 
     // TODO: volume control shouldn't animate if volume changes only one step
-    // TODO: rename "saved item" to scene
+    // TODO: don't show date on time of scenes
+    // TODO: introduce sensitive area to change to saved-item-fragment (and maybe remove the icon of the toolbar)
 
     private val metronomeViewModel by viewModels<MetronomeViewModel> {
         val playerConnection = PlayerServiceConnection.getInstance(this,
@@ -61,14 +56,14 @@ class MainActivity : AppCompatActivity() {
         )
         MetronomeViewModel.Factory(playerConnection)
     }
-    private val saveDataViewModel by viewModels<SaveDataViewModel> {
-        SaveDataViewModel.Factory(AppPreferences.readSavedItemsDatabase(this))
+    private val scenesViewModel by viewModels<ScenesViewModel> {
+        ScenesViewModel.Factory(AppPreferences.readScenesDatabase(this))
     }
 
 //    private lateinit var viewPager: ViewPager2
 
-    private val saveDataArchiving by lazy {
-        SaveDataArchiving(this)
+    private val sceneArchiving by lazy {
+        SceneArchiving(this)
     }
 
     private val editSceneCallback = object : ActionMode.Callback {
@@ -84,17 +79,16 @@ class MainActivity : AppCompatActivity() {
         override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
             return when (item?.itemId) {
                 R.id.action_edit_done -> {
-                    saveDataViewModel.editingStableId.value?.let { stableId ->
+                    scenesViewModel.editingStableId.value?.let { stableId ->
                         val bpm = metronomeViewModel.speed.value
                         val noteList = metronomeViewModel.noteList.value?.let { n -> noteListToString(n) }
                         val title = metronomeViewModel.scene.value
                         // TODO: maybe date and time
-                        saveDataViewModel.savedItems.value?.editItem(stableId, title = title, bpm = bpm, noteList = noteList)
-                        // saveCurrentSettings() // double check that this is already saved by savedatafragment
-                        saveDataViewModel.setActiveStableId(stableId)
-                        saveDataViewModel.setEditingStableId(SavedItem.NO_STABLE_ID)
-                        setMetronomeAndSaveDataViewPagerId(ViewPagerAdapter.SAVE_DATA)
-                        // viewPager.currentItem = ViewPagerAdapter.SAVE_DATA
+                        scenesViewModel.scenes.value?.editScene(stableId, title = title, bpm = bpm, noteList = noteList)
+                        // saveCurrentSettings() // double check that this is already saved by scenefragment
+                        scenesViewModel.setActiveStableId(stableId)
+                        scenesViewModel.setEditingStableId(Scene.NO_STABLE_ID)
+                        setMetronomeAndScenesViewPagerId(ViewPagerAdapter.SCENES)
                     }
                     mode?.finish()
                     true
@@ -104,7 +98,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onDestroyActionMode(mode: ActionMode?) {
-            saveDataViewModel.setEditingStableId(SavedItem.NO_STABLE_ID)
+            scenesViewModel.setEditingStableId(Scene.NO_STABLE_ID)
         }
     }
 
@@ -142,40 +136,9 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.commit {
                 setReorderingAllowed(true)
                 //add<MetronomeAndSaveDataFragment>(R.id.fragment_container)
-                replace<MetronomeAndSaveDataFragment>(R.id.fragment_container)
+                replace<MetronomeAndScenesFragment>(R.id.fragment_container)
             }
         }
-
-//        viewPager = findViewById(R.id.viewpager)
-//        viewPager.adapter = ViewPagerAdapter(this)
-//        //viewPager.currentItem = ViewPagerAdapter.METRONOME
-//        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-//            override fun onPageSelected(position: Int) {
-//                when (position) {
-//                    ViewPagerAdapter.METRONOME -> {
-//                        supportActionBar?.setDisplayHomeAsUpEnabled(false)
-//                    }
-//                    ViewPagerAdapter.SAVE_DATA ->{
-//                        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-//                    }
-//                    ViewPagerAdapter.SETTINGS -> {
-//                        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-//                    }
-//                }
-//                lockViewPager()
-//                super.onPageSelected(position)
-//            }
-//        })
-
-//        metronomeViewModel.disableViewPageUserInput.observe(this) {
-//            Log.v("Metronome", "MainActivity: observing disableViewPagerUserInput = $it")
-//            lockViewPager()
-//        }
-//
-//        saveDataViewModel.editingStableId.observe(this) {
-//            Log.v("Metronome", "MainActivity: observing editingStableId = $it")
-//            lockViewPager()
-//        }
 
         setDisplayHomeButton()
 //        Log.v("Metronome", "MainActivity:onCreate: end");
@@ -192,11 +155,11 @@ class MainActivity : AppCompatActivity() {
 //    }
 
     override fun onBackPressed() {
-        Log.v("Metronome", "MainActivity.onBackPressed():  backStackEntryCount = ${supportFragmentManager.backStackEntryCount}")
+//        Log.v("Metronome", "MainActivity.onBackPressed():  backStackEntryCount = ${supportFragmentManager.backStackEntryCount}")
        // viewPager.currentItem = ViewPagerAdapter.METRONOME
         when (supportFragmentManager.findFragmentById(R.id.fragment_container)) {
-            is MetronomeAndSaveDataFragment -> {
-                setMetronomeAndSaveDataViewPagerId(ViewPagerAdapter.METRONOME)
+            is MetronomeAndScenesFragment -> {
+                setMetronomeAndScenesViewPagerId(ViewPagerAdapter.METRONOME)
                 return
             }
         }
@@ -205,9 +168,9 @@ class MainActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(false)
     }
 
-    private fun setMetronomeAndSaveDataViewPagerId(id: Int) {
+    private fun setMetronomeAndScenesViewPagerId(id: Int) {
         when (val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)) {
-            is MetronomeAndSaveDataFragment -> {
+            is MetronomeAndScenesFragment -> {
                 currentFragment.viewPager?.currentItem = id
                 supportActionBar?.setDisplayHomeAsUpEnabled(id != ViewPagerAdapter.METRONOME)
             }
@@ -216,14 +179,14 @@ class MainActivity : AppCompatActivity() {
 
     fun setDisplayHomeButton() {
         //Log.v("Metronome", "MainActivity:setDisplayHomeButton: viewPager.currentItem = ${viewPager.currentItem}");
-        Log.v("Metronome", "MainActivity:setDisplayHomeButton: backStackEntryCount = ${supportFragmentManager.backStackEntryCount}");
+//        Log.v("Metronome", "MainActivity:setDisplayHomeButton: backStackEntryCount = ${supportFragmentManager.backStackEntryCount}");
         if (supportFragmentManager.backStackEntryCount > 0) {
             supportActionBar?.setDisplayHomeAsUpEnabled(true)
             return
         }
 
         when (val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)) {
-            is MetronomeAndSaveDataFragment -> {
+            is MetronomeAndScenesFragment -> {
                 val id =  currentFragment.viewPager?.currentItem
                 if (id != ViewPagerAdapter.METRONOME && id != null) {
                     supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -254,20 +217,22 @@ class MainActivity : AppCompatActivity() {
                  //   setDisplayHomeButton()
                 }
                 supportActionBar?.setDisplayHomeAsUpEnabled(true)
-            //    viewPager.currentItem = ViewPagerAdapter.SETTINGS
             }
             R.id.action_load -> {
-                setMetronomeAndSaveDataViewPagerId(ViewPagerAdapter.SAVE_DATA)
-            //    viewPager.currentItem = ViewPagerAdapter.SAVE_DATA
+                setMetronomeAndScenesViewPagerId(ViewPagerAdapter.SCENES)
             }
             R.id.action_save -> {
                 saveCurrentSettings()
             }
             R.id.action_archive -> {
-                saveDataArchiving.sendArchivingIntent(saveDataViewModel.savedItems.value)
+                if (scenesViewModel.scenes.value?.size ?: 0 == 0) {
+                    Toast.makeText(this, R.string.database_empty, Toast.LENGTH_LONG).show()
+                } else {
+                    sceneArchiving.sendArchivingIntent(scenesViewModel.scenes.value)
+                }
             }
             R.id.action_unarchive -> {
-                saveDataArchiving.sendUnarchivingIntent()
+                sceneArchiving.sendUnarchivingIntent()
             }
             R.id.action_clear_all -> {
                 clearAllSavedItems()
@@ -275,11 +240,11 @@ class MainActivity : AppCompatActivity() {
             R.id.action_edit -> {
                 val actionMode = startSupportActionMode(editSceneCallback)
                 actionMode?.title = getString(R.string.editing_scene)
-                val stableId = saveDataViewModel.activeStableId.value
+                val stableId = scenesViewModel.activeStableId.value
 //                Log.v("Metronome", "MainActivity: onOptionsItemSelected: R.id.action_edit, stableId = $stableId")
-                if (stableId != null && stableId != SavedItem.NO_STABLE_ID) {
-                    saveDataViewModel.setEditingStableId(stableId)
-                    setMetronomeAndSaveDataViewPagerId(ViewPagerAdapter.METRONOME)
+                if (stableId != null && stableId != Scene.NO_STABLE_ID) {
+                    scenesViewModel.setEditingStableId(stableId)
+                    setMetronomeAndScenesViewPagerId(ViewPagerAdapter.METRONOME)
                     // viewPager.currentItem = ViewPagerAdapter.METRONOME
                 }
             }
@@ -294,13 +259,19 @@ class MainActivity : AppCompatActivity() {
             return
 
         if (requestCode == FILE_CREATE) {
-            saveDataArchiving.archiveSavedItems(data?.data,
-                    saveDataViewModel.savedItems.value?.getSaveDataString())
+            sceneArchiving.archiveScenes(data?.data,
+                    scenesViewModel.scenes.value?.getScenesString())
         }
         else if (requestCode == FILE_OPEN) {
-            saveDataArchiving.unarchiveSaveItems(data?.data) { databaseString, task ->
-                saveDataViewModel.savedItems.value?.loadDataFromString(databaseString, task)
-                AppPreferences.writeSavedItemsDatabase(saveDataViewModel.savedItemsAsString, this)
+            sceneArchiving.unarchiveScenes(data?.data) { databaseString, task ->
+                when (scenesViewModel.scenes.value?.loadSceneFromString(databaseString, task)) {
+                    SceneDatabase.FileCheck.Empty ->
+                        Toast.makeText(this, R.string.file_empty, Toast.LENGTH_LONG).show()
+                    SceneDatabase.FileCheck.Invalid ->
+                        Toast.makeText(this, R.string.file_invalid, Toast.LENGTH_LONG).show()
+                    SceneDatabase.FileCheck.Ok ->
+                        AppPreferences.writeScenesDatabase(scenesViewModel.scenesAsString, this)
+                }
             }
         }
     }
@@ -310,17 +281,17 @@ class MainActivity : AppCompatActivity() {
             setTitle(R.string.clear_all_question)
             setNegativeButton(R.string.no) { dialog, _ -> dialog.dismiss() }
             setPositiveButton(R.string.yes) { _, _ ->
-                saveDataViewModel.savedItems.value?.clear()
-                AppPreferences.writeSavedItemsDatabase(saveDataViewModel.savedItemsAsString, this@MainActivity)
+                scenesViewModel.scenes.value?.clear()
+                AppPreferences.writeScenesDatabase(scenesViewModel.scenesAsString, this@MainActivity)
             }
         }
         builder.show()
     }
 
     private fun saveCurrentSettings() {
-        SaveDataDialog.save(this, metronomeViewModel.speed.value, metronomeViewModel.noteList.value) { item ->
-            saveDataViewModel.savedItems.value?.add(item)
-            AppPreferences.writeSavedItemsDatabase(saveDataViewModel.savedItemsAsString, this)
+        SaveSceneDialog.save(this, metronomeViewModel.speed.value, metronomeViewModel.noteList.value) { item ->
+            scenesViewModel.scenes.value?.add(item)
+            AppPreferences.writeScenesDatabase(scenesViewModel.scenesAsString, this)
             true
         }
     }

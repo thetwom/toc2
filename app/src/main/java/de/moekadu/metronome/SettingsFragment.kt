@@ -50,8 +50,8 @@ class SettingsFragment: PreferenceFragmentCompat() {
         val loadDataItem = menu.findItem(R.id.action_load)
         loadDataItem?.isVisible = false
 
-        val saveDataItem = menu.findItem(R.id.action_save)
-        saveDataItem?.isVisible = false
+        val scenesItem = menu.findItem(R.id.action_save)
+        scenesItem?.isVisible = false
 
         val archive = menu.findItem(R.id.action_archive)
         archive?.isVisible = false

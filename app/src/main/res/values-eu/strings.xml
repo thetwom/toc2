@@ -25,8 +25,8 @@
     <string name="mute">mututu</string>
     <string name="bpm">%s bpm</string>
 
-    <string name="load_data">Kargatu datuak</string>
-    <string name="save_data">Gorde datuak</string>
+    <string name="scenes">Kargatu datuak</string>
+    <string name="save_scene">Gorde datuak</string>
     <string name="load_from_disc">Kargatu datuak fitxategitik</string>
     <string name="save_to_disc">Gorde datuak fitxategian</string>
     <string name="clear_all">Guztiak kendu</string>
@@ -55,16 +55,16 @@
     <string name="about">Honi buruz</string>
 
     <string name="undo">Desegin</string>
-    <string name="item_deleted">Elementua ezabatu da</string>
+    <string name="scene_deleted">Elementua ezabatu da</string>
 
     <string name="save_settings_dialog_title">Gorde uneko ezarpenak</string>
     <string name="save_name">Izena</string>
-    <string name="saved_item_message">Uneko ezarpenak gorde dira: %s</string>
+    <string name="saved_scene_message">Uneko ezarpenak gorde dira: %s</string>
     <string name="save">Gorde</string>
     <string name="dismiss">Utzi</string>
     <string name="max_allowed_characters">Gehienezko karaktere kopurua: %d</string>
 
-    <string name="load_saved_items">Kargatu gordetako elementuak</string>
+    <string name="load_scenes">Kargatu gordetako elementuak</string>
     <string name="abort">Utzi</string>
     <string name="replace_current_list">Ordezkatu uneko zerrenda</string>
     <string name="prepend_current_list">Gehitu uneko zerrendaren hasieran</string>
@@ -75,7 +75,7 @@
 
     <string name="cannot_delete_last_note">Ezin duzu azken nota ezabatu.</string>
 
-    <string name="no_saved_items">Ez da elementurik gorde"</string>
+    <string name="no_scenes">Ez da elementurik gorde"</string>
 
     <string name="loaded_message">Kargatutako ezarpenak: %s</string>
 

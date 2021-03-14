@@ -33,7 +33,7 @@
     <item
         android:id="@+id/action_load"
         android:orderInCategory="99"
-        android:title="@string/load_data"
+        android:title="@string/scenes"
         android:icon="@drawable/ic_storage"
         app:showAsAction="ifRoom"
         />
@@ -41,7 +41,7 @@
     <item
         android:id="@+id/action_save"
         android:orderInCategory="98"
-        android:title="@string/save_data"
+        android:title="@string/save_scene"
         android:icon="@drawable/ic_save"
         app:showAsAction="ifRoom"
         />

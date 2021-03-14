@@ -25,29 +25,29 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 
-class SaveDataViewModel(initialDatabaseString: String) : ViewModel() {
+class ScenesViewModel(initialDatabaseString: String) : ViewModel() {
 
-    private val savedItemDatabase = SavedItemDatabase()
-    private val _savedItems = MutableLiveData(savedItemDatabase)
-    val savedItems: LiveData<SavedItemDatabase> get() = _savedItems
-    val savedItemsAsString: String get() = savedItems.value?.getSaveDataString() ?: ""
+    private val sceneDatabase = SceneDatabase()
+    private val _scenes = MutableLiveData(sceneDatabase)
+    val scenes: LiveData<SceneDatabase> get() = _scenes
+    val scenesAsString: String get() = scenes.value?.getScenesString() ?: ""
 
-    private val _activeStableId = MutableLiveData(SavedItem.NO_STABLE_ID)
+    private val _activeStableId = MutableLiveData(Scene.NO_STABLE_ID)
     val activeStableId: LiveData<Long> get() = _activeStableId
 
-    private val _editingStableId = MutableLiveData(SavedItem.NO_STABLE_ID)
+    private val _editingStableId = MutableLiveData(Scene.NO_STABLE_ID)
     val editingStableId: LiveData<Long> get() = _editingStableId
 
     init  {
-        savedItemDatabase.databaseChangedListener = SavedItemDatabase.DatabaseChangedListener {
-//            Log.v("Metronome", "SaveDataViewModel.init: database changed")
-            _savedItems.value = it
+        sceneDatabase.databaseChangedListener = SceneDatabase.DatabaseChangedListener {
+//            Log.v("Metronome", "ScenesViewModel.init: database changed")
+            _scenes.value = it
         }
-        savedItemDatabase.loadDataFromString(initialDatabaseString, SavedItemDatabase.REPLACE)
+        sceneDatabase.loadSceneFromString(initialDatabaseString, SceneDatabase.InsertMode.Replace)
     }
 
     fun setActiveStableId(stableId: Long) {
-        Log.v("Metronome", "SaveDataViewModel.setStableActiveId: $stableId")
+//        Log.v("Metronome", "ScenesViewModel.setStableActiveId: $stableId")
         _activeStableId.value = stableId
     }
 
@@ -58,8 +58,8 @@ class SaveDataViewModel(initialDatabaseString: String) : ViewModel() {
     class Factory(private val initialDatabaseString: String) : ViewModelProvider.Factory {
         @Suppress("unchecked_cast")
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            Log.v("Metronome", "SaveDataViewModel.factory.create")
-            return SaveDataViewModel(initialDatabaseString) as T
+            Log.v("Metronome", "ScenesViewModel.factory.create")
+            return ScenesViewModel(initialDatabaseString) as T
         }
     }
 }

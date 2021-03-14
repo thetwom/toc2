@@ -12,8 +12,8 @@
     <string name="mute">muet</string>
 <!--    <string name="bpm" translatable="false">%s bpm</string>-->
 
-    <string name="load_data">Charger un réglage</string>
-    <string name="save_data">Sauver le réglage</string>
+    <string name="scenes">Charger un réglage</string>
+    <string name="save_scene">Sauver le réglage</string>
     <string name="load_from_disc">Charger des réglages depuis un fichier</string>
     <string name="save_to_disc">Sauver les réglages dans un fichier</string>
     <string name="clear_all">Tout supprimer</string>
@@ -42,16 +42,16 @@
     <string name="about">A propos</string>
 
     <string name="undo">Annuler</string>
-    <string name="item_deleted">Réglage supprimé</string>
+    <string name="scene_deleted">Réglage supprimé</string>
 
     <string name="save_settings_dialog_title">Sauver le réglage actuel</string>
     <string name="save_name">Nom</string>
-    <string name="saved_item_message">Réglage actuel sauvé\u00A0: %s</string>
+    <string name="saved_scene_message">Réglage actuel sauvé\u00A0: %s</string>
     <string name="save">Sauver</string>
     <string name="dismiss">Annuler</string>
     <string name="max_allowed_characters">Nombre de caractères maximum\u00A0: %d</string>
 
-    <string name="load_saved_items">Charger des réglages</string>
+    <string name="load_scenes">Charger des réglages</string>
     <string name="abort">Annuler</string>
     <string name="replace_current_list">Remplacer la liste</string>
     <string name="prepend_current_list">Ajouter au début de la liste</string>
@@ -62,7 +62,7 @@
 
     <string name="cannot_delete_last_note">Vous ne pouvez pas supprimer la dernière note.</string>
 
-    <string name="no_saved_items">Aucun réglage sauvé pour le moment</string>
+    <string name="no_scenes">Aucun réglage sauvé pour le moment</string>
 
     <string name="loaded_message">Réglage chargé\u00A0: %s</string>
 

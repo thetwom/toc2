@@ -24,16 +24,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <TextView
-        android:id="@+id/noSavedItemsMessage"
+        android:id="@+id/noScenesMessage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         android:layout_gravity="center_horizontal"
-        android:text="@string/no_saved_items"
+        android:text="@string/no_scenes"
         />
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/savedItems"
+        android:id="@+id/scenes"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scrollbars="vertical" />

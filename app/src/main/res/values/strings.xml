@@ -30,12 +30,12 @@
     <string name="mute">mute</string>
     <string name="bpm">%s bpm</string>
 
-    <string name="load_data">Load data</string>
-    <string name="save_data">Save data</string>
-    <string name="load_from_disc">Load data from file</string>
-    <string name="save_to_disc">Save data to file</string>
+    <string name="scenes">Scenes</string>
+    <string name="save_scene">Save scene</string>
+    <string name="load_from_disc">Load scenes from file</string>
+    <string name="save_to_disc">Save scenes to file</string>
     <string name="clear_all">Clear all</string>
-    <string name="clear_all_question">Clear all items?</string>
+    <string name="clear_all_question">Delete all scenes?</string>
     <string name="title">Title</string>
     <string name="done">Done</string>
     <string name="appearance">Appearance</string>
@@ -60,29 +60,29 @@
     <string name="about">About</string>
 
     <string name="undo">Undo</string>
-    <string name="item_deleted">Item deleted</string>
+    <string name="scene_deleted">Scene deleted</string>
 
-    <string name="save_settings_dialog_title">Save current settings</string>
+    <string name="save_settings_dialog_title">Save scene</string>
     <string name="save_name">Name</string>
-    <string name="saved_item_message">Saved current settings: %s</string>
+    <string name="saved_scene_message">Saved scene: %s</string>
     <string name="save">Save</string>
     <string name="dismiss">Dismiss</string>
     <string name="max_allowed_characters">Maximum character number: %d</string>
 
-    <string name="load_saved_items">Load saved items</string>
+    <string name="load_scenes">Load scenes</string>
     <string name="abort">Abort</string>
     <string name="replace_current_list">Replace current list</string>
     <string name="prepend_current_list">Prepend to current list</string>
     <string name="append_current_list">Append to current list</string>
     <string name="file_empty">File is empty</string>
     <string name="file_invalid">Invalid file</string>
-    <string name="database_empty">There are no items which can be saved.</string>
+    <string name="database_empty">There are no scenes which can be saved.</string>
 
     <string name="cannot_delete_last_note">You cannot delete the last note.</string>
     
-    <string name="no_saved_items">Currently no saved items"</string>
+    <string name="no_scenes">Currently no saved scenes.</string>
 
-    <string name="loaded_message">Loaded settings: %s</string>
+    <string name="loaded_message">Loaded scene: %s</string>
 
     <string name="tap_in">TAP IN</string>
 
@@ -97,7 +97,7 @@
     <string name="min_speed_higher_maximum">Given minimum speed (%s) is higher than maximum speed (%s).</string>
     <string name="inconsistent_saved_increment">Saved speed %s bpm cannot be resolved by the current speed increment %s bpm.\n</string>
     <string name="inconsistent_load_title">Inconsistent load</string>
-    <string name="inconsistent_summary">\nChange your settings if you want to load the item correctly.</string>
+    <string name="inconsistent_summary">\nChange your settings if you want to load the scene correctly.</string>
     <string name="acknowledged">Acknowledged</string>
 
     <string name="keep_screen_on">Keep screen on</string>
@@ -115,11 +115,11 @@
     <string name="inconsistent_increment">Given speed (%s bpm) cannot be resolved by current increment (%s bpm).</string>
     <string name="vibrate_delay">Vibration delay</string>
     <string name="milliseconds">%d ms</string>
-    <string name="database_saved">Writing data to \"%s\".</string>
+    <string name="database_saved">Writing scenes to \"%s\".</string>
     <string name="play_pause">play and pause</string>
     <string name="edit">Edit</string>
     <string name="editing_scene">Editing scene</string>
-    <string name="rename_saved_item">Rename</string>
+    <string name="rename_scene">Rename</string>
     <string name="scene">Scene: %s</string>
 
 </resources>

@@ -29,10 +29,10 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
-class SaveDataDialog {
+class SaveSceneDialog {
     companion object {
         @SuppressLint("SimpleDateFormat")
-        fun save(context: Context, speed: Float?, noteList: ArrayList<NoteListItem>?, saveItem: (SavedItem) -> Boolean) {
+        fun save(context: Context, speed: Float?, noteList: ArrayList<NoteListItem>?, saveItem: (Scene) -> Boolean) {
             if (speed == null || noteList == null)
                 return
 
@@ -60,10 +60,10 @@ class SaveDataDialog {
                         Toast.makeText(context, context.getString(R.string.max_allowed_characters, 200), Toast.LENGTH_SHORT).show()
                     }
 
-                    val item = SavedItem(title, date, time, bpm, noteListToString(noteList), SavedItem.NO_STABLE_ID)
+                    val item = Scene(title, date, time, bpm, noteListToString(noteList), Scene.NO_STABLE_ID)
                     val success = saveItem(item)
                     if (success) {
-                        Toast.makeText(context, context.getString(R.string.saved_item_message, item.title),
+                        Toast.makeText(context, context.getString(R.string.saved_scene_message, item.title),
                                 Toast.LENGTH_SHORT).show()
                     }
                 }

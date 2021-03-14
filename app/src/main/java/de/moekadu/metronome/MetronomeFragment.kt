@@ -52,8 +52,8 @@ class MetronomeFragment : Fragment() {
         MetronomeViewModel.Factory(playerConnection)
     }
 
-    private val saveDataViewModel by activityViewModels<SaveDataViewModel> {
-        SaveDataViewModel.Factory(AppPreferences.readSavedItemsDatabase(requireActivity()))
+    private val scenesViewModel by activityViewModels<ScenesViewModel> {
+        ScenesViewModel.Factory(AppPreferences.readScenesDatabase(requireActivity()))
     }
 
     private val singleNotePlayer by lazy {
@@ -97,7 +97,7 @@ class MetronomeFragment : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        Log.v("Metronome", "MetronomeFragment:onCreateView");
+//        Log.v("Metronome", "MetronomeFragment:onCreateView")
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_metronome, container, false)
 
@@ -315,13 +315,13 @@ class MetronomeFragment : Fragment() {
 
         scene = view.findViewById(R.id.scene)
         scene?.setOnClickListener {
-            if (saveDataViewModel.editingStableId.value != SavedItem.NO_STABLE_ID) {
+            if (scenesViewModel.editingStableId.value != Scene.NO_STABLE_ID) {
                 val editText = EditText(requireContext()).apply {
                     setHint(R.string.save_name)
                     inputType = InputType.TYPE_CLASS_TEXT
                 }
                 val dialogBuilder = AlertDialog.Builder(requireContext()).apply {
-                    setTitle(R.string.rename_saved_item)
+                    setTitle(R.string.rename_scene)
                     setView(editText)
                     setNegativeButton(R.string.dismiss) { dialog, _ -> dialog.cancel() }
                     setPositiveButton(R.string.done) { _, _ ->
@@ -427,25 +427,25 @@ class MetronomeFragment : Fragment() {
             }
         }
 
-        saveDataViewModel.activeStableId.observe(viewLifecycleOwner) { stableId ->
+        scenesViewModel.activeStableId.observe(viewLifecycleOwner) { stableId ->
             Log.v("Metronome", "MetronomeFragment: observing activeStableId")
-            if (saveDataViewModel.editingStableId.value == SavedItem.NO_STABLE_ID)
-                viewModel.setScene(saveDataViewModel.savedItems.value?.getItem(stableId)?.title)
+            if (scenesViewModel.editingStableId.value == Scene.NO_STABLE_ID)
+                viewModel.setScene(scenesViewModel.scenes.value?.getScene(stableId)?.title)
         }
 
-        saveDataViewModel.editingStableId.observe(viewLifecycleOwner) { stableId ->
-            val activeStableId = saveDataViewModel.activeStableId.value
+        scenesViewModel.editingStableId.observe(viewLifecycleOwner) { stableId ->
+            val activeStableId = scenesViewModel.activeStableId.value
 
-            if (stableId != SavedItem.NO_STABLE_ID) {
-                viewModel.setScene(saveDataViewModel.savedItems.value?.getItem(stableId)?.title)
-                scene?.translationZ = 5f
+            if (stableId != Scene.NO_STABLE_ID) {
+                viewModel.setScene(scenesViewModel.scenes.value?.getScene(stableId)?.title)
+                scene?.translationZ = Utilities.dp2px(8f)
                 scene?.isClickable = true
                 context?.let {
                     scene?.background = ContextCompat.getDrawable(it, R.drawable.edit_scene_background)
                 }
             }
-            else if (activeStableId != null && activeStableId != SavedItem.NO_STABLE_ID) {
-                viewModel.setScene(saveDataViewModel.savedItems.value?.getItem(activeStableId)?.title)
+            else if (activeStableId != null && activeStableId != Scene.NO_STABLE_ID) {
+                viewModel.setScene(scenesViewModel.scenes.value?.getScene(activeStableId)?.title)
                 scene?.translationZ = 0f
                 scene?.isClickable = false
                 scene?.background = null
@@ -519,8 +519,8 @@ class MetronomeFragment : Fragment() {
         val loadDataItem = menu.findItem(R.id.action_load)
         loadDataItem?.isVisible = true
 
-        val saveDataItem = menu.findItem(R.id.action_save)
-        saveDataItem?.isVisible = true
+        val scenesItem = menu.findItem(R.id.action_save)
+        scenesItem?.isVisible = true
 
         val archive = menu.findItem(R.id.action_archive)
         archive?.isVisible = false

@@ -26,10 +26,10 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.database.getStringOrNull
 
-class SaveDataArchiving(private val activity: MainActivity) {
+class SceneArchiving(private val activity: MainActivity) {
 
-    fun sendArchivingIntent(savedItemDatabase: SavedItemDatabase?) {
-        if (savedItemDatabase?.size ?: 0 == 0) {
+    fun sendArchivingIntent(sceneDatabase: SceneDatabase?) {
+        if (sceneDatabase?.size ?: 0 == 0) {
             Toast.makeText(activity, R.string.database_empty, Toast.LENGTH_LONG).show()
         } else {
             val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
@@ -53,7 +53,7 @@ class SaveDataArchiving(private val activity: MainActivity) {
         activity.startActivityForResult(intent, MainActivity.FILE_OPEN)
     }
 
-    fun archiveSavedItems(uri: Uri?, databaseString: String?) {
+    fun archiveScenes(uri: Uri?, databaseString: String?) {
         if (uri == null)
             return
 
@@ -65,18 +65,18 @@ class SaveDataArchiving(private val activity: MainActivity) {
         }
     }
 
-    fun unarchiveSaveItems(uri: Uri?, loadDatabaseFromString: (String, Int) -> Unit) {
+    fun unarchiveScenes(uri: Uri?, loadDatabaseFromString: (String, SceneDatabase.InsertMode) -> Unit) {
         if (uri == null)
             return
         val builder = AlertDialog.Builder(activity).apply {
-            setTitle(R.string.load_saved_items)
+            setTitle(R.string.load_scenes)
             setNegativeButton(R.string.abort) {dialog,_  -> dialog.dismiss()}
-            setItems(R.array.load_saved_items_list) {_, which ->
-                val array = activity.resources.getStringArray(R.array.load_saved_items_list)
+            setItems(R.array.load_scenes_list) { _, which ->
+                val array = activity.resources.getStringArray(R.array.load_scenes_list)
                 val task = when(array[which]) {
-                    activity.getString(R.string.prepend_current_list) -> SavedItemDatabase.PREPEND
-                    activity.getString(R.string.append_current_list) -> SavedItemDatabase.APPEND
-                    else -> SavedItemDatabase.REPLACE
+                    activity.getString(R.string.prepend_current_list) -> SceneDatabase.InsertMode.Prepend
+                    activity.getString(R.string.append_current_list) -> SceneDatabase.InsertMode.Append
+                    else -> SceneDatabase.InsertMode.Replace
                 }
 
                 activity.contentResolver?.openInputStream(uri)?.use { stream ->
