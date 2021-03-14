@@ -25,32 +25,44 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
+<!--    <View-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="1dp"-->
+<!--        android:background="?android:attr/colorPrimary"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        />-->
     <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="?android:attr/colorPrimary"
+        android:id="@+id/scene_active"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:foreground="@drawable/scene_background_active"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:elevation="5dp"
+        android:visibility="invisible"
         />
 
-<!--    <de.moekadu.metronome.SavedItemAttributes-->
-<!--        android:id="@+id/saved_item_attributes"-->
-<!--        android:layout_width="0dp"-->
-<!--        android:layout_height="0dp"-->
-<!--        app:backgroundColor="?android:attr/colorBackground"-->
-<!--        app:onBackgroundColor="?attr/colorOnBackground"-->
-<!--        app:layout_constraintTop_toTopOf="parent"-->
-<!--        app:layout_constraintStart_toStartOf="parent"/>-->
+    <de.moekadu.metronome.TickVisualizer
+        android:id="@+id/scene_ticks_visualizer"
+        android:layout_width="match_parent"
+        android:layout_height="5dp"
+        app:color="@color/colorPrimary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="4dp"
+        />
 
     <TextView
         android:id="@+id/scene_title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:padding="4dp"
-        android:textSize="18sp"
+        android:padding="8dp"
+        android:textSize="16sp"
         android:text="@string/title"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/scene_date"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <de.moekadu.metronome.NoteView
@@ -66,25 +78,28 @@
         app:normalColor="?attr/colorBackgroundFloating"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/scene_speed"
-        app:layout_constraintTop_toBottomOf="@id/scene_title"/>
+        app:layout_constraintTop_toBottomOf="@id/scene_title"
+        app:layout_constraintBottom_toTopOf="@id/scene_ticks_visualizer"
+        />
 
-    <TextView
-        android:id="@+id/scene_date"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="4dp"
-        android:textSize="12sp"
-        android:text="12:00h  21.03.2019"
-        android:gravity="end"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="HardcodedText" />
+<!--    <TextView-->
+<!--        android:id="@+id/scene_date"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:padding="4dp"-->
+<!--        android:textSize="12sp"-->
+<!--        android:text="12:00h  21.03.2019"-->
+<!--        android:gravity="end"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent"-->
+<!--        tools:ignore="HardcodedText" />-->
 
     <TextView
         android:id="@+id/scene_speed"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:padding="4dp"
+        android:paddingStart="8dp"
         android:text="65 bpm"
         android:textSize="16sp"
         android:gravity="center"

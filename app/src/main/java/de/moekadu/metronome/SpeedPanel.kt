@@ -344,7 +344,7 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 
         if(nTapSamples >= 3) {
             speedChangedListener?.onAbsoluteSpeedChanged(
-                    Utilities.dt2speed(dt.roundToLong()), (predictNextTap + tapDelay))
+                    Utilities.ms2bpm(dt.roundToLong()), (predictNextTap + tapDelay))
         }
     }
 }

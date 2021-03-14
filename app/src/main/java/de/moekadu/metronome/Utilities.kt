@@ -61,11 +61,11 @@ class Utilities {
 //            return dp2px(cm * 160.0f / 2.54f)
 //        }
 
-        fun speed2dt(speed: Float): Long {
+        fun bpm2ms(speed: Float): Long {
             return (1000.0 * 60.0 / speed).roundToLong()
         }
 
-        fun dt2speed(dt: Long): Float {
+        fun ms2bpm(dt: Long): Float {
             return 60.0f * 1000.0f / dt
         }
 

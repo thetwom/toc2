@@ -279,7 +279,7 @@ class PlayerService : LifecycleService() {
     }
 
     private fun computeNoteDurationInSeconds(speed: Float) : Float {
-        return Utilities.speed2dt(speed) / 1000.0f
+        return Utilities.bpm2ms(speed) / 1000.0f
     }
 
     fun addValueToSpeed(dSpeed : Float) {

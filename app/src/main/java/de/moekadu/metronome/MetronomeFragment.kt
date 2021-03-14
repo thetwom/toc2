@@ -399,7 +399,7 @@ class MetronomeFragment : Fragment() {
         }
 
         viewModel.noteStartedEvent.observe(viewLifecycleOwner) {
-            viewModel.speed.value?.let { speed -> tickVisualizer?.tick(Utilities.speed2dt(speed)) }
+            viewModel.speed.value?.let { speed -> tickVisualizer?.tick(Utilities.bpm2ms(speed)) }
             noteView?.animateNote(it.uid)
             soundChooser?.animateNote(it.uid)
         }

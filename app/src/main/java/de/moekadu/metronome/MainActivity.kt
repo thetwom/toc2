@@ -46,7 +46,6 @@ class MainActivity : AppCompatActivity() {
     // TODO: translations
 
     // TODO: volume control shouldn't animate if volume changes only one step
-    // TODO: don't show date on time of scenes
     // TODO: introduce sensitive area to change to saved-item-fragment (and maybe remove the icon of the toolbar)
 
     private val metronomeViewModel by viewModels<MetronomeViewModel> {
@@ -59,8 +58,6 @@ class MainActivity : AppCompatActivity() {
     private val scenesViewModel by viewModels<ScenesViewModel> {
         ScenesViewModel.Factory(AppPreferences.readScenesDatabase(this))
     }
-
-//    private lateinit var viewPager: ViewPager2
 
     private val sceneArchiving by lazy {
         SceneArchiving(this)
@@ -135,7 +132,6 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState == null) {
             supportFragmentManager.commit {
                 setReorderingAllowed(true)
-                //add<MetronomeAndSaveDataFragment>(R.id.fragment_container)
                 replace<MetronomeAndScenesFragment>(R.id.fragment_container)
             }
         }
@@ -156,7 +152,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
 //        Log.v("Metronome", "MainActivity.onBackPressed():  backStackEntryCount = ${supportFragmentManager.backStackEntryCount}")
-       // viewPager.currentItem = ViewPagerAdapter.METRONOME
         when (supportFragmentManager.findFragmentById(R.id.fragment_container)) {
             is MetronomeAndScenesFragment -> {
                 setMetronomeAndScenesViewPagerId(ViewPagerAdapter.METRONOME)
@@ -245,7 +240,6 @@ class MainActivity : AppCompatActivity() {
                 if (stableId != null && stableId != Scene.NO_STABLE_ID) {
                     scenesViewModel.setEditingStableId(stableId)
                     setMetronomeAndScenesViewPagerId(ViewPagerAdapter.METRONOME)
-                    // viewPager.currentItem = ViewPagerAdapter.METRONOME
                 }
             }
         }
@@ -295,23 +289,6 @@ class MainActivity : AppCompatActivity() {
             true
         }
     }
-
-//    private fun lockViewPager() {
-//        var lock = false
-//
-//        if (metronomeViewModel.disableViewPageUserInput.value == true)
-//            lock = true
-//
-//        saveDataViewModel.editingStableId.value?.let {
-//            if (it != SavedItem.NO_STABLE_ID)
-//                lock = true
-//        }
-//
-////        if (viewPager.currentItem == ViewPagerAdapter.SETTINGS)
-////            lock = true
-////
-////        viewPager.isUserInputEnabled = !lock
-//    }
 
     companion object {
         const val FILE_CREATE = 1

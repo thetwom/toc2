@@ -49,19 +49,21 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
             set(value) {
                 field = value
                 if (value) {
-                    view.setBackgroundResource(R.drawable.choice_button_background_active)
-//                    titleView?.setTextColor(Color.RED)
+                    //view.setBackgroundResource(R.drawable.scene_background_active)
+                    selectedView?.visibility = View.VISIBLE
                 }
                 else {
-                    view.setBackgroundResource(R.drawable.choice_button_background)
-//                    titleView?.setTextColor(Color.GREEN)
+                    //view.setBackgroundResource(R.drawable.scene_background)
+                    selectedView?.visibility = View.INVISIBLE
                 }
             }
 
         var titleView: TextView? = null
-        var dateView: TextView? = null
+        //var dateView: TextView? = null
         var speedView: TextView? = null
         var noteView: NoteView? = null
+        var tickVisualizer: TickVisualizer? = null
+        var selectedView: View? = null
     }
 
     fun interface OnSceneClickedListener {
@@ -84,15 +86,21 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
         }
     }
 
-    fun animateNote(index: Int, recyclerView: RecyclerView?) {
+    fun animateNoteAndTickVisualizer(index: Int, bpm: Float?, recyclerView: RecyclerView?) {
         if (recyclerView == null)
+            return
+        if (index < 0 && bpm != null)
             return
 
         for (i in 0 until recyclerView.childCount) {
             val child = recyclerView.getChildAt(i)
             (recyclerView.getChildViewHolder(child) as ScenesAdapter.ViewHolder).let { viewHolder ->
-                if (viewHolder.isActivated)
-                    viewHolder.noteView?.animateNote(index)
+                if (viewHolder.isActivated) {
+                    if (index >= 0)
+                        viewHolder.noteView?.animateNote(index)
+                    if (bpm != null)
+                        viewHolder.tickVisualizer?.tick(Utilities.bpm2ms(bpm))
+                }
             }
         }
     }
@@ -104,10 +112,12 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.scene, parent, false)
         return ViewHolder(view).apply {
-           titleView = view.findViewById(R.id.scene_title) as TextView?
-           dateView = view.findViewById(R.id.scene_date) as TextView?
-           speedView = view.findViewById(R.id.scene_speed) as TextView?
-           noteView = view.findViewById(R.id.scene_sounds) as NoteView?
+            titleView = view.findViewById(R.id.scene_title)
+            //dateView = view.findViewById(R.id.scene_date)
+            speedView = view.findViewById(R.id.scene_speed)
+            noteView = view.findViewById(R.id.scene_sounds)
+            tickVisualizer = view.findViewById(R.id.scene_ticks_visualizer)
+            selectedView =  view.findViewById(R.id.scene_active)
            view.setOnClickListener {
                activatedStableId = itemId
                onSceneClickedListener?.onSceneClicked(itemId)
@@ -120,7 +130,7 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
 
         holder.isActivated = (scene.stableId == activatedStableId)
         holder.titleView?.text = scene.title
-        holder.dateView?.text = scene.date + "\n" + scene.time
+        //holder.dateView?.text = scene.date + "\n" + scene.time
         holder.speedView?.text = holder.view.context.getString(R.string.bpm, Utilities.getBpmString(scene.bpm))
         Log.v("Metronome", "SceneDatabase.onBindViewHolder: scene.noteList = ${scene.noteList}, scene.bpm = ${scene.bpm}")
 

@@ -57,8 +57,8 @@ class ScenesFragment : Fragment() {
     }
     private var speedLimiter: SpeedLimiter? = null
 
-    private var savedItemRecyclerView: RecyclerView? = null
-    private val savedItemsAdapter = ScenesAdapter().apply {
+    private var scenesRecyclerView: RecyclerView? = null
+    private val scenesAdapter = ScenesAdapter().apply {
         onSceneClickedListener = ScenesAdapter.OnSceneClickedListener { stableId ->
             // this will lead to loading the clicked item
             viewModel.setActiveStableId(stableId)
@@ -68,7 +68,7 @@ class ScenesFragment : Fragment() {
     private var lastRemovedItemIndex = -1
     private var lastRemovedItem: Scene? = null
 
-    private var noSavedItemsMessage: TextView? = null
+    private var noScenesMessage: TextView? = null
 
     private var playFab: FloatingActionButton? = null
     private var playFabStatus = PlayerStatus.Paused
@@ -105,7 +105,7 @@ class ScenesFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_scenes, container, false)
 
-        noSavedItemsMessage = view.findViewById(R.id.noScenesMessage)
+        noScenesMessage = view.findViewById(R.id.noScenesMessage)
 
         playFab = view.findViewById(R.id.play_fab)
 
@@ -116,10 +116,10 @@ class ScenesFragment : Fragment() {
                 metronomeViewModel.play()
         }
 
-        savedItemRecyclerView = view.findViewById(R.id.scenes)
-        savedItemRecyclerView?.setHasFixedSize(true)
-        savedItemRecyclerView?.layoutManager = LinearLayoutManager(requireContext())
-        savedItemRecyclerView?.adapter = savedItemsAdapter
+        scenesRecyclerView = view.findViewById(R.id.scenes)
+        scenesRecyclerView?.setHasFixedSize(true)
+        scenesRecyclerView?.layoutManager = LinearLayoutManager(requireContext())
+        scenesRecyclerView?.adapter = scenesAdapter
 //        setSelectionTracker()
 
         val simpleTouchHelper = object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.LEFT) {
@@ -185,7 +185,7 @@ class ScenesFragment : Fragment() {
         }
 
         val touchHelper = ItemTouchHelper(simpleTouchHelper)
-        touchHelper.attachToRecyclerView(savedItemRecyclerView)
+        touchHelper.attachToRecyclerView(scenesRecyclerView)
 
         metronomeViewModel.noteList.observe(viewLifecycleOwner) {noteList ->
             // all this complicated code just checks is the notelist of the active stable id
@@ -225,8 +225,7 @@ class ScenesFragment : Fragment() {
         metronomeViewModel.noteStartedEvent.observe(viewLifecycleOwner) { noteListItem ->
             metronomeViewModel.noteList.value?.let { noteList ->
                 val index = noteList.indexOfFirst { it.uid == noteListItem.uid }
-                if (index >= 0)
-                    savedItemsAdapter.animateNote(index, savedItemRecyclerView)
+                scenesAdapter.animateNoteAndTickVisualizer(index, metronomeViewModel.speed.value, scenesRecyclerView)
             }
         }
 
@@ -234,13 +233,13 @@ class ScenesFragment : Fragment() {
 //            Log.v("Metronome", "ScenesFragment: submitting new data base list to adapter: size: ${database.savedItems.size}")
             val databaseCopy = ArrayList<Scene>(database.scenes.size)
             database.scenes.forEach { databaseCopy.add(it.copy()) }
-            savedItemsAdapter.submitList(databaseCopy)
+            scenesAdapter.submitList(databaseCopy)
             activity?.let{AppPreferences.writeScenesDatabase(viewModel.scenesAsString, it)}
 
             if(database.size == 0)
-                noSavedItemsMessage?.visibility = View.VISIBLE
+                noScenesMessage?.visibility = View.VISIBLE
             else
-                noSavedItemsMessage?.visibility = View.GONE
+                noScenesMessage?.visibility = View.GONE
         }
 
         viewModel.activeStableId.observe(viewLifecycleOwner) { stableId ->
@@ -260,7 +259,7 @@ class ScenesFragment : Fragment() {
                 activity?.invalidateOptionsMenu()
             }
 
-            savedItemsAdapter.setActiveStableId(stableId, savedItemRecyclerView)
+            scenesAdapter.setActiveStableId(stableId, scenesRecyclerView)
         }
 
         if (metronomeViewModel.playerStatus.value == PlayerStatus.Playing)
