@@ -273,6 +273,7 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         when (action) {
             MotionEvent.ACTION_DOWN -> {
                 sliderButton.isPressed = true
+                parent.requestDisallowInterceptTouchEvent(true)
                 onVolumeChangedListener?.onDown()
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {

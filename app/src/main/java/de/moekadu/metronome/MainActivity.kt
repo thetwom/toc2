@@ -163,7 +163,7 @@ class MainActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(false)
     }
 
-    private fun setMetronomeAndScenesViewPagerId(id: Int) {
+    fun setMetronomeAndScenesViewPagerId(id: Int) {
         when (val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)) {
             is MetronomeAndScenesFragment -> {
                 currentFragment.viewPager?.currentItem = id

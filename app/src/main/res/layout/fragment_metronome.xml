@@ -144,7 +144,7 @@
      app:layout_constraintVertical_weight="0.08"/>
 
     <TextView
-        android:id="@+id/scene"
+        android:id="@+id/scene_title_active"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
@@ -160,20 +160,48 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_gravity="center"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:text="SPEED"
+        android:layout_marginStart="0dp"
+        android:layout_marginTop="0dp"
+        android:layout_marginEnd="0dp"
+        android:padding="8dp"
+        android:elevation="4dp"
+        android:text="@string/bpm"
         android:textAlignment="center"
         app:autoSizeTextType="uniform"
         android:textColor="?attr/colorPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/scene"
-        app:layout_constraintHeight_percent="0.1"
+        app:layout_constraintTop_toBottomOf="@id/scene_title_active"
+        app:layout_constraintHeight_percent="0.12"
         tools:layout_conversion_wrapHeight="108"
         tools:layout_conversion_wrapWidth="239"
         tools:ignore="HardcodedText" />
+
+<!--    <View-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="1dp"-->
+<!--        app:layout_constraintEnd_toEndOf="@id/speed_text"-->
+<!--        app:layout_constraintStart_toStartOf="@id/speed_text"-->
+<!--        app:layout_constraintBottom_toBottomOf="@id/speed_text"-->
+<!--        android:background="?attr/colorPrimary"-->
+<!--        />-->
+
+    <ImageButton
+        android:id="@+id/scenes_button"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        app:layout_constraintHeight_percent="0.1"
+        app:layout_constraintRight_toRightOf="@id/speed_text"
+        app:layout_constraintTop_toBottomOf="@id/scene_title_active"
+        android:src="@drawable/ic_scenes_swipe2"
+        android:scaleType="fitEnd"
+        android:tint="?attr/colorPrimaryFaint"
+        android:background="@null"
+        android:padding="8dp"
+        android:elevation="0dp"
+        android:contentDescription="@string/scenes"
+        />
+    <!--    android:background="@drawable/scene_button_background"-->
 
     <ImageButton
         android:id="@+id/plus_button_notelines"

@@ -63,6 +63,9 @@ class PlayButton(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     interface ButtonClickedListener {
         fun onPlay()
         fun onPause()
+
+        fun onDown() {}
+        fun onUp() {}
     }
 
     var buttonClickedListener : ButtonClickedListener? = null
@@ -169,6 +172,7 @@ class PlayButton(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             MotionEvent.ACTION_DOWN -> {
                 return if (radiusXY <= radius) {
                     isPressed = true
+                    buttonClickedListener?.onDown()
                     true
                 } else {
                     isPressed = false
@@ -180,12 +184,14 @@ class PlayButton(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                     true
                 } else {
                     isPressed = false
+                    buttonClickedListener?.onUp()
                     false
                 }
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 if (radiusXY <= radius && isPressed) {
                     isPressed = false
+                    buttonClickedListener?.onUp()
                     performClick()
                 }
                 else {

@@ -1,6 +1,7 @@
 package de.moekadu.metronome
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,20 +11,21 @@ import androidx.viewpager2.widget.ViewPager2
 
 class MetronomeAndScenesFragment : Fragment() {
 
-    private val metronomeViewModel by activityViewModels<MetronomeViewModel> {
-        val playerConnection = PlayerServiceConnection.getInstance(
-                requireContext(),
-                AppPreferences.readMetronomeSpeed(requireActivity()),
-                AppPreferences.readMetronomeNoteList(requireActivity())
-        )
-        MetronomeViewModel.Factory(playerConnection)
-    }
+//    private val metronomeViewModel by activityViewModels<MetronomeViewModel> {
+//        val playerConnection = PlayerServiceConnection.getInstance(
+//                requireContext(),
+//                AppPreferences.readMetronomeSpeed(requireActivity()),
+//                AppPreferences.readMetronomeNoteList(requireActivity())
+//        )
+//        MetronomeViewModel.Factory(playerConnection)
+//    }
 
     private val scenesViewModel by activityViewModels<ScenesViewModel> {
         ScenesViewModel.Factory(AppPreferences.readScenesDatabase(requireActivity()))
     }
 
     var viewPager: ViewPager2? = null
+        private set
 
     private val pageChangeListener = object : ViewPager2.OnPageChangeCallback() {
         override fun onPageSelected(position: Int) {
@@ -42,9 +44,11 @@ class MetronomeAndScenesFragment : Fragment() {
 
         viewPager?.registerOnPageChangeCallback(pageChangeListener)
 
-        metronomeViewModel.disableViewPageUserInput.observe(viewLifecycleOwner) {
-            lockViewPager()
-        }
+//        if (viewPager?.currentItem == ViewPagerAdapter.METRONOME)
+//            viewPager?.isUserInputEnabled = false
+//        else
+//            viewPager?.isUserInputEnabled = true
+
 
         scenesViewModel.editingStableId.observe(viewLifecycleOwner) {
             lockViewPager()
@@ -59,9 +63,6 @@ class MetronomeAndScenesFragment : Fragment() {
 
     private fun lockViewPager() {
         var lock = false
-
-        if (metronomeViewModel.disableViewPageUserInput.value == true)
-            lock = true
 
         scenesViewModel.editingStableId.value?.let {
             if (it != Scene.NO_STABLE_ID)

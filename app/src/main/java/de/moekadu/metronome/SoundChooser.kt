@@ -19,6 +19,7 @@
 
 package de.moekadu.metronome
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
 import android.content.res.Resources
@@ -37,6 +38,7 @@ import androidx.core.content.ContextCompat
 import androidx.transition.*
 import kotlin.math.*
 
+@SuppressLint("ClickableViewAccessibility")
 class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
     : ViewGroup(context, attrs, defStyleAttr) {
 
@@ -51,6 +53,11 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
             buttonNoteList.add(NoteListItem(i, 0.0f, 0.0f))
             setNoteList(buttonNoteList)
             setBackgroundResource(R.drawable.choice_button_background)
+            setOnTouchListener { v, event ->
+                if (event.actionMasked == MotionEvent.ACTION_DOWN)
+                    parent.requestDisallowInterceptTouchEvent(true)
+                false
+            }
         }
     }
 
@@ -161,12 +168,22 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
 //            Log.v("Metronome", "SoundChooser.deleteButton.onClick")
             deleteActiveNoteIfPossible()
         }
+        deleteButton.setOnTouchListener { v, event ->
+            if (event.actionMasked == MotionEvent.ACTION_DOWN)
+                parent.requestDisallowInterceptTouchEvent(true)
+            false
+        }
 
         addView(doneButton)
         doneButton.elevation = elementElevation
         doneButton.setOnClickListener {
 //            Log.v("Metronome", "SoundChooser.doneButton.onClick")
             deactivate()
+        }
+        doneButton.setOnTouchListener { v, event ->
+            if (event.actionMasked == MotionEvent.ACTION_DOWN)
+                parent.requestDisallowInterceptTouchEvent(true)
+            false
         }
 
         for(noteId in choiceButtons.indices) {
@@ -450,6 +467,15 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
 
         when(action) {
             MotionEvent.ACTION_DOWN -> {
+
+                val noteViewLeftLocal = noteViewBoundingBox.left - left
+                val noteViewRightLocal = noteViewBoundingBox.right - left
+                val downOverNoteView = (y >= noteViewBoundingBox.top - top
+                        && x >= noteViewLeftLocal && x <= noteViewRightLocal)
+
+                if (downOverNoteView)
+                    parent.requestDisallowInterceptTouchEvent(true)
+
 //                Log.v("Metronome", "SoundChooser.onTouchEvent: ACTION_DOWN, x=$x, y=$y")
                 if (choiceStatus == Status.Static)
                     return false
@@ -459,11 +485,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
                 controlButton.translationXInit = controlButton.translationX
                 controlButton.translationYInit = controlButton.translationY
 
-                val noteViewLeftLocal = noteViewBoundingBox.left - left
-                val noteViewRightLocal = noteViewBoundingBox.right - left
-
-                if(choiceStatus != Status.Static && y >= noteViewBoundingBox.top - top
-                        && x >= noteViewLeftLocal && x <= noteViewRightLocal) {
+                if(choiceStatus != Status.Static && downOverNoteView) {
                     activateBaseLayout()
                     triggerStaticChooserOnUp = true
                     return true

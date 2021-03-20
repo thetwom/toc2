@@ -25,6 +25,7 @@ import android.graphics.Rect
 import android.transition.*
 import android.util.AttributeSet
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
@@ -67,6 +68,11 @@ class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                 unfold()
             else
                 fold()
+        }
+        setOnTouchListener { _, event ->
+            if (event.actionMasked == MotionEvent.ACTION_DOWN)
+                parent.requestDisallowInterceptTouchEvent(true)
+            false
         }
     }
     val background = ImageButton(context)

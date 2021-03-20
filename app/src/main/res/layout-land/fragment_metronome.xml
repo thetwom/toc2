@@ -44,21 +44,21 @@
         android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.7"
         />
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/text_upper_guideline"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.275"
-        />
+<!--    <androidx.constraintlayout.widget.Guideline-->
+<!--        android:id="@+id/text_upper_guideline"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="match_parent"-->
+<!--        android:orientation="horizontal"-->
+<!--        app:layout_constraintGuide_percent="0.275"-->
+<!--        />-->
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/text_lower_guideline"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.475"
-        />
+<!--    <androidx.constraintlayout.widget.Guideline-->
+<!--        android:id="@+id/text_lower_guideline"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="match_parent"-->
+<!--        android:orientation="horizontal"-->
+<!--        app:layout_constraintGuide_percent="0.475"-->
+<!--        />-->
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/vertical_guideline"
@@ -69,7 +69,7 @@
         />
 
     <TextView
-        android:id="@+id/scene"
+        android:id="@+id/scene_title_active"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
@@ -81,6 +81,23 @@
         android:layout_margin="4dp"
         android:visibility="gone"
         />
+
+    <ImageButton
+        android:id="@+id/scenes_button"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintHeight_percent="0.18"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:src="@drawable/ic_scenes_swipe2"
+        android:scaleType="fitEnd"
+        android:tint="?attr/colorPrimaryFaint"
+        android:padding="4dp"
+        android:layout_margin="4dp"
+        android:background="@null"
+        android:contentDescription="@string/scenes"
+        />
+
 
     <de.moekadu.metronome.SpeedPanel
         android:id="@+id/speed_panel"
@@ -178,17 +195,16 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_gravity="center"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
         android:text="SPEED"
         android:maxLines="1"
         app:autoSizeTextType="uniform"
         android:gravity="center"
         android:textColor="?attr/colorPrimary"
-        app:layout_constraintBottom_toBottomOf="@id/text_lower_guideline"
+        app:layout_constraintHeight_percent="0.2"
+        app:layout_constraintBottom_toTopOf="@id/note_view"
         app:layout_constraintEnd_toStartOf="@id/speed_panel"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/text_upper_guideline"
+        app:layout_constraintTop_toBottomOf="@id/scene_title_active"
         tools:layout_conversion_wrapHeight="108"
         tools:layout_conversion_wrapWidth="239"
         tools:ignore="HardcodedText" />

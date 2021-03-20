@@ -33,9 +33,6 @@ class MetronomeViewModel(private val playerConnection: PlayerServiceConnection):
     val noteStartedEvent get() = playerConnection.noteStartedEvent
     val noteList get() = playerConnection.noteList
 
-    private val _disableViewPageUserInput = MutableLiveData(false)
-    val disableViewPageUserInput: LiveData<Boolean> get() = _disableViewPageUserInput
-
     private val _scene = MutableLiveData<String?>(null)
     val scene: LiveData<String?> get() = _scene
 
@@ -132,10 +129,6 @@ class MetronomeViewModel(private val playerConnection: PlayerServiceConnection):
 
     fun setNextNoteIndex(index: Int) {
         playerConnection.setNextNoteIndex(index)
-    }
-
-    fun setDisableViewPagerUserInput(disable: Boolean) {
-        _disableViewPageUserInput.value = disable
     }
 
     override fun onCleared() {

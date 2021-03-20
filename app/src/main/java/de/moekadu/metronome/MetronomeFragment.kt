@@ -76,7 +76,8 @@ class MetronomeFragment : Fragment() {
     private var noteView: NoteView? = null
     private var plusButton: ImageButton? = null
     private var clearAllButton: ImageButton? = null
-    private var scene: TextView? = null
+    private var sceneTitle: TextView? = null
+    private var scenesButton: ImageButton? = null
 
     private var dummyViewGroupWithTransition: DummyViewGroupWithTransition? = null
 
@@ -100,6 +101,13 @@ class MetronomeFragment : Fragment() {
 //        Log.v("Metronome", "MetronomeFragment:onCreateView")
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_metronome, container, false)
+
+        val constraintLayout = view.findViewById<ConstraintLayout>(R.id.metronome_layout)
+        constraintLayout.setOnTouchListener { v, event ->
+            if (event.actionMasked == MotionEvent.ACTION_DOWN)
+                view.parent.requestDisallowInterceptTouchEvent(false)
+            true
+        }
 
         dummyViewGroupWithTransition = view.findViewById(R.id.dummy_view_group)
 
@@ -147,6 +155,12 @@ class MetronomeFragment : Fragment() {
                 editText.requestFocus()
             }
         }
+        speedText?.setOnTouchListener { v, event ->
+            if (event.actionMasked == MotionEvent.ACTION_DOWN)
+                view.parent.requestDisallowInterceptTouchEvent(false)
+            false
+        }
+
 
         val speedPanel = view.findViewById(R.id.speed_panel) as SpeedPanel?
         speedPanel?.speedChangedListener = object : SpeedPanel.SpeedChangedListener {
@@ -160,14 +174,6 @@ class MetronomeFragment : Fragment() {
                 viewModel.setSpeed(newSpeed)
                 viewModel.syncClickWithUptimeMillis(nextClickTimeInMillis)
             }
-
-            override fun onDown() {
-                viewModel.setDisableViewPagerUserInput(true)
-            }
-
-            override fun onUp() {
-                viewModel.setDisableViewPagerUserInput(false)
-            }
         }
 
         volumeSliders = view.findViewById(R.id.volume_sliders)
@@ -179,13 +185,6 @@ class MetronomeFragment : Fragment() {
                         singleNotePlayer.play(noteListItem.id, noteListItem.volume)
                     }
                 }
-            }
-
-            override fun onDown(index: Int) {
-                viewModel.setDisableViewPagerUserInput(true)
-            }
-            override fun onUp(index: Int, volume: Float) {
-                viewModel.setDisableViewPagerUserInput(false)
             }
         }
         tickVisualizer = view.findViewById(R.id.tick_visualizer)
@@ -201,17 +200,28 @@ class MetronomeFragment : Fragment() {
                 // Log.v("Metronome", "playButton:onPause()")
                 viewModel.play()
             }
+
+            override fun onDown() {
+                view.parent.requestDisallowInterceptTouchEvent(true)
+                super.onDown()
+            }
         }
 
         noteView = view.findViewById(R.id.note_view)
         noteView?.onNoteClickListener = object : NoteView.OnNoteClickListener {
             override fun onDown(event: MotionEvent?, uid: UId?, noteIndex: Int): Boolean {
-//                Log.v("Metronome", "MetronomeFragment.noteView.onClickListener.onDown: noteIndex=$noteIndex")
+                Log.v("Metronome", "MetronomeFragment.noteView.onClickListener.onDown: noteIndex=$noteIndex, uid=$uid")
+                // we want to make sure that the click is either captured by the sound chooser or be this noteview
+                // - when the soundchooser is currently active it won't caputure the click, so we do it
+                // - when the soundchooser is inactive, we can't capture the click, since the sound chooser
+                //    needs to capture it.
+                val captureClick = soundChooser?.choiceStatus != SoundChooser.Status.Off
                 if (uid != null) {
+                    view.parent.requestDisallowInterceptTouchEvent(true)
                     soundChooser?.setActiveControlButton(uid)
                     noteView?.highlightNote(uid, true)
                 }
-                return false
+                return captureClick
             }
 
             override fun onUp(event: MotionEvent?, uid: UId?, noteIndex: Int): Boolean {
@@ -251,6 +261,11 @@ class MetronomeFragment : Fragment() {
                 noteView?.highlightNote(newNote.uid, true)
             }
         }
+        plusButton?.setOnTouchListener { v, event ->
+            if (event.actionMasked == MotionEvent.ACTION_DOWN)
+                view.parent.requestDisallowInterceptTouchEvent(true)
+            false
+        }
 
         clearAllButton = view.findViewById(R.id.clear_all_button)
         clearAllButton?.setOnClickListener {
@@ -269,6 +284,11 @@ class MetronomeFragment : Fragment() {
                             }.show()
                 }
             }
+        }
+        clearAllButton?.setOnTouchListener { v, event ->
+            if (event.actionMasked == MotionEvent.ACTION_DOWN)
+                view.parent.requestDisallowInterceptTouchEvent(true)
+            false
         }
 
         soundChooser = view.findViewById(R.id.sound_chooser)
@@ -305,16 +325,11 @@ class MetronomeFragment : Fragment() {
                 viewModel.moveNote(uid, toIndex)
             }
 
-            override fun onStatusChanged(status: SoundChooser.Status) {
-                when (status) {
-                    SoundChooser.Status.Off -> viewModel.setDisableViewPagerUserInput(false)
-                    else -> viewModel.setDisableViewPagerUserInput(true)
-                }
-            }
+            override fun onStatusChanged(status: SoundChooser.Status) { }
         }
 
-        scene = view.findViewById(R.id.scene)
-        scene?.setOnClickListener {
+        sceneTitle = view.findViewById(R.id.scene_title_active)
+        sceneTitle?.setOnClickListener {
             if (scenesViewModel.editingStableId.value != Scene.NO_STABLE_ID) {
                 val editText = EditText(requireContext()).apply {
                     setHint(R.string.save_name)
@@ -335,6 +350,16 @@ class MetronomeFragment : Fragment() {
                 }
                 dialogBuilder.show()
             }
+        }
+
+        scenesButton = view.findViewById(R.id.scenes_button)
+//        scenesButton?.setOnClickListener {
+//            (activity as MainActivity?)?.setMetronomeAndScenesViewPagerId(ViewPagerAdapter.SCENES)
+//        }
+        scenesButton?.setOnTouchListener { v, event ->
+            if (event.actionMasked == MotionEvent.ACTION_DOWN)
+                view.parent.requestDisallowInterceptTouchEvent(false)
+            false
         }
 
         sharedPreferenceChangeListener = OnSharedPreferenceChangeListener { sharedPreferences, key ->
@@ -412,18 +437,17 @@ class MetronomeFragment : Fragment() {
             }
         }
 
-        val rootView = view.findViewById<ConstraintLayout>(R.id.metronome_layout)
         viewModel.scene.observe(viewLifecycleOwner) {
             Log.v("Metronome", "MetronomeFragment: observing scene: $it")
-            if (it == null && scene?.visibility != View.GONE) {
+            if (it == null && sceneTitle?.visibility != View.GONE) {
                 //scene?.text = getString(R.string.scene, "###")
                 if (soundChooser?.choiceStatus == SoundChooser.Status.Off) // dont animate since otherwise animations will clash
-                    TransitionManager.beginDelayedTransition(rootView)
-                scene?.visibility = View.GONE
+                    TransitionManager.beginDelayedTransition(constraintLayout)
+                sceneTitle?.visibility = View.GONE
             }
             else if (it != null) {
-                scene?.text = getString(R.string.scene, it)
-                scene?.visibility = View.VISIBLE
+                sceneTitle?.text = getString(R.string.scene, it)
+                sceneTitle?.visibility = View.VISIBLE
             }
         }
 
@@ -438,23 +462,26 @@ class MetronomeFragment : Fragment() {
 
             if (stableId != Scene.NO_STABLE_ID) {
                 viewModel.setScene(scenesViewModel.scenes.value?.getScene(stableId)?.title)
-                scene?.translationZ = Utilities.dp2px(8f)
-                scene?.isClickable = true
+                sceneTitle?.translationZ = Utilities.dp2px(8f)
+                sceneTitle?.isClickable = true
                 context?.let {
-                    scene?.background = ContextCompat.getDrawable(it, R.drawable.edit_scene_background)
+                    sceneTitle?.background = ContextCompat.getDrawable(it, R.drawable.edit_scene_background)
                 }
+                scenesButton?.visibility = View.INVISIBLE
             }
             else if (activeStableId != null && activeStableId != Scene.NO_STABLE_ID) {
                 viewModel.setScene(scenesViewModel.scenes.value?.getScene(activeStableId)?.title)
-                scene?.translationZ = 0f
-                scene?.isClickable = false
-                scene?.background = null
+                sceneTitle?.translationZ = 0f
+                sceneTitle?.isClickable = false
+                sceneTitle?.background = null
+                scenesButton?.visibility = View.VISIBLE
             }
             else {
                 viewModel.setScene(null)
-                scene?.translationZ = 0f
-                scene?.isClickable = false
-                scene?.background = null
+                sceneTitle?.translationZ = 0f
+                sceneTitle?.isClickable = false
+                sceneTitle?.background = null
+                scenesButton?.visibility = View.VISIBLE
             }
         }
 
