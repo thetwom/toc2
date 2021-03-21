@@ -1,8 +1,6 @@
 package de.moekadu.metronome
 
-import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,7 +13,7 @@ class MetronomeAndScenesFragment : Fragment() {
     private val metronomeViewModel by activityViewModels<MetronomeViewModel> {
         val playerConnection = PlayerServiceConnection.getInstance(
                 requireContext(),
-                AppPreferences.readMetronomeSpeed(requireActivity()),
+                AppPreferences.readMetronomeBpm(requireActivity()),
                 AppPreferences.readMetronomeNoteList(requireActivity())
         )
         MetronomeViewModel.Factory(playerConnection)

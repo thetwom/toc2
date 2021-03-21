@@ -34,8 +34,8 @@
     <string name="speed_sensitivity">Sensibilité du sélecteur de tempo</string>
     <string name="speed_sensitivity_summary">Nombre de crans par cm\u00A0: %.1f</string>
     <string name="speedincrement">Incrémentation du tempo</string>
-    <string name="minimum_speed">Tempo minimum</string>
-    <string name="maximum_speed">Tempo maximum</string>
+    <string name="minimum_bpm">Tempo minimum</string>
+    <string name="maximum_bpm">Tempo maximum</string>
 
     <string name="reset_all_settings">Réinitialiser la configuration</string>
     <string name="reset_settings_prompt">Souhaitez-vous vraiment revenir à la configuration d\'origine ?</string>

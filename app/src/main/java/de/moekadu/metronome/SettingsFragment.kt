@@ -106,81 +106,81 @@ class SettingsFragment: PreferenceFragmentCompat() {
             true
         }
 
-        val speedIncrement = findPreference("speedincrement") as SeekBarPreference?
-        require(speedIncrement != null)
-        speedIncrement.updatesContinuously = true
-        speedIncrement.seekBarIncrement = 1
-        speedIncrement.min = 0
-        speedIncrement.max = Utilities.speedIncrements.size - 1
-        if(Utilities.speedIncrements.size > speedIncrement.value) {
-            val speedIncrementValue = Utilities.speedIncrements[speedIncrement.value]
-            speedIncrement.summary = getString(R.string.bpm, Utilities.getBpmString(speedIncrementValue, speedIncrementValue))
+        val bpmIncrement = findPreference("speedincrement") as SeekBarPreference?
+        require(bpmIncrement != null)
+        bpmIncrement.updatesContinuously = true
+        bpmIncrement.seekBarIncrement = 1
+        bpmIncrement.min = 0
+        bpmIncrement.max = Utilities.bpmIncrements.size - 1
+        if(Utilities.bpmIncrements.size > bpmIncrement.value) {
+            val bpmIncrementValue = Utilities.bpmIncrements[bpmIncrement.value]
+            bpmIncrement.summary = getString(R.string.bpm, Utilities.getBpmString(bpmIncrementValue, bpmIncrementValue))
         }
-        speedIncrement.setOnPreferenceChangeListener { _, newValue ->
+        bpmIncrement.setOnPreferenceChangeListener { _, newValue ->
             val incrementIndex = newValue as Int
-            if (incrementIndex < Utilities.speedIncrements.size) {
-                    val speedIncrementValue = Utilities.speedIncrements[incrementIndex]
-                speedIncrement.summary = getString(R.string.bpm, Utilities.getBpmString(speedIncrementValue, speedIncrementValue))
+            if (incrementIndex < Utilities.bpmIncrements.size) {
+                    val bpmIncrementValue = Utilities.bpmIncrements[incrementIndex]
+                bpmIncrement.summary = getString(R.string.bpm, Utilities.getBpmString(bpmIncrementValue, bpmIncrementValue))
                 }
                 true
             }
 
-        val speedIncrementValue = Utilities.speedIncrements[speedIncrement.value]
+        val bpmIncrementValue = Utilities.bpmIncrements[bpmIncrement.value]
 
-        val speedSensitivity = findPreference("speedsensitivity") as SeekBarPreference?
-        require(speedSensitivity != null)
-        speedSensitivity.updatesContinuously = true
-        speedSensitivity.summary = getString(R.string.speed_sensitivity_summary, Utilities.percentage2sensitivity(speedSensitivity.value.toFloat()))
-        speedSensitivity.setOnPreferenceChangeListener { _, newValue ->
+        val bpmSensitivity = findPreference("speedsensitivity") as SeekBarPreference?
+        require(bpmSensitivity != null)
+        bpmSensitivity.updatesContinuously = true
+        bpmSensitivity.summary = getString(R.string.speed_sensitivity_summary, Utilities.percentage2sensitivity(bpmSensitivity.value.toFloat()))
+        bpmSensitivity.setOnPreferenceChangeListener { _, newValue ->
             val percentage = newValue as Int
             val sensitivity = Utilities.percentage2sensitivity(percentage.toFloat())
-            speedSensitivity.summary = getString(R.string.speed_sensitivity_summary, sensitivity)
+            bpmSensitivity.summary = getString(R.string.speed_sensitivity_summary, sensitivity)
             true
         }
 
-        val minimumSpeed = findPreference("minimumspeed") as EditTextPreference?
-        require(minimumSpeed != null)
-        if(minimumSpeed.text == null)
-            minimumSpeed.text = InitialValues.minimumSpeed.toString()
+        val minimumBpm = findPreference("minimumspeed") as EditTextPreference?
+        require(minimumBpm != null)
+        if(minimumBpm.text == null)
+            minimumBpm.text = InitialValues.minimumBpm.toString()
 
-        minimumSpeed.summary = getString(R.string.bpm, Utilities.getBpmString(minimumSpeed.text.toFloat(), speedIncrementValue))
-        minimumSpeed.setOnBindEditTextListener(EditTextPreference.OnBindEditTextListener { editText ->
+        minimumBpm.summary = getString(R.string.bpm, Utilities.getBpmString(minimumBpm.text.toFloat(), bpmIncrementValue))
+        minimumBpm.setOnBindEditTextListener(EditTextPreference.OnBindEditTextListener { editText ->
             editText.inputType = InputType.TYPE_CLASS_NUMBER
         })
 
-        val maximumSpeed = findPreference("maximumspeed") as EditTextPreference?
-        require(maximumSpeed != null)
-        if(maximumSpeed.text == null)
-            maximumSpeed.text = InitialValues.maximumSpeed.toString()
+        val maximumBpm = findPreference("maximumspeed") as EditTextPreference?
+        require(maximumBpm != null)
+        if(maximumBpm.text == null)
+            maximumBpm.text = InitialValues.maximumBpm.toString()
 
-        maximumSpeed.summary = getString(R.string.bpm, Utilities.getBpmString(maximumSpeed.text.toFloat(), speedIncrementValue))
-        maximumSpeed.setOnBindEditTextListener(EditTextPreference.OnBindEditTextListener { editText ->
+        maximumBpm.summary = getString(R.string.bpm, Utilities.getBpmString(maximumBpm.text.toFloat(), bpmIncrementValue))
+        maximumBpm.setOnBindEditTextListener(EditTextPreference.OnBindEditTextListener { editText ->
             editText.inputType = InputType.TYPE_CLASS_NUMBER
         })
 
-        minimumSpeed.setOnPreferenceChangeListener { _, newValue ->
-            val speed = (newValue as String).toFloat()
-            val maxSpeed = maximumSpeed.text.toFloat()
-            if (speed < maxSpeed) {
-                minimumSpeed.summary = getString(R.string.bpm, Utilities.getBpmString(speed))
+        minimumBpm.setOnPreferenceChangeListener { _, newValue ->
+            val bpm = (newValue as String).toFloat()
+            val maxBpm = maximumBpm.text.toFloat()
+            if (bpm < maxBpm) {
+                minimumBpm.summary = getString(R.string.bpm, Utilities.getBpmString(bpm))
                 true
             }
             else {
-                Toast.makeText(activity, getString(R.string.min_speed_higher_maximum, getString(R.string.bpm, newValue), getString(R.string.bpm, maximumSpeed.text)), Toast.LENGTH_LONG).show()
-//                Toast.makeText(activity, "Invalid minimum speed: $speed", Toast.LENGTH_SHORT).show()
+                Toast.makeText(activity, getString(R.string.min_speed_higher_maximum, getString(R.string.bpm, newValue), getString(R.string.bpm, maximumBpm.text)), Toast.LENGTH_LONG).show()
+//                Toast.makeText(activity, "Invalid minimum bpm: $bpm", Toast.LENGTH_SHORT).show()
                 false
             }
         }
 
-        maximumSpeed.setOnPreferenceChangeListener { _, newValue ->
-            val speed = (newValue as String).toFloat()
-            val minSpeed = minimumSpeed.text.toFloat()
-            if (speed > minSpeed) {
-                maximumSpeed.summary = getString(R.string.bpm, Utilities.getBpmString(speed))
+        maximumBpm.setOnPreferenceChangeListener { _, newValue ->
+            val bpm = (newValue as String).toFloat()
+            val minBpm = minimumBpm.text.toFloat()
+            if (bpm > minBpm) {
+                maximumBpm.summary = getString(R.string.bpm, Utilities.getBpmString(bpm))
                 true
             } else {
-                Toast.makeText(activity, getString(R.string.max_speed_lower_minimum, getString(R.string.bpm, newValue), getString(R.string.bpm, minimumSpeed.text)), Toast.LENGTH_LONG).show()
-//                Toast.makeText(activity, "Invalid maximum speed: $speed", Toast.LENGTH_SHORT).show()
+                Toast.makeText(activity, getString(R.string.max_speed_lower_minimum, getString(R.string.bpm, newValue), getString(R.string.bpm, minimumBpm.text)), Toast.LENGTH_LONG).show()
+//                Toast.makeText(activity, "Invalid maximum bpm: $bpm", Toast.LENGTH_SHORT).show()
                 false
             }
         }

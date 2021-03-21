@@ -23,7 +23,6 @@ import android.annotation.SuppressLint
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Bundle
 import android.text.InputType
-import android.util.Log
 import android.view.*
 import android.widget.EditText
 import android.widget.ImageButton
@@ -47,7 +46,7 @@ class MetronomeFragment : Fragment() {
     private val viewModel by activityViewModels<MetronomeViewModel> {
         val playerConnection = PlayerServiceConnection.getInstance(
                 requireContext(),
-                AppPreferences.readMetronomeSpeed(requireActivity()),
+                AppPreferences.readMetronomeBpm(requireActivity()),
                 AppPreferences.readMetronomeNoteList(requireActivity())
         )
         MetronomeViewModel.Factory(playerConnection)
@@ -72,7 +71,7 @@ class MetronomeFragment : Fragment() {
 
     private var speedLimiter: SpeedLimiter? = null
 
-    private var speedText: TextView? = null
+    private var bpmText: TextView? = null
     private var playButton: PlayButton? = null
     private var noteView: NoteView? = null
     private var plusButton: ImageButton? = null
@@ -91,7 +90,7 @@ class MetronomeFragment : Fragment() {
     private var savedVolumeSlidersFolded = true
 
     private var sharedPreferenceChangeListener: OnSharedPreferenceChangeListener? = null
-    private var speedIncrement = Utilities.speedIncrements[InitialValues.speedIncrementIndex]
+    private var bpmIncrement = Utilities.bpmIncrements[InitialValues.bpmIncrementIndex]
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -115,16 +114,16 @@ class MetronomeFragment : Fragment() {
 
         speedLimiter = SpeedLimiter(PreferenceManager.getDefaultSharedPreferences(requireContext()), viewLifecycleOwner)
 
-        speedText = view.findViewById(R.id.speed_text)
-        speedText?.setOnClickListener {
+        bpmText = view.findViewById(R.id.bpm_text)
+        bpmText?.setOnClickListener {
             activity?.let { ctx ->
                 val editText = EditText(ctx)
                 editText.inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
                 val pad = Utilities.dp2px(20f).roundToInt()
                 editText.setPadding(pad, pad, pad, pad)
 
-                viewModel.speed.value?.let { speed ->
-                    editText.setText(Utilities.getBpmString(speed))
+                viewModel.bpm.value?.let { bpm ->
+                    editText.setText(Utilities.getBpmString(bpm))
                 }
 
                 editText.hint = getString(R.string.bpm, "")
@@ -133,13 +132,13 @@ class MetronomeFragment : Fragment() {
                 val builder = AlertDialog.Builder(ctx).apply {
                     setTitle(R.string.set_new_speed)
                     setPositiveButton(R.string.done) { _, _ ->
-                        val newSpeedText = editText.text.toString()
-                        val newSpeed = newSpeedText.toFloatOrNull()
-                        if (newSpeed == null) {
-                            Toast.makeText(ctx, "${getString(R.string.invalid_speed)}$newSpeedText",
+                        val newBpmText = editText.text.toString()
+                        val newBpm = newBpmText.toFloatOrNull()
+                        if (newBpm == null) {
+                            Toast.makeText(ctx, "${getString(R.string.invalid_speed)}$newBpmText",
                                     Toast.LENGTH_LONG).show()
-                        } else if (speedLimiter?.checkNewSpeedAndShowToast(newSpeed, ctx) == true) {
-                            viewModel.setSpeed(newSpeed)
+                        } else if (speedLimiter?.checkNewBpmAndShowToast(newBpm, ctx) == true) {
+                            viewModel.setBpm(newBpm)
                         }
                     }
                     setNegativeButton(R.string.abort) { dialog, _ ->
@@ -157,7 +156,7 @@ class MetronomeFragment : Fragment() {
                 editText.requestFocus()
             }
         }
-        speedText?.setOnTouchListener { v, event ->
+        bpmText?.setOnTouchListener { v, event ->
             if (event.actionMasked == MotionEvent.ACTION_DOWN)
                 view.parent.requestDisallowInterceptTouchEvent(false)
             false
@@ -166,14 +165,14 @@ class MetronomeFragment : Fragment() {
 
         val speedPanel = view.findViewById(R.id.speed_panel) as SpeedPanel?
         speedPanel?.speedChangedListener = object : SpeedPanel.SpeedChangedListener {
-            override fun onSpeedChanged(dSpeed: Float) {
-                viewModel.speed.value?.let { currentSpeed ->
-                    viewModel.setSpeed(currentSpeed + dSpeed)
+            override fun onSpeedChanged(bpmDiff: Float) {
+                viewModel.bpm.value?.let { currentBpm ->
+                    viewModel.setBpm(currentBpm + bpmDiff)
                 }
             }
 
-            override fun onAbsoluteSpeedChanged(newSpeed: Float, nextClickTimeInMillis: Long) {
-                viewModel.setSpeed(newSpeed)
+            override fun onAbsoluteSpeedChanged(newBpm: Float, nextClickTimeInMillis: Long) {
+                viewModel.setBpm(newBpm)
                 viewModel.syncClickWithUptimeMillis(nextClickTimeInMillis)
             }
         }
@@ -367,13 +366,13 @@ class MetronomeFragment : Fragment() {
         sharedPreferenceChangeListener = OnSharedPreferenceChangeListener { sharedPreferences, key ->
             when (key) {
                 "speedincrement" -> {
-                    val newSpeedIncrementIndex = sharedPreferences!!.getInt("speedincrement", InitialValues.speedIncrementIndex)
-                    speedIncrement = Utilities.speedIncrements[newSpeedIncrementIndex]
-                    speedPanel?.speedIncrement = speedIncrement
+                    val newBpmIncrementIndex = sharedPreferences!!.getInt("speedincrement", InitialValues.bpmIncrementIndex)
+                    bpmIncrement = Utilities.bpmIncrements[newBpmIncrementIndex]
+                    speedPanel?.bpmIncrement = bpmIncrement
                 }
                 "speedsensitivity" -> {
-                    val newSpeedSensitivity = sharedPreferences!!.getInt("speedsensitivity", (Utilities.sensitivity2percentage(InitialValues.speedSensitivity)).roundToInt()).toFloat()
-                    speedPanel?.sensitivity = Utilities.percentage2sensitivity(newSpeedSensitivity)
+                    val newBpmSensitivity = sharedPreferences!!.getInt("speedsensitivity", (Utilities.sensitivity2percentage(InitialValues.bpmPerCm)).roundToInt()).toFloat()
+                    speedPanel?.bpmPerCm = Utilities.percentage2sensitivity(newBpmSensitivity)
                 }
                 "vibrate" -> {
                     vibrate = sharedPreferences.getBoolean("vibrate", false)
@@ -385,12 +384,12 @@ class MetronomeFragment : Fragment() {
         }
 
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
-        val speedIncrementIndex = sharedPreferences.getInt("speedincrement", InitialValues.speedIncrementIndex)
-        speedIncrement = Utilities.speedIncrements[speedIncrementIndex]
-        speedPanel?.speedIncrement = speedIncrement
+        val bpmIncrementIndex = sharedPreferences.getInt("speedincrement", InitialValues.bpmIncrementIndex)
+        bpmIncrement = Utilities.bpmIncrements[bpmIncrementIndex]
+        speedPanel?.bpmIncrement = bpmIncrement
 
-        val speedSensitivity = sharedPreferences.getInt("speedsensitivity", (Utilities.sensitivity2percentage(InitialValues.speedSensitivity)).roundToInt()).toFloat()
-        speedPanel?.sensitivity = Utilities.percentage2sensitivity(speedSensitivity)
+        val bpmSensitivity = sharedPreferences.getInt("speedsensitivity", (Utilities.sensitivity2percentage(InitialValues.bpmPerCm)).roundToInt()).toFloat()
+        speedPanel?.bpmPerCm = Utilities.percentage2sensitivity(bpmSensitivity)
 
         vibrate = sharedPreferences.getBoolean("vibrate", false)
         vibratingNote?.strength = sharedPreferences.getInt("vibratestrength", 50)
@@ -400,9 +399,9 @@ class MetronomeFragment : Fragment() {
                 ?: true
 
         // register all observers
-        viewModel.speed.observe(viewLifecycleOwner) {
-//            Log.v("Metronome", "MetronomeFragment: viewModel.speed: $it")
-            speedText?.text = getString(R.string.bpm, Utilities.getBpmString(it, speedIncrement))
+        viewModel.bpm.observe(viewLifecycleOwner) {
+//            Log.v("Metronome", "MetronomeFragment: viewModel.bpm: $it")
+            bpmText?.text = getString(R.string.bpm, Utilities.getBpmString(it, bpmIncrement))
         }
 
         // set status without animation on load ...
@@ -426,7 +425,7 @@ class MetronomeFragment : Fragment() {
         }
 
         viewModel.noteStartedEvent.observe(viewLifecycleOwner) {
-            viewModel.speed.value?.let { speed -> tickVisualizer?.tick(Utilities.bpm2ms(speed)) }
+            viewModel.bpm.value?.let { bpm -> tickVisualizer?.tick(Utilities.bpm2ms(bpm)) }
             noteView?.animateNote(it.uid)
             soundChooser?.animateNote(it.uid)
         }

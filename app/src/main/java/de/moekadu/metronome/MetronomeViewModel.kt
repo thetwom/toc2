@@ -28,7 +28,7 @@ import kotlin.math.min
 
 class MetronomeViewModel(private val playerConnection: PlayerServiceConnection): ViewModel() {
 
-    val speed get() = playerConnection.speed
+    val bpm get() = playerConnection.bpm
     val playerStatus get() = playerConnection.playerStatus
     val noteStartedEvent get() = playerConnection.noteStartedEvent
     val noteList get() = playerConnection.noteList
@@ -44,8 +44,8 @@ class MetronomeViewModel(private val playerConnection: PlayerServiceConnection):
         _isParentViewPagerSwiping.value = isSwiping
     }
 
-    fun setSpeed(value: Float) {
-        playerConnection.setSpeed(value)
+    fun setBpm(bpm: Float) {
+        playerConnection.setBpm(bpm)
     }
 
     fun setNoteList(noteList: ArrayList<NoteListItem>) {

@@ -19,7 +19,6 @@
 
 package de.moekadu.metronome
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -60,7 +59,7 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
 
         var titleView: TextView? = null
         //var dateView: TextView? = null
-        var speedView: TextView? = null
+        var bpmView: TextView? = null
         var noteView: NoteView? = null
         var tickVisualizer: TickVisualizer? = null
         var selectedView: View? = null
@@ -114,7 +113,7 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
         return ViewHolder(view).apply {
             titleView = view.findViewById(R.id.scene_title)
             //dateView = view.findViewById(R.id.scene_date)
-            speedView = view.findViewById(R.id.scene_speed)
+            bpmView = view.findViewById(R.id.scene_bpm)
             noteView = view.findViewById(R.id.scene_sounds)
             tickVisualizer = view.findViewById(R.id.scene_ticks_visualizer)
             selectedView =  view.findViewById(R.id.scene_active)
@@ -131,7 +130,7 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
         holder.isActivated = (scene.stableId == activatedStableId)
         holder.titleView?.text = scene.title
         //holder.dateView?.text = scene.date + "\n" + scene.time
-        holder.speedView?.text = holder.view.context.getString(R.string.bpm, Utilities.getBpmString(scene.bpm))
+        holder.bpmView?.text = holder.view.context.getString(R.string.bpm, Utilities.getBpmString(scene.bpm))
 //        Log.v("Metronome", "SceneDatabase.onBindViewHolder: scene.noteList = ${scene.noteList}, scene.bpm = ${scene.bpm}")
 
         val noteList = stringToNoteList(scene.noteList)

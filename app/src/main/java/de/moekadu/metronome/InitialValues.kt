@@ -21,10 +21,10 @@ package de.moekadu.metronome
 
 class InitialValues {
     companion object {
-        const val speed = 120f
-        const val minimumSpeed = 20f
-        const val maximumSpeed = 250f
-        const val speedSensitivity = 2.0f
-        const val speedIncrementIndex = 3
+        const val bpm = 120f
+        const val minimumBpm = 20f
+        const val maximumBpm = 250f
+        const val bpmPerCm = 2.0f
+        const val bpmIncrementIndex = 3
     }
 }

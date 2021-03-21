@@ -41,7 +41,7 @@ class PlayerService : LifecycleService() {
         fun onPlay()
         fun onPause()
         fun onNoteStarted(noteListItem: NoteListItem)
-        fun onSpeedChanged(speed: Float)
+        fun onSpeedChanged(bpm: Float)
         fun onNoteListChanged(noteList: ArrayList<NoteListItem>)
     }
 
@@ -50,14 +50,14 @@ class PlayerService : LifecycleService() {
         SpeedLimiter(PreferenceManager.getDefaultSharedPreferences(this), this)
     }
 
-    var speed = InitialValues.speed
+    var bpm = InitialValues.bpm
         set(value) {
-            val newSpeed = speedLimiter.limit(value)
+            val newBpm = speedLimiter.limit(value)
             val tolerance = 1e-6
-            if (abs(field - newSpeed) < tolerance)
+            if (abs(field - newBpm) < tolerance)
                 return
 
-            field = newSpeed
+            field = newBpm
             statusChangedListeners.forEach {s -> s.onSpeedChanged(field)}
 
             val duration = computeNoteDurationInSeconds(field)
@@ -66,7 +66,7 @@ class PlayerService : LifecycleService() {
             }
             audioMixer?.noteList = noteList
 
-            notification?.speed = field
+            notification?.bpm = field
             notification?.postNotificationUpdate()
         }
 
@@ -89,7 +89,7 @@ class PlayerService : LifecycleService() {
     var noteList = ArrayList<NoteListItem>()
         set(value) {
             deepCopyNoteList(value, field)
-            val duration = computeNoteDurationInSeconds(speed)
+            val duration = computeNoteDurationInSeconds(bpm)
             for(i in field.indices)
                 field[i].duration = duration
             audioMixer?.noteList = field
@@ -114,16 +114,16 @@ class PlayerService : LifecycleService() {
             val extras = intent?.extras ?: return
 
             val myAction = extras.getLong(PLAYER_STATE, PlaybackStateCompat.STATE_NONE.toLong())
-            val newSpeed = extras.getFloat(PLAYBACK_SPEED, -1f)
+            val newBpm = extras.getFloat(PLAYBACK_SPEED, -1f)
             val incrementSpeed = extras.getBoolean(INCREMENT_SPEED, false)
             val decrementSpeed = extras.getBoolean(DECREMENT_SPEED, false)
 
-            if (newSpeed > 0)
-                speed = newSpeed
+            if (newBpm > 0)
+                bpm = newBpm
             if (incrementSpeed)
-                speed += speedLimiter.speedIncrement.value!!
+                bpm += speedLimiter.bpmIncrement.value!!
             if (decrementSpeed)
-                speed -= speedLimiter.speedIncrement.value!!
+                bpm -= speedLimiter.bpmIncrement.value!!
 
             if (myAction == PlaybackStateCompat.ACTION_PLAY) {
                 // Log.v("Metronome", "ActionReceiver:onReceive : set state to playing");
@@ -144,14 +144,14 @@ class PlayerService : LifecycleService() {
 
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
 
-        speedLimiter.minimumSpeed.observe(this) {
-            speed = speedLimiter.limit(speed)
+        speedLimiter.minimumBpm.observe(this) {
+            bpm = speedLimiter.limit(bpm)
         }
-        speedLimiter.maximumSpeed.observe(this) {
-            speed = speedLimiter.limit(speed)
+        speedLimiter.maximumBpm.observe(this) {
+            bpm = speedLimiter.limit(bpm)
         }
-        speedLimiter.speedIncrement.observe(this) {
-            speed = speedLimiter.limit(speed)
+        speedLimiter.bpmIncrement.observe(this) {
+            bpm = speedLimiter.limit(bpm)
         }
 
         audioMixer = AudioMixer(applicationContext, lifecycleScope)
@@ -207,7 +207,7 @@ class PlayerService : LifecycleService() {
         })
 
         playbackStateBuilder.setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE or PlaybackStateCompat.ACTION_PLAY_PAUSE)
-                .setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, InitialValues.speed)
+                .setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, InitialValues.bpm)
 
         playbackState = playbackStateBuilder.build()
         mediaSession?.setPlaybackState(playbackState)
@@ -278,17 +278,17 @@ class PlayerService : LifecycleService() {
         return super.onUnbind(intent)
     }
 
-    private fun computeNoteDurationInSeconds(speed: Float) : Float {
-        return Utilities.bpm2ms(speed) / 1000.0f
+    private fun computeNoteDurationInSeconds(bpm: Float) : Float {
+        return Utilities.bpm2ms(bpm) / 1000.0f
     }
 
-    fun addValueToSpeed(dSpeed : Float) {
-        speed += dSpeed
+    fun addValueToBpm(bpmDiff : Float) {
+        bpm += bpmDiff
     }
 
     fun startPlay() {
         // Log.v("Metronome", "PlayerService:startPlay")
-        playbackState = playbackStateBuilder.setState(PlaybackStateCompat.STATE_PLAYING, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, speed).build()
+        playbackState = playbackStateBuilder.setState(PlaybackStateCompat.STATE_PLAYING, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, bpm).build()
         mediaSession?.setPlaybackState(playbackState)
 
         notification?.state = state
@@ -303,7 +303,7 @@ class PlayerService : LifecycleService() {
     fun stopPlay() {
         // Log.v("Metronome", "PlayerService:stopPlay")
 
-        playbackState = playbackStateBuilder.setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, speed).build()
+        playbackState = playbackStateBuilder.setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, bpm).build()
         mediaSession?.setPlaybackState(playbackState)
 
         stopForeground(false)
@@ -318,7 +318,7 @@ class PlayerService : LifecycleService() {
 
     fun syncClickWithUptimeMillis(uptimeMillis: Long) {
         if(state == PlaybackStateCompat.STATE_PLAYING)
-            audioMixer?.synchronizeTime(uptimeMillis, computeNoteDurationInSeconds(speed))
+            audioMixer?.synchronizeTime(uptimeMillis, computeNoteDurationInSeconds(bpm))
     }
 
     fun setNextNoteIndex(index: Int) {
@@ -361,9 +361,9 @@ class PlayerService : LifecycleService() {
 //            context.sendBroadcast(intent)
 //        }
 //
-//        fun sendChangeSpeedIntent(context: Context, speed: Float) {
+//        fun sendChangeSpeedIntent(context: Context, bpm: Float) {
 //            val intent = Intent(BROADCAST_PLAYERACTION)
-//            intent.putExtra(PLAYBACKSPEED, speed)
+//            intent.putExtra(PLAYBACKSPEED, bpm)
 //            context.sendBroadcast(intent)
 //        }
     }

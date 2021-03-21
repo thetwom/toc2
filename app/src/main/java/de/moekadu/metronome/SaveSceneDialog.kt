@@ -32,8 +32,8 @@ import kotlin.collections.ArrayList
 class SaveSceneDialog {
     companion object {
         @SuppressLint("SimpleDateFormat")
-        fun save(context: Context, speed: Float?, noteList: ArrayList<NoteListItem>?, saveItem: (Scene) -> Boolean) {
-            if (speed == null || noteList == null)
+        fun save(context: Context, bpm: Float?, noteList: ArrayList<NoteListItem>?, saveItem: (Scene) -> Boolean) {
+            if (bpm == null || noteList == null)
                 return
 
             val editText = EditText(context).apply {
@@ -53,7 +53,6 @@ class SaveSceneDialog {
                     val date = dateFormat.format(calendarDate)
                     val time = timeFormat.format(calendarDate)
 
-                    val bpm = speed
                     //                    Log.v("Metronome", item.playList);
                     if (title.length > 200) {
                         title = title.substring(0, 200)

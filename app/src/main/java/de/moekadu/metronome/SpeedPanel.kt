@@ -48,7 +48,7 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 
     private var changingSpeed = false
 
-    var sensitivity = InitialValues.speedSensitivity // steps per cm
+    var bpmPerCm = InitialValues.bpmPerCm // steps per cm
 
     private val tapInAnimation = ValueAnimator.ofFloat(0f, 1f)
     private var tapInAnimationValue = 1.0f
@@ -78,15 +78,15 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     private var stepCounter = 0f
     private val stepCounterMax = 5f
 
-    var speedIncrement = Utilities.speedIncrements[InitialValues.speedIncrementIndex]
+    var bpmIncrement = Utilities.bpmIncrements[InitialValues.bpmIncrementIndex]
         set(value) {
             field = value
             invalidate()
         }
 
     interface SpeedChangedListener {
-        fun onSpeedChanged(dSpeed: Float)
-        fun onAbsoluteSpeedChanged(newSpeed: Float, nextClickTimeInMillis: Long)
+        fun onSpeedChanged(bpmDiff: Float)
+        fun onAbsoluteSpeedChanged(newBpm: Float, nextClickTimeInMillis: Long)
     }
 
     var speedChangedListener: SpeedChangedListener? = null
@@ -201,7 +201,7 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             circlePaint.color = highlightColor
         else
             circlePaint.color = textColor
-        canvas.drawTextOnPath("+ "+Utilities.getBpmString(speedIncrement, speedIncrement),
+        canvas.drawTextOnPath("+ "+Utilities.getBpmString(bpmIncrement, bpmIncrement),
                 plusStepPath, 0f, strokeWidth /2.0f, circlePaint)
 
         minusStepPath.rewind()
@@ -212,7 +212,7 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             circlePaint.color = highlightColor
         else
             circlePaint.color = textColor
-        canvas.drawTextOnPath("- "+Utilities.getBpmString(speedIncrement, speedIncrement),
+        canvas.drawTextOnPath("- "+Utilities.getBpmString(bpmIncrement, bpmIncrement),
                 minusStepPath, 0f, strokeWidth /2.0f, circlePaint)
 
         if(tapInAnimationValue <= 0.99999) {
@@ -274,24 +274,24 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                 val dx = x -previousX
                 val dy = y -previousY
 
-                val dSpeed = - (dx * y - dy * x) / sqrt(x * x + y * y)
-                integratedDistance += dSpeed
+                val bpmDiff = - (dx * y - dy * x) / sqrt(x * x + y * y)
+                integratedDistance += bpmDiff
                 previousX = x
                 previousY = y
-                val speedSteps = sensitivity * Utilities.px2cm(integratedDistance)
+                val bpmSteps = bpmPerCm * Utilities.px2cm(integratedDistance)
 
                 if (changingSpeed) {
 //                    Log.v("Metronome", "SpeedPanel:onTouchEvent: integratedDistance="+integratedDistance + "  " + Utilities.px2cm(integratedDistance));
-                    if (abs(speedSteps) >= 1 && speedChangedListener != null) {
-                        speedChangedListener?.onSpeedChanged(speedSteps * speedIncrement)
+                    if (abs(bpmSteps) >= 1 && speedChangedListener != null) {
+                        speedChangedListener?.onSpeedChanged(bpmSteps * bpmIncrement)
                         integratedDistance = 0.0f
-                        stepCounter += speedSteps
+                        stepCounter += bpmSteps
                         stepCounter = min(stepCounter, stepCounterMax)
                         stepCounter = max(stepCounter, -stepCounterMax)
                         invalidate()
                     }
                 }
-                else if (abs(speedSteps) >= 1) {
+                else if (abs(bpmSteps) >= 1) {
                     changingSpeed = true
                     plusStepInitiated = false
                     minusStepInitiated = false
@@ -300,10 +300,10 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 if (plusStepInitiated) {
-                    speedChangedListener?.onSpeedChanged(speedIncrement)
+                    speedChangedListener?.onSpeedChanged(bpmIncrement)
                 }
                 else if (minusStepInitiated) {
-                    speedChangedListener?.onSpeedChanged(-speedIncrement)
+                    speedChangedListener?.onSpeedChanged(-bpmIncrement)
                 }
 
                 changingSpeed = false

@@ -68,7 +68,7 @@
         app:layout_constraintBottom_toTopOf="@id/lower_guideline"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/speed_text"
+        app:layout_constraintTop_toBottomOf="@id/bpm_text"
         app:layout_constraintDimensionRatio="1:1"
         tools:layout_conversion_wrapHeight="577"
         tools:layout_conversion_wrapWidth="577" />
@@ -158,7 +158,7 @@
         />
 
     <TextView
-        android:id="@+id/speed_text"
+        android:id="@+id/bpm_text"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_gravity="center"
@@ -193,7 +193,7 @@
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         app:layout_constraintHeight_percent="0.1"
-        app:layout_constraintRight_toRightOf="@id/speed_text"
+        app:layout_constraintRight_toRightOf="@id/bpm_text"
         app:layout_constraintTop_toTopOf="parent"
         android:src="@drawable/ic_scenes_swipe2"
         android:scaleType="fitEnd"

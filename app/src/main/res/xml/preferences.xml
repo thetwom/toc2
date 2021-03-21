@@ -68,13 +68,13 @@
 
     <EditTextPreference
         app:key="minimumspeed"
-        app:title="@string/minimum_speed"
+        app:title="@string/minimum_bpm"
         />
 
 
     <EditTextPreference
         app:key="maximumspeed"
-        app:title="@string/maximum_speed"
+        app:title="@string/maximum_bpm"
         />
 
     <!--<CheckBoxPreference-->

@@ -47,8 +47,8 @@
     <string name="speed_sensitivity">Abiadura aldatzeko sentikortasuna</string>
     <string name="speed_sensitivity_summary">Abiadura cm bakoitzean handitzen da: %.1f</string>
     <string name="speedincrement">Abiadura handitzea</string>
-    <string name="minimum_speed">Gutxieneko abiadura</string>
-    <string name="maximum_speed">Gehienezko abiadura</string>
+    <string name="minimum_bpm">Gutxieneko abiadura</string>
+    <string name="maximum_bpm">Gehienezko abiadura</string>
 
     <string name="reset_all_settings">Berrezarri ezarpen guztiak</string>
     <string name="reset_settings_prompt">Benetan nahi dituzu berrezarri ezarpen guztiak?</string>

@@ -47,15 +47,15 @@ class AppPreferences {
             editor.apply()
         }
 
-        fun writeMetronomeState(speed: Float?, noteList: ArrayList<NoteListItem>?, activity: FragmentActivity) {
-            if (speed != null)
-                writePreferenceFloat("speed", speed, activity)
+        fun writeMetronomeState(bpm: Float?, noteList: ArrayList<NoteListItem>?, activity: FragmentActivity) {
+            if (bpm != null)
+                writePreferenceFloat("speed", bpm, activity)
             if (noteList != null)
                 writePreferenceString("sound", noteListToString(noteList), activity)
         }
 
-        fun readMetronomeSpeed(activity: FragmentActivity): Float {
-            return readPreferenceFloat("speed", InitialValues.speed, activity)
+        fun readMetronomeBpm(activity: FragmentActivity): Float {
+            return readPreferenceFloat("speed", InitialValues.bpm, activity)
         }
 
         fun readMetronomeNoteList(activity: FragmentActivity): ArrayList<NoteListItem> {

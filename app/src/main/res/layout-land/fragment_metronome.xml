@@ -191,7 +191,7 @@
          />
 
     <TextView
-        android:id="@+id/speed_text"
+        android:id="@+id/bpm_text"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_gravity="center"

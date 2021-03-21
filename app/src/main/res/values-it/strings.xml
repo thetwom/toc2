@@ -47,8 +47,8 @@
     <string name="speed_sensitivity">Calibrazione cambio di velocità</string>
     <string name="speed_sensitivity_summary">Variazioni di velocità per cm: %.1f</string>
     <string name="speedincrement">Incremento di velocità</string>
-    <string name="minimum_speed">Velocità minima</string>
-    <string name="maximum_speed">Velocità massima</string>
+    <string name="minimum_bpm">Velocità minima</string>
+    <string name="maximum_bpm">Velocità massima</string>
 
     <string name="reset_all_settings">Azzera le impostazioni</string>
     <string name="reset_settings_prompt">Vuoi davvero azzerare tutte le impostazioni?</string>

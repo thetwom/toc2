@@ -27,7 +27,7 @@ import kotlin.math.roundToLong
 
 class Utilities {
     companion object {
-        val speedIncrements = floatArrayOf(0.125f, 0.25f, 0.5f, 1f, 2f, 5f, 10f)
+        val bpmIncrements = floatArrayOf(0.125f, 0.25f, 0.5f, 1f, 2f, 5f, 10f)
         private const val sensitivityMin = 0.5f // steps per cm
         private const val sensitivityMax = 10.0f // steps per cm
         private val bpmFormat = DecimalFormat()
@@ -61,8 +61,8 @@ class Utilities {
 //            return dp2px(cm * 160.0f / 2.54f)
 //        }
 
-        fun bpm2ms(speed: Float): Long {
-            return (1000.0 * 60.0 / speed).roundToLong()
+        fun bpm2ms(bpm: Float): Long {
+            return (1000.0 * 60.0 / bpm).roundToLong()
         }
 
         fun ms2bpm(dt: Long): Float {
@@ -72,23 +72,23 @@ class Utilities {
         fun getBpmString(bpm: Float): String {
             val tolerance = 1e-6f
             var i = 1
-            while (i < speedIncrements.size && abs(bpm / speedIncrements[i] - (bpm / speedIncrements[i]).roundToInt()) < tolerance) {
+            while (i < bpmIncrements.size && abs(bpm / bpmIncrements[i] - (bpm / bpmIncrements[i]).roundToInt()) < tolerance) {
                 ++i
             }
-            val speedIncrement: Float = speedIncrements[i - 1]
-            return getBpmString(bpm, speedIncrement)
+            val bpmIncrement: Float = bpmIncrements[i - 1]
+            return getBpmString(bpm, bpmIncrement)
         }
 
-        fun getBpmString(bpm: Float, speedIncrement: Float): String {
+        fun getBpmString(bpm: Float, bpmIncrement: Float): String {
             val tolerance = 1e-6f
             val digits = when {
-                abs(speedIncrement - 0.125f) < tolerance -> {
+                abs(bpmIncrement - 0.125f) < tolerance -> {
                     3
                 }
-                abs(speedIncrement - 0.25f) < tolerance -> {
+                abs(bpmIncrement - 0.25f) < tolerance -> {
                     2
                 }
-                abs(speedIncrement - 0.5f) < tolerance -> {
+                abs(bpmIncrement - 0.5f) < tolerance -> {
                     1
                 }
                 else -> {

@@ -52,8 +52,8 @@
     <string name="speed_sensitivity">Speed changing sensitivity</string>
     <string name="speed_sensitivity_summary">Speed steps per cm: %.1f</string>
     <string name="speedincrement">Speed increment</string>
-    <string name="minimum_speed">Minimum speed</string>
-    <string name="maximum_speed">Maximum speed</string>
+    <string name="minimum_bpm">Minimum speed</string>
+    <string name="maximum_bpm">Maximum speed</string>
 
     <string name="reset_all_settings">Reset all settings</string>
     <string name="reset_settings_prompt">Do you really want to reset all settings?</string>

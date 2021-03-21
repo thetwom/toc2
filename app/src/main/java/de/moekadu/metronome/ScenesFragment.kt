@@ -22,7 +22,6 @@ package de.moekadu.metronome
 import android.graphics.Canvas
 import android.graphics.drawable.Animatable
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.View
@@ -51,7 +50,7 @@ class ScenesFragment : Fragment() {
     private val metronomeViewModel by activityViewModels<MetronomeViewModel> {
         val playerConnection = PlayerServiceConnection.getInstance(
                 requireContext(),
-                AppPreferences.readMetronomeSpeed(requireActivity()),
+                AppPreferences.readMetronomeBpm(requireActivity()),
                 AppPreferences.readMetronomeNoteList(requireActivity())
         )
         MetronomeViewModel.Factory(playerConnection)
@@ -213,11 +212,11 @@ class ScenesFragment : Fragment() {
             }
         }
 
-        metronomeViewModel.speed.observe(viewLifecycleOwner) { speed ->
-            // unselect active item if the speed doesn't match the metronome speed
+        metronomeViewModel.bpm.observe(viewLifecycleOwner) { bpm ->
+            // unselect active item if the bpm doesn't match the metronome bpm
             viewModel.activeStableId.value?.let { stableId ->
-                viewModel.scenes.value?.scenes?.firstOrNull { it.stableId == stableId }?.bpm?.let { activeSpeed ->
-                    if (activeSpeed != speed) {
+                viewModel.scenes.value?.scenes?.firstOrNull { it.stableId == stableId }?.bpm?.let { activeBpm ->
+                    if (activeBpm != bpm) {
                         viewModel.setActiveStableId(Scene.NO_STABLE_ID)
                     }
                 }
@@ -227,7 +226,7 @@ class ScenesFragment : Fragment() {
         metronomeViewModel.noteStartedEvent.observe(viewLifecycleOwner) { noteListItem ->
             metronomeViewModel.noteList.value?.let { noteList ->
                 val index = noteList.indexOfFirst { it.uid == noteListItem.uid }
-                scenesAdapter.animateNoteAndTickVisualizer(index, metronomeViewModel.speed.value, scenesRecyclerView)
+                scenesAdapter.animateNoteAndTickVisualizer(index, metronomeViewModel.bpm.value, scenesRecyclerView)
             }
         }
 
@@ -251,8 +250,8 @@ class ScenesFragment : Fragment() {
                 if (newNoteList.size > 0)
                     metronomeViewModel.setNoteList(newNoteList)
                 speedLimiter?.let {
-                    it.checkSavedItemSpeedAndAlert(item.bpm, requireContext())
-                    metronomeViewModel.setSpeed(it.limit(item.bpm))
+                    it.checkSavedItemBpmAndAlert(item.bpm, requireContext())
+                    metronomeViewModel.setBpm(it.limit(item.bpm))
                 }
                 metronomeViewModel.setNextNoteIndex(0)
 

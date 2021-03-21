@@ -90,15 +90,15 @@ class PlayerNotification(val context: PlayerService) {
 
     private val messageWhat = 3282
 
-    var speed = -1.0f
+    var bpm = -1.0f
         set(value) {
             if (value != field) {
                 field = value
-                notificationView.setTextViewText(R.id.notification_speedtext, context.getString(R.string.bpm, Utilities.getBpmString(value, speedIncrement)))
+                notificationView.setTextViewText(R.id.notification_bpm_text, context.getString(R.string.bpm, Utilities.getBpmString(value, bpmIncrement)))
             }
         }
 
-    var speedIncrement = -1.0f
+    var bpmIncrement = -1.0f
         set(value) {
             if (value != field) {
                 field = value
@@ -130,8 +130,8 @@ class PlayerNotification(val context: PlayerService) {
         }
 
     init {
-        speed = InitialValues.speed
-        speedIncrement = 1.0f
+        bpm = InitialValues.bpm
+        bpmIncrement = 1.0f
         state = PlaybackStateCompat.STATE_PAUSED
     }
 

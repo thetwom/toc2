@@ -21,7 +21,6 @@ package de.moekadu.metronome
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.*
@@ -33,30 +32,30 @@ import kotlin.math.roundToInt
 
 class SpeedLimiter(private val sharedPreferences: SharedPreferences, private val lifecycleOwner: LifecycleOwner) : LifecycleObserver{
 
-    private val _minimumSpeed = MutableLiveData(InitialValues.minimumSpeed)
-    private val _maximumSpeed = MutableLiveData(InitialValues.maximumSpeed)
-    private val _speedIncrement = MutableLiveData(Utilities.speedIncrements[InitialValues.speedIncrementIndex])
+    private val _minimumBpm = MutableLiveData(InitialValues.minimumBpm)
+    private val _maximumBpm = MutableLiveData(InitialValues.maximumBpm)
+    private val _bpmIncrement = MutableLiveData(Utilities.bpmIncrements[InitialValues.bpmIncrementIndex])
 
-    val minimumSpeed: LiveData<Float> get() = _minimumSpeed
-    val maximumSpeed: LiveData<Float> get() = _maximumSpeed
-    val speedIncrement: LiveData<Float> get() = _speedIncrement
+    val minimumBpm: LiveData<Float> get() = _minimumBpm
+    val maximumBpm: LiveData<Float> get() = _maximumBpm
+    val bpmIncrement: LiveData<Float> get() = _bpmIncrement
 
     private val onSharedPreferenceChangeListener = SharedPreferences.OnSharedPreferenceChangeListener {
         sharedPreferences, key ->
 
         when (key) {
             "minimumspeed" -> {
-                val newMinimumSpeed = sharedPreferences.getString("minimumspeed", InitialValues.minimumSpeed.toString())
-                _minimumSpeed.value = newMinimumSpeed!!.toFloat()
+                val newMinimumBpm = sharedPreferences.getString("minimumspeed", InitialValues.minimumBpm.toString())
+                _minimumBpm.value = newMinimumBpm!!.toFloat()
             }
             "maximumspeed" -> {
-                val newMaximumSpeed = sharedPreferences.getString("maximumspeed", InitialValues.maximumSpeed.toString())
-                _maximumSpeed.value = newMaximumSpeed!!.toFloat()
+                val newMaximumBpm = sharedPreferences.getString("maximumspeed", InitialValues.maximumBpm.toString())
+                _maximumBpm.value = newMaximumBpm!!.toFloat()
             }
             "speedincrement" -> {
-                val newSpeedIncrementIndex = sharedPreferences.getInt("speedincrement", InitialValues.speedIncrementIndex)
-                val newSpeedIncrement = Utilities.speedIncrements[newSpeedIncrementIndex]
-                _speedIncrement.value = newSpeedIncrement
+                val newBpmIncrementIndex = sharedPreferences.getInt("speedincrement", InitialValues.bpmIncrementIndex)
+                val newBpmIncrement = Utilities.bpmIncrements[newBpmIncrementIndex]
+                _bpmIncrement.value = newBpmIncrement
             }
         }
     }
@@ -68,58 +67,58 @@ class SpeedLimiter(private val sharedPreferences: SharedPreferences, private val
 
     @OnLifecycleEvent(Lifecycle.Event.ON_START)
     private fun readPreferences() {
-        sharedPreferences.getString("minimumspeed", InitialValues.minimumSpeed.toString())?.let {
-//            Log.v("Metronome", "SpeedLimiter.init: loading minimum speed: $it")
+        sharedPreferences.getString("minimumspeed", InitialValues.minimumBpm.toString())?.let {
+//            Log.v("Metronome", "SpeedLimiter.init: loading minimum bpm: $it")
             try {
-                _minimumSpeed.value = it.toFloat()
+                _minimumBpm.value = it.toFloat()
             } catch (e: NumberFormatException) {
-                _minimumSpeed.value = InitialValues.minimumSpeed
+                _minimumBpm.value = InitialValues.minimumBpm
             }
         }
-        sharedPreferences.getString("maximumspeed", InitialValues.maximumSpeed.toString())?.let {
-//            Log.v("Metronome", "SpeedLimiter.init: loading maximum speed: ${it.toFloat()}")
+        sharedPreferences.getString("maximumspeed", InitialValues.maximumBpm.toString())?.let {
+//            Log.v("Metronome", "SpeedLimiter.init: loading maximum bpm: ${it.toFloat()}")
             try {
-                _maximumSpeed.value = it.toFloat()
+                _maximumBpm.value = it.toFloat()
             } catch (e: NumberFormatException) {
-                _minimumSpeed.value = InitialValues.maximumSpeed
+                _minimumBpm.value = InitialValues.maximumBpm
             }
         }
-        val speedIncrementIndex = sharedPreferences.getInt("speedincrement", InitialValues.speedIncrementIndex)
-        _speedIncrement.value = Utilities.speedIncrements[speedIncrementIndex]
+        val bpmIncrementIndex = sharedPreferences.getInt("speedincrement", InitialValues.bpmIncrementIndex)
+        _bpmIncrement.value = Utilities.bpmIncrements[bpmIncrementIndex]
     }
 
-    fun limit(speed: Float): Float {
-        var speedCorrected = speed
+    fun limit(bpm: Float): Float {
+        var bpmCorrected = bpm
 
-        speedCorrected = min(speedCorrected, _maximumSpeed.value!!)
-        speedCorrected = max(speedCorrected, _minimumSpeed.value!!)
-        // Make speed match the increment
-        speedCorrected = (speedCorrected / _speedIncrement.value!!).roundToInt() * _speedIncrement.value!!
+        bpmCorrected = min(bpmCorrected, _maximumBpm.value!!)
+        bpmCorrected = max(bpmCorrected, _minimumBpm.value!!)
+        // Make bpm match the increment
+        bpmCorrected = (bpmCorrected / _bpmIncrement.value!!).roundToInt() * _bpmIncrement.value!!
 
-        if(speedCorrected < _minimumSpeed.value!! - TOLERANCE)
-            speedCorrected += _speedIncrement.value!!
-        if(speedCorrected > _maximumSpeed.value!! + TOLERANCE)
-            speedCorrected -= _speedIncrement.value!!
+        if(bpmCorrected < _minimumBpm.value!! - TOLERANCE)
+            bpmCorrected += _bpmIncrement.value!!
+        if(bpmCorrected > _maximumBpm.value!! + TOLERANCE)
+            bpmCorrected -= _bpmIncrement.value!!
 
-        return speedCorrected
+        return bpmCorrected
     }
 
-    fun checkSavedItemSpeedAndAlert(speed: Float, contextForMessages: Context) {
+    fun checkSavedItemBpmAndAlert(bpm: Float, contextForMessages: Context) {
         var message = ""
 
-        if(speed < _minimumSpeed.value!! - TOLERANCE) {
+        if(bpm < _minimumBpm.value!! - TOLERANCE) {
             message += contextForMessages.getString(R.string.saved_speed_too_small,
-                    Utilities.getBpmString(speed), Utilities.getBpmString(_minimumSpeed.value!!))
+                    Utilities.getBpmString(bpm), Utilities.getBpmString(_minimumBpm.value!!))
         }
 
-        if(speed > _maximumSpeed.value!! + TOLERANCE) {
+        if(bpm > _maximumBpm.value!! + TOLERANCE) {
             message += contextForMessages.getString(R.string.saved_speed_too_large,
-                    Utilities.getBpmString(speed), Utilities.getBpmString(_maximumSpeed.value!!))
+                    Utilities.getBpmString(bpm), Utilities.getBpmString(_maximumBpm.value!!))
         }
 
-        if(abs(speed / _speedIncrement.value!! - (speed / _speedIncrement.value!!).roundToInt()) > TOLERANCE) {
+        if(abs(bpm / _bpmIncrement.value!! - (bpm / _bpmIncrement.value!!).roundToInt()) > TOLERANCE) {
             message += contextForMessages.getString(R.string.inconsistent_saved_increment,
-                    Utilities.getBpmString(speed), Utilities.getBpmString(_speedIncrement.value!!))
+                    Utilities.getBpmString(bpm), Utilities.getBpmString(_bpmIncrement.value!!))
         }
         if (message != "") {
             message += contextForMessages.getString(R.string.inconsistent_summary)
@@ -131,19 +130,19 @@ class SpeedLimiter(private val sharedPreferences: SharedPreferences, private val
         }
     }
 
-    fun checkNewSpeedAndShowToast(speed: Float, contextForToast: Context): Boolean {
+    fun checkNewBpmAndShowToast(bpm: Float, contextForToast: Context): Boolean {
         var message: String? = null
-        if(speed < minimumSpeed.value!! - TOLERANCE) {
+        if(bpm < minimumBpm.value!! - TOLERANCE) {
             message = contextForToast.getString(R.string.speed_too_small,
-                    Utilities.getBpmString(speed), Utilities.getBpmString(minimumSpeed.value!!))
+                    Utilities.getBpmString(bpm), Utilities.getBpmString(minimumBpm.value!!))
         }
-        if(speed > maximumSpeed.value!! + TOLERANCE) {
+        if(bpm > maximumBpm.value!! + TOLERANCE) {
             message = contextForToast.getString(R.string.speed_too_large,
-                    Utilities.getBpmString(speed), Utilities.getBpmString(maximumSpeed.value!!))
+                    Utilities.getBpmString(bpm), Utilities.getBpmString(maximumBpm.value!!))
         }
-        if(abs(speed / speedIncrement.value!! - (speed / speedIncrement.value!!).roundToInt()) > TOLERANCE) {
+        if(abs(bpm / bpmIncrement.value!! - (bpm / bpmIncrement.value!!).roundToInt()) > TOLERANCE) {
             message = contextForToast.getString(R.string.inconsistent_increment,
-                    Utilities.getBpmString(speed), Utilities.getBpmString(speedIncrement.value!!))
+                    Utilities.getBpmString(bpm), Utilities.getBpmString(bpmIncrement.value!!))
         }
         if (message != null) {
             Toast.makeText(contextForToast, message, Toast.LENGTH_LONG).show()

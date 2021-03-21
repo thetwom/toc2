@@ -18,8 +18,8 @@
     <string name="scenes">Szenen</string>
     <string name="loaded_message">Szene geladen: %s</string>
     <string name="max_allowed_characters">Maximale Zeichenzahl: %d</string>
-    <string name="maximum_speed">Maximale Geschwindigkeit</string>
-    <string name="minimum_speed">Minimale Geschwindigkeit</string>
+    <string name="maximum_bpm">Maximale Geschwindigkeit</string>
+    <string name="minimum_bpm">Minimale Geschwindigkeit</string>
     <string name="mute">stumm</string>
     <string name="no">nein</string>
     <string name="no_scenes">Zur Zeit keine gespeicherten Szenen.</string>

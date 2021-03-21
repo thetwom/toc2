@@ -26,8 +26,8 @@
     <string name="speed_sensitivity">Sensibilidad al cambio de velocidad</string>
     <string name="speed_sensitivity_summary">Velocidad de paso por cm: %.1f</string>
     <string name="speedincrement">Tamaño del paso de velocidad</string>
-    <string name="maximum_speed">Velocidad máxima</string>
-    <string name="minimum_speed">Velocidad mínima</string>
+    <string name="maximum_bpm">Velocidad máxima</string>
+    <string name="minimum_bpm">Velocidad mínima</string>
 
     <string name="reset_all_settings">Restablecer todos los ajustes</string>
     <string name="reset_settings_prompt">¿Realmente deseas restablecer todos los ajustes?</string>

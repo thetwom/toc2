@@ -29,13 +29,13 @@ import android.util.Log
 import androidx.lifecycle.*
 
 class PlayerServiceConnection(
-        context: Context, private val initialSpeed: Float, private val initialNoteList: ArrayList<NoteListItem>) {
+        context: Context, private val initialBpm: Float, private val initialNoteList: ArrayList<NoteListItem>) {
 
     private val _noteList = MutableLiveData<ArrayList<NoteListItem> >()
     val noteList: LiveData<ArrayList<NoteListItem> > get() = _noteList
 
-    private val _speed = MutableLiveData<Float>()
-    val speed: LiveData<Float> get() = _speed
+    private val _bpm = MutableLiveData<Float>()
+    val bpm: LiveData<Float> get() = _bpm
 
     private val _playerStatus = MutableLiveData(PlayerStatus.Paused)
     val playerStatus: LiveData<PlayerStatus> get() = _playerStatus
@@ -60,9 +60,9 @@ class PlayerServiceConnection(
             noteStartedEvent.triggerEvent(noteListItem)
         }
 
-        override fun onSpeedChanged(speed: Float) {
-            if (_speed.value != speed)
-                _speed.value = speed
+        override fun onSpeedChanged(bpm: Float) {
+            if (_bpm.value != bpm)
+                _bpm.value = bpm
         }
 
         override fun onNoteListChanged(noteList: ArrayList<NoteListItem>) {
@@ -82,11 +82,11 @@ class PlayerServiceConnection(
                     // TODO: make service to use PlayerStatus and then enable this again
                     //if (_playerStatus.value != service.playbackState)
                     //    _playbackState.value = service.playbackState
-                    setSpeed(initialSpeed)
+                    setBpm(initialBpm)
                     service.noteList = initialNoteList
 
-                    if (_speed.value != service.speed)
-                        _speed.value = service.speed
+                    if (_bpm.value != service.bpm)
+                        _bpm.value = service.bpm
                     if (_noteList.value != service.noteList)
                         _noteList.value = service.noteList
                 }
@@ -128,9 +128,9 @@ class PlayerServiceConnection(
         }
     }
 
-    fun setSpeed(speed: Float) {
+    fun setBpm(bpm: Float) {
         try {
-            serviceBinder?.service?.speed = speed
+            serviceBinder?.service?.bpm = bpm
         }
         catch (_: DeadObjectException) {
             serviceBinder = null
@@ -206,9 +206,9 @@ class PlayerServiceConnection(
         @Volatile
         private var instance: PlayerServiceConnection? = null
 
-        fun getInstance(context: Context, initialSpeed: Float, initialNoteList: ArrayList<NoteListItem>) =
+        fun getInstance(context: Context, initialBpm: Float, initialNoteList: ArrayList<NoteListItem>) =
                 instance ?: synchronized(this) {
-                instance ?: PlayerServiceConnection(context, initialSpeed, initialNoteList)
+                instance ?: PlayerServiceConnection(context, initialBpm, initialNoteList)
                         .also { instance = it }
             }
     }

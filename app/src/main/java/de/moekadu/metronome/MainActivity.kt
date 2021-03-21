@@ -49,7 +49,7 @@ class MainActivity : AppCompatActivity() {
 
     private val metronomeViewModel by viewModels<MetronomeViewModel> {
         val playerConnection = PlayerServiceConnection.getInstance(this,
-                AppPreferences.readMetronomeSpeed(this),
+                AppPreferences.readMetronomeBpm(this),
                 AppPreferences.readMetronomeNoteList(this)
         )
         MetronomeViewModel.Factory(playerConnection)
@@ -76,7 +76,7 @@ class MainActivity : AppCompatActivity() {
             return when (item?.itemId) {
                 R.id.action_edit_done -> {
                     scenesViewModel.editingStableId.value?.let { stableId ->
-                        val bpm = metronomeViewModel.speed.value
+                        val bpm = metronomeViewModel.bpm.value
                         val noteList = metronomeViewModel.noteList.value?.let { n -> noteListToString(n) }
                         val title = metronomeViewModel.scene.value
                         // TODO: maybe date and time
@@ -141,7 +141,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         AppPreferences.writeMetronomeState(
-                metronomeViewModel.speed.value, metronomeViewModel.noteList.value, this)
+                metronomeViewModel.bpm.value, metronomeViewModel.noteList.value, this)
         super.onStop()
     }
 //    override fun onSupportNavigateUp() : Boolean{
@@ -282,7 +282,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun saveCurrentSettings() {
-        SaveSceneDialog.save(this, metronomeViewModel.speed.value, metronomeViewModel.noteList.value) { item ->
+        SaveSceneDialog.save(this, metronomeViewModel.bpm.value, metronomeViewModel.noteList.value) { item ->
             scenesViewModel.scenes.value?.add(item)
             AppPreferences.writeScenesDatabase(scenesViewModel.scenesAsString, this)
             true
