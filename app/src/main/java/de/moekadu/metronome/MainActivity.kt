@@ -75,7 +75,7 @@ class MainActivity : AppCompatActivity() {
                         val bpm = metronomeViewModel.bpm.value
                         val noteList = metronomeViewModel.noteList.value?.let { n -> noteListToString(n) }
                         val title = metronomeViewModel.scene.value
-                        // TODO: maybe date and time
+
                         scenesViewModel.scenes.value?.editScene(stableId, title = title, bpm = bpm, noteList = noteList)
                         // saveCurrentSettings() // double check that this is already saved by scenefragment
                         scenesViewModel.setActiveStableId(stableId)

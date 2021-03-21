@@ -77,8 +77,6 @@
 
     <string name="no_scenes">Ez da elementurik gorde"</string>
 
-    <string name="loaded_message">Kargatutako ezarpenak: %s</string>
-
     <string name="tap_in">UKITU</string>
 
     <string name="about_message">Metronome aplikazioa\nBertsioa: %s\nLizentzia: GPLv3</string>

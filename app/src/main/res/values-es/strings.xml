@@ -53,8 +53,6 @@
     
     <string name="no_scenes">Actualmente sin elementos guardados</string>
 
-    <string name="loaded_message">Ajustes cargados: %s</string>
-
     <string name="tap_in">TAP IN</string>
 
     <string name="about_message">Metrónomo app\nVersión: %s\nLicencia: GPLv3</string>

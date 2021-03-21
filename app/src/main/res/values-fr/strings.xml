@@ -64,9 +64,7 @@
 
     <string name="no_scenes">Aucun réglage sauvé pour le moment</string>
 
-    <string name="loaded_message">Réglage chargé\u00A0: %s</string>
-
-<!--    <string name="tap_in" translatable="false">TAP IN</string>-->
+    <!--    <string name="tap_in" translatable="false">TAP IN</string>-->
 
     <string name="about_message">Metronome app\nVersion\u00A0: %s\nLicense\u00A0: GPLv3</string>
 

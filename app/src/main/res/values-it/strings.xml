@@ -77,8 +77,6 @@
 
     <string name="no_scenes">Nessun elemento salvato al momento"</string>
 
-    <string name="loaded_message">Impostazioni caricate: %s</string>
-
     <string name="tap_in">BATTI IL TEMPO</string>
 
     <string name="about_message">Metronomo app\nVersione: %s\nLicenza: GPLv3</string>

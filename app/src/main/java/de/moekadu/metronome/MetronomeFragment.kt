@@ -178,13 +178,11 @@ class MetronomeFragment : Fragment() {
         }
 
         volumeSliders = view.findViewById(R.id.volume_sliders)
-        volumeSliders?.volumeChangedListener = object : VolumeSliders.VolumeChangedListener {
-            override fun onVolumeChanged(index: Int, volume: Float) {
-                viewModel.setNoteListVolume(index, volume)
-                if (viewModel.playerStatus.value != PlayerStatus.Playing && context != null) {
-                    viewModel.noteList.value?.get(index)?.let { noteListItem ->
-                        singleNotePlayer.play(noteListItem.id, noteListItem.volume)
-                    }
+        volumeSliders?.volumeChangedListener = VolumeSliders.VolumeChangedListener { index, volume ->
+            viewModel.setNoteListVolume(index, volume)
+            if (viewModel.playerStatus.value != PlayerStatus.Playing && context != null) {
+                viewModel.noteList.value?.get(index)?.let { noteListItem ->
+                    singleNotePlayer.play(noteListItem.id, noteListItem.volume)
                 }
             }
         }

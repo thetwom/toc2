@@ -73,6 +73,7 @@
         android:scaleType="fitCenter"
         android:src="@drawable/ic_pause"
         android:background="@null"
+        android:contentDescription="@string/play_pause"
         />
     <!--        android:layout_toStartOf="@id/notification_button_p"-->
 </RelativeLayout>

@@ -82,8 +82,6 @@
     
     <string name="no_scenes">Currently no saved scenes.</string>
 
-    <string name="loaded_message">Loaded scene: %s</string>
-
     <string name="tap_in">TAP IN</string>
 
     <string name="about_message">Metronome app\nVersion: %s\nLicense: GPLv3</string>

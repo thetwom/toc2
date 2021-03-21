@@ -16,7 +16,6 @@
     <string name="light_appearance">Helles Erscheinungsbild</string>
     <string name="light_appearance_short">Hell</string>
     <string name="scenes">Szenen</string>
-    <string name="loaded_message">Szene geladen: %s</string>
     <string name="max_allowed_characters">Maximale Zeichenzahl: %d</string>
     <string name="maximum_bpm">Maximale Geschwindigkeit</string>
     <string name="minimum_bpm">Minimale Geschwindigkeit</string>
