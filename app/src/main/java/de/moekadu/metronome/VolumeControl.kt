@@ -347,8 +347,8 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         if (volume == newVolume)
             return
 
-        // We only change the volume if it one hundredth away from the previous value
-        if (abs(volume - newVolume) > 0.01f || newVolume == 0f || newVolume == 1.0f) {
+        // We only change the volume if it is far enough away from the previous value
+        if (abs(volume - newVolume) > resolution || newVolume == 0f || newVolume == 1.0f) {
             volume = newVolume
             onVolumeChangedListener?.onVolumeChanged(volume)
             resetSliderButtonIcon()
@@ -367,5 +367,9 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                 sliderButton.setImageDrawable(volUp)
             }
         }
+    }
+
+    companion object {
+        const val resolution = 1.0 / 50.0
     }
 }

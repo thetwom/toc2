@@ -3,7 +3,7 @@
     android:color="?attr/colorSecondary">
     <item>
         <shape>
-            <solid android:color="?attr/colorBackgroundFloating"/>
+            <solid android:color="?android:attr/colorBackground"/>
             <corners android:radius="3dp"/>
         </shape>
     </item>

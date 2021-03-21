@@ -38,14 +38,10 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
-    // TODO: handle incorrect loads which could occur, when loading with newer version
-    // TODO: nicer saved-item layout
+    // Regular todos
     // TODO: delete log messages?
-
     // TODO: test different device formats
     // TODO: translations
-
-    // TODO: volume control shouldn't animate if volume changes only one step
 
     private val metronomeViewModel by viewModels<MetronomeViewModel> {
         val playerConnection = PlayerServiceConnection.getInstance(this,
