@@ -21,9 +21,11 @@ package de.moekadu.metronome
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.*
+import java.lang.NumberFormatException
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -66,13 +68,21 @@ class SpeedLimiter(private val sharedPreferences: SharedPreferences, private val
 
     @OnLifecycleEvent(Lifecycle.Event.ON_START)
     private fun readPreferences() {
-        sharedPreferences.getString("minimumspeed", _minimumSpeed.toString())?.let {
-//            Log.v("Metronome", "SpeedLimiter.init: loading minimum speed: ${it.toFloat()}")
-            _minimumSpeed.value = it.toFloat()
+        sharedPreferences.getString("minimumspeed", InitialValues.minimumSpeed.toString())?.let {
+//            Log.v("Metronome", "SpeedLimiter.init: loading minimum speed: $it")
+            try {
+                _minimumSpeed.value = it.toFloat()
+            } catch (e: NumberFormatException) {
+                _minimumSpeed.value = InitialValues.minimumSpeed
+            }
         }
-        sharedPreferences.getString("maximumspeed", _maximumSpeed.toString())?.let {
+        sharedPreferences.getString("maximumspeed", InitialValues.maximumSpeed.toString())?.let {
 //            Log.v("Metronome", "SpeedLimiter.init: loading maximum speed: ${it.toFloat()}")
-            _maximumSpeed.value = it.toFloat()
+            try {
+                _maximumSpeed.value = it.toFloat()
+            } catch (e: NumberFormatException) {
+                _minimumSpeed.value = InitialValues.maximumSpeed
+            }
         }
         val speedIncrementIndex = sharedPreferences.getInt("speedincrement", InitialValues.speedIncrementIndex)
         _speedIncrement.value = Utilities.speedIncrements[speedIncrementIndex]

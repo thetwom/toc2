@@ -104,7 +104,7 @@ class ScenesFragment : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        Log.v("Metronome", "ScenesFragment:onCreateView")
+//        Log.v("Metronome", "ScenesFragment:onCreateView")
         val view = inflater.inflate(R.layout.fragment_scenes, container, false)
 
         noScenesMessage = view.findViewById(R.id.noScenesMessage)

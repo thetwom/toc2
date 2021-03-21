@@ -100,7 +100,7 @@ class MetronomeFragment : Fragment() {
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        Log.v("Metronome", "MetronomeFragment:onCreateView")
+//        Log.v("Metronome", "MetronomeFragment:onCreateView")
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_metronome, container, false)
 
@@ -212,7 +212,7 @@ class MetronomeFragment : Fragment() {
         noteView = view.findViewById(R.id.note_view)
         noteView?.onNoteClickListener = object : NoteView.OnNoteClickListener {
             override fun onDown(event: MotionEvent?, uid: UId?, noteIndex: Int): Boolean {
-                Log.v("Metronome", "MetronomeFragment.noteView.onClickListener.onDown: noteIndex=$noteIndex, uid=$uid")
+//                Log.v("Metronome", "MetronomeFragment.noteView.onClickListener.onDown: noteIndex=$noteIndex, uid=$uid")
                 // we want to make sure that the click is either captured by the sound chooser or be this noteview
                 // - when the soundchooser is currently active it won't caputure the click, so we do it
                 // - when the soundchooser is inactive, we can't capture the click, since the sound chooser
@@ -440,7 +440,7 @@ class MetronomeFragment : Fragment() {
         }
 
         viewModel.scene.observe(viewLifecycleOwner) {
-            Log.v("Metronome", "MetronomeFragment: observing scene: $it")
+//            Log.v("Metronome", "MetronomeFragment: observing scene: $it")
             if (it == null && sceneTitle?.visibility != View.GONE) {
                 //scene?.text = getString(R.string.scene, "###")
                 if (soundChooser?.choiceStatus == SoundChooser.Status.Off) // dont animate since otherwise animations will clash
@@ -458,7 +458,7 @@ class MetronomeFragment : Fragment() {
         }
 
         scenesViewModel.activeStableId.observe(viewLifecycleOwner) { stableId ->
-            Log.v("Metronome", "MetronomeFragment: observing activeStableId")
+//            Log.v("Metronome", "MetronomeFragment: observing activeStableId")
             if (scenesViewModel.editingStableId.value == Scene.NO_STABLE_ID)
                 viewModel.setScene(scenesViewModel.scenes.value?.getScene(stableId)?.title)
         }
@@ -510,15 +510,14 @@ class MetronomeFragment : Fragment() {
     }
 
     override fun onStart() {
-        Log.v("Metronome", "MetronomeFragment.onStart()")
+//        Log.v("Metronome", "MetronomeFragment.onStart()")
         super.onStart()
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
         sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener)
-        Log.v("Metronome", "MetronomeFragment.onStart(): done")
     }
 
     override fun onResume() {
-        Log.v("Metronome", "MetronomeFragment.onResume()")
+//        Log.v("Metronome", "MetronomeFragment.onResume()")
         super.onResume()
         // we need this transition, since after viewpager activity, the first transition is skipped
         // so we do this dummy transition, which is allowed to be skipped

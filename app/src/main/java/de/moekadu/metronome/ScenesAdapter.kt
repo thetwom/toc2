@@ -132,7 +132,7 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
         holder.titleView?.text = scene.title
         //holder.dateView?.text = scene.date + "\n" + scene.time
         holder.speedView?.text = holder.view.context.getString(R.string.bpm, Utilities.getBpmString(scene.bpm))
-        Log.v("Metronome", "SceneDatabase.onBindViewHolder: scene.noteList = ${scene.noteList}, scene.bpm = ${scene.bpm}")
+//        Log.v("Metronome", "SceneDatabase.onBindViewHolder: scene.noteList = ${scene.noteList}, scene.bpm = ${scene.bpm}")
 
         val noteList = stringToNoteList(scene.noteList)
         holder.noteView?.setNoteList(noteList)

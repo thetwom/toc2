@@ -46,7 +46,6 @@ class MainActivity : AppCompatActivity() {
     // TODO: translations
 
     // TODO: volume control shouldn't animate if volume changes only one step
-    // TODO: introduce sensitive area to change to saved-item-fragment (and maybe remove the icon of the toolbar)
 
     private val metronomeViewModel by viewModels<MetronomeViewModel> {
         val playerConnection = PlayerServiceConnection.getInstance(this,

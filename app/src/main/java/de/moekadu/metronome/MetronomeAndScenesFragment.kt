@@ -45,7 +45,7 @@ class MetronomeAndScenesFragment : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        Log.v("Metronome", "MetronomeAndScenesFragment:onCreateView")
+        // Log.v("Metronome", "MetronomeAndScenesFragment:onCreateView")
         val view = inflater.inflate(R.layout.fragment_metronome_and_scenes, container, false)
 
         viewPager = view.findViewById(R.id.viewpager)
@@ -67,16 +67,15 @@ class MetronomeAndScenesFragment : Fragment() {
         return view
     }
 
-    override fun onStart() {
-        super.onStart()
-        Log.v("Metronome", "MetronomeAndScenesFragment.onStart()")
-    }
+//    override fun onStart() {
+//        super.onStart()
+//        Log.v("Metronome", "MetronomeAndScenesFragment.onStart()")
+//    }
 
-    override fun onResume() {
-        Log.v("Metronome", "MetronomeAndScenesFragment.onResume()")
-        super.onResume()
-        Log.v("Metronome", "MetronomeAndScenesFragment.onResume():Done")
-    }
+//    override fun onResume() {
+//        Log.v("Metronome", "MetronomeAndScenesFragment.onResume()")
+//        super.onResume()
+//    }
 
     override fun onDestroyView() {
         viewPager?.unregisterOnPageChangeCallback(pageChangeListener)
