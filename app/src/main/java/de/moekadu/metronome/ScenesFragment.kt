@@ -22,6 +22,7 @@ package de.moekadu.metronome
 import android.graphics.Canvas
 import android.graphics.drawable.Animatable
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.View
@@ -103,6 +104,7 @@ class ScenesFragment : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        Log.v("Metronome", "ScenesFragment:onCreateView")
         val view = inflater.inflate(R.layout.fragment_scenes, container, false)
 
         noScenesMessage = view.findViewById(R.id.noScenesMessage)

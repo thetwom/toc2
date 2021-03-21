@@ -19,6 +19,7 @@
 
 package de.moekadu.metronome
 
+import android.annotation.SuppressLint
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Bundle
 import android.text.InputType
@@ -57,7 +58,7 @@ class MetronomeFragment : Fragment() {
     }
 
     private val singleNotePlayer by lazy {
-        Log.v("Metronome", "MetronomeFragment: creating singleNotePlayer")
+        // Log.v("Metronome", "MetronomeFragment: creating singleNotePlayer")
         SingleNotePlayer(requireContext(), this)
     }
 
@@ -97,8 +98,9 @@ class MetronomeFragment : Fragment() {
         setHasOptionsMenu(true)
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-//        Log.v("Metronome", "MetronomeFragment:onCreateView")
+        Log.v("Metronome", "MetronomeFragment:onCreateView")
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_metronome, container, false)
 
@@ -451,6 +453,10 @@ class MetronomeFragment : Fragment() {
             }
         }
 
+        viewModel.isParentViewPagerSwiping.observe(viewLifecycleOwner) {
+            scenesButton?.isHovered = it
+        }
+
         scenesViewModel.activeStableId.observe(viewLifecycleOwner) { stableId ->
             Log.v("Metronome", "MetronomeFragment: observing activeStableId")
             if (scenesViewModel.editingStableId.value == Scene.NO_STABLE_ID)
@@ -467,7 +473,7 @@ class MetronomeFragment : Fragment() {
                 context?.let {
                     sceneTitle?.background = ContextCompat.getDrawable(it, R.drawable.edit_scene_background)
                 }
-                scenesButton?.visibility = View.INVISIBLE
+                scenesButton?.visibility = View.GONE
             }
             else if (activeStableId != null && activeStableId != Scene.NO_STABLE_ID) {
                 viewModel.setScene(scenesViewModel.scenes.value?.getScene(activeStableId)?.title)
@@ -508,6 +514,7 @@ class MetronomeFragment : Fragment() {
         super.onStart()
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
         sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener)
+        Log.v("Metronome", "MetronomeFragment.onStart(): done")
     }
 
     override fun onResume() {

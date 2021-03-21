@@ -36,6 +36,14 @@ class MetronomeViewModel(private val playerConnection: PlayerServiceConnection):
     private val _scene = MutableLiveData<String?>(null)
     val scene: LiveData<String?> get() = _scene
 
+    private val _isParentViewPagerSwiping = MutableLiveData(false)
+    val isParentViewPagerSwiping: LiveData<Boolean>
+        get() = _isParentViewPagerSwiping
+
+    fun setParentViewPagerSwiping(isSwiping: Boolean) {
+        _isParentViewPagerSwiping.value = isSwiping
+    }
+
     fun setSpeed(value: Float) {
         playerConnection.setSpeed(value)
     }
