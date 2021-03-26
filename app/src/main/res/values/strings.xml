@@ -74,8 +74,8 @@
     <string name="replace_current_list">Replace current list</string>
     <string name="prepend_current_list">Prepend to current list</string>
     <string name="append_current_list">Append to current list</string>
-    <string name="file_empty">File is empty</string>
-    <string name="file_invalid">Invalid file</string>
+    <string name="file_empty">File is empty: %s</string>
+    <string name="file_invalid">Invalid file: %s</string>
     <string name="database_empty">There are no scenes which can be saved.</string>
 
     <string name="cannot_delete_last_note">You cannot delete the last note.</string>
@@ -119,5 +119,6 @@
     <string name="editing_scene">Editing scene</string>
     <string name="rename_scene">Rename</string>
     <string name="scene">Scene: %s</string>
+    <string name="failed_to_archive_scenes">Failed to store scenes to file.</string>
 
 </resources>

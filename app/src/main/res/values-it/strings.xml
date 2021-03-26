@@ -69,8 +69,8 @@
     <string name="replace_current_list">Sostituisci lista attuale</string>
     <string name="prepend_current_list">Inserisci all\'inizio della lista attuale</string>
     <string name="append_current_list">Inserisci alla fine della lista attuale</string>
-    <string name="file_empty">Il file è vuoto</string>
-    <string name="file_invalid">File invalido</string>
+    <string name="file_empty">Il file è vuoto: %s</string>
+    <string name="file_invalid">File invalido: %s</string>
     <string name="database_empty">Non ci sono elementi salvabili.</string>
 
     <string name="cannot_delete_last_note">Impossibile cancellare l\'ultima nota.</string>

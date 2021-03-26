@@ -19,80 +19,115 @@
 
 package de.moekadu.metronome
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.util.Log
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.appcompat.app.AlertDialog
 import androidx.core.database.getStringOrNull
 
-class SceneArchiving(private val activity: MainActivity) {
+class SceneArchiving(private val scenesFragment: ScenesFragment) {
 
-    fun sendArchivingIntent(sceneDatabase: SceneDatabase?) {
-        if (sceneDatabase?.size ?: 0 == 0) {
-            Toast.makeText(activity, R.string.database_empty, Toast.LENGTH_LONG).show()
-        } else {
-            val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+    private inner class FileWriterContract : ActivityResultContract<String, String?>() {
+
+        override fun createIntent(context: Context, input: String?): Intent {
+            return Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE)
                 type = "text/plain"
                 putExtra(Intent.EXTRA_TITLE, "metronome.txt")
                 // default path
                 // putExtra(DocumentsContract.EXTRA_INITIAL_URI, pickerInitialUri)
             }
-            activity.startActivityForResult(intent, MainActivity.FILE_CREATE)
+        }
+
+        override fun parseResult(resultCode: Int, intent: Intent?): String? {
+            val uri = intent?.data
+            val context = scenesFragment.context
+
+            if (uri == null || context == null)
+                return null
+
+            val fileData = scenesFragment.getDatabaseString() ?: return null
+
+            context.contentResolver?.openOutputStream(uri)?.use { stream ->
+                stream.write((fileData).toByteArray())
+            }
+            return getFilenameFromUri(context, uri)
         }
     }
 
-    fun sendUnarchivingIntent() {
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-            addCategory(Intent.CATEGORY_OPENABLE)
-            type = "text/plain"
-            // default path
-            // putExtra(DocumentsContract.EXTRA_INITIAL_URI, pickerInitialUri)
+    private class FileReaderContract : ActivityResultContract<String, Uri?>() {
+        override fun createIntent(context: Context, input: String?): Intent {
+            return Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "text/plain"
+                // default path
+                // putExtra(DocumentsContract.EXTRA_INITIAL_URI, pickerInitialUri)
+            }
         }
-        activity.startActivityForResult(intent, MainActivity.FILE_OPEN)
-    }
 
-    fun archiveScenes(uri: Uri?, databaseString: String?) {
-        if (uri == null)
-            return
-
-        activity.contentResolver?.openOutputStream(uri)?.use { stream ->
-            stream.write((databaseString ?: "").toByteArray())
-            Toast.makeText(activity,
-                    activity.getString(R.string.database_saved, getFilenameFromUri(uri)),
-                    Toast.LENGTH_LONG).show()
+        override fun parseResult(resultCode: Int, intent: Intent?): Uri? {
+            return intent?.data
         }
     }
 
-    fun unarchiveScenes(uri: Uri?, loadDatabaseFromString: (String, SceneDatabase.InsertMode) -> Unit) {
-        if (uri == null)
-            return
-        val builder = AlertDialog.Builder(activity).apply {
-            setTitle(R.string.load_scenes)
-            setNegativeButton(R.string.abort) {dialog,_  -> dialog.dismiss()}
-            setItems(R.array.load_scenes_list) { _, which ->
-                val array = activity.resources.getStringArray(R.array.load_scenes_list)
-                val task = when(array[which]) {
-                    activity.getString(R.string.prepend_current_list) -> SceneDatabase.InsertMode.Prepend
-                    activity.getString(R.string.append_current_list) -> SceneDatabase.InsertMode.Append
-                    else -> SceneDatabase.InsertMode.Replace
-                }
+    private val _archiveScenes = scenesFragment.registerForActivityResult(FileWriterContract()) { filename ->
+        if (filename == null) {
+            Toast.makeText(scenesFragment.requireContext(), R.string.failed_to_archive_scenes, Toast.LENGTH_LONG).show()
+        } else {
+            scenesFragment.context?.let { context ->
+                Toast.makeText(context, context.getString(R.string.database_saved, filename), Toast.LENGTH_LONG).show()
+            }
+        }
+    }
 
-                activity.contentResolver?.openInputStream(uri)?.use { stream ->
-                    stream.reader().use {
-                        val databaseString = it.readText()
-                        loadDatabaseFromString(databaseString, task)
+    private val _unarchiveScenes = scenesFragment.registerForActivityResult(FileReaderContract()) { uri ->
+        val context = scenesFragment.context
+
+        if (context != null && uri != null) {
+            val filename = getFilenameFromUri(context, uri)
+
+            val builder = AlertDialog.Builder(context).apply {
+                setTitle(R.string.load_scenes)
+                setNegativeButton(R.string.abort) { dialog, _ -> dialog.dismiss() }
+                setItems(R.array.load_scenes_list) { _, which ->
+                    val array = context.resources.getStringArray(R.array.load_scenes_list)
+                    val task = when (array[which]) {
+                        context.getString(R.string.prepend_current_list) -> SceneDatabase.InsertMode.Prepend
+                        context.getString(R.string.append_current_list) -> SceneDatabase.InsertMode.Append
+                        else -> SceneDatabase.InsertMode.Replace
+                    }
+
+                    context.contentResolver?.openInputStream(uri)?.use { stream ->
+                        stream.reader().use {
+                            val databaseString = it.readText()
+                            scenesFragment.loadDatabaseFromString(databaseString, task, filename)
+                        }
                     }
                 }
             }
+            builder.show()
         }
-        builder.show()
     }
 
-    private fun getFilenameFromUri(uri: Uri): String? {
+    fun archiveScenes(sceneDatabase: SceneDatabase?) {
+        if (sceneDatabase?.size ?: 0 == 0) {
+            Toast.makeText(scenesFragment.requireContext(), R.string.database_empty, Toast.LENGTH_LONG).show()
+        } else {
+            _archiveScenes.launch(null)
+        }
+    }
+
+    fun unarchiveScenes() {
+        _unarchiveScenes.launch(null)
+    }
+
+    private fun getFilenameFromUri(context: Context, uri: Uri): String? {
         var filename: String? = null
-        activity.contentResolver?.query(
+        context.contentResolver?.query(
                 uri, null, null, null, null)?.use { cursor ->
             val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
             cursor.moveToFirst()

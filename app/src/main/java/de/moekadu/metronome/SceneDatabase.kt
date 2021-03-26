@@ -102,27 +102,30 @@ class SceneDatabase {
         databaseChangedListener?.onChanged(this)
     }
 
-    fun add(scene: Scene, callDatabaseChangedListener: Boolean = true) {
+    fun add(scene: Scene, callDatabaseChangedListener: Boolean = true): Long {
         //Log.v("Metronome", "SceneDatabase.add: Adding: ${scene.title}, ${scene.noteList}")
-        add(scenes.size, scene, callDatabaseChangedListener)
+        return add(scenes.size, scene, callDatabaseChangedListener)
     }
 
-    fun add(position: Int, scene: Scene, callDatabaseChangedListener: Boolean = true) {
+    fun add(position: Int, scene: Scene, callDatabaseChangedListener: Boolean = true) : Long {
         val positionCorrected = min(position, _scenes.size)
 
         // keep the scene stable id if possible else create a new one
-        if (scene.stableId == Scene.NO_STABLE_ID || stableIds.contains(scene.stableId)) {
+        val stableId = if (scene.stableId == Scene.NO_STABLE_ID || stableIds.contains(scene.stableId)) {
             val newScene = scene.copy(stableId = getNewStableId())
             _scenes.add(positionCorrected, newScene)
             stableIds.add(newScene.stableId)
+            newScene.stableId
         }
         else {
             _scenes.add(positionCorrected, scene)
             stableIds.add(scene.stableId)
+            scene.stableId
         }
 
         if (callDatabaseChangedListener)
             databaseChangedListener?.onChanged(this)
+        return stableId
     }
 
     fun getScenesString() : String {

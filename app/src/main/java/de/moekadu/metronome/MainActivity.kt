@@ -19,22 +19,17 @@
 
 package de.moekadu.metronome
 
-import android.content.Intent
 import android.media.AudioManager
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.WindowManager
-import android.widget.Toast
 import androidx.activity.viewModels
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.appcompat.view.ActionMode
 import androidx.fragment.app.commit
 import androidx.fragment.app.replace
 import androidx.preference.PreferenceManager
-import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -49,49 +44,6 @@ class MainActivity : AppCompatActivity() {
                 AppPreferences.readMetronomeNoteList(this)
         )
         MetronomeViewModel.Factory(playerConnection)
-    }
-    private val scenesViewModel by viewModels<ScenesViewModel> {
-        ScenesViewModel.Factory(AppPreferences.readScenesDatabase(this))
-    }
-
-    private val sceneArchiving by lazy {
-        SceneArchiving(this)
-    }
-
-    private val editSceneCallback = object : ActionMode.Callback {
-        override fun onCreateActionMode(mode: ActionMode?, menu: Menu?): Boolean {
-            menuInflater.inflate(R.menu.edit, menu)
-            return true
-        }
-
-        override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?): Boolean {
-            return false
-        }
-
-        override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
-            return when (item?.itemId) {
-                R.id.action_edit_done -> {
-                    scenesViewModel.editingStableId.value?.let { stableId ->
-                        val bpm = metronomeViewModel.bpm.value
-                        val noteList = metronomeViewModel.noteList.value?.let { n -> noteListToString(n) }
-                        val title = metronomeViewModel.scene.value
-
-                        scenesViewModel.scenes.value?.editScene(stableId, title = title, bpm = bpm, noteList = noteList)
-                        // saveCurrentSettings() // double check that this is already saved by scenefragment
-                        scenesViewModel.setActiveStableId(stableId)
-                        scenesViewModel.setEditingStableId(Scene.NO_STABLE_ID)
-                        setMetronomeAndScenesViewPagerId(ViewPagerAdapter.SCENES)
-                    }
-                    mode?.finish()
-                    true
-                }
-                else -> false
-            }
-        }
-
-        override fun onDestroyActionMode(mode: ActionMode?) {
-            scenesViewModel.setEditingStableId(Scene.NO_STABLE_ID)
-        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -158,7 +110,7 @@ class MainActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(false)
     }
 
-    fun setMetronomeAndScenesViewPagerId(id: Int) {
+    private fun setMetronomeAndScenesViewPagerId(id: Int) {
         when (val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)) {
             is MetronomeAndScenesFragment -> {
                 currentFragment.viewPager?.currentItem = id
@@ -208,85 +160,8 @@ class MainActivity : AppCompatActivity() {
                 }
                 supportActionBar?.setDisplayHomeAsUpEnabled(true)
             }
-            R.id.action_load -> {
-                setMetronomeAndScenesViewPagerId(ViewPagerAdapter.SCENES)
-            }
-            R.id.action_save -> {
-                saveCurrentSettings()
-            }
-            R.id.action_archive -> {
-                if (scenesViewModel.scenes.value?.size ?: 0 == 0) {
-                    Toast.makeText(this, R.string.database_empty, Toast.LENGTH_LONG).show()
-                } else {
-                    sceneArchiving.sendArchivingIntent(scenesViewModel.scenes.value)
-                }
-            }
-            R.id.action_unarchive -> {
-                sceneArchiving.sendUnarchivingIntent()
-            }
-            R.id.action_clear_all -> {
-                clearAllSavedItems()
-            }
-            R.id.action_edit -> {
-                val actionMode = startSupportActionMode(editSceneCallback)
-                actionMode?.title = getString(R.string.editing_scene)
-                val stableId = scenesViewModel.activeStableId.value
-//                Log.v("Metronome", "MainActivity: onOptionsItemSelected: R.id.action_edit, stableId = $stableId")
-                if (stableId != null && stableId != Scene.NO_STABLE_ID) {
-                    scenesViewModel.setEditingStableId(stableId)
-                    setMetronomeAndScenesViewPagerId(ViewPagerAdapter.METRONOME)
-                }
-            }
         }
 
         return super.onOptionsItemSelected(item)
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode != RESULT_OK)
-            return
-
-        if (requestCode == FILE_CREATE) {
-            sceneArchiving.archiveScenes(data?.data,
-                    scenesViewModel.scenes.value?.getScenesString())
-        }
-        else if (requestCode == FILE_OPEN) {
-            sceneArchiving.unarchiveScenes(data?.data) { databaseString, task ->
-                when (scenesViewModel.scenes.value?.loadSceneFromString(databaseString, task)) {
-                    SceneDatabase.FileCheck.Empty ->
-                        Toast.makeText(this, R.string.file_empty, Toast.LENGTH_LONG).show()
-                    SceneDatabase.FileCheck.Invalid ->
-                        Toast.makeText(this, R.string.file_invalid, Toast.LENGTH_LONG).show()
-                    SceneDatabase.FileCheck.Ok ->
-                        AppPreferences.writeScenesDatabase(scenesViewModel.scenesAsString, this)
-                }
-            }
-        }
-    }
-
-    private fun clearAllSavedItems() {
-        val builder = AlertDialog.Builder(this).apply {
-            setTitle(R.string.clear_all_question)
-            setNegativeButton(R.string.no) { dialog, _ -> dialog.dismiss() }
-            setPositiveButton(R.string.yes) { _, _ ->
-                scenesViewModel.scenes.value?.clear()
-                AppPreferences.writeScenesDatabase(scenesViewModel.scenesAsString, this@MainActivity)
-            }
-        }
-        builder.show()
-    }
-
-    private fun saveCurrentSettings() {
-        SaveSceneDialog.save(this, metronomeViewModel.bpm.value, metronomeViewModel.noteList.value) { item ->
-            scenesViewModel.scenes.value?.add(item)
-            AppPreferences.writeScenesDatabase(scenesViewModel.scenesAsString, this)
-            true
-        }
-    }
-
-    companion object {
-        const val FILE_CREATE = 1
-        const val FILE_OPEN = 2
     }
 }

@@ -30,53 +30,53 @@
         android:icon="@drawable/ic_settings"
         app:showAsAction="ifRoom" />
 
-    <item
-        android:id="@+id/action_load"
-        android:orderInCategory="99"
-        android:title="@string/scenes"
-        android:icon="@drawable/ic_storage"
-        app:showAsAction="ifRoom"
-        />
+<!--    <item-->
+<!--        android:id="@+id/action_load"-->
+<!--        android:orderInCategory="99"-->
+<!--        android:title="@string/scenes"-->
+<!--        android:icon="@drawable/ic_storage"-->
+<!--        app:showAsAction="ifRoom"-->
+<!--        />-->
 
-    <item
-        android:id="@+id/action_save"
-        android:orderInCategory="98"
-        android:title="@string/save_scene"
-        android:icon="@drawable/ic_save"
-        app:showAsAction="ifRoom"
-        />
+<!--    <item-->
+<!--        android:id="@+id/action_save"-->
+<!--        android:orderInCategory="98"-->
+<!--        android:title="@string/save_scene"-->
+<!--        android:icon="@drawable/ic_save"-->
+<!--        app:showAsAction="ifRoom"-->
+<!--        />-->
 
-    <item
-        android:id="@+id/action_archive"
-        android:orderInCategory="96"
-        android:title="@string/save_to_disc"
-        android:icon="@drawable/ic_archive"
-        app:showAsAction="ifRoom"
-        />
+<!--    <item-->
+<!--        android:id="@+id/action_archive"-->
+<!--        android:orderInCategory="96"-->
+<!--        android:title="@string/save_to_disc"-->
+<!--        android:icon="@drawable/ic_archive"-->
+<!--        app:showAsAction="ifRoom"-->
+<!--        />-->
 
-    <item
-        android:id="@+id/action_unarchive"
-        android:orderInCategory="97"
-        android:title="@string/load_from_disc"
-        android:icon="@drawable/ic_unarchive"
-        app:showAsAction="ifRoom"
-        />
+<!--    <item-->
+<!--        android:id="@+id/action_unarchive"-->
+<!--        android:orderInCategory="97"-->
+<!--        android:title="@string/load_from_disc"-->
+<!--        android:icon="@drawable/ic_unarchive"-->
+<!--        app:showAsAction="ifRoom"-->
+<!--        />-->
 
-    <item
-        android:id="@+id/action_clear_all"
-        android:orderInCategory="95"
-        android:title="@string/clear_all"
-        android:icon="@drawable/ic_clear_all"
-        app:showAsAction="ifRoom"
-        />
+<!--    <item-->
+<!--        android:id="@+id/action_clear_all"-->
+<!--        android:orderInCategory="95"-->
+<!--        android:title="@string/clear_all"-->
+<!--        android:icon="@drawable/ic_clear_all"-->
+<!--        app:showAsAction="ifRoom"-->
+<!--        />-->
 
-    <item
-        android:id="@+id/action_edit"
-        android:orderInCategory="94"
-        android:title="@string/edit"
-        android:icon="@drawable/ic_edit"
-        app:showAsAction="ifRoom"
-        />
+<!--    <item-->
+<!--        android:id="@+id/action_edit"-->
+<!--        android:orderInCategory="94"-->
+<!--        android:title="@string/edit"-->
+<!--        android:icon="@drawable/ic_edit"-->
+<!--        app:showAsAction="ifRoom"-->
+<!--        />-->
     <!--<item-->
         <!--android:id="@+id/test_setting"-->
         <!--android:orderInCategory="99"-->

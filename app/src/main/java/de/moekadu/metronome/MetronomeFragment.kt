@@ -540,28 +540,48 @@ class MetronomeFragment : Fragment() {
         super.onSaveInstanceState(outState)
     }
 
-    override fun onPrepareOptionsMenu(menu: Menu) {
-//        Log.v("Metronome", "MetronomeFragment.onPrepareOptionsMenu")
-//        super.onPrepareOptionsMenu(menu);
-        val settingsItem = menu.findItem(R.id.action_properties)
-        settingsItem?.isVisible = true
-
-        val loadDataItem = menu.findItem(R.id.action_load)
-        loadDataItem?.isVisible = true
-
-        val scenesItem = menu.findItem(R.id.action_save)
-        scenesItem?.isVisible = true
-
-        val archive = menu.findItem(R.id.action_archive)
-        archive?.isVisible = false
-
-        val unarchive = menu.findItem(R.id.action_unarchive)
-        unarchive?.isVisible = false
-
-        val clearAll = menu.findItem(R.id.action_clear_all)
-        clearAll?.isVisible = false
-
-        val editItem = menu.findItem(R.id.action_edit)
-        editItem?.isVisible = false
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.metronome, menu)
+//        super.onCreateOptionsMenu(menu, inflater)
     }
+
+    override fun onOptionsItemSelected(item : MenuItem) : Boolean {
+        when (item.itemId) {
+            R.id.action_save -> {
+                SaveSceneDialog.save(requireContext(), viewModel.bpm.value, viewModel.noteList.value) { scene ->
+                    scenesViewModel.scenes.value?.add(scene)?.let { stableId ->
+                        scenesViewModel.setActiveStableId(stableId)
+                    }
+                    AppPreferences.writeScenesDatabase(scenesViewModel.scenesAsString, requireActivity())
+                    true
+                }
+                return true
+            }
+        }
+        return false
+    }
+//    override fun onPrepareOptionsMenu(menu: Menu) {
+////        Log.v("Metronome", "MetronomeFragment.onPrepareOptionsMenu")
+////        super.onPrepareOptionsMenu(menu);
+//        val settingsItem = menu.findItem(R.id.action_properties)
+//        settingsItem?.isVisible = true
+//
+//        val loadDataItem = menu.findItem(R.id.action_load)
+//        loadDataItem?.isVisible = true
+//
+//        val scenesItem = menu.findItem(R.id.action_save)
+//        scenesItem?.isVisible = true
+//
+//        val archive = menu.findItem(R.id.action_archive)
+//        archive?.isVisible = false
+//
+//        val unarchive = menu.findItem(R.id.action_unarchive)
+//        unarchive?.isVisible = false
+//
+//        val clearAll = menu.findItem(R.id.action_clear_all)
+//        clearAll?.isVisible = false
+//
+//        val editItem = menu.findItem(R.id.action_edit)
+//        editItem?.isVisible = false
+//    }
 }

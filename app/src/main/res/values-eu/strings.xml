@@ -69,8 +69,8 @@
     <string name="replace_current_list">Ordezkatu uneko zerrenda</string>
     <string name="prepend_current_list">Gehitu uneko zerrendaren hasieran</string>
     <string name="append_current_list">Gehitu uneko zerrendaren amaieran</string>
-    <string name="file_empty">Fitxategia hutsik dago</string>
-    <string name="file_invalid">Fitxategi baliogabea</string>
+    <string name="file_empty">Fitxategia hutsik dago: %s</string>
+    <string name="file_invalid">Fitxategi baliogabea: %s</string>
     <string name="database_empty">Ez dago gordetzeko elementurik.</string>
 
     <string name="cannot_delete_last_note">Ezin duzu azken nota ezabatu.</string>

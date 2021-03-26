@@ -1,9 +1,7 @@
 package de.moekadu.metronome
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.viewpager2.widget.ViewPager2
@@ -42,6 +40,38 @@ class MetronomeAndScenesFragment : Fragment() {
         }
     }
 
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.metronome_and_scenes, menu)
+    }
+
+    override fun onOptionsItemSelected(item : MenuItem) : Boolean {
+        when (item.itemId) {
+            R.id.action_load -> {
+                viewPager?.currentItem = ViewPagerAdapter.SCENES
+                return true
+            }
+            R.id.action_edit -> {
+                val actionMode = (requireActivity() as MainActivity).startSupportActionMode(
+                        EditSceneCallback(requireActivity() as MainActivity, scenesViewModel, metronomeViewModel, viewPager)
+                )
+                actionMode?.title = getString(R.string.editing_scene)
+                val stableId = scenesViewModel.activeStableId.value
+//                Log.v("Metronome", "MainActivity: onOptionsItemSelected: R.id.action_edit, stableId = $stableId")
+                if (stableId != null && stableId != Scene.NO_STABLE_ID) {
+                    scenesViewModel.setEditingStableId(stableId)
+                    viewPager?.currentItem = ViewPagerAdapter.METRONOME
+                }
+            }
+        }
+        return false
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         // Log.v("Metronome", "MetronomeAndScenesFragment:onCreateView")
         val view = inflater.inflate(R.layout.fragment_metronome_and_scenes, container, false)
@@ -52,6 +82,8 @@ class MetronomeAndScenesFragment : Fragment() {
         (activity as MainActivity?)?.setDisplayHomeButton()
 
         viewPager?.registerOnPageChangeCallback(pageChangeListener)
+        viewPager?.offscreenPageLimit = 1
+
 
 //        if (viewPager?.currentItem == ViewPagerAdapter.METRONOME)
 //            viewPager?.isUserInputEnabled = false
@@ -62,6 +94,8 @@ class MetronomeAndScenesFragment : Fragment() {
         scenesViewModel.editingStableId.observe(viewLifecycleOwner) {
             lockViewPager()
         }
+
+        //view.post { requireActivity().invalidateOptionsMenu() }
         return view
     }
 

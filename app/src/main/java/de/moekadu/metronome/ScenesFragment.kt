@@ -22,11 +22,10 @@ package de.moekadu.metronome
 import android.graphics.Canvas
 import android.graphics.drawable.Animatable
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -73,33 +72,62 @@ class ScenesFragment : Fragment() {
     private var playFab: FloatingActionButton? = null
     private var playFabStatus = PlayerStatus.Paused
 
+    private val sceneArchiving = SceneArchiving(this)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
     }
 
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.scenes, menu)
+//        super.onCreateOptionsMenu(menu, inflater)
+    }
+
     override fun onPrepareOptionsMenu(menu: Menu) {
 //        super.onPrepareOptionsMenu(menu);
-        val settingsItem = menu.findItem(R.id.action_properties)
-        settingsItem?.isVisible = true
-
+//        val settingsItem = menu.findItem(R.id.action_properties)
+//        settingsItem?.isVisible = true
+//
         val loadDataItem = menu.findItem(R.id.action_load)
         loadDataItem?.isVisible = false
-
-        val scenesItem = menu.findItem(R.id.action_save)
-        scenesItem.isVisible = false
-
-        val archive = menu.findItem(R.id.action_archive)
-        archive?.isVisible = true
-
-        val unarchive = menu.findItem(R.id.action_unarchive)
-        unarchive?.isVisible = true
-
-        val clearAll = menu.findItem(R.id.action_clear_all)
-        clearAll?.isVisible = true
+//
+//        val scenesItem = menu.findItem(R.id.action_save)
+//        scenesItem.isVisible = false
+//
+//        val archive = menu.findItem(R.id.action_archive)
+//        archive?.isVisible = true
+//
+//        val unarchive = menu.findItem(R.id.action_unarchive)
+//        unarchive?.isVisible = true
+//
+//        val clearAll = menu.findItem(R.id.action_clear_all)
+//        clearAll?.isVisible = true
 
         val editItem = menu.findItem(R.id.action_edit)
         editItem?.isVisible = viewModel.activeStableId.value != Scene.NO_STABLE_ID
+    }
+
+    override fun onOptionsItemSelected(item : MenuItem) : Boolean {
+        when (item.itemId) {
+            R.id.action_archive -> {
+                if (viewModel.scenes.value?.size ?: 0 == 0) {
+                    Toast.makeText(requireContext(), R.string.database_empty, Toast.LENGTH_LONG).show()
+                } else {
+                    sceneArchiving.archiveScenes(viewModel.scenes.value)
+//                    SceneArchiving.sendArchivingIntent(requireActivity(), viewModel.scenes.value)
+                }
+            }
+            R.id.action_unarchive -> {
+                sceneArchiving.unarchiveScenes()
+//                SceneArchiving.sendUnarchivingIntent(requireActivity())
+            }
+            R.id.action_clear_all -> {
+                clearAllSavedItems()
+            }
+        }
+
+        return super.onOptionsItemSelected(item)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -284,5 +312,34 @@ class ScenesFragment : Fragment() {
 
         speedLimiter = SpeedLimiter(PreferenceManager.getDefaultSharedPreferences(requireContext()), viewLifecycleOwner)
         return view
+    }
+
+    private fun clearAllSavedItems() {
+        val builder = AlertDialog.Builder(requireContext()).apply {
+            setTitle(R.string.clear_all_question)
+            setNegativeButton(R.string.no) { dialog, _ -> dialog.dismiss() }
+            setPositiveButton(R.string.yes) { _, _ ->
+                viewModel.scenes.value?.clear()
+                AppPreferences.writeScenesDatabase(viewModel.scenesAsString, requireActivity())
+            }
+        }
+        builder.show()
+    }
+
+    fun getDatabaseString() : String? {
+        return viewModel.scenes.value?.getScenesString()
+    }
+
+    fun loadDatabaseFromString(scenesString: String, task: SceneDatabase.InsertMode, filename: String?) {
+        activity?.let { act ->
+            when (viewModel.scenes.value?.loadSceneFromString(scenesString, task)) {
+                SceneDatabase.FileCheck.Empty ->
+                    Toast.makeText(act, act.getString(R.string.file_empty, filename), Toast.LENGTH_LONG).show()
+                SceneDatabase.FileCheck.Invalid ->
+                    Toast.makeText(act, act.getString(R.string.file_invalid, filename), Toast.LENGTH_LONG).show()
+                SceneDatabase.FileCheck.Ok ->
+                    AppPreferences.writeScenesDatabase(viewModel.scenesAsString, act)
+            }
+        }
     }
 }

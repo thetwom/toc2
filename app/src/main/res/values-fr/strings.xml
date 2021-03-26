@@ -56,8 +56,8 @@
     <string name="replace_current_list">Remplacer la liste</string>
     <string name="prepend_current_list">Ajouter au début de la liste</string>
     <string name="append_current_list">Ajouter à la fin de la liste</string>
-    <string name="file_empty">Le fichier est vide</string>
-    <string name="file_invalid">Fichier invalide</string>
+    <string name="file_empty">Le fichier est vide\u00A0: %s</string>
+    <string name="file_invalid">Fichier invalide\u00A0: %s</string>
     <string name="database_empty">Il n\'y a pas de réglage à sauver.</string>
 
     <string name="cannot_delete_last_note">Vous ne pouvez pas supprimer la dernière note.</string>

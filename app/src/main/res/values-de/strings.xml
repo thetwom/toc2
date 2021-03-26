@@ -57,8 +57,8 @@
     <string name="add_note">Note hinzfügen</string>
     <string name="tap_in">TAP IN</string>
     <string name="bpm">%s bpm</string>
-    <string name="file_empty">Datei ist leer.</string>
-    <string name="file_invalid">Ungültige Datei.</string>
+    <string name="file_empty">Datei ist leer: %s</string>
+    <string name="file_invalid">Ungültige Datei: %s</string>
     <string name="database_empty">Keine zu speichernde Szenen.</string>
     <string name="vibrate_notes">Vibrierende Noten</string>
     <string name="not_supported_by_hardware">Nicht unterstützt durch Hardware</string>
@@ -80,4 +80,5 @@
     <string name="editing_scene">Szene bearbeiten</string>
     <string name="rename_scene">Umbenennen</string>
     <string name="scene">Szene: %s</string>
+    <string name="failed_to_archive_scenes">Speichern der Szenen fehlgeschlagen.</string>
 </resources>
