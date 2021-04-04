@@ -22,6 +22,7 @@ package de.moekadu.metronome
 import android.graphics.Canvas
 import android.graphics.drawable.Animatable
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.widget.TextView
 import android.widget.Toast
@@ -85,24 +86,9 @@ class ScenesFragment : Fragment() {
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {
-//        super.onPrepareOptionsMenu(menu);
-//        val settingsItem = menu.findItem(R.id.action_properties)
-//        settingsItem?.isVisible = true
-//
+
         val loadDataItem = menu.findItem(R.id.action_load)
         loadDataItem?.isVisible = false
-//
-//        val scenesItem = menu.findItem(R.id.action_save)
-//        scenesItem.isVisible = false
-//
-//        val archive = menu.findItem(R.id.action_archive)
-//        archive?.isVisible = true
-//
-//        val unarchive = menu.findItem(R.id.action_unarchive)
-//        unarchive?.isVisible = true
-//
-//        val clearAll = menu.findItem(R.id.action_clear_all)
-//        clearAll?.isVisible = true
 
         val editItem = menu.findItem(R.id.action_edit)
         editItem?.isVisible = viewModel.activeStableId.value != Scene.NO_STABLE_ID
@@ -115,12 +101,10 @@ class ScenesFragment : Fragment() {
                     Toast.makeText(requireContext(), R.string.database_empty, Toast.LENGTH_LONG).show()
                 } else {
                     sceneArchiving.archiveScenes(viewModel.scenes.value)
-//                    SceneArchiving.sendArchivingIntent(requireActivity(), viewModel.scenes.value)
                 }
             }
             R.id.action_unarchive -> {
                 sceneArchiving.unarchiveScenes()
-//                SceneArchiving.sendUnarchivingIntent(requireActivity())
             }
             R.id.action_clear_all -> {
                 clearAllSavedItems()
@@ -235,6 +219,8 @@ class ScenesFragment : Fragment() {
                     }
                 }
             }
+
+//            Log.v("Metronome", "ScenesFragment.observeNoteList: areNoteListsEqual=$areNoteListsEqual")
             if (!areNoteListsEqual) {
                 viewModel.setActiveStableId(Scene.NO_STABLE_ID)
             }

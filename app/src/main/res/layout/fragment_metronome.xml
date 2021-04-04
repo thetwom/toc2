@@ -38,18 +38,11 @@
         />
 
     <androidx.constraintlayout.widget.Guideline
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.1"
-        />
-
-    <androidx.constraintlayout.widget.Guideline
         android:id="@+id/lower_guideline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.8"
+        app:layout_constraintGuide_percent="0.78"
         />
 
     <de.moekadu.metronome.SpeedPanel
@@ -140,7 +133,7 @@
      app:layout_constraintTop_toBottomOf="@id/note_view"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-     app:layout_constraintVertical_weight="0.08"/>
+     app:layout_constraintVertical_weight="0.15"/>
 
     <TextView
         android:id="@+id/scene_title_active"
@@ -153,6 +146,7 @@
         android:textColor="?attr/colorPrimary"
         android:padding="4dp"
         android:layout_margin="4dp"
+        android:layout_marginBottom="0dp"
         android:visibility="gone"
         />
 

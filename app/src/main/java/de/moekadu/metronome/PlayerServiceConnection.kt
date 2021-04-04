@@ -97,7 +97,7 @@ class PlayerServiceConnection(
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
-            Log.v("Metronome", "ServiceConnection.onServiceDisconnected")
+//            Log.v("Metronome", "ServiceConnection.onServiceDisconnected")
             serviceBinder = null
         }
     }
@@ -192,7 +192,7 @@ class PlayerServiceConnection(
     }
 
     private fun unbindFromService() {
-        Log.v("Metronome", "ServiceConnection.unbindFromService")
+//        Log.v("Metronome", "ServiceConnection.unbindFromService")
         applicationContext.unbindService(connection)
         try {
             serviceBinder?.service?.unregisterStatusChangedListener(serviceStateListener)

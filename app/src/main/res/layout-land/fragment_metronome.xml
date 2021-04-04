@@ -42,7 +42,7 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.7"
+        app:layout_constraintGuide_percent="0.65"
         />
 <!--    <androidx.constraintlayout.widget.Guideline-->
 <!--        android:id="@+id/text_upper_guideline"-->
@@ -79,6 +79,7 @@
         android:textColor="?attr/colorPrimary"
         android:padding="4dp"
         android:layout_margin="4dp"
+        android:layout_marginBottom="0dp"
         android:visibility="gone"
         />
 
@@ -187,7 +188,7 @@
          app:layout_constraintTop_toBottomOf="@id/notelines_below_speedpanel1"
         app:layout_constraintLeft_toLeftOf="parent"
          app:layout_constraintRight_toRightOf="@id/plus_button"
-         app:layout_constraintVertical_weight="0.08"
+         app:layout_constraintVertical_weight="0.15"
          />
 
     <TextView
@@ -195,7 +196,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_gravity="center"
-        android:text="SPEED"
+        android:text="@string/bpm"
         android:maxLines="1"
         app:autoSizeTextType="uniform"
         android:gravity="center"

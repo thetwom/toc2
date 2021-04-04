@@ -36,7 +36,7 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 
 
-class VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
+class  VolumeSliders(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
     : ViewGroup(context, attrs, defStyleAttr){
 
     private val tunerHeightPercent = 0.7f

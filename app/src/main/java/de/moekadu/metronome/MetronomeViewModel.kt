@@ -33,8 +33,8 @@ class MetronomeViewModel(private val playerConnection: PlayerServiceConnection):
     val noteStartedEvent get() = playerConnection.noteStartedEvent
     val noteList get() = playerConnection.noteList
 
-    private val _scene = MutableLiveData<String?>(null)
-    val scene: LiveData<String?> get() = _scene
+    private val _editedSceneTitle = MutableLiveData<String?>(null)
+    val editedSceneTitle: LiveData<String?> get() = _editedSceneTitle
 
     private val _isParentViewPagerSwiping = MutableLiveData(false)
     val isParentViewPagerSwiping: LiveData<Boolean>
@@ -119,8 +119,8 @@ class MetronomeViewModel(private val playerConnection: PlayerServiceConnection):
         }
     }
 
-    fun setScene(name: String?) {
-        _scene.value = name
+    fun setEditedSceneTitle(name: String?) {
+        _editedSceneTitle.value = name
     }
 
     fun play() {

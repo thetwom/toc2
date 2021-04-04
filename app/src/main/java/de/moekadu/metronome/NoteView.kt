@@ -28,6 +28,7 @@ import android.graphics.drawable.Drawable
 import android.transition.AutoTransition
 import android.transition.TransitionManager
 import android.util.AttributeSet
+import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.MotionEvent
@@ -164,6 +165,8 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                 noteListItem.id = id
             }
         }
+
+        fun getNoteId() = noteListItem.id
 
         fun setVolume(volume: Float) {
             noteListItem.volume = volume
@@ -390,6 +393,8 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             var flag = true
             for (i in notes.indices) {
                 flag = (notes[i].uid == noteList[i].uid)
+//                Log.v("Metronome", "NoteView.setNoteList: uids $i: ${notes[i].uid}, ${noteList[i].uid}")
+
                 if (!flag)
                     break
             }
@@ -397,7 +402,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         } else {
             false
         }
-
+        Log.v("Metronome", "NoteView.setNoteList: uidEqual = $uidEqual, ${noteList.size}, ${notes.size}, ")
         if (uidEqual) {
             noteList.zip(notes) { source, target -> target.set(source) }
         } else {

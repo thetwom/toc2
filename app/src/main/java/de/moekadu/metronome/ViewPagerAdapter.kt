@@ -18,9 +18,6 @@ class ViewPagerAdapter(activity: FragmentActivity) : FragmentStateAdapter(activi
             SCENES -> {
                 ScenesFragment()
             }
-//            SETTINGS -> {
-//                SettingsFragment()
-//            }
             else -> {
                 throw RuntimeException("No fragment for position $position")
             }
@@ -30,8 +27,6 @@ class ViewPagerAdapter(activity: FragmentActivity) : FragmentStateAdapter(activi
     companion object {
         const val METRONOME = 0
         const val SCENES = 1
-        //const val SETTINGS = 2
-        //const val NUM_FRAGMENTS = 3
         const val NUM_FRAGMENTS = 2
     }
 }

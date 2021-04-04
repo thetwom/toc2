@@ -40,7 +40,6 @@ class MetronomeAndScenesFragment : Fragment() {
         }
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
@@ -57,16 +56,12 @@ class MetronomeAndScenesFragment : Fragment() {
                 return true
             }
             R.id.action_edit -> {
-                val actionMode = (requireActivity() as MainActivity).startSupportActionMode(
-                        EditSceneCallback(requireActivity() as MainActivity, scenesViewModel, metronomeViewModel, viewPager)
-                )
-                actionMode?.title = getString(R.string.editing_scene)
-                val stableId = scenesViewModel.activeStableId.value
-//                Log.v("Metronome", "MainActivity: onOptionsItemSelected: R.id.action_edit, stableId = $stableId")
-                if (stableId != null && stableId != Scene.NO_STABLE_ID) {
-                    scenesViewModel.setEditingStableId(stableId)
-                    viewPager?.currentItem = ViewPagerAdapter.METRONOME
-                }
+                metronomeViewModel.setEditedSceneTitle(null)
+                val activeStableId = scenesViewModel.activeStableId.value ?: Scene.NO_STABLE_ID
+                val sceneTitle = scenesViewModel.scenes.value?.getScene(activeStableId)?.title
+                metronomeViewModel.setEditedSceneTitle(sceneTitle)
+                startEditingMode()
+                return true
             }
         }
         return false
@@ -84,34 +79,31 @@ class MetronomeAndScenesFragment : Fragment() {
         viewPager?.registerOnPageChangeCallback(pageChangeListener)
         viewPager?.offscreenPageLimit = 1
 
-
-//        if (viewPager?.currentItem == ViewPagerAdapter.METRONOME)
-//            viewPager?.isUserInputEnabled = false
-//        else
-//            viewPager?.isUserInputEnabled = true
-
-
         scenesViewModel.editingStableId.observe(viewLifecycleOwner) {
             lockViewPager()
         }
 
-        //view.post { requireActivity().invalidateOptionsMenu() }
+        if (scenesViewModel.editingStableId.value != Scene.NO_STABLE_ID)
+            startEditingMode()
         return view
     }
-
-//    override fun onStart() {
-//        super.onStart()
-//        Log.v("Metronome", "MetronomeAndScenesFragment.onStart()")
-//    }
-
-//    override fun onResume() {
-//        Log.v("Metronome", "MetronomeAndScenesFragment.onResume()")
-//        super.onResume()
-//    }
 
     override fun onDestroyView() {
         viewPager?.unregisterOnPageChangeCallback(pageChangeListener)
         super.onDestroyView()
+    }
+
+    private fun startEditingMode() {
+        val actionMode = (requireActivity() as MainActivity).startSupportActionMode(
+                EditSceneCallback(requireActivity() as MainActivity, scenesViewModel, metronomeViewModel)
+        )
+        actionMode?.title = getString(R.string.editing_scene)
+        val stableId = scenesViewModel.activeStableId.value
+//                Log.v("Metronome", "MainActivity: onOptionsItemSelected: R.id.action_edit, stableId = $stableId")
+        if (stableId != null && stableId != Scene.NO_STABLE_ID) {
+            scenesViewModel.setEditingStableId(stableId)
+            viewPager?.currentItem = ViewPagerAdapter.METRONOME
+        }
     }
 
     private fun lockViewPager() {

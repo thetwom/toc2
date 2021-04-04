@@ -37,7 +37,7 @@ class MainActivity : AppCompatActivity() {
     // TODO: delete log messages?
     // TODO: test different device formats
     // TODO: translations
-
+    
     private val metronomeViewModel by viewModels<MetronomeViewModel> {
         val playerConnection = PlayerServiceConnection.getInstance(this,
                 AppPreferences.readMetronomeBpm(this),

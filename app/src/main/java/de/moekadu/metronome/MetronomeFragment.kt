@@ -23,6 +23,7 @@ import android.annotation.SuppressLint
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Bundle
 import android.text.InputType
+import android.util.Log
 import android.view.*
 import android.widget.EditText
 import android.widget.ImageButton
@@ -71,13 +72,14 @@ class MetronomeFragment : Fragment() {
 
     private var speedLimiter: SpeedLimiter? = null
 
+    private var constraintLayout: ConstraintLayout? = null
     private var bpmText: TextView? = null
     private var playButton: PlayButton? = null
     private var noteView: NoteView? = null
     private var plusButton: ImageButton? = null
     private var clearAllButton: ImageButton? = null
     private var sceneTitle: TextView? = null
-    private var scenesButton: ImageButton? = null
+    private var swipeToScenesView: ImageButton? = null
 
     private var dummyViewGroupWithTransition: DummyViewGroupWithTransition? = null
 
@@ -103,8 +105,8 @@ class MetronomeFragment : Fragment() {
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_metronome, container, false)
 
-        val constraintLayout = view.findViewById<ConstraintLayout>(R.id.metronome_layout)
-        constraintLayout.setOnTouchListener { v, event ->
+        constraintLayout = view.findViewById(R.id.metronome_layout)
+        constraintLayout?.setOnTouchListener { v, event ->
             if (event.actionMasked == MotionEvent.ACTION_DOWN)
                 view.parent.requestDisallowInterceptTouchEvent(false)
             true
@@ -344,18 +346,17 @@ class MetronomeFragment : Fragment() {
                             newName = newName.substring(0, 200)
                             Toast.makeText(requireContext(), getString(R.string.max_allowed_characters, 200), Toast.LENGTH_SHORT).show()
                         }
-                        viewModel.setScene(newName)
+                        viewModel.setEditedSceneTitle(newName)
+                        updateSceneTitleTextAndSwipeView()
                     }
                 }
                 dialogBuilder.show()
             }
         }
 
-        scenesButton = view.findViewById(R.id.scenes_button)
-//        scenesButton?.setOnClickListener {
-//            (activity as MainActivity?)?.setMetronomeAndScenesViewPagerId(ViewPagerAdapter.SCENES)
-//        }
-        scenesButton?.setOnTouchListener { v, event ->
+        swipeToScenesView = view.findViewById(R.id.scenes_button)
+
+        swipeToScenesView?.setOnTouchListener { v, event ->
             if (event.actionMasked == MotionEvent.ACTION_DOWN)
                 view.parent.requestDisallowInterceptTouchEvent(false)
             false
@@ -430,63 +431,75 @@ class MetronomeFragment : Fragment() {
 
         viewModel.noteList.observe(viewLifecycleOwner) {
             viewModel.noteList.value?.let {
+                Log.v("Metronome", "MetronomeFragment: observing noteList" )
                 noteView?.setNoteList(it)
                 soundChooser?.setNoteList(it)
                 volumeSliders?.setNoteList(it)
             }
         }
 
-        viewModel.scene.observe(viewLifecycleOwner) {
-//            Log.v("Metronome", "MetronomeFragment: observing scene: $it")
-            if (it == null && sceneTitle?.visibility != View.GONE) {
-                //scene?.text = getString(R.string.scene, "###")
-                if (soundChooser?.choiceStatus == SoundChooser.Status.Off) // dont animate since otherwise animations will clash
-                    TransitionManager.beginDelayedTransition(constraintLayout)
-                sceneTitle?.visibility = View.GONE
-            }
-            else if (it != null) {
-                sceneTitle?.text = getString(R.string.scene, it)
-                sceneTitle?.visibility = View.VISIBLE
-            }
-        }
+//        viewModel.sceneTitle.observe(viewLifecycleOwner) {
+//            if (scenesViewModel.editingStableId.value ?: Scene.NO_STABLE_ID != Scene.NO_STABLE_ID) {
+//                setSceneTitleText(it ?: "")
+//            }
+////            Log.v("Metronome", "MetronomeFragment: observing scene: $it")
+//            if (it == null && sceneTitle?.visibility != View.GONE) {
+//                //scene?.text = getString(R.string.scene, "###")
+//                if (soundChooser?.choiceStatus == SoundChooser.Status.Off) // dont animate since otherwise animations will clash
+//                    TransitionManager.beginDelayedTransition(constraintLayout)
+//                sceneTitle?.visibility = View.GONE
+//            }
+//            else if (it != null) {
+//                sceneTitle?.text = getString(R.string.scene, it)
+//                sceneTitle?.visibility = View.VISIBLE
+//            }
+//        }
 
         viewModel.isParentViewPagerSwiping.observe(viewLifecycleOwner) {
-            scenesButton?.isHovered = it
+            swipeToScenesView?.isHovered = it
         }
 
-        scenesViewModel.activeStableId.observe(viewLifecycleOwner) { stableId ->
+        scenesViewModel.activeStableId.observe(viewLifecycleOwner) { //stableId ->
+            updateSceneTitleTextAndSwipeView()
 //            Log.v("Metronome", "MetronomeFragment: observing activeStableId")
-            if (scenesViewModel.editingStableId.value == Scene.NO_STABLE_ID)
-                viewModel.setScene(scenesViewModel.scenes.value?.getScene(stableId)?.title)
+//            if (scenesViewModel.editingStableId.value == Scene.NO_STABLE_ID) {
+//                setSceneTitleText(scenesViewModel.scenes.value?.getScene(stableId)?.title ?: "")
+                // viewModel.setSceneTitle(scenesViewModel.scenes.value?.getScene(stableId)?.title)
+//            }
         }
 
-        scenesViewModel.editingStableId.observe(viewLifecycleOwner) { stableId ->
-            val activeStableId = scenesViewModel.activeStableId.value
-
-            if (stableId != Scene.NO_STABLE_ID) {
-                viewModel.setScene(scenesViewModel.scenes.value?.getScene(stableId)?.title)
-                sceneTitle?.translationZ = Utilities.dp2px(8f)
-                sceneTitle?.isClickable = true
-                context?.let {
-                    sceneTitle?.background = ContextCompat.getDrawable(it, R.drawable.edit_scene_background)
-                }
-                scenesButton?.visibility = View.GONE
-            }
-            else if (activeStableId != null && activeStableId != Scene.NO_STABLE_ID) {
-                viewModel.setScene(scenesViewModel.scenes.value?.getScene(activeStableId)?.title)
-                sceneTitle?.translationZ = 0f
-                sceneTitle?.isClickable = false
-                sceneTitle?.background = null
-                scenesButton?.visibility = View.VISIBLE
-            }
-            else {
-                viewModel.setScene(null)
-                sceneTitle?.translationZ = 0f
-                sceneTitle?.isClickable = false
-                sceneTitle?.background = null
-                scenesButton?.visibility = View.VISIBLE
-            }
+        // val sceneTitleBackup = viewModel.sceneTitle.value
+        scenesViewModel.editingStableId.observe(viewLifecycleOwner) { //stableId ->
+            updateSceneTitleTextAndSwipeView()
+//            val activeStableId = scenesViewModel.activeStableId.value
+//
+//            if (stableId != Scene.NO_STABLE_ID) {
+//                //viewModel.setSceneTitle(scenesViewModel.scenes.value?.getScene(stableId)?.title)
+//                sceneTitle?.translationZ = Utilities.dp2px(8f)
+//                sceneTitle?.isClickable = true
+//                context?.let {
+//                    sceneTitle?.background = ContextCompat.getDrawable(it, R.drawable.edit_scene_background)
+//                }
+//                swipeToScenesView?.visibility = View.GONE
+//            }
+//            else if (activeStableId != null && activeStableId != Scene.NO_STABLE_ID) {
+//                // viewModel.setSceneTitle(scenesViewModel.scenes.value?.getScene(activeStableId)?.title)
+//                sceneTitle?.translationZ = 0f
+//                sceneTitle?.isClickable = false
+//                sceneTitle?.background = null
+//                swipeToScenesView?.visibility = View.VISIBLE
+//            }
+//            else {
+//                // viewModel.setSceneTitle(null)
+//                sceneTitle?.translationZ = 0f
+//                sceneTitle?.isClickable = false
+//                sceneTitle?.background = null
+//                swipeToScenesView?.visibility = View.VISIBLE
+//            }
         }
+//        // make sure, that the observe-call itself does not change the scene title in our view model
+//        if (sceneTitleBackup != null)
+//            viewModel.setSceneTitle(sceneTitleBackup)
 
         if (!savedVolumeSlidersFolded || savedSoundChooserNoteIndex >= 0) {
             view.post {
@@ -560,28 +573,44 @@ class MetronomeFragment : Fragment() {
         }
         return false
     }
-//    override fun onPrepareOptionsMenu(menu: Menu) {
-////        Log.v("Metronome", "MetronomeFragment.onPrepareOptionsMenu")
-////        super.onPrepareOptionsMenu(menu);
-//        val settingsItem = menu.findItem(R.id.action_properties)
-//        settingsItem?.isVisible = true
-//
-//        val loadDataItem = menu.findItem(R.id.action_load)
-//        loadDataItem?.isVisible = true
-//
-//        val scenesItem = menu.findItem(R.id.action_save)
-//        scenesItem?.isVisible = true
-//
-//        val archive = menu.findItem(R.id.action_archive)
-//        archive?.isVisible = false
-//
-//        val unarchive = menu.findItem(R.id.action_unarchive)
-//        unarchive?.isVisible = false
-//
-//        val clearAll = menu.findItem(R.id.action_clear_all)
-//        clearAll?.isVisible = false
-//
-//        val editItem = menu.findItem(R.id.action_edit)
-//        editItem?.isVisible = false
+
+//    private fun setSceneTitleText(title: String) {
+//        sceneTitle?.text = getString(R.string.scene, title)
 //    }
+
+    private fun updateSceneTitleTextAndSwipeView(animate: Boolean = true) {
+        val editingStableId = scenesViewModel.editingStableId.value ?: Scene.NO_STABLE_ID
+        val activeStableId = scenesViewModel.activeStableId.value ?: Scene.NO_STABLE_ID
+
+        if (animate && soundChooser?.choiceStatus == SoundChooser.Status.Off) // dont animate since otherwise animations will clash
+            constraintLayout?.let { TransitionManager.beginDelayedTransition(it)}
+
+        if (editingStableId != Scene.NO_STABLE_ID) {
+            sceneTitle?.translationZ = Utilities.dp2px(8f)
+            sceneTitle?.isClickable = true
+            context?.let {
+                sceneTitle?.background = ContextCompat.getDrawable(it, R.drawable.edit_scene_background)
+            }
+
+            sceneTitle?.text = getString(R.string.scene, viewModel.editedSceneTitle.value ?:
+                    "")
+            sceneTitle?.visibility = View.VISIBLE
+
+            swipeToScenesView?.visibility = View.GONE
+        }
+        else {
+            sceneTitle?.translationZ = 0f
+            sceneTitle?.isClickable = false
+            sceneTitle?.background = null
+            swipeToScenesView?.visibility = View.VISIBLE
+
+            if (activeStableId != Scene.NO_STABLE_ID) {
+                sceneTitle?.text = getString(R.string.scene, scenesViewModel.scenes.value?.getScene(activeStableId)?.title ?: "")
+                sceneTitle?.visibility = View.VISIBLE
+            }
+            else {
+                sceneTitle?.visibility = View.GONE
+            }
+        }
+    }
 }
