@@ -32,7 +32,7 @@ import androidx.lifecycle.OnLifecycleEvent
 class SingleNotePlayer(context: Context, private val lifecycleOwner: LifecycleOwner): LifecycleObserver {
     /// Sound pool which is used for playing sample sounds when selected in the sound chooser.
     private val soundPool = SoundPool.Builder().setMaxStreams(3).build().apply {
-        setOnLoadCompleteListener { soundPool, sampleId, status ->
+        setOnLoadCompleteListener { soundPool, sampleId, _ ->
             soundPool?.play(sampleId, cachedVolume, cachedVolume, 1, 0, 1f)
         }
     }
@@ -52,7 +52,7 @@ class SingleNotePlayer(context: Context, private val lifecycleOwner: LifecycleOw
     fun play(noteId: Int, volume:Float) {
         val sampleRate = AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC)
         val soundHandle = getSoundHandle(noteId, sampleRate)
-        Log.v("Metronome", "SingleNotePlayer.play: soundHandle=$soundHandle")
+//        Log.v("Metronome", "SingleNotePlayer.play: soundHandle=$soundHandle")
         if (soundHandle != null)
             soundPool.play(soundHandle, volume, volume, 1, 0, 1f)
         else

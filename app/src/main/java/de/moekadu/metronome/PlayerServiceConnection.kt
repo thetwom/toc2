@@ -72,7 +72,7 @@ class PlayerServiceConnection(
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
-            Log.v("Metronome", "ServiceConnection.onServiceConnected")
+//            Log.v("Metronome", "ServiceConnection.onServiceConnected")
             serviceBinder = binder as PlayerService.PlayerBinder?
 
             try {
@@ -174,7 +174,7 @@ class PlayerServiceConnection(
     }
 
     private fun bindToService() {
-        Log.v("Metronome", "ServiceConnection.bindToService")
+//        Log.v("Metronome", "ServiceConnection.bindToService")
         val serviceIntent = Intent(applicationContext, PlayerService::class.java)
         val success = applicationContext.bindService(serviceIntent, connection, Context.BIND_AUTO_CREATE)
 

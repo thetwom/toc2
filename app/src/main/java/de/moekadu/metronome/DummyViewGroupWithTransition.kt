@@ -31,7 +31,7 @@ class DummyViewGroupWithTransition(context : Context, attrs : AttributeSet?, def
     }
 
     fun dummyTransition() {
-        Log.v("Metronome", "DummyViewGroupWithTransition.dummyTransition")
+        // Log.v("Metronome", "DummyViewGroupWithTransition.dummyTransition")
         TransitionManager.beginDelayedTransition(this,
                 AutoTransition().apply {
                     duration = 1L

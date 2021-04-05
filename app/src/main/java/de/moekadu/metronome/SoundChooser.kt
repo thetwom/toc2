@@ -53,7 +53,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
             buttonNoteList.add(NoteListItem(i, 0.0f, 0.0f))
             setNoteList(buttonNoteList)
             setBackgroundResource(R.drawable.choice_button_background)
-            setOnTouchListener { v, event ->
+            setOnTouchListener { _, event ->
                 if (event.actionMasked == MotionEvent.ACTION_DOWN)
                     parent.requestDisallowInterceptTouchEvent(true)
                 false
@@ -168,7 +168,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
 //            Log.v("Metronome", "SoundChooser.deleteButton.onClick")
             deleteActiveNoteIfPossible()
         }
-        deleteButton.setOnTouchListener { v, event ->
+        deleteButton.setOnTouchListener { _, event ->
             if (event.actionMasked == MotionEvent.ACTION_DOWN)
                 parent.requestDisallowInterceptTouchEvent(true)
             false
@@ -180,7 +180,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
 //            Log.v("Metronome", "SoundChooser.doneButton.onClick")
             deactivate()
         }
-        doneButton.setOnTouchListener { v, event ->
+        doneButton.setOnTouchListener { _, event ->
             if (event.actionMasked == MotionEvent.ACTION_DOWN)
                 parent.requestDisallowInterceptTouchEvent(true)
             false

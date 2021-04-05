@@ -432,75 +432,24 @@ class MetronomeFragment : Fragment() {
 
         viewModel.noteList.observe(viewLifecycleOwner) {
             viewModel.noteList.value?.let {
-                Log.v("Metronome", "MetronomeFragment: observing noteList" )
+//                Log.v("Metronome", "MetronomeFragment: observing noteList" )
                 noteView?.setNoteList(it)
                 soundChooser?.setNoteList(it)
                 volumeSliders?.setNoteList(it)
             }
         }
 
-//        viewModel.sceneTitle.observe(viewLifecycleOwner) {
-//            if (scenesViewModel.editingStableId.value ?: Scene.NO_STABLE_ID != Scene.NO_STABLE_ID) {
-//                setSceneTitleText(it ?: "")
-//            }
-////            Log.v("Metronome", "MetronomeFragment: observing scene: $it")
-//            if (it == null && sceneTitle?.visibility != View.GONE) {
-//                //scene?.text = getString(R.string.scene, "###")
-//                if (soundChooser?.choiceStatus == SoundChooser.Status.Off) // dont animate since otherwise animations will clash
-//                    TransitionManager.beginDelayedTransition(constraintLayout)
-//                sceneTitle?.visibility = View.GONE
-//            }
-//            else if (it != null) {
-//                sceneTitle?.text = getString(R.string.scene, it)
-//                sceneTitle?.visibility = View.VISIBLE
-//            }
-//        }
-
         viewModel.isParentViewPagerSwiping.observe(viewLifecycleOwner) {
             swipeToScenesView?.isHovered = it
         }
 
-        scenesViewModel.activeStableId.observe(viewLifecycleOwner) { //stableId ->
+        scenesViewModel.activeStableId.observe(viewLifecycleOwner) {
             updateSceneTitleTextAndSwipeView()
-//            Log.v("Metronome", "MetronomeFragment: observing activeStableId")
-//            if (scenesViewModel.editingStableId.value == Scene.NO_STABLE_ID) {
-//                setSceneTitleText(scenesViewModel.scenes.value?.getScene(stableId)?.title ?: "")
-                // viewModel.setSceneTitle(scenesViewModel.scenes.value?.getScene(stableId)?.title)
-//            }
         }
 
-        // val sceneTitleBackup = viewModel.sceneTitle.value
-        scenesViewModel.editingStableId.observe(viewLifecycleOwner) { //stableId ->
+        scenesViewModel.editingStableId.observe(viewLifecycleOwner) {
             updateSceneTitleTextAndSwipeView()
-//            val activeStableId = scenesViewModel.activeStableId.value
-//
-//            if (stableId != Scene.NO_STABLE_ID) {
-//                //viewModel.setSceneTitle(scenesViewModel.scenes.value?.getScene(stableId)?.title)
-//                sceneTitle?.translationZ = Utilities.dp2px(8f)
-//                sceneTitle?.isClickable = true
-//                context?.let {
-//                    sceneTitle?.background = ContextCompat.getDrawable(it, R.drawable.edit_scene_background)
-//                }
-//                swipeToScenesView?.visibility = View.GONE
-//            }
-//            else if (activeStableId != null && activeStableId != Scene.NO_STABLE_ID) {
-//                // viewModel.setSceneTitle(scenesViewModel.scenes.value?.getScene(activeStableId)?.title)
-//                sceneTitle?.translationZ = 0f
-//                sceneTitle?.isClickable = false
-//                sceneTitle?.background = null
-//                swipeToScenesView?.visibility = View.VISIBLE
-//            }
-//            else {
-//                // viewModel.setSceneTitle(null)
-//                sceneTitle?.translationZ = 0f
-//                sceneTitle?.isClickable = false
-//                sceneTitle?.background = null
-//                swipeToScenesView?.visibility = View.VISIBLE
-//            }
         }
-//        // make sure, that the observe-call itself does not change the scene title in our view model
-//        if (sceneTitleBackup != null)
-//            viewModel.setSceneTitle(sceneTitleBackup)
 
         if (!savedVolumeSlidersFolded || savedSoundChooserNoteIndex >= 0) {
             view.post {

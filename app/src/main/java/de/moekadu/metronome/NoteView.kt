@@ -402,7 +402,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         } else {
             false
         }
-        Log.v("Metronome", "NoteView.setNoteList: uidEqual = $uidEqual, ${noteList.size}, ${notes.size}, ")
+//        Log.v("Metronome", "NoteView.setNoteList: uidEqual = $uidEqual, ${noteList.size}, ${notes.size}, ")
         if (uidEqual) {
             noteList.zip(notes) { source, target -> target.set(source) }
         } else {
