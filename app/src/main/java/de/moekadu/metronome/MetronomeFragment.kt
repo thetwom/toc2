@@ -106,7 +106,7 @@ class MetronomeFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_metronome, container, false)
 
         constraintLayout = view.findViewById(R.id.metronome_layout)
-        constraintLayout?.setOnTouchListener { v, event ->
+        constraintLayout?.setOnTouchListener { _, event ->
             if (event.actionMasked == MotionEvent.ACTION_DOWN)
                 view.parent.requestDisallowInterceptTouchEvent(false)
             true
@@ -158,7 +158,7 @@ class MetronomeFragment : Fragment() {
                 editText.requestFocus()
             }
         }
-        bpmText?.setOnTouchListener { v, event ->
+        bpmText?.setOnTouchListener { _, event ->
             if (event.actionMasked == MotionEvent.ACTION_DOWN)
                 view.parent.requestDisallowInterceptTouchEvent(false)
             false
@@ -262,7 +262,7 @@ class MetronomeFragment : Fragment() {
                 noteView?.highlightNote(newNote.uid, true)
             }
         }
-        plusButton?.setOnTouchListener { v, event ->
+        plusButton?.setOnTouchListener { _, event ->
             if (event.actionMasked == MotionEvent.ACTION_DOWN)
                 view.parent.requestDisallowInterceptTouchEvent(true)
             false
@@ -286,7 +286,7 @@ class MetronomeFragment : Fragment() {
                 }
             }
         }
-        clearAllButton?.setOnTouchListener { v, event ->
+        clearAllButton?.setOnTouchListener { _, event ->
             if (event.actionMasked == MotionEvent.ACTION_DOWN)
                 view.parent.requestDisallowInterceptTouchEvent(true)
             false
@@ -335,6 +335,7 @@ class MetronomeFragment : Fragment() {
                 val editText = EditText(requireContext()).apply {
                     setHint(R.string.save_name)
                     inputType = InputType.TYPE_CLASS_TEXT
+                    setText(viewModel.editedSceneTitle.value)
                 }
                 val dialogBuilder = AlertDialog.Builder(requireContext()).apply {
                     setTitle(R.string.rename_scene)
@@ -356,7 +357,7 @@ class MetronomeFragment : Fragment() {
 
         swipeToScenesView = view.findViewById(R.id.scenes_button)
 
-        swipeToScenesView?.setOnTouchListener { v, event ->
+        swipeToScenesView?.setOnTouchListener { _, event ->
             if (event.actionMasked == MotionEvent.ACTION_DOWN)
                 view.parent.requestDisallowInterceptTouchEvent(false)
             false

@@ -206,8 +206,7 @@ class ScenesFragment : Fragment() {
             // that the active saved items are unselected
             var areNoteListsEqual = false
             viewModel.activeStableId.value?.let { stableId ->
-                viewModel.scenes.value?.scenes?.firstOrNull { it.stableId == stableId }?.noteList?.let { activeNoteListString ->
-                    val activeNoteList = stringToNoteList(activeNoteListString)
+                viewModel.scenes.value?.scenes?.firstOrNull { it.stableId == stableId }?.noteList?.let { activeNoteList ->
                     areNoteListsEqual = true
                     if (activeNoteList.size != noteList.size) {
                         areNoteListsEqual = false
@@ -260,9 +259,8 @@ class ScenesFragment : Fragment() {
         viewModel.activeStableId.observe(viewLifecycleOwner) { stableId ->
 //            Log.v("Metronome", "ScenesFragment: observing stable id: $stableId")
             viewModel.scenes.value?.getScene(stableId)?.let { item ->
-                val newNoteList = stringToNoteList(item.noteList)
-                if (newNoteList.size > 0)
-                    metronomeViewModel.setNoteList(newNoteList)
+                if (item.noteList.size > 0)
+                    metronomeViewModel.setNoteList(item.noteList)
                 speedLimiter?.let {
                     it.checkSavedItemBpmAndAlert(item.bpm, requireContext())
                     metronomeViewModel.setBpm(it.limit(item.bpm))

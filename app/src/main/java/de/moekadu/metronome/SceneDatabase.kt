@@ -20,10 +20,11 @@
 package de.moekadu.metronome
 
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.min
 
 data class Scene(var title: String = "", var date: String = "",
-                 var time: String = "", var bpm: Float = 0f, var noteList: String = "",
+                 var time: String = "", var bpm: Float = 0f, var noteList: ArrayList<NoteListItem>,
                  val stableId: Long) {
     companion object {
         const val NO_STABLE_ID = 0L
@@ -73,13 +74,13 @@ class SceneDatabase {
         return scenes.firstOrNull { it.stableId == stableId }
     }
 
-    fun editScene(stableId: Long?, title: String? = null, bpm: Float? = null, noteList: String? = null) {
+    fun editScene(stableId: Long?, title: String? = null, bpm: Float? = null, noteList: ArrayList<NoteListItem>? = null) {
         if (stableId == null)
             return
         val scene = getScene(stableId) ?: return
         title?.let { scene.title = it }
         bpm?.let { scene.bpm = it }
-        noteList?.let { scene.noteList = it }
+        noteList?.let { deepCopyNoteList(it, scene.noteList) }
         databaseChangedListener?.onChanged(this)
     }
 
@@ -133,7 +134,7 @@ class SceneDatabase {
         stringBuilder.append(String.format(Locale.ENGLISH, "%50s", BuildConfig.VERSION_NAME))
         for (si in scenes) {
             stringBuilder.append(String.format(Locale.ENGLISH, "%200s%10s%5s%12.5f%sEND",
-                    si.title, si.date, si.time, si.bpm, si.noteList))
+                    si.title, si.date, si.time, si.bpm, noteListToString(si.noteList)))
         }
 //        Log.v("Metronome", "SceneDatabase.getSceneString: string= ${stringBuilder}")
         return stringBuilder.toString()
@@ -186,7 +187,7 @@ class SceneDatabase {
                 return FileCheck.Invalid
             pos = noteListEnd + 3
 
-            val si = Scene(title, date, time, bpm, noteList, Scene.NO_STABLE_ID)
+            val si = Scene(title, date, time, bpm, stringToNoteList(noteList), Scene.NO_STABLE_ID)
             if (mode == InsertMode.Prepend)
                 newScene.add(numScenesRead, si)
             else

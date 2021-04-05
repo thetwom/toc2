@@ -133,8 +133,7 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
         holder.bpmView?.text = holder.view.context.getString(R.string.bpm, Utilities.getBpmString(scene.bpm))
 //        Log.v("Metronome", "SceneDatabase.onBindViewHolder: scene.noteList = ${scene.noteList}, scene.bpm = ${scene.bpm}")
 
-        val noteList = stringToNoteList(scene.noteList)
-        holder.noteView?.setNoteList(noteList)
+        holder.noteView?.setNoteList(scene.noteList)
         // Log.v("Metronome", "SceneDatabase:onBindViewHolder (position = " + position + ")")
     }
 }

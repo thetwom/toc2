@@ -21,7 +21,7 @@ class EditSceneCallback(private val activity: MainActivity,
             R.id.action_edit_done -> {
                 scenesViewModel.editingStableId.value?.let { stableId ->
                     val bpm = metronomeViewModel.bpm.value
-                    val noteList = metronomeViewModel.noteList.value?.let { n -> noteListToString(n) }
+                    val noteList = metronomeViewModel.noteList.value
                     val title = metronomeViewModel.editedSceneTitle.value
 
                     scenesViewModel.scenes.value?.editScene(stableId, title = title, bpm = bpm, noteList = noteList)
