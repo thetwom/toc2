@@ -275,14 +275,14 @@ class ScenesFragment : Fragment() {
             scenesAdapter.setActiveStableId(stableId, scenesRecyclerView)
         }
 
-        if (metronomeViewModel.playerStatus.value == PlayerStatus.Playing)
-            playFab?.setImageResource(R.drawable.ic_play_to_pause)
-        else
-            playFab?.setImageResource(R.drawable.ic_pause_to_play)
+//        if (metronomeViewModel.playerStatus.value == PlayerStatus.Playing)
+//            playFab?.setImageResource(R.drawable.ic_play_to_pause)
+//        else
+//            playFab?.setImageResource(R.drawable.ic_pause_to_play)
         playFabStatus = metronomeViewModel.playerStatus.value ?: PlayerStatus.Paused
 
         metronomeViewModel.playerStatus.observe(viewLifecycleOwner) { playerStatus ->
-//            Log.v("Metronome", "ScenesFragment: observing playerStatus")
+//            Log.v("Metronome", "ScenesFragment: observing playerStatus: $playerStatus")
             if (playerStatus != playFabStatus) {
                 if (playerStatus == PlayerStatus.Playing)
                     playFab?.setImageResource(R.drawable.ic_pause_to_play)
@@ -298,6 +298,14 @@ class ScenesFragment : Fragment() {
         return view
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (metronomeViewModel.playerStatus.value == PlayerStatus.Playing)
+            playFab?.setImageResource(R.drawable.ic_play_to_pause)
+        else
+            playFab?.setImageResource(R.drawable.ic_pause_to_play)
+
+    }
     private fun clearAllSavedItems() {
         val builder = AlertDialog.Builder(requireContext()).apply {
             setTitle(R.string.clear_all_question)

@@ -2,10 +2,6 @@
 
 Simple metronome app.
 
-Some time ago I was looking for open source metronome apps which could help me keeping time while practicing music. Unfortunately, the available apps seemed to be quite rare and I didn't find one, which I really liked. 
-Since I wanted to try app developing some day, I took this as a chance and created this (hopefully) simple app.
-
-
 [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
      alt="Get it on F-Droid"
      height="80">](https://f-droid.org/packages/de.moekadu.metronome/)
@@ -28,7 +24,7 @@ This app provides basic functionality like:
 
 # Help me improving the app
 
-If you like this app, but have ideas for improvement or are annoyed by some behaviour, please let me know. 
+If you like this app, but have ideas for improvement or are annoyed by some behaviour, please let me know.
 
 
 **License:** [GPLv3](https://www.gnu.org/licenses/gpl-3.0)
