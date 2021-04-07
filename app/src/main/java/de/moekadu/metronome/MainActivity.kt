@@ -38,6 +38,9 @@ class MainActivity : AppCompatActivity() {
     // TODO: test different device formats
     // TODO: translations
 
+    // TODO: Allow "odd" speeds e.g. during load or when typing
+    // TODO: share functionality
+
     private val metronomeViewModel by viewModels<MetronomeViewModel> {
         val playerConnection = PlayerServiceConnection.getInstance(this,
                 AppPreferences.readMetronomeBpm(this),
