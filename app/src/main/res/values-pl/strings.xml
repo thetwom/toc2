@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Metronom</string>
+    <string name="action_settings">Ustawienia</string>
+
+    <string name="mute">wycisz</string>
+    <string name="bpm">%s bpm</string>
+
+    <string name="scenes">Sceny</string>
+    <string name="save_scene">Zapisz scenę</string>
+    <string name="load_from_disc">Załaduj sceny z pliku</string>
+    <string name="save_to_disc">Zapisz sceny do pliku</string>
+    <string name="clear_all">Wyczyść wszystko</string>
+    <string name="clear_all_question">Usunąć wszystkie sceny?</string>
+    <string name="title">Tytuł</string>
+    <string name="done">Gotowe</string>
+    <string name="appearance">Wygląd</string>
+    <string name="dark_appearance">Ciemny wygląd</string>
+    <string name="light_appearance">Jasny wygląd</string>
+    <string name="system_appearance">Wygląd zgodny z ustawieniami systemowymi</string>
+
+    <string name="dark_appearance_short">Ciemny</string>
+    <string name="light_appearance_short">Jasny</string>
+    <string name="system_appearance_short">Auto</string>
+
+    <string name="add_note">Dodaj notatkę</string>
+
+    <string name="speed_sensitivity">Czułość zmiany prędkości</string>
+    <string name="speed_sensitivity_summary">Kroki prędkości na cm: %.1f</string>
+    <string name="speedincrement">Przyrost prędkości</string>
+    <string name="minimum_bpm">Minimalna prędkość</string>
+    <string name="maximum_bpm">Maksymalna prędkość</string>
+
+    <string name="reset_all_settings">Zresetuj wszystkie ustawienia</string>
+    <string name="reset_settings_prompt">Czy na pewno chcesz zresetować wszystkie ustawienia?</string>
+    <string name="about">O programie</string>
+
+    <string name="undo">Cofnij</string>
+    <string name="scene_deleted">Scena usunięta</string>
+
+    <string name="save_settings_dialog_title">Zapisz scenę</string>
+    <string name="save_name">Nazwij</string>
+    <string name="saved_scene_message">Zapisana scena: %s</string>
+    <string name="save">Zapisz</string>
+    <string name="dismiss">Odrzuć</string>
+    <string name="max_allowed_characters">Maksymalna liczba znaków: %d</string>
+
+    <string name="load_scenes">Załaduj sceny</string>
+    <string name="abort">Przerwij</string>
+    <string name="replace_current_list">Zastąp bieżącą listę</string>
+    <string name="prepend_current_list">Dołącz na początku bieżącej listy</string>
+    <string name="append_current_list">Dołącz na końcu bieżącej listy</string>
+    <string name="file_empty">Plik jest pusty: %s</string>
+    <string name="file_invalid">Nieprawidłowy plik: %s</string>
+    <string name="database_empty">Nie ma scen, które można zapisać.</string>
+
+    <string name="cannot_delete_last_note">Nie możesz usunąć ostatniej notatki.</string>
+    
+    <string name="no_scenes">Obecnie nie ma zapisanych scen.</string>
+
+    <string name="tap_in">TAP IN</string>
+
+    <string name="about_message">Aplikacja Metronom\nWersja: %s\nLicencja: GPLv3</string>
+
+    <string name="yes">tak</string>
+    <string name="no">nie</string>
+
+    <string name="saved_speed_too_small">Zapisana prędkość %s bpm jest mniejsza niż prędkość minimalna %s bpm. \n</string>
+    <string name="saved_speed_too_large">Zapisana prędkość %s bpm jest większa niż maksymalna prędkość %s bpm. \n</string>
+    <string name="max_speed_lower_minimum">Podana prędkość maksymalna (%s) jest mniejsza niż prędkość minimalna (%s).</string>
+    <string name="min_speed_higher_maximum">Podana prędkość minimalna (%s) jest większa niż prędkość maksymalna (%s).</string>
+    <string name="inconsistent_saved_increment">Zapisana prędkość %s bpm nie może być użyta przy bieżącym przyroście prędkości %s bpm. \n</string>
+    <string name="inconsistent_load_title">Niespójne załadowanie</string>
+    <string name="inconsistent_summary">\nZmień ustawienia, jeśli chcesz poprawnie załadować scenę.</string>
+    <string name="acknowledged">Potwierdzono</string>
+
+    <string name="keep_screen_on">Pozostaw ekran włączony</string>
+    <string name="vibrate_notes">Wibrujące notatki</string>
+    <string name="not_supported_by_hardware">Nieobsługiwane sprzętowo</string>
+    <string name="vibrate_strength">Siła wibracji</string>
+    <string name="low_strength">Niska siła wibracji (%.2f)</string>
+    <string name="medium_strength">Średnia siła wibracji (%.2f)</string>
+    <string name="high_strength">Wysoka siła wibracji (%.2f)</string>
+    <string name="all_notes_deleted">Wszystkie notatki zostały usunięte.</string>
+    <string name="set_new_speed">Ustaw nową prędkość</string>
+    <string name="invalid_speed">"Nieprawidłowa prędkość:"</string>
+    <string name="speed_too_small">Podana prędkość (%s bpm) jest mniejsza niż prędkość minimalna (%s bpm).</string>
+    <string name="speed_too_large">Podana prędkość (%s bpm) jest większa niż prędkość maksymalna (%s bpm).</string>
+    <string name="inconsistent_increment">Podana prędkość (%s bpm) nie może być być użyta przy bieżącym przyroście prędkości (%s bpm).</string>
+    <string name="vibrate_delay">Opóźnienie wibracji</string>
+    <string name="milliseconds">%d ms</string>
+    <string name="database_saved">Zapisywanie scen do \"%s\".</string>
+    <string name="play_pause">odtwórz i spauzuj</string>
+    <string name="edit">Edytuj</string>
+    <string name="editing_scene">Edycja sceny</string>
+    <string name="rename_scene">Zmień nazwę</string>
+    <string name="scene">Scena: %s</string>
+    <string name="failed_to_archive_scenes">Nie udało się zapisać scen do pliku.</string>
+
+</resources>
