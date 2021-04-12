@@ -1,0 +1,1 @@
+Prosta aplikacja metronomu pomagająca zachować tempo podczas ćwiczeń muzycznych.
