@@ -19,6 +19,7 @@
 
 package de.moekadu.metronome
 
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -38,6 +39,9 @@ class ScenesViewModel(initialDatabaseString: String) : ViewModel() {
     private val _editingStableId = MutableLiveData(Scene.NO_STABLE_ID)
     val editingStableId: LiveData<Long> get() = _editingStableId
 
+    private val _uri = MutableLiveData<Uri?>()
+    val uri: LiveData<Uri?> get() = _uri
+
     init  {
         sceneDatabase.databaseChangedListener = SceneDatabase.DatabaseChangedListener {
 //            Log.v("Metronome", "ScenesViewModel.init: database changed")
@@ -55,6 +59,13 @@ class ScenesViewModel(initialDatabaseString: String) : ViewModel() {
         _editingStableId.value = stableId
     }
 
+    fun loadScenesFromFile(uri: Uri) {
+        _uri.value = uri
+    }
+
+    fun loadingFileComplete() {
+        _uri.value = null
+    }
     class Factory(private val initialDatabaseString: String) : ViewModelProvider.Factory {
         @Suppress("unchecked_cast")
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {

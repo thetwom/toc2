@@ -19,6 +19,7 @@
 
 package de.moekadu.metronome
 
+import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.drawable.Animatable
 import android.os.Bundle
@@ -28,7 +29,9 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.app.ShareCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.preference.PreferenceManager
@@ -37,6 +40,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
+import java.io.File
 import kotlin.math.absoluteValue
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -102,12 +106,38 @@ class ScenesFragment : Fragment() {
                 } else {
                     sceneArchiving.archiveScenes(viewModel.scenes.value)
                 }
+                return true
             }
             R.id.action_unarchive -> {
                 sceneArchiving.unarchiveScenes()
+                return true
             }
             R.id.action_clear_all -> {
                 clearAllSavedItems()
+                return true
+            }
+            R.id.action_share -> {
+                val content = viewModel.scenesAsString
+                val numScenes = viewModel.scenes.value?.size ?: 0
+                // TODO: print message and close when there are no scenes
+                // TODO: when opening file later on, first read file and then tell the user, what you found in there
+
+                val sharePath = File(context?.cacheDir, "share").also { it.mkdir() }
+                val sharedFile = File(sharePath.path, "metronome.txt")
+                sharedFile.writeBytes(content.toByteArray())
+
+                val uri = FileProvider.getUriForFile(requireContext(), requireContext().packageName, sharedFile)
+
+                val shareIntent = Intent().apply {
+                    action = Intent.ACTION_SEND
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    putExtra(Intent.EXTRA_EMAIL, "")
+                    putExtra(Intent.EXTRA_CC, "")
+                    putExtra(Intent.EXTRA_TITLE, getString(R.string.sharing_num_scenes, numScenes))
+                    type = "text/plain"
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                startActivity(Intent.createChooser(shareIntent, getString(R.string.share)))
             }
         }
 
@@ -275,6 +305,13 @@ class ScenesFragment : Fragment() {
             scenesAdapter.setActiveStableId(stableId, scenesRecyclerView)
         }
 
+        viewModel.uri.observe(viewLifecycleOwner) { uri ->
+            if (uri != null) {
+                sceneArchiving.loadScenes(uri)
+                viewModel.loadingFileComplete()
+            }
+        }
+
 //        if (metronomeViewModel.playerStatus.value == PlayerStatus.Playing)
 //            playFab?.setImageResource(R.drawable.ic_play_to_pause)
 //        else
@@ -318,8 +355,8 @@ class ScenesFragment : Fragment() {
         builder.show()
     }
 
-    fun getDatabaseString() : String? {
-        return viewModel.scenes.value?.getScenesString()
+    fun getDatabaseString() : String {
+        return viewModel.scenesAsString
     }
 
     fun loadDatabaseFromString(scenesString: String, task: SceneDatabase.InsertMode, filename: String?) {

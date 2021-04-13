@@ -120,5 +120,7 @@
     <string name="rename_scene">Rename</string>
     <string name="scene">Scene: %s</string>
     <string name="failed_to_archive_scenes">Failed to store scenes to file.</string>
+    <string name="share">Share scenes</string>
+    <string name="sharing_num_scenes">Sharing %d scenes.</string>
 
 </resources>

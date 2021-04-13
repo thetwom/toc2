@@ -1,7 +1,10 @@
 package de.moekadu.metronome
 
 import android.os.Bundle
+import android.util.Log
 import android.view.*
+import androidx.appcompat.view.ActionMode
+import androidx.core.view.doOnAttach
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.viewpager2.widget.ViewPager2
@@ -23,6 +26,8 @@ class MetronomeAndScenesFragment : Fragment() {
 
     var viewPager: ViewPager2? = null
         private set
+
+    private var actionMode: ActionMode? = null
 
     private val pageChangeListener = object : ViewPager2.OnPageChangeCallback() {
         override fun onPageSelected(position: Int) {
@@ -83,6 +88,15 @@ class MetronomeAndScenesFragment : Fragment() {
             lockViewPager()
         }
 
+        scenesViewModel.uri.observe(viewLifecycleOwner) {
+            if (it != null) {
+                actionMode?.finish()
+                actionMode = null
+                Log.v("Metronome", "MetronomeAndScenesFragment: observing uri: uri=$it")
+                viewPager?.currentItem = ViewPagerAdapter.SCENES
+            }
+        }
+
         if (scenesViewModel.editingStableId.value != Scene.NO_STABLE_ID)
             startEditingMode()
         return view
@@ -94,7 +108,7 @@ class MetronomeAndScenesFragment : Fragment() {
     }
 
     private fun startEditingMode() {
-        val actionMode = (requireActivity() as MainActivity).startSupportActionMode(
+        actionMode = (requireActivity() as MainActivity).startSupportActionMode(
                 EditSceneCallback(requireActivity() as MainActivity, scenesViewModel, metronomeViewModel)
         )
         actionMode?.title = getString(R.string.editing_scene)

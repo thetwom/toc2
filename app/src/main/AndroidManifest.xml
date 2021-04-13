@@ -42,8 +42,16 @@
             >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT" />
+                <data
+                    android:host="*"
+                    android:scheme="content"
+                    android:mimeType="text/plain" />
             </intent-filter>
         </activity>
 
@@ -55,5 +63,14 @@
         <receiver android:name=".MainActivity$NotificationReceiver" />
 
        -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="de.moekadu.metronome"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths"/>
+        </provider>
     </application>
 </manifest>

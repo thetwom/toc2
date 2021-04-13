@@ -45,17 +45,7 @@ class SceneArchiving(private val scenesFragment: ScenesFragment) {
 
         override fun parseResult(resultCode: Int, intent: Intent?): String? {
             val uri = intent?.data
-            val context = scenesFragment.context
-
-            if (uri == null || context == null)
-                return null
-
-            val fileData = scenesFragment.getDatabaseString() ?: return null
-
-            context.contentResolver?.openOutputStream(uri)?.use { stream ->
-                stream.write((fileData).toByteArray())
-            }
-            return getFilenameFromUri(context, uri)
+            return saveScenes(uri)
         }
     }
 
@@ -85,11 +75,41 @@ class SceneArchiving(private val scenesFragment: ScenesFragment) {
     }
 
     private val _unarchiveScenes = scenesFragment.registerForActivityResult(FileReaderContract()) { uri ->
+        loadScenes(uri)
+    }
+
+    fun archiveScenes(sceneDatabase: SceneDatabase?) {
+        if (sceneDatabase?.size ?: 0 == 0) {
+            Toast.makeText(scenesFragment.requireContext(), R.string.database_empty, Toast.LENGTH_LONG).show()
+        } else {
+            _archiveScenes.launch(null)
+        }
+    }
+
+    fun unarchiveScenes() {
+        _unarchiveScenes.launch(null)
+    }
+
+    fun saveScenes(uri: Uri?) : String? {
+        val context = scenesFragment.context
+
+        if (uri == null || context == null)
+            return null
+
+        val fileData = scenesFragment.getDatabaseString() ?: return null
+
+        context.contentResolver?.openOutputStream(uri)?.use { stream ->
+            stream.write(fileData.toByteArray())
+        }
+        return getFilenameFromUri(context, uri)
+    }
+
+    fun loadScenes(uri: Uri?){
         val context = scenesFragment.context
 
         if (context != null && uri != null) {
             val filename = getFilenameFromUri(context, uri)
-
+            Log.v("Metronome", "SceneArchiving.loadScenes: filename = $filename")
             val builder = AlertDialog.Builder(context).apply {
                 setTitle(R.string.load_scenes)
                 setNegativeButton(R.string.abort) { dialog, _ -> dialog.dismiss() }
@@ -109,20 +129,10 @@ class SceneArchiving(private val scenesFragment: ScenesFragment) {
                     }
                 }
             }
+            Log.v("Metronome", "SceneArchiving.loadScenes: show builder")
             builder.show()
+            Log.v("Metronome", "SceneArchiving.loadScenes: show builder called")
         }
-    }
-
-    fun archiveScenes(sceneDatabase: SceneDatabase?) {
-        if (sceneDatabase?.size ?: 0 == 0) {
-            Toast.makeText(scenesFragment.requireContext(), R.string.database_empty, Toast.LENGTH_LONG).show()
-        } else {
-            _archiveScenes.launch(null)
-        }
-    }
-
-    fun unarchiveScenes() {
-        _unarchiveScenes.launch(null)
     }
 
     private fun getFilenameFromUri(context: Context, uri: Uri): String? {

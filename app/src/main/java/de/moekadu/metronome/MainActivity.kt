@@ -19,14 +19,19 @@
 
 package de.moekadu.metronome
 
+import android.content.Intent
 import android.media.AudioManager
+import android.net.Uri
 import android.os.Bundle
+import android.os.Parcelable
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.WindowManager
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.commit
 import androidx.fragment.app.replace
 import androidx.preference.PreferenceManager
@@ -47,6 +52,10 @@ class MainActivity : AppCompatActivity() {
                 AppPreferences.readMetronomeNoteList(this)
         )
         MetronomeViewModel.Factory(playerConnection)
+    }
+
+    private val scenesViewModel by viewModels<ScenesViewModel> {
+        ScenesViewModel.Factory(AppPreferences.readScenesDatabase(this))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -86,6 +95,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        handleFileLoadingIntent(intent)
         setDisplayHomeButton()
 //        Log.v("Metronome", "MainActivity:onCreate: end");
     }
@@ -111,6 +121,28 @@ class MainActivity : AppCompatActivity() {
 
         supportFragmentManager.popBackStack()
         supportActionBar?.setDisplayHomeAsUpEnabled(false)
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        Log.v("Metronome", "MainActivity.onNewIntent: intent=$intent")
+        handleFileLoadingIntent(intent)
+        super.onNewIntent(intent)
+    }
+
+    private fun handleFileLoadingIntent(intent: Intent?) {
+        if (intent?.action == Intent.ACTION_SEND || intent?.action == Intent.ACTION_VIEW) {
+            Log.v("Metronome", "MainActivity.handleFileLoadingIntent: intent=$intent")
+            Log.v("Metronome", "MainActivity.handleFileLoadingIntent: intent=${intent.data}")
+            //(intent.getParcelableExtra<Parcelable>(Intent.EXTRA_STREAM) as? Uri)?.let { uri ->
+
+            intent.data?.let { uri ->
+//                Log.v("Metronome", "MainActivity.handleFileLoadingIntent: uri=$uri")
+                supportFragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+
+                setMetronomeAndScenesViewPagerId(ViewPagerAdapter.SCENES)
+                scenesViewModel.loadScenesFromFile(uri)
+            }
+        }
     }
 
     private fun setMetronomeAndScenesViewPagerId(id: Int) {
@@ -158,7 +190,7 @@ class MainActivity : AppCompatActivity() {
                 supportFragmentManager.commit {
                     setReorderingAllowed(true)
                     replace<SettingsFragment>(R.id.fragment_container)
-                    addToBackStack("main")
+                    addToBackStack(PROPERTIES_FRAGMENT)
                  //   setDisplayHomeButton()
                 }
                 supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -166,5 +198,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         return super.onOptionsItemSelected(item)
+    }
+
+    companion object {
+        const val PROPERTIES_FRAGMENT = "de.moekadu.metronome.PROPERTIES_FRAGMENT"
+        const val METRONOME_AND_SCENES_FRAGMENT = "de.moekadu.metronome.METRONOME_AND_SCENES_FRAGMENT"
     }
 }
