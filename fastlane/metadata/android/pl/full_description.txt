@@ -1,5 +1,5 @@
     Prosta aplikacja metronomu, obsługująca podstawowe funkcje, pomagająca zachować tempo podczas ćwiczeń muzycznych. Zawiera funkcje takie jak:
-     * Ustawianie czasu w "uderzeniach na minutę".
-     * Ustawianie czasu przez "tap in".
+     * Ustawianie tempa w uderzeniach na minutę.
+     * Ustawianie tempa przez wystukanie go palcem.
      * Wybór różnych dźwięków.
      * Zapisywanie i ładowanie aktualnej konfiguracji.

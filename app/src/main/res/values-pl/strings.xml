@@ -23,7 +23,7 @@
     <string name="light_appearance_short">Jasny</string>
     <string name="system_appearance_short">Auto</string>
 
-    <string name="add_note">Dodaj notatkę</string>
+    <string name="add_note">Dodaj nutę</string>
 
     <string name="speed_sensitivity">Czułość zmiany prędkości</string>
     <string name="speed_sensitivity_summary">Kroki prędkości na cm: %.1f</string>
@@ -54,11 +54,11 @@
     <string name="file_invalid">Nieprawidłowy plik: %s</string>
     <string name="database_empty">Nie ma scen, które można zapisać.</string>
 
-    <string name="cannot_delete_last_note">Nie możesz usunąć ostatniej notatki.</string>
+    <string name="cannot_delete_last_note">Nie możesz usunąć ostatniej nuty.</string>
     
     <string name="no_scenes">Obecnie nie ma zapisanych scen.</string>
 
-    <string name="tap_in">TAP IN</string>
+    <string name="tap_in">WYSTUKAJ</string>
 
     <string name="about_message">Aplikacja Metronom\nWersja: %s\nLicencja: GPLv3</string>
 
@@ -75,13 +75,13 @@
     <string name="acknowledged">Potwierdzono</string>
 
     <string name="keep_screen_on">Pozostaw ekran włączony</string>
-    <string name="vibrate_notes">Wibrujące notatki</string>
+    <string name="vibrate_notes">Wibrujące nuty</string>
     <string name="not_supported_by_hardware">Nieobsługiwane sprzętowo</string>
     <string name="vibrate_strength">Siła wibracji</string>
     <string name="low_strength">Niska siła wibracji (%.2f)</string>
     <string name="medium_strength">Średnia siła wibracji (%.2f)</string>
     <string name="high_strength">Wysoka siła wibracji (%.2f)</string>
-    <string name="all_notes_deleted">Wszystkie notatki zostały usunięte.</string>
+    <string name="all_notes_deleted">Wszystkie nuty zostały usunięte.</string>
     <string name="set_new_speed">Ustaw nową prędkość</string>
     <string name="invalid_speed">"Nieprawidłowa prędkość:"</string>
     <string name="speed_too_small">Podana prędkość (%s bpm) jest mniejsza niż prędkość minimalna (%s bpm).</string>
