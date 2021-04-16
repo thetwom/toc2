@@ -45,7 +45,7 @@
     <string name="dismiss">Odrzuć</string>
     <string name="max_allowed_characters">Maksymalna liczba znaków: %d</string>
 
-    <string name="load_scenes">Załaduj sceny</string>
+    <string name="load_scenes">Załaduj %d sceny</string>
     <string name="abort">Przerwij</string>
     <string name="replace_current_list">Zastąp bieżącą listę</string>
     <string name="prepend_current_list">Dołącz na początku bieżącej listy</string>
