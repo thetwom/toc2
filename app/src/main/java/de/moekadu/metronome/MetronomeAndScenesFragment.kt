@@ -52,6 +52,7 @@ class MetronomeAndScenesFragment : Fragment() {
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.metronome_and_scenes, menu)
+        // super.onCreateOptionsMenu(menu, inflater)
     }
 
     override fun onOptionsItemSelected(item : MenuItem) : Boolean {
@@ -92,8 +93,10 @@ class MetronomeAndScenesFragment : Fragment() {
             if (it != null) {
                 actionMode?.finish()
                 actionMode = null
-                Log.v("Metronome", "MetronomeAndScenesFragment: observing uri: uri=$it")
-                viewPager?.currentItem = ViewPagerAdapter.SCENES
+//                Log.v("Metronome", "MetronomeAndScenesFragment: observing uri: uri=$it")
+                // use "post" here, since otherwise, the view pager might miss the scene switching
+                viewPager?.post {viewPager?.currentItem = ViewPagerAdapter.SCENES}
+                scenesViewModel.loadingFileComplete(ScenesViewModel.FragmentTypes.MetronomeAndScenes)
             }
         }
 

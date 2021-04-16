@@ -505,7 +505,7 @@ class MetronomeFragment : Fragment() {
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.metronome, menu)
-//        super.onCreateOptionsMenu(menu, inflater)
+        // super.onCreateOptionsMenu(menu, inflater)
     }
 
     override fun onOptionsItemSelected(item : MenuItem) : Boolean {

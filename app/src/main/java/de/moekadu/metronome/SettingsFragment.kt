@@ -42,28 +42,8 @@ class SettingsFragment: PreferenceFragmentCompat() {
         setPreferencesFromResource(R.xml.preferences, rootKey)
     }
 
-    override fun onPrepareOptionsMenu(menu: Menu) {
-//        super.onPrepareOptionsMenu(menu);
-        val settingsItem = menu.findItem(R.id.action_properties)
-        settingsItem?.isVisible = false
-
-        val loadDataItem = menu.findItem(R.id.action_load)
-        loadDataItem?.isVisible = false
-
-        val scenesItem = menu.findItem(R.id.action_save)
-        scenesItem?.isVisible = false
-
-        val archive = menu.findItem(R.id.action_archive)
-        archive?.isVisible = false
-
-        val unarchive = menu.findItem(R.id.action_unarchive)
-        unarchive?.isVisible = false
-
-        val clearAll = menu.findItem(R.id.action_clear_all)
-        clearAll?.isVisible = false
-
-        val editItem = menu.findItem(R.id.action_edit)
-        editItem?.isVisible = false
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        menu.clear() // this should not be needed, but just a "setHasOptionsMenu(false)" in "onCreate" be enough, but this doesnt work
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

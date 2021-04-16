@@ -64,7 +64,7 @@
     <string name="dismiss">Annulla</string>
     <string name="max_allowed_characters">Lunghezza massima (caratteri): %d</string>
 
-    <string name="load_scenes">Carica elementi salvati</string>
+    <string name="load_scenes">Carica elementi salvati (%d)</string>
     <string name="abort">Annulla</string>
     <string name="replace_current_list">Sostituisci lista attuale</string>
     <string name="prepend_current_list">Inserisci all\'inizio della lista attuale</string>

@@ -23,13 +23,11 @@ import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.drawable.Animatable
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.coordinatorlayout.widget.CoordinatorLayout
-import androidx.core.app.ShareCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
@@ -86,7 +84,7 @@ class ScenesFragment : Fragment() {
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.scenes, menu)
-//        super.onCreateOptionsMenu(menu, inflater)
+        // super.onCreateOptionsMenu(menu, inflater)
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {
@@ -117,27 +115,30 @@ class ScenesFragment : Fragment() {
                 return true
             }
             R.id.action_share -> {
-                val content = viewModel.scenesAsString
                 val numScenes = viewModel.scenes.value?.size ?: 0
-                // TODO: print message and close when there are no scenes
-                // TODO: when opening file later on, first read file and then tell the user, what you found in there
 
-                val sharePath = File(context?.cacheDir, "share").also { it.mkdir() }
-                val sharedFile = File(sharePath.path, "metronome.txt")
-                sharedFile.writeBytes(content.toByteArray())
+                if (viewModel.scenes.value?.size ?: 0 == 0) {
+                    Toast.makeText(requireContext(), R.string.no_scenes_for_sharing, Toast.LENGTH_LONG).show()
+                } else {
+                    val content = viewModel.scenesAsString
 
-                val uri = FileProvider.getUriForFile(requireContext(), requireContext().packageName, sharedFile)
+                    val sharePath = File(context?.cacheDir, "share").also { it.mkdir() }
+                    val sharedFile = File(sharePath.path, "metronome.txt")
+                    sharedFile.writeBytes(content.toByteArray())
 
-                val shareIntent = Intent().apply {
-                    action = Intent.ACTION_SEND
-                    putExtra(Intent.EXTRA_STREAM, uri)
-                    putExtra(Intent.EXTRA_EMAIL, "")
-                    putExtra(Intent.EXTRA_CC, "")
-                    putExtra(Intent.EXTRA_TITLE, getString(R.string.sharing_num_scenes, numScenes))
-                    type = "text/plain"
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    val uri = FileProvider.getUriForFile(requireContext(), requireContext().packageName, sharedFile)
+
+                    val shareIntent = Intent().apply {
+                        action = Intent.ACTION_SEND
+                        putExtra(Intent.EXTRA_STREAM, uri)
+                        putExtra(Intent.EXTRA_EMAIL, "")
+                        putExtra(Intent.EXTRA_CC, "")
+                        putExtra(Intent.EXTRA_TITLE, getString(R.string.sharing_num_scenes, numScenes))
+                        type = "text/plain"
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    startActivity(Intent.createChooser(shareIntent, getString(R.string.share)))
                 }
-                startActivity(Intent.createChooser(shareIntent, getString(R.string.share)))
             }
         }
 
@@ -308,7 +309,7 @@ class ScenesFragment : Fragment() {
         viewModel.uri.observe(viewLifecycleOwner) { uri ->
             if (uri != null) {
                 sceneArchiving.loadScenes(uri)
-                viewModel.loadingFileComplete()
+                viewModel.loadingFileComplete(ScenesViewModel.FragmentTypes.Scenes)
             }
         }
 
@@ -359,16 +360,14 @@ class ScenesFragment : Fragment() {
         return viewModel.scenesAsString
     }
 
-    fun loadDatabaseFromString(scenesString: String, task: SceneDatabase.InsertMode, filename: String?) {
+    fun loadScenes(scenes: List<Scene>, task: SceneDatabase.InsertMode) {
         activity?.let { act ->
-            when (viewModel.scenes.value?.loadSceneFromString(scenesString, task)) {
-                SceneDatabase.FileCheck.Empty ->
-                    Toast.makeText(act, act.getString(R.string.file_empty, filename), Toast.LENGTH_LONG).show()
-                SceneDatabase.FileCheck.Invalid ->
-                    Toast.makeText(act, act.getString(R.string.file_invalid, filename), Toast.LENGTH_LONG).show()
-                SceneDatabase.FileCheck.Ok ->
-                    AppPreferences.writeScenesDatabase(viewModel.scenesAsString, act)
-            }
+            viewModel.scenes.value?.loadScenes(scenes, task)
+            AppPreferences.writeScenesDatabase(viewModel.scenesAsString, act)
         }
+    }
+
+    fun numScenes() : Int {
+        return viewModel.scenes.value?.size ?: 0
     }
 }

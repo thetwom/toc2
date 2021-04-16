@@ -19,6 +19,8 @@
 
 package de.moekadu.metronome
 
+import android.content.Context
+import android.widget.Toast
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.min
@@ -140,64 +142,22 @@ class SceneDatabase {
         return stringBuilder.toString()
     }
 
-    fun loadSceneFromString(sceneString: String, mode: InsertMode = InsertMode.Replace): FileCheck {
-        val newScene = mutableListOf<Scene>()
-        if (mode != InsertMode.Replace)
-            newScene.addAll(scenes)
+    fun loadScenes(newScenes: List<Scene>, mode: InsertMode = InsertMode.Replace): FileCheck {
 
-        if(sceneString == "")
-            return FileCheck.Empty
-        else if(sceneString.length < 50)
-            return FileCheck.Invalid
-
-        // val version = dataString.substring(0, 50).trim()
-//        Log.v("Metronome", "SceneDatabase.loadDataFromString: version = $version, ${isVersion1LargerThanVersion2(BuildConfig.VERSION_NAME, version)}")
-        var pos = 50
-        var numScenesRead = 0
-
-        while(pos < sceneString.length)
-        {
-            if(pos + 200 >= sceneString.length)
-                return FileCheck.Invalid
-            val title = sceneString.substring(pos, pos + 200).trim()
-            pos += 200
-            if(pos + 10 >= sceneString.length)
-                return FileCheck.Invalid
-            val date = sceneString.substring(pos, pos + 10)
-            pos += 10
-            if(pos + 5 >= sceneString.length)
-                return FileCheck.Invalid
-            val time = sceneString.substring(pos, pos + 5)
-            pos += 5
-            if(pos + 6 >= sceneString.length)
-                return FileCheck.Invalid
-            val bpm = try {
-                (sceneString.substring(pos, pos + 12).trim()).toFloat()
+        when (mode) {
+            InsertMode.Replace -> {
+                _scenes.clear()
+                stableIds.clear()
+                newScenes.forEach { add(it, false) }
             }
-            catch (e: NumberFormatException) {
-                return FileCheck.Invalid
+            InsertMode.Prepend -> {
+                for (i in newScenes.indices)
+                    add(i, newScenes[i], false)
             }
-            pos += 12
-
-            val noteListEnd = sceneString.indexOf("END", pos)
-            if(noteListEnd == -1)
-                return FileCheck.Invalid
-            val noteList = sceneString.substring(pos, noteListEnd)
-            if (!isNoteListStringValid(noteList))
-                return FileCheck.Invalid
-            pos = noteListEnd + 3
-
-            val si = Scene(title, date, time, bpm, stringToNoteList(noteList), Scene.NO_STABLE_ID)
-            if (mode == InsertMode.Prepend)
-                newScene.add(numScenesRead, si)
-            else
-                newScene.add(si)
-            ++numScenesRead
+            InsertMode.Append -> {
+                newScenes.forEach { add(it, false) }
+            }
         }
-
-        _scenes.clear()
-        stableIds.clear()
-        newScene.forEach { add(it, false) }
 
         databaseChangedListener?.onChanged(this)
         return FileCheck.Ok
@@ -211,4 +171,72 @@ class SceneDatabase {
 
     enum class FileCheck {Ok, Empty, Invalid}
     enum class InsertMode {Replace, Prepend, Append}
+
+    data class ScenesAndFileCheckResult(val fileCheck: FileCheck, val scenes: List<Scene>)
+
+    companion object {
+
+        fun stringToScenes(sceneString: String): ScenesAndFileCheckResult {
+            val scenes = mutableListOf<Scene>()
+
+            if (sceneString == "")
+                return ScenesAndFileCheckResult(FileCheck.Empty, scenes)
+            else if (sceneString.length < 50)
+                return ScenesAndFileCheckResult(FileCheck.Invalid, scenes)
+
+            // val version = dataString.substring(0, 50).trim()
+//        Log.v("Metronome", "SceneDatabase.loadDataFromString: version = $version, ${isVersion1LargerThanVersion2(BuildConfig.VERSION_NAME, version)}")
+            var pos = 50
+            var numScenesRead = 0
+
+            while (pos < sceneString.length) {
+                if (pos + 200 >= sceneString.length)
+                    return ScenesAndFileCheckResult(FileCheck.Invalid, scenes)
+                val title = sceneString.substring(pos, pos + 200).trim()
+                pos += 200
+                if (pos + 10 >= sceneString.length)
+                    return ScenesAndFileCheckResult(FileCheck.Invalid, scenes)
+                val date = sceneString.substring(pos, pos + 10)
+                pos += 10
+                if (pos + 5 >= sceneString.length)
+                    return ScenesAndFileCheckResult(FileCheck.Invalid, scenes)
+                val time = sceneString.substring(pos, pos + 5)
+                pos += 5
+                if (pos + 6 >= sceneString.length)
+                    return ScenesAndFileCheckResult(FileCheck.Invalid, scenes)
+                val bpm = try {
+                    (sceneString.substring(pos, pos + 12).trim()).toFloat()
+                } catch (e: NumberFormatException) {
+                    return ScenesAndFileCheckResult(FileCheck.Invalid, scenes)
+                }
+                pos += 12
+
+                val noteListEnd = sceneString.indexOf("END", pos)
+                if (noteListEnd == -1)
+                    return ScenesAndFileCheckResult(FileCheck.Invalid, scenes)
+                val noteList = sceneString.substring(pos, noteListEnd)
+                if (!isNoteListStringValid(noteList))
+                    return ScenesAndFileCheckResult(FileCheck.Invalid, scenes)
+                pos = noteListEnd + 3
+
+                val si = Scene(title, date, time, bpm, stringToNoteList(noteList), Scene.NO_STABLE_ID)
+                scenes.add(si)
+                ++numScenesRead
+            }
+            return ScenesAndFileCheckResult(FileCheck.Ok, scenes)
+        }
+
+        fun toastFileCheckString(context: Context, filename: String?, fileCheck: FileCheck) {
+            when (fileCheck) {
+                FileCheck.Empty -> {
+                    Toast.makeText(context, context.getString(R.string.file_empty, filename), Toast.LENGTH_LONG).show()
+                }
+                FileCheck.Invalid -> {
+                    Toast.makeText(context, context.getString(R.string.file_invalid, filename), Toast.LENGTH_LONG).show()
+                }
+                else -> {
+                }
+            }
+        }
+    }
 }

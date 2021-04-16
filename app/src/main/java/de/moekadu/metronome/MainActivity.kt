@@ -44,7 +44,6 @@ class MainActivity : AppCompatActivity() {
     // TODO: translations
 
     // TODO: Allow "odd" speeds e.g. during load or when typing
-    // TODO: share functionality
 
     private val metronomeViewModel by viewModels<MetronomeViewModel> {
         val playerConnection = PlayerServiceConnection.getInstance(this,
@@ -95,7 +94,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        handleFileLoadingIntent(intent)
+        if (savedInstanceState == null)
+            handleFileLoadingIntent(intent)
         setDisplayHomeButton()
 //        Log.v("Metronome", "MainActivity:onCreate: end");
     }
@@ -124,22 +124,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onNewIntent(intent: Intent?) {
-        Log.v("Metronome", "MainActivity.onNewIntent: intent=$intent")
-        handleFileLoadingIntent(intent)
         super.onNewIntent(intent)
+//        Log.v("Metronome", "MainActivity.onNewIntent: intent=$intent")
+        handleFileLoadingIntent(intent)
     }
 
     private fun handleFileLoadingIntent(intent: Intent?) {
         if (intent?.action == Intent.ACTION_SEND || intent?.action == Intent.ACTION_VIEW) {
-            Log.v("Metronome", "MainActivity.handleFileLoadingIntent: intent=$intent")
-            Log.v("Metronome", "MainActivity.handleFileLoadingIntent: intent=${intent.data}")
+//            Log.v("Metronome", "MainActivity.handleFileLoadingIntent: intent=$intent")
+//            Log.v("Metronome", "MainActivity.handleFileLoadingIntent: intent=${intent.data}")
             //(intent.getParcelableExtra<Parcelable>(Intent.EXTRA_STREAM) as? Uri)?.let { uri ->
 
             intent.data?.let { uri ->
 //                Log.v("Metronome", "MainActivity.handleFileLoadingIntent: uri=$uri")
                 supportFragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
 
-                setMetronomeAndScenesViewPagerId(ViewPagerAdapter.SCENES)
+                //setMetronomeAndScenesViewPagerId(ViewPagerAdapter.SCENES)
                 scenesViewModel.loadScenesFromFile(uri)
             }
         }
@@ -155,7 +155,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun setDisplayHomeButton() {
-        //Log.v("Metronome", "MainActivity:setDisplayHomeButton: viewPager.currentItem = ${viewPager.currentItem}");
 //        Log.v("Metronome", "MainActivity:setDisplayHomeButton: backStackEntryCount = ${supportFragmentManager.backStackEntryCount}");
         if (supportFragmentManager.backStackEntryCount > 0) {
             supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -165,6 +164,7 @@ class MainActivity : AppCompatActivity() {
         when (val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)) {
             is MetronomeAndScenesFragment -> {
                 val id =  currentFragment.viewPager?.currentItem
+//                Log.v("Metronome", "MainActivity:setDisplayHomeButton: viewPager.currentItem = $id");
                 if (id != ViewPagerAdapter.METRONOME && id != null) {
                     supportActionBar?.setDisplayHomeAsUpEnabled(true)
                     return

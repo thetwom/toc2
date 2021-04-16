@@ -43,7 +43,7 @@
     <string name="dismiss">Omitir</string>
     <string name="max_allowed_characters">Número máximo de caracteres: %d</string>
 
-    <string name="load_scenes">Load saved items</string>
+    <string name="load_scenes">Load saved items (%d)</string>
     <string name="abort">Abortar</string>
     <string name="replace_current_list">Reemplazar lista actual</string>
     <string name="prepend_current_list">Anteponer a la lista actual</string>

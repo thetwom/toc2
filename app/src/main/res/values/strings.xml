@@ -69,7 +69,7 @@
     <string name="dismiss">Dismiss</string>
     <string name="max_allowed_characters">Maximum character number: %d</string>
 
-    <string name="load_scenes">Load scenes</string>
+    <string name="load_scenes">Loading %d scenes</string>
     <string name="abort">Abort</string>
     <string name="replace_current_list">Replace current list</string>
     <string name="prepend_current_list">Prepend to current list</string>
@@ -122,5 +122,6 @@
     <string name="failed_to_archive_scenes">Failed to store scenes to file.</string>
     <string name="share">Share scenes</string>
     <string name="sharing_num_scenes">Sharing %d scenes.</string>
+    <string name="no_scenes_for_sharing">There are no scenes, which can be shared.</string>
 
 </resources>

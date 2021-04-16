@@ -3,6 +3,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_share"
+        android:orderInCategory="98"
+        android:title="@string/share"
+        android:icon="@drawable/ic_share"
+        app:showAsAction="ifRoom"
+        />
+
+
+    <item
         android:id="@+id/action_archive"
         android:orderInCategory="96"
         android:title="@string/save_to_disc"
@@ -15,14 +24,6 @@
         android:orderInCategory="97"
         android:title="@string/load_from_disc"
         android:icon="@drawable/ic_unarchive"
-        app:showAsAction="ifRoom"
-        />
-
-    <item
-        android:id="@+id/action_share"
-        android:orderInCategory="95"
-        android:title="@string/share"
-        android:icon="@drawable/ic_share"
         app:showAsAction="ifRoom"
         />
 

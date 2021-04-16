@@ -64,7 +64,7 @@
     <string name="dismiss">Utzi</string>
     <string name="max_allowed_characters">Gehienezko karaktere kopurua: %d</string>
 
-    <string name="load_scenes">Kargatu gordetako elementuak</string>
+    <string name="load_scenes">Kargatu gordetako elementuak (%d)</string>
     <string name="abort">Utzi</string>
     <string name="replace_current_list">Ordezkatu uneko zerrenda</string>
     <string name="prepend_current_list">Gehitu uneko zerrendaren hasieran</string>

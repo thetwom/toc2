@@ -41,13 +41,18 @@ class ScenesViewModel(initialDatabaseString: String) : ViewModel() {
 
     private val _uri = MutableLiveData<Uri?>()
     val uri: LiveData<Uri?> get() = _uri
+    private var uriHandledByScenesFragment = false
+    private var uriHandledByMetronomeAndScenesFragment = false
 
     init  {
         sceneDatabase.databaseChangedListener = SceneDatabase.DatabaseChangedListener {
 //            Log.v("Metronome", "ScenesViewModel.init: database changed")
             _scenes.value = it
         }
-        sceneDatabase.loadSceneFromString(initialDatabaseString, SceneDatabase.InsertMode.Replace)
+
+        val (check, scenes) = SceneDatabase.stringToScenes(initialDatabaseString)
+        if (check == SceneDatabase.FileCheck.Ok)
+            sceneDatabase.loadScenes(scenes, SceneDatabase.InsertMode.Replace)
     }
 
     fun setActiveStableId(stableId: Long) {
@@ -60,11 +65,18 @@ class ScenesViewModel(initialDatabaseString: String) : ViewModel() {
     }
 
     fun loadScenesFromFile(uri: Uri) {
+        uriHandledByMetronomeAndScenesFragment = false
+        uriHandledByScenesFragment = false
         _uri.value = uri
     }
 
-    fun loadingFileComplete() {
-        _uri.value = null
+    fun loadingFileComplete(fragmentType: FragmentTypes) {
+        when (fragmentType) {
+            FragmentTypes.MetronomeAndScenes -> uriHandledByMetronomeAndScenesFragment = true
+            FragmentTypes.Scenes -> uriHandledByScenesFragment = true
+        }
+        if (uriHandledByMetronomeAndScenesFragment && uriHandledByScenesFragment)
+            _uri.value = null
     }
     class Factory(private val initialDatabaseString: String) : ViewModelProvider.Factory {
         @Suppress("unchecked_cast")
@@ -72,5 +84,10 @@ class ScenesViewModel(initialDatabaseString: String) : ViewModel() {
 //            Log.v("Metronome", "ScenesViewModel.factory.create")
             return ScenesViewModel(initialDatabaseString) as T
         }
+    }
+
+    enum class FragmentTypes {
+        Scenes,
+        MetronomeAndScenes
     }
 }
