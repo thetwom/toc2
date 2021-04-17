@@ -131,15 +131,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleFileLoadingIntent(intent: Intent?) {
         if (intent?.action == Intent.ACTION_SEND || intent?.action == Intent.ACTION_VIEW) {
-//            Log.v("Metronome", "MainActivity.handleFileLoadingIntent: intent=$intent")
 //            Log.v("Metronome", "MainActivity.handleFileLoadingIntent: intent=${intent.data}")
-            //(intent.getParcelableExtra<Parcelable>(Intent.EXTRA_STREAM) as? Uri)?.let { uri ->
 
             intent.data?.let { uri ->
 //                Log.v("Metronome", "MainActivity.handleFileLoadingIntent: uri=$uri")
                 supportFragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
-
-                //setMetronomeAndScenesViewPagerId(ViewPagerAdapter.SCENES)
                 scenesViewModel.loadScenesFromFile(uri)
             }
         }
@@ -202,6 +198,6 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         const val PROPERTIES_FRAGMENT = "de.moekadu.metronome.PROPERTIES_FRAGMENT"
-        const val METRONOME_AND_SCENES_FRAGMENT = "de.moekadu.metronome.METRONOME_AND_SCENES_FRAGMENT"
+//        const val METRONOME_AND_SCENES_FRAGMENT = "de.moekadu.metronome.METRONOME_AND_SCENES_FRAGMENT"
     }
 }

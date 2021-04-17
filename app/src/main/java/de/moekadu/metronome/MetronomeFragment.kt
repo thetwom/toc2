@@ -524,10 +524,6 @@ class MetronomeFragment : Fragment() {
         return false
     }
 
-//    private fun setSceneTitleText(title: String) {
-//        sceneTitle?.text = getString(R.string.scene, title)
-//    }
-
     private fun updateSceneTitleTextAndSwipeView(animate: Boolean = true) {
         val editingStableId = scenesViewModel.editingStableId.value ?: Scene.NO_STABLE_ID
         val activeStableId = scenesViewModel.activeStableId.value ?: Scene.NO_STABLE_ID

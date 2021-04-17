@@ -23,8 +23,10 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.media.session.PlaybackState
 import android.os.DeadObjectException
 import android.os.IBinder
+import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import androidx.lifecycle.*
 
@@ -79,9 +81,11 @@ class PlayerServiceConnection(
                 serviceBinder?.service?.let { service ->
                     service.registerStatusChangedListener(serviceStateListener)
 
-                    // TODO: make service to use PlayerStatus and then enable this again
-                    //if (_playerStatus.value != service.playbackState)
-                    //    _playbackState.value = service.playbackState
+                    if (service.state == PlaybackStateCompat.STATE_PLAYING && _playerStatus.value != PlayerStatus.Playing)
+                        _playerStatus.value = PlayerStatus.Playing
+                    else if (service.state != PlaybackStateCompat.STATE_PLAYING && _playerStatus.value != PlayerStatus.Paused)
+                        _playerStatus.value = PlayerStatus.Paused
+
                     setBpm(initialBpm)
                     service.noteList = initialNoteList
 
