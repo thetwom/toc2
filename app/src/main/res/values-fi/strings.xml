@@ -1,0 +1,127 @@
+<!--
+  - Copyright 2019 Michael Moessner
+  -
+  - This file is part of Metronome.
+  -
+  - Metronome is free software: you can redistribute it and/or modify
+  - it under the terms of the GNU General Public License as published by
+  - the Free Software Foundation, either version 3 of the License, or
+  - (at your option) any later version.
+  -
+  - Metronome is distributed in the hope that it will be useful,
+  - but WITHOUT ANY WARRANTY; without even the implied warranty of
+  - MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  - GNU General Public License for more details.
+  -
+  - You should have received a copy of the GNU General Public License
+  - along with Metronome.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<resources>
+    <string name="app_name">Metronomi</string>
+    <string name="action_settings">Asetukset</string>
+
+    <string name="base" translatable="false">bassorumpu</string>
+    <string name="hihat" translatable="false">hi-hat</string>
+    <string name="snare" translatable="false">pikkurumpu</string>
+    <string name="sticks" translatable="false">tikut</string>
+    <string name="claves" translatable="false">rytmikapulat</string>
+    <string name="woodblock" translatable="false">penaali</string>
+    <string name="mute">mykistä</string>
+    <string name="bpm">%s bpm</string>
+
+    <string name="scenes">Skene</string>
+    <string name="save_scene">Tallenna skene</string>
+    <string name="load_from_disc">Tuo skenet tiedostosta</string>
+    <string name="save_to_disc">Tallenna skenet tiedostoon</string>
+    <string name="clear_all">Tyhjennä kaikki</string>
+    <string name="clear_all_question">Poistetaanko kaikki skenet?</string>
+    <string name="title">Otsikko</string>
+    <string name="done">Valmis</string>
+    <string name="appearance">Teema</string>
+    <string name="dark_appearance">Tumma</string>
+    <string name="light_appearance">Vaalea</string>
+    <string name="system_appearance">Seuraa laitteen teemaa</string>
+
+    <string name="dark_appearance_short">Tumma</string>
+    <string name="light_appearance_short">Vaalea</string>
+    <string name="system_appearance_short">Seuraa laitteen teemaa</string>
+
+    <string name="add_note">Lisää nuotti</string>
+
+    <string name="speed_sensitivity">Nopeuden muuttamisen herkkyys</string>
+    <string name="speed_sensitivity_summary">Nopeus askeleet per cm: %.1f</string>
+    <string name="speedincrement">Nopeuden lisäys</string>
+    <string name="minimum_bpm">Miniminopeus</string>
+    <string name="maximum_bpm">Maksiminopeus</string>
+
+    <string name="reset_all_settings">Nollaa asetukset</string>
+    <string name="reset_settings_prompt">Haluatko nollata kaikki asetukset?</string>
+    <string name="about">Tietoja</string>
+
+    <string name="undo">Peruuta</string>
+    <string name="scene_deleted">Skene poistettu</string>
+
+    <string name="save_settings_dialog_title">Tallenna skene</string>
+    <string name="save_name">Nimi</string>
+    <string name="saved_scene_message">Tallennettu skene: %s</string>
+    <string name="save">Tallenna</string>
+    <string name="dismiss">Peruuta</string>
+    <string name="max_allowed_characters">Merkkien enimmäismäärä: %d</string>
+
+    <string name="load_scenes">Ladataan %d skenet</string>
+    <string name="abort">Lopeta</string>
+    <string name="replace_current_list">Korvaa nykyiset</string>
+    <string name="prepend_current_list">Lisää nykyisten yläpuolelle</string>
+    <string name="append_current_list">Lisää nykyisiin alapuolle</string>
+    <string name="file_empty">Tyhjä tiedosto: %s</string>
+    <string name="file_invalid">Virheellinen tiedosto: %s</string>
+    <string name="database_empty">Ei ole skenejä, jotka voitaisiin tallentaa.</string>
+
+    <string name="cannot_delete_last_note">Et voi poistaa viimeistä nuottia.</string>
+    
+    <string name="no_scenes">Ei tallennettuja skenejä.</string>
+
+    <string name="tap_in">NAPAUTA</string>
+
+    <string name="about_message">Metronomi appi\nVersio: %s\nLisenssi: GPLv3</string>
+
+    <string name="yes">kyllä</string>
+    <string name="no">ei</string>
+
+    <string name="saved_speed_too_small">Skenen nopeus %s bpm on pienempi kuin miniminopeus %s bpm.\n</string>
+    <string name="saved_speed_too_large">Skenen nopeus %s bpm on suuremepi kuin maksiminopeus %s bpm.\n</string>
+    <string name="max_speed_lower_minimum">Annettu maksiminopeus (%s) on pienempi kuin miniminopeus (%s).</string>
+    <string name="min_speed_higher_maximum">Annettu miniminopeus (%s) on suurempi kuin maksiminopeus (%s).</string>
+    <string name="inconsistent_saved_increment">Tallennettua nopeutta %s bpm ei voida ratkaista nykyisellä nopeuden lisäyksellä  %s bpm.\n</string>
+    <string name="inconsistent_load_title">Yhteensopimaton</string>
+    <string name="inconsistent_summary">\nMuuta asetuksia, jos haluat ladata skene oikein.</string>
+    <string name="acknowledged">Muuta asetuksia</string>
+
+    <string name="keep_screen_on">Pidä näyttö päällä</string>
+    <string name="vibrate_notes">Värinä</string>
+    <string name="not_supported_by_hardware">Laitteisto ei tue</string>
+    <string name="vibrate_strength">Värinän voimakkuus</string>
+    <string name="low_strength">Matala värinän voimakkuus (%.2f)</string>
+    <string name="medium_strength">Keskitason värinän voimakkuus (%.2f)</string>
+    <string name="high_strength">Korkea värinän voimakkuus (%.2f)</string>
+    <string name="all_notes_deleted">Kaikki nuotit poistettu.</string>
+    <string name="set_new_speed">Aseta uusi nopeus</string>
+    <string name="invalid_speed">"Virheellinen nopeus: "</string>
+    <string name="speed_too_small">Annettu nopeus (%s bpm) pienempi kuin miniminopeus (%s bpm).</string>
+    <string name="speed_too_large">Annettu nopeus (%s bpm) suurempi kuin maksiminopeus (%s bpm).</string>
+    <string name="inconsistent_increment">Annettua nopeutta (%s bpm) ei voida ratkaista nykyisellä lisäyksellä (%s bpm).</string>
+    <string name="vibrate_delay">Tärinän viive</string>
+    <string name="milliseconds">%d ms</string>
+    <string name="database_saved">Tallennetaan skenejä tiedostoon \"%s\".</string>
+    <string name="play_pause">toista ja pysäytä</string>
+    <string name="edit">Muokkaa</string>
+    <string name="editing_scene">Muokataan skeneä</string>
+    <string name="rename_scene">Nimeä uudelleen</string>
+    <string name="scene">Skene: %s</string>
+    <string name="failed_to_archive_scenes">Skenejen tallentaminen tiedostoon epäonnistui.</string>
+    <string name="share">Jaa skenejä</string>
+    <string name="sharing_num_scenes">Jaetaan %d skenejä.</string>
+    <string name="no_scenes_for_sharing">Ei ole scenejä, jotka voitaisiin jakaa.</string>
+
+</resources>
