@@ -1,0 +1,12 @@
+v3.0.0:
+- Taustalla olevan koodipohjan uudistaminen
+- Mahdollisuus muokata tallennettuja skenejä
+- Pysy skenesivulla skenen valitsemisen jälkeen
+  -> mahdollistaa nopean vaihtamisen eri skenejen välillä.
+- Skenesivulla on nyt toistopainike
+- Vaihtaminen skene- ja metronomisivun välillä
+  tukee pyyhkäisyä
+
+v3.1.0
+- Lisätty puolankieliset käännökset (kiitokset econo202).
+- Lisätty tallennettujen skenejen pikajako.
