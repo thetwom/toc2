@@ -1,0 +1,4 @@
+- Fix: Changing speed did not set the latest value inside the player.
+- New visualization of the ticks for more natural feeling of when the
+  next click will take place.
+- Add Spanish translation, thanks to Diego Sangunietti for providing this.

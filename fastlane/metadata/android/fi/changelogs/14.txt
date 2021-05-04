@@ -1,0 +1,1 @@
+- Replace the metronome logic by an own mixer, which makes the metronome much more accurate.
