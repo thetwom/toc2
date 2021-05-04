@@ -1,0 +1,23 @@
+v2.2.0:
+- Animated notes
+- Improved choosing of sounds
+- More consistent color scheme
+- Import/export saved note lists
+
+v2.3.0:
+Thanks to Fabio Pesari for the vibration suggestions and the Italian translations!
+- Allow pause/play via notification when screen is locked
+- Fix: Saving current setup did not always save
+- Add option for vibrating notes
+- Italian translations
+
+v2.4.0:
+- Playing is done in a separate thread
+- Show numbers below notes
+- Additionally highlight notes with outline when selected
+- Add button to reset notes
+- Fix minor visual issue volume sliders
+- Add Basque translation (thanks to Porrumentzio)
+
+v2.5.0:
+- Make speed text selectable to allow typing a new speed

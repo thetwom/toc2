@@ -1,0 +1,1 @@
+- Fix playback on Bluetooth

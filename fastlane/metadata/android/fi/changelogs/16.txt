@@ -1,0 +1,1 @@
+- Fix a startup crash occuring on some phones

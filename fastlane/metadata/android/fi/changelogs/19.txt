@@ -1,0 +1,1 @@
+- Solve bug on some devices where the sounds were just noise.
