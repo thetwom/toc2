@@ -1,0 +1,5 @@
+    Yksinkertainen metronomi appi, joka tukee perustoimintoja ja auttaa pitämään tempon soittamista harjoiteltaessa. Se sisältää ominaisuuksia, kuten:
+    * Tempon asettaminen iskuina minuutissa.
+    * Tempon asettaminen napauttamalla.
+    * Valitse erilaisia ääniä.
+    * Tallenna ja tuo nykyiset asetuksesi.
