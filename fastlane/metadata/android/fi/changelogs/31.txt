@@ -1,8 +1,0 @@
-v3.0.0:
-- Refactoring of underlying code basis
-- Allow editing of saved scenes
-- Stay on page with scenes when a scene is selected
-  -> allows quick changing between different scenes.
-- Scenes page has now a play-button and visualizes playing
-- Changing between scenes-page and metronome-page
-  supports swiping

@@ -1,4 +1,0 @@
-* Allow speed increment different from 1
-* Settings to adjust sensitivity for speed changes
-* Warning: This breaks compatibility with saved stated
-    of earlier versions

@@ -1,1 +1,0 @@
-- Fix startup issue on some phones
