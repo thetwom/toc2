@@ -1,0 +1,16 @@
+v3.0.0:
+- Refactoring of underlying code basis
+- Allow editing of saved scenes
+- Stay on page with scenes when a scene is selected
+  -> allows quick changing between different scenes.
+- Scenes page has now a play-button and visualizes playing
+- Changing between scenes-page and metronome-page
+  supports swiping
+
+v3.1.0
+- Add Polish translations (thanks to econo202).
+- Allow direct sharing of saved scenes.
+
+v3.2.0
+- Add Finnish translations (thanks to retki)
+- Color of statusbar is now always black

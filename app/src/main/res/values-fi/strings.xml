@@ -21,12 +21,6 @@
     <string name="app_name">Metronomi</string>
     <string name="action_settings">Asetukset</string>
 
-    <string name="base" translatable="false">bassorumpu</string>
-    <string name="hihat" translatable="false">hi-hat</string>
-    <string name="snare" translatable="false">pikkurumpu</string>
-    <string name="sticks" translatable="false">tikut</string>
-    <string name="claves" translatable="false">rytmikapulat</string>
-    <string name="woodblock" translatable="false">penaali</string>
     <string name="mute">mykistä</string>
     <string name="bpm">%s bpm</string>
 

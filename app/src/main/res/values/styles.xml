@@ -36,6 +36,8 @@
 
         <item name="colorPrimaryFaint">@color/myColorPrimaryFaint</item>
 
+        <item name="android:statusBarColor">#000000</item>
+
         <item name="controlPanelStyle">@style/Widget.AppTheme.ControlPanelStyle</item>
         <item name="volumeSlidersStyle">@style/Widget.AppTheme.VolumeSlidersStyle</item>
         <item name="volumeControlStyle">@style/Widget.AppTheme.VolumeControlStyle</item>
