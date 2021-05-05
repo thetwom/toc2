@@ -1,1 +1,0 @@
-- Fix timing issue if first beat after pressing play

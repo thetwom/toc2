@@ -1,4 +1,0 @@
-- Animated notes
-- Improved choosing of sounds
-- More consistent color scheme
-- Import/export saved note lists
