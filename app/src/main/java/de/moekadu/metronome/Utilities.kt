@@ -69,17 +69,17 @@ class Utilities {
             return 60.0f * 1000.0f / dt
         }
 
-        fun getBpmString(bpm: Float): String {
+        fun getBpmString(bpm: Float, useGrouping: Boolean = true): String {
             val tolerance = 1e-6f
             var i = 1
             while (i < bpmIncrements.size && abs(bpm / bpmIncrements[i] - (bpm / bpmIncrements[i]).roundToInt()) < tolerance) {
                 ++i
             }
             val bpmIncrement: Float = bpmIncrements[i - 1]
-            return getBpmString(bpm, bpmIncrement)
+            return getBpmString(bpm, bpmIncrement, useGrouping)
         }
 
-        fun getBpmString(bpm: Float, bpmIncrement: Float): String {
+        fun getBpmString(bpm: Float, bpmIncrement: Float, useGrouping: Boolean = true): String {
             val tolerance = 1e-6f
             val digits = when {
                 abs(bpmIncrement - 0.125f) < tolerance -> {
@@ -98,6 +98,7 @@ class Utilities {
 
             bpmFormat.minimumFractionDigits = digits
             bpmFormat.maximumFractionDigits = digits
+            bpmFormat.isGroupingUsed = useGrouping
             return bpmFormat.format(bpm.toDouble())
         }
 

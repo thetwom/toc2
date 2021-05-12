@@ -96,7 +96,7 @@ class SceneArchiving(private val scenesFragment: ScenesFragment) {
         if (uri == null || context == null)
             return null
 
-        val fileData = scenesFragment.getDatabaseString() ?: return null
+        val fileData = scenesFragment.getDatabaseString()
 
         context.contentResolver?.openOutputStream(uri)?.use { stream ->
             stream.write(fileData.toByteArray())

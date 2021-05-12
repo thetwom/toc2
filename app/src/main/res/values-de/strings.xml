@@ -84,4 +84,5 @@
     <string name="share">Szenen teilen</string>
     <string name="sharing_num_scenes">Teile %d Szenen.</string>
     <string name="no_scenes_for_sharing">Keine zu teilenden Szenen verfügbar.</string>
+    <string name="max_speed_larger_than_allowed">Vorgegebene Maximalgeschwindigkeit (%s) muss kleiner als %s sein.</string>
 </resources>

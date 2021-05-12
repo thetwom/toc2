@@ -95,10 +95,11 @@ class SpeedLimiter(private val sharedPreferences: SharedPreferences, private val
         // Make bpm match the increment
         bpmCorrected = (bpmCorrected / _bpmIncrement.value!!).roundToInt() * _bpmIncrement.value!!
 
-        if(bpmCorrected < _minimumBpm.value!! - TOLERANCE)
-            bpmCorrected += _bpmIncrement.value!!
+        // limit to maximum and minimum bpm again and don't allow zero
         if(bpmCorrected > _maximumBpm.value!! + TOLERANCE)
-            bpmCorrected -= _bpmIncrement.value!!
+            bpmCorrected = max(bpmCorrected - _bpmIncrement.value!!, _minimumBpm.value!!)
+        if(bpmCorrected < _minimumBpm.value!! - TOLERANCE || bpmCorrected < TOLERANCE)
+            bpmCorrected = min(bpmCorrected + _bpmIncrement.value!!, _maximumBpm.value!!)
 
         return bpmCorrected
     }

@@ -155,12 +155,15 @@ class SettingsFragment: PreferenceFragmentCompat() {
         maximumBpm.setOnPreferenceChangeListener { _, newValue ->
             val bpm = (newValue as String).toFloat()
             val minBpm = minimumBpm.text.toFloat()
-            if (bpm > minBpm) {
+            if (bpm > minBpm && bpm <= ABSOLUTE_MAXIMUM_SPEED) {
                 maximumBpm.summary = getString(R.string.bpm, Utilities.getBpmString(bpm))
                 true
-            } else {
+            } else if (bpm <= minBpm) {
                 Toast.makeText(activity, getString(R.string.max_speed_lower_minimum, getString(R.string.bpm, newValue), getString(R.string.bpm, minimumBpm.text)), Toast.LENGTH_LONG).show()
 //                Toast.makeText(activity, "Invalid maximum bpm: $bpm", Toast.LENGTH_SHORT).show()
+                false
+            } else { // bpm > ABSOLUTE_MAXIMUM_SPEED
+                Toast.makeText(activity, getString(R.string.max_speed_larger_than_allowed, getString(R.string.bpm, newValue), getString(R.string.bpm, ABSOLUTE_MAXIMUM_SPEED.toString())), Toast.LENGTH_LONG).show()
                 false
             }
         }
@@ -235,5 +238,9 @@ class SettingsFragment: PreferenceFragmentCompat() {
             in 25 .. 75 -> getString(R.string.medium_strength, vibratingNote100ToLog(value))
             else -> getString(R.string.high_strength, vibratingNote100ToLog(value))
         }
+    }
+
+    companion object {
+        const val ABSOLUTE_MAXIMUM_SPEED = 10000f
     }
 }

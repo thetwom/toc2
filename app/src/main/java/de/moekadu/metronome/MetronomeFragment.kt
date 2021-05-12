@@ -125,7 +125,7 @@ class MetronomeFragment : Fragment() {
                 editText.setPadding(pad, pad, pad, pad)
 
                 viewModel.bpm.value?.let { bpm ->
-                    editText.setText(Utilities.getBpmString(bpm))
+                    editText.setText(Utilities.getBpmString(bpm, false))
                 }
 
                 editText.hint = getString(R.string.bpm, "")
