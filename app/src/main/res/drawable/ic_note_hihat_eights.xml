@@ -12,42 +12,47 @@
 
             <group
                 android:name="note_head"
-                android:pivotX="7"
-                android:pivotY="21.782">
+                android:pivotX="11.53"
+                android:pivotY="5.09275">
                 <path
-                    android:fillColor="#FF000000"
-                    android:pathData="M15.1564,18.4112a3.4697,4.8805 61.6557,1 0,-8.1809 5.2719a3.4697,4.8805 61.6557,1 0,8.1809 -5.2719z"/>
-            </group>
-            <group
-                android:name="note_rim"
-                android:pivotX="10.8154"
-                android:pivotY="21.1242">
+                    android:strokeColor="#FF000000"
+                    android:strokeWidth="1"
+                    android:pathData="M6.7894,8.9348 L15.2752,1.3176"
+                    />
                 <path
-                    android:pathData="M4,14.409 l13.6308,13.4303"
-                    android:strokeColor="#000000"
-                    android:strokeWidth="0.8"
+                    android:strokeColor="#FF000000"
+                    android:strokeWidth="1"
+                    android:pathData="m6.7894,1.2507 l8.4858,7.8176"
                     />
             </group>
             <group
                 android:name="note_line"
                 android:pivotX="7"
-                android:pivotY="21.782">
+                android:pivotY="5.09275">
                 <path
-                    android:pathData="M7,46.1703V21.782"
+                    android:pathData="M7,30.2952V8.4459"
                     android:strokeColor="#000000"
                     android:strokeWidth="1"/>
+            </group>
+            <group
+                android:name="note_eights"
+                android:pivotX="7"
+                android:pivotY="6.436">
+                <path
+                    android:pathData="m7.3558,30.6839c0.1127,-5.8855 7.2147,-8.981 7.782,-14.2275 0.2668,-2.4673 -0.4287,-4.5244 -1.0733,-6 -0.3014,-0.6899 -1.6151,-0.3422 -1.1949,0.5444 0.667,1.4071 1.3933,3.5623 0.9534,5.6469 -0.3896,1.846 -2.2347,4.0568 -6.5637,6.6337z"
+                    android:fillColor="#FF000000"/>
             </group>
         </vector>
     </aapt:attr>
 
-<!--    <target android:name="note_head">-->
-<!--        <aapt:attr name="android:animation">-->
-<!--            <objectAnimator-->
-<!--                android:duration="500"-->
-<!--                android:valueFrom="1.0"-->
-<!--                android:valueTo="1.0"-->
-<!--                android:interpolator="@android:interpolator/linear_out_slow_in">-->
-
+    <target android:name="note_head">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:duration="500"
+                android:valueFrom="0"
+                android:valueTo="360"
+                android:interpolator="@android:interpolator/linear_out_slow_in"
+                android:propertyName="rotation">
 <!--                <propertyValuesHolder android:propertyName="scaleX">-->
 <!--                    <keyframe android:fraction="0.0"-->
 <!--                        android:value="1.0"/>-->
@@ -64,18 +69,7 @@
 <!--                    <keyframe android:fraction="1.0"-->
 <!--                        android:value="1.0"/>-->
 <!--                </propertyValuesHolder>-->
-<!--            </objectAnimator>-->
-<!--        </aapt:attr>-->
-<!--    </target>-->
-
-    <target android:name="note_rim">
-        <aapt:attr name="android:animation">
-            <objectAnimator
-                android:duration="500"
-                android:valueFrom="0"
-                android:valueTo="360"
-                android:interpolator="@android:interpolator/linear_out_slow_in"
-                android:propertyName="rotation"/>
+            </objectAnimator>
         </aapt:attr>
     </target>
 </animated-vector>

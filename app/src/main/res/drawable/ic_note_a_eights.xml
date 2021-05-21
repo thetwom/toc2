@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt">
+
+  <aapt:attr name="android:drawable">
+    <vector
+        android:height="200dp"
+        android:width="88dp"
+        android:viewportHeight="50"
+        android:viewportWidth="22">
+
+      <group
+          android:name="note_head"
+          android:pivotX="15.19"
+          android:pivotY="28.1173">
+        <path
+            android:fillColor="#FF000000"
+            android:pathData="M7.0123,31.4883a3.4697,4.8805 61.6557,1 0,8.1809 -5.2719a3.4697,4.8805 61.6557,1 0,-8.1809 5.2719z" />
+      </group>
+      <group
+          android:name="note_line"
+          android:pivotX="15.19"
+          android:pivotY="28.1173">
+        <path
+            android:pathData="m15.19,3.729v24.3883"
+            android:strokeColor="#000000"
+            android:strokeWidth="1"/>
+      </group>
+      <group
+          android:name="note_eights"
+          android:pivotX="15.19"
+          android:pivotY="28.1173">
+        <path
+            android:pathData="m15.4815,3.862c-0.0966,4.7544 5.8296,10.2532 6.0868,14.7664 0.2016,3.5378 -0.6801,5.0818 -1.1315,6.7019 -0.2602,0.934 -1.5978,0.5588 -1.3445,-0.4001 0.9321,-3.5291 3.1365,-7.4032 -3.7365,-13.8044z"
+            android:fillColor="#FF000000"/>
+      </group>
+    </vector>
+  </aapt:attr>
+
+  <target android:name="note_head">
+    <aapt:attr name="android:animation">
+      <objectAnimator
+          android:duration="500"
+          android:valueFrom="1.0"
+          android:valueTo="1.0"
+          android:interpolator="@android:interpolator/linear_out_slow_in">
+
+        <propertyValuesHolder android:propertyName="scaleX">
+          <keyframe android:fraction="0.0"
+              android:value="1.0"/>
+          <keyframe android:fraction="0.5"
+              android:value="1.7"/>
+          <keyframe android:fraction="1.0"
+              android:value="1.0"/>
+        </propertyValuesHolder>
+        <propertyValuesHolder android:propertyName="scaleY">
+          <keyframe android:fraction="0.0"
+              android:value="1.0"/>
+          <keyframe android:fraction="0.5"
+              android:value="1.7"/>
+          <keyframe android:fraction="1.0"
+              android:value="1.0"/>
+        </propertyValuesHolder>
+      </objectAnimator>
+    </aapt:attr>
+  </target>
+</animated-vector>
+

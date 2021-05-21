@@ -11,17 +11,34 @@
             android:viewportWidth="22">
 
             <group
-                android:name="pause"
-                android:pivotX="11"
-                android:pivotY="25">
+                android:name="note_head"
+                android:pivotX="7.0893"
+                android:pivotY="13.8444">
                 <path
                     android:fillColor="#FF000000"
-                    android:pathData="m10.3629,13.3173c0,0 4.507,4.8058 4.4768,6.5946 -0.0302,1.7889 -4.4229,2.709 -4.4197,3.9217 0.0031,1.2127 4.9543,6.188 4.9543,6.188l-0.735,0.7016c0,0 -4.4266,-2.6059 -5.4456,-1.47 -1.019,1.1359 1.0414,4.9266 1.0414,4.9266l-0.7073,0.3854c0,0 -2.8933,-6.4269 -2.2384,-7.2497 0.6549,-0.8228 4.1399,0.4549 5.475,0.9672 -2.1963,-2.7916 -5.2666,-2.8958 -5.3383,-5.1824 -0.0716,-2.2866 4.6321,-3.1284 4.6741,-4.4042 0.1002,-3.0402 -2.2718,-4.9111 -2.2718,-4.9111z" />
+                    android:pathData="M15.2232,10.4736a3.4697,4.8805 61.6557,1 0,-8.1809 5.2719a3.4697,4.8805 61.6557,1 0,8.1809 -5.2719z"/>
+            </group>
+            <group
+                android:name="note_line"
+                android:pivotX="7.0893"
+                android:pivotY="13.8444">
+                <path
+                    android:pathData="M7.0893,38.2328V13.8444"
+                    android:strokeColor="#000000"
+                    android:strokeWidth="1"/>
+            </group>
+            <group
+                android:name="note_eights"
+                android:pivotX="7"
+                android:pivotY="13.8444">
+                <path
+                    android:pathData="m7.3558,38.0923c0.1127,-5.8855 7.2147,-8.981 7.782,-14.2275 0.2668,-2.4673 -0.4287,-4.5244 -1.0733,-6 -0.3014,-0.6899 -1.6151,-0.3422 -1.1949,0.5444 0.667,1.4071 1.3933,3.5623 0.9534,5.6469 -0.3896,1.846 -2.2347,4.0568 -6.5637,6.6337z"
+                    android:fillColor="#FF000000"/>
             </group>
         </vector>
     </aapt:attr>
 
-    <target android:name="pause">
+    <target android:name="note_head">
         <aapt:attr name="android:animation">
             <objectAnimator
                 android:duration="500"

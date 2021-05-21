@@ -34,6 +34,22 @@
                     android:strokeColor="#000000"
                     android:strokeWidth="1"/>
             </group>
+            <group
+                android:name="note_sixteenth_lower"
+                android:pivotX="7"
+                android:pivotY="5.09275">
+                <path
+                    android:pathData="m13.4838,9.8728c1.5408,3.9967 -2.7501,6.5431 -6.1504,8.3585l0.122,5.9763c0.0033,-3.7404 3.0896,-5.4489 5.6407,-8.3161 2.1216,-2.3845 2.2016,-4.5129 1.685,-6.2681 -0.3422,-1.1628 -1.608,-0.5565 -1.2973,0.2494z"
+                    android:fillColor="#FF000000"/>
+            </group>
+            <group
+                android:name="note_sixteenth_upper"
+                android:pivotX="7"
+                android:pivotY="5.09275">
+                <path
+                    android:pathData="m12.7783,15.297c2.548,4.7142 -2.4527,7.5881 -5.4396,9.3545l0.1384,5.9502c-0.1328,-4.3494 4.8273,-6.7096 6.5207,-10.0584 1.095,-2.1654 0.6249,-4.3909 -0.1836,-5.9826 -0.4531,-0.8919 -1.6045,-0.316 -1.0358,0.7363z"
+                    android:fillColor="#FF000000"/>
+            </group>
         </vector>
     </aapt:attr>
 

@@ -6,24 +6,24 @@
     <aapt:attr name="android:drawable">
         <vector
             android:height="200dp"
-            android:width="80dp"
+            android:width="88dp"
             android:viewportHeight="50"
-            android:viewportWidth="20">
+            android:viewportWidth="22">
 
             <group
                 android:name="note_head"
-                android:pivotX="6.0893"
+                android:pivotX="7.0893"
                 android:pivotY="13.8444">
                 <path
                     android:fillColor="#FF000000"
-                    android:pathData="M14.2232,10.4736a3.4697,4.8805 61.6557,1 0,-8.1809 5.2719a3.4697,4.8805 61.6557,1 0,8.1809 -5.2719z"/>
+                    android:pathData="M15.2232,10.4736a3.4697,4.8805 61.6557,1 0,-8.1809 5.2719a3.4697,4.8805 61.6557,1 0,8.1809 -5.2719z"/>
             </group>
             <group
                 android:name="note_line"
-                android:pivotX="6.0893"
+                android:pivotX="7.0893"
                 android:pivotY="13.8444">
                 <path
-                    android:pathData="M6.0893,38.2328V13.8444"
+                    android:pathData="M7.0893,38.2328V13.8444"
                     android:strokeColor="#000000"
                     android:strokeWidth="1"/>
             </group>
