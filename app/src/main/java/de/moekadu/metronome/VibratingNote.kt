@@ -36,8 +36,8 @@ class VibratingNote(context: Context) {
         }
 
 
-    fun vibrate(volume: Float, note: NoteListItem) {
-        val halfNoteDurationInMillis = (0.5f * 1000 * note.duration).toLong()
+    fun vibrate(volume: Float, note: NoteListItem, bpmQuarter: Float) {
+        val halfNoteDurationInMillis = (0.5f * note.duration.durationInMillis(bpmQuarter)).toLong()
         val duration = min(halfNoteDurationInMillis, (_strength * getNoteVibrationDuration(note.id)).toLong())
 
         vibrator?.let {

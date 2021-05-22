@@ -102,7 +102,7 @@ class TickVisualizer(context : Context, attrs : AttributeSet?, defStyleAttr: Int
         }
         val markerLength = 1.5f * markerThickness
 
-        val duration250 = Utilities.bpm2ms(250f)
+        val duration250 = Utilities.bpm2millis(250f)
         val ampMax = 0.5f * length - markerLength
         var amp1 = Utilities.dp2px(20f) * max(animator1.duration, duration250) / duration250
         amp1 = min(ampMax, amp1)
@@ -126,7 +126,7 @@ class TickVisualizer(context : Context, attrs : AttributeSet?, defStyleAttr: Int
 
         val activeAnimatorVal = if(nextPoint == 1) animator2.animatedFraction else animator1.animatedFraction
         val animationDuration = if(nextPoint == 1) animator2.duration else animator1.duration
-        val duration100 = Utilities.bpm2ms(100f)
+        val duration100 = Utilities.bpm2millis(100f)
         val activeAnimatorValMod = activeAnimatorVal * animationDuration.toFloat() / min(animationDuration, duration100)
 
         val explodeLength = activeWidth * 2f / PI.toFloat() * atan(8 * activeAnimatorValMod)

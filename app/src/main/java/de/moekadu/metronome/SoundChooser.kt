@@ -50,7 +50,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
     private val choiceButtons = Array(availableNotes.size) {i ->
         NoteView(context).apply {
             val buttonNoteList = ArrayList<NoteListItem>()
-            buttonNoteList.add(NoteListItem(i, 0.0f, 0.0f))
+            buttonNoteList.add(NoteListItem(i, 0.0f, NoteDuration.Quarter))
             setNoteList(buttonNoteList)
             setBackgroundResource(R.drawable.choice_button_background)
             setOnTouchListener { _, event ->

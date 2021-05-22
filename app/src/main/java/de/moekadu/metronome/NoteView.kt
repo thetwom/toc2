@@ -125,7 +125,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                 field = value
             }
 
-        private var drawableID = getNoteDrawableResourceID(noteListItem.id)
+        private var drawableID = getNoteDrawableResourceID(noteListItem.id, noteListItem.duration)
             set(value) {
                 if (field != value)
                     noteImage.setImageResource(value)
@@ -149,19 +149,19 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
         init {
             highlight = false
-            drawableID = getNoteDrawableResourceID(noteListItem.id)
+            drawableID = getNoteDrawableResourceID(noteListItem.id, noteListItem.duration)
         }
 
         fun set(newNoteListItem: NoteListItem) {
             require(noteListItem.uid == newNoteListItem.uid)
             if (newNoteListItem.id != noteListItem.id)
-                drawableID = getNoteDrawableResourceID(newNoteListItem.id)
+                drawableID = getNoteDrawableResourceID(newNoteListItem.id, newNoteListItem.duration)
             noteListItem.set(newNoteListItem)
         }
 
         fun setNoteId(id: Int) {
             if (id != noteListItem.id) {
-                drawableID = getNoteDrawableResourceID(id)
+                drawableID = getNoteDrawableResourceID(id, noteListItem.duration)
                 noteListItem.id = id
             }
         }
@@ -179,10 +179,15 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
     private fun computeLargestAspectRatio() : Float {
         var largestAspectRatio = 0.0f
-        for(i in 0 until getNumAvailableNotes()) {
-            AppCompatResources.getDrawable(context, getNoteDrawableResourceID(i))?.let { drawable ->
-                largestAspectRatio = max(largestAspectRatio,
-                    drawable.intrinsicWidth.toFloat() / drawable.intrinsicHeight.toFloat())
+        for(duration in NoteDuration.values()) {
+            for (note in 0 until getNumAvailableNotes()) {
+                AppCompatResources.getDrawable(context, getNoteDrawableResourceID(note, duration))
+                    ?.let { drawable ->
+                        largestAspectRatio = max(
+                            largestAspectRatio,
+                            drawable.intrinsicWidth.toFloat() / drawable.intrinsicHeight.toFloat()
+                        )
+                    }
             }
         }
         require(largestAspectRatio > 0.0f)

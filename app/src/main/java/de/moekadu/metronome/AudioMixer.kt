@@ -66,14 +66,14 @@ private data class QueuedNote(val noteId: Int, val startFrame: Int, val volume: 
 private data class NextNoteInfo(val nextNoteIndex: Int, val nextNoteFrame: Int)
 
 /** Class containing info for synchronize click time to a given reference.
-* @param referenceTime Time in uptime millis (from call to SystemClock.uptimeMillis()
-*   to which the first beat should be synchronized
-* @param beatDuration Duration in seconds for a beat. The playing is then synchronized such,
-*   that the first beat of the playlist is played at
-*      referenceTime + n * beatDuration
-*   where n is a integer number.
-*/
-private data class SynchronizeTimeInfo(val referenceTime: Long, val beatDuration: Float)
+ * @param referenceTime Time in uptime millis (from call to SystemClock.uptimeMillis()
+ *   to which the first beat should be synchronized
+ * @param beatDurationInSeconds Duration in seconds for a beat. The playing is then synchronized such,
+ *   that the first beat of the playlist is played at
+ *      referenceTime + n * beatDuration
+ *   where n is a integer number.
+ */
+private data class SynchronizeTimeInfo(val referenceTime: Long, val beatDurationInSeconds: Float)
 
 /// We use not the minimum buffer size but scale it with this integer value.
 private const val minBufferSizeFactor = 2
@@ -120,7 +120,8 @@ private fun createPlayer(): AudioTrack {
 /// Put notes in to queue, which will be played.
 /**
  * @param nextNoteInfo Info about the next note, that will be put into the queue.
- * @param noteList Contains all notes to be played
+ * @param noteList Contains all notes to be played.
+ * @param bpmQuarter Quarter notes per minute
  * @param alreadyQueuedFrames Frame number up to which we did already queued the notes.
  * @param numFramesToQueue Number of frames after alreadyQueuedFrames, for which we should queue the notes.
  * @param noteStartedListenersAndFrames ArrayList where we will append all new noteStartedListeners
@@ -132,6 +133,7 @@ private fun createPlayer(): AudioTrack {
  */
 private fun queueNextNotes(nextNoteInfo: NextNoteInfo,
                            noteList: ArrayList<NoteListItem>,
+                           bpmQuarter: Float,
                            alreadyQueuedFrames: Int,
                            numFramesToQueue: Int,
                            noteStartedListenersAndFrames: ArrayList<NoteStartedListenerAndFrame>,
@@ -142,8 +144,8 @@ private fun queueNextNotes(nextNoteInfo: NextNoteInfo,
     require(noteList.isNotEmpty())
     var maxDuration = -1f
     for (n in noteList)
-        maxDuration = max(n.duration, maxDuration)
-    require(maxDuration > 0)
+        maxDuration = max(n.duration.durationInSeconds(bpmQuarter), maxDuration)
+    require(maxDuration > 0f)
 
     var nextNoteIndex = nextNoteInfo.nextNoteIndex
     var nextNoteFrame = nextNoteInfo.nextNoteFrame
@@ -166,7 +168,7 @@ private fun queueNextNotes(nextNoteInfo: NextNoteInfo,
         }
 
         // notes can have a duration of -1 if it is not yet set ... in this case we directly play the next note
-        nextNoteFrame += (max(0f, noteListItem.duration) * sampleRate).roundToInt()
+        nextNoteFrame += (max(0f, noteListItem.duration.durationInSeconds(bpmQuarter)) * sampleRate).roundToInt()
         ++nextNoteIndex
     }
     return NextNoteInfo(nextNoteIndex, nextNoteFrame)
@@ -208,12 +210,14 @@ private fun mixQueuedNotes(mixingBuffer: FloatArray,
 /**
  * @param synchronizeTimeInfo Instance with the information how to synchronize.
  * @param noteList Note list which is currently played.
+ * @param bpmQuarter Metronome speed in quarter notes per minute
  * @param nextNoteInfo Info about the next note which is about to be queued
  * @param player The audio track which does the playing.
  * @param delayInFrames Delay which is used for playing notes.
  * @return Info about next note to be played.
  */
 private fun synchronizeTime(synchronizeTimeInfo: SynchronizeTimeInfo, noteList: ArrayList<NoteListItem>,
+                            bpmQuarter: Float,
                             nextNoteInfo: NextNoteInfo, player: AudioTrack, delayInFrames: Int): NextNoteInfo {
     if (noteList.isEmpty())
         return nextNoteInfo
@@ -226,14 +230,15 @@ private fun synchronizeTime(synchronizeTimeInfo: SynchronizeTimeInfo, noteList: 
     val currentTimeInFrames = player.playbackHeadPosition
     val referenceTimeInFrames = (currentTimeInFrames - delayInFrames
             + (synchronizeTimeInfo.referenceTime - currentTimeMillis).toInt() * sampleRate / 1000)
-    val beatDurationInFrames = (synchronizeTimeInfo.beatDuration * sampleRate).roundToInt()
+    val beatDurationInFrames = (synchronizeTimeInfo.beatDurationInSeconds * sampleRate).roundToInt()
 
     if (nextNoteInfo.nextNoteIndex >= noteList.size)
         nextNoteIndex = 0
 
     var referenceTimeForNextNoteListItem = referenceTimeInFrames
+
     for (i in 0 until nextNoteIndex)
-        referenceTimeForNextNoteListItem += (max(0f, noteList[i].duration) * sampleRate).roundToInt()
+        referenceTimeForNextNoteListItem += (max(0f, noteList[i].duration.durationInSeconds(bpmQuarter)) * sampleRate).roundToInt()
 
     // remove multiples of beat duration from our reference, so that it is negative (and thus, smaller than the nextTrackFrame)
     if (referenceTimeForNextNoteListItem > 0)
@@ -318,6 +323,15 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
     /// Channel for modifying the index of the next note to be played.
     private val nextNoteIndexModificationChannel = Channel<Int>(Channel.CONFLATED)
 
+    /// Channel for modifying the bpmQuarter.
+    private val bpmQuarterChannel = Channel<Float>(Channel.CONFLATED)
+
+    /// Quarter notes per minute defining the speed of the metronome.
+    /**
+     * @warning Set this only within the player to avoid threading issues!
+     */
+    private var bpmQuarter = -1.0f
+
     /// Register a NoteStartedListener (this will stop player).
     /**
      * @param noteStartedListener Instance to be registered.
@@ -371,6 +385,12 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
         }
     }
 
+    fun setBpmQuarter(bpmQuarter: Float) {
+        scope.launch(Dispatchers.Main) {
+            bpmQuarterChannel.send(bpmQuarter)
+        }
+    }
+
     /// Start playing
     fun start() {
 
@@ -416,8 +436,14 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                         noteListLock.unlock()
                     }
                 }
-//                noteListCopy.assignIfNotLocked(noteList)
                 //Log.v("Metronome", "AudioMixer noteList.size: ${noteList.size}")
+
+                // set new speed if available
+                bpmQuarterChannel.poll()?.let {
+                    bpmQuarter = it
+                }
+                require(bpmQuarter > 0.0f)
+
                 nextNoteIndexModificationChannel.poll()?.let { index ->
                     nextNoteInfo = nextNoteInfo.copy(nextNoteIndex = index)
                 }
@@ -425,14 +451,14 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                 val delayInFrames = noteStartedListenerLock.withLock {
                     val delay = (noteDelayInMillis / 1000f * player.sampleRate).roundToInt()
 
-                    nextNoteInfo = queueNextNotes(nextNoteInfo, noteListCopy, numMixedFrames,
+                    nextNoteInfo = queueNextNotes(nextNoteInfo, noteListCopy, bpmQuarter, numMixedFrames,
                             mixingBuffer.size, queuedNoteStartedListeners, noteStartedListeners,
                             player.sampleRate, queuedNotes, delay)
                     delay
                 }
 
                 synchronizeTimeChannel.poll()?.let { synchronizeTimeInfo ->
-                    nextNoteInfo = synchronizeTime(synchronizeTimeInfo, noteListCopy, nextNoteInfo, player, delayInFrames)
+                    nextNoteInfo = synchronizeTime(synchronizeTimeInfo, noteListCopy, bpmQuarter, nextNoteInfo, player, delayInFrames)
                 }
 
                 mixQueuedNotes(mixingBuffer, numMixedFrames, queuedNotes, noteSamples)
@@ -490,7 +516,7 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
      *      referenceTime + n * beatDuration
      *   where n is a integer number.
      */
-    fun synchronizeTime(referenceTime : Long, beatDuration : Float) {
+    fun synchronizeTime(referenceTime: Long, beatDuration: Float) {
         synchronizeTimeChannel.offer(SynchronizeTimeInfo(referenceTime, beatDuration))
     }
 

@@ -23,7 +23,6 @@ import android.annotation.SuppressLint
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Bundle
 import android.text.InputType
-import android.util.Log
 import android.view.*
 import android.widget.EditText
 import android.widget.ImageButton
@@ -255,7 +254,7 @@ class MetronomeFragment : Fragment() {
         plusButton = view.findViewById(R.id.plus_button)
         plusButton?.setOnClickListener {
             val newNote = viewModel.noteList.value?.lastOrNull()?.clone()?.apply { uid = UId.create() }
-                    ?: NoteListItem(defaultNote, 1.0f, 1.0f)
+                    ?: NoteListItem(defaultNote, 1.0f, NoteDuration.Quarter)
             viewModel.addNote(newNote)
 
             if (soundChooser?.choiceStatus == SoundChooser.Status.Static) {
@@ -303,8 +302,11 @@ class MetronomeFragment : Fragment() {
                 if (viewModel.playerStatus.value != PlayerStatus.Playing && status == SoundChooser.Status.Static && context != null) {
                     viewModel.noteList.value?.firstOrNull { it.uid == uid }?.let { noteListItem ->
                         singleNotePlayer.play(noteListItem.id, noteListItem.volume)
-                        if (vibrate)
-                            vibratingNote?.vibrate(noteListItem.volume, noteListItem)
+                        if (vibrate) {
+                            viewModel.bpm.value?.let{
+                                vibratingNote?.vibrate(noteListItem.volume, noteListItem, it)
+                            }
+                        }
                     }
                 }
             }
@@ -425,7 +427,7 @@ class MetronomeFragment : Fragment() {
         }
 
         viewModel.noteStartedEvent.observe(viewLifecycleOwner) {
-            viewModel.bpm.value?.let { bpm -> tickVisualizer?.tick(Utilities.bpm2ms(bpm)) }
+            viewModel.bpm.value?.let { bpm -> tickVisualizer?.tick(Utilities.bpm2millis(bpm)) }
             noteView?.animateNote(it.uid)
             soundChooser?.animateNote(it.uid)
         }

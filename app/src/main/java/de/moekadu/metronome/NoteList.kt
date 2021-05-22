@@ -22,6 +22,7 @@
 package de.moekadu.metronome
 
 import android.util.Log
+import kotlin.RuntimeException
 import kotlin.math.min
 
 data class UId private constructor(private val id: Int) {
@@ -38,6 +39,16 @@ data class UId private constructor(private val id: Int) {
     }
 }
 
+fun getNoteListStringVersion(noteListString: String): Int {
+    if (noteListString.isEmpty() || noteListString.first() != '#')
+        return 0
+    var endIndex = noteListString.indexOfFirst {it == ' '}
+    if (endIndex == -1)
+        endIndex = noteListString.length
+    return noteListString.substring(1, endIndex).toInt()
+}
+
+
 /// Item in note list
 /**
  * @param id Id identifying which note is played
@@ -45,7 +56,8 @@ data class UId private constructor(private val id: Int) {
  * @param duration Note duration in seconds
  * @param uid Identifier which defines if two items are the same
  */
-class NoteListItem(var id : Int = 0, var volume : Float = 1.0f, var duration : Float = 1.0f,
+class NoteListItem(var id : Int = 0, var volume : Float = 1.0f,
+                   var duration : NoteDuration = NoteDuration.Quarter,
                    var uid: UId = UId.create()) {
     fun set(value : NoteListItem) {
         id = value.id
@@ -70,21 +82,38 @@ fun deepCopyNoteList(origin: ArrayList<NoteListItem>, target: ArrayList<NoteList
 
 fun isNoteListStringValid(string: String): Boolean {
     val elements = string.split(" ")
-    for(i in 0 until elements.size / 2) {
-        try {
-            elements[2 * i].toInt()
-            elements[2 * i + 1].toFloat()
+    val version = getNoteListStringVersion(string)
+    Log.v("Metronome", "NoteList:isNoteListStringValid: string=$string")
+    if (version == 0) {
+        for (i in 0 until elements.size / 2) {
+            try {
+                elements[2 * i].toInt()
+                elements[2 * i + 1].toFloat()
+            } catch (e: NumberFormatException) {
+                return false
+            }
         }
-        catch (e: NumberFormatException) {
-            return false
+    } else if (version == 1) {
+        for (i in 0 until elements.size / 3) {
+            try {
+                elements[3 * i + 1].toInt()
+                elements[3 * i + 2].toFloat()
+                NoteDuration.valueOf(elements[3 * i + 3])
+            } catch (e: NumberFormatException) {
+                return false
+            }
         }
+    } else {
+        throw RuntimeException("Invalid note list version: $version")
     }
     return true
 }
+
 fun noteListToString(noteList: ArrayList<NoteListItem>): String {
-    var s = ""
+    val version = 1
+    var s = "#$version"
     for (note in noteList) {
-        s += "${note.id} ${note.volume} "
+        s += " ${note.id} ${note.volume} ${note.duration}"
     }
     return s
 }
@@ -92,30 +121,61 @@ fun noteListToString(noteList: ArrayList<NoteListItem>): String {
 fun stringToNoteList(string: String): ArrayList<NoteListItem> {
     val noteList = ArrayList<NoteListItem>()
     val elements = string.split(" ")
+    val version = getNoteListStringVersion(string)
 //    Log.v("Metronome", "NoteList: stringToNoteList: string: $string")
-    for (i in 0 until elements.size / 2) {
-        val noteId = min(elements[2 * i].toInt(), getNumAvailableNotes() - 1)
-        val volume = elements[2 * i + 1].toFloat()
-        noteList.add(NoteListItem(noteId, volume, -1f))
+
+    if (version == 0) {
+        for (i in 0 until elements.size / 2) {
+            val noteId = min(elements[2 * i].toInt(), getNumAvailableNotes() - 1)
+            val volume = elements[2 * i + 1].toFloat()
+            noteList.add(NoteListItem(noteId, volume, NoteDuration.Quarter))
+        }
+    } else if (version == 1) {
+        for (i in 0 until elements.size / 3) {
+            val noteId = min(elements[3 * i + 1].toInt(), getNumAvailableNotes() - 1)
+            val volume = elements[3 * i + 2].toFloat()
+            val duration = NoteDuration.valueOf(elements[3 * i + 3])
+            noteList.add(NoteListItem(noteId, volume, duration))
+        }
+    } else {
+        throw RuntimeException("Invalid note list version: $version")
     }
+
     return noteList
 }
 
 
 data class NoteInfo(val audio44ResourceID: Int, val audio48ResourceID: Int,
-                    val stringResourceID: Int, val drawableResourceID: Int,
+                    val stringResourceID: Int,
+                    val drawableQuarterResourceID: Int,
+                    val drawableEighthResourceID: Int,
+                    val drawableSixteenthResourceID: Int,
                     val vibrationDuration: Long)
 
 val availableNotes = arrayOf(
-        NoteInfo(R.raw.base44_wav, R.raw.base48_wav, R.string.base, R.drawable.ic_note_a, 80L),
-        NoteInfo(R.raw.snare44_wav, R.raw.snare48_wav, R.string.snare, R.drawable.ic_note_c, 65L),
-        NoteInfo(R.raw.sticks44_wav, R.raw.sticks48_wav, R.string.sticks, R.drawable.ic_note_c_rim, 65L),
-        NoteInfo(R.raw.woodblock_high44_wav, R.raw.woodblock_high48_wav, R.string.woodblock, R.drawable.ic_note_ep, 50L),
-        NoteInfo(R.raw.claves44_wav, R.raw.claves48_wav, R.string.claves, R.drawable.ic_note_gp, 35L),
-        // NoteInfo(R.raw.hhp_dry_a, R.string.hihat, R.drawable.ic_hihat, 30L),
-        NoteInfo(R.raw.hihat44_wav, R.raw.hihat48_wav, R.string.hihat, R.drawable.ic_note_hihat, 35L),
-        // NoteInfo(R.raw.sn_jazz_c, R.string.snare, R.drawable.ic_snare, 30L),
-        NoteInfo(R.raw.mute44_wav, R.raw.mute48_wav, R.string.mute, R.drawable.ic_note_pause, 0L)
+        NoteInfo(R.raw.base44_wav, R.raw.base48_wav, R.string.base,
+            R.drawable.ic_note_a, R.drawable.ic_note_a_eighth,R.drawable.ic_note_a_sixteenth,
+            80L),
+        NoteInfo(R.raw.snare44_wav, R.raw.snare48_wav, R.string.snare,
+            R.drawable.ic_note_c, R.drawable.ic_note_c_eighth, R.drawable.ic_note_c_sixteenth,
+            65L),
+        NoteInfo(R.raw.sticks44_wav, R.raw.sticks48_wav, R.string.sticks,
+            R.drawable.ic_note_c_rim, R.drawable.ic_note_c_rim_eighth, R.drawable.ic_note_c_rim_sixteenth,
+            65L),
+        NoteInfo(R.raw.woodblock_high44_wav, R.raw.woodblock_high48_wav, R.string.woodblock,
+            R.drawable.ic_note_ep, R.drawable.ic_note_ep_eighth, R.drawable.ic_note_ep_sixteenth,
+            50L),
+        NoteInfo(R.raw.claves44_wav, R.raw.claves48_wav, R.string.claves,
+            R.drawable.ic_note_gp, R.drawable.ic_note_gp_eighth, R.drawable.ic_note_gp_sixteenth,
+            35L),
+        // NoteInfo(R.raw.hhp_dry_a, R.string.hihat, R.drawable.ic_note_hihat_eighth, R.drawable.ic_note_hihat_sixteenth, R.drawable.ic_hihat, 30L),
+        NoteInfo(R.raw.hihat44_wav, R.raw.hihat48_wav, R.string.hihat,
+            R.drawable.ic_note_hihat, R.drawable.ic_note_hihat_eighth, R.drawable.ic_note_hihat_sixteenth,
+            35L),
+        // NoteInfo(R.raw.sn_jazz_c, R.string.snare, R.drawable.ic_snare, R.drawable.ic_note_c_eighth, R.drawable.ic_note_c_sixteenth, 30L),
+        NoteInfo(R.raw.mute44_wav, R.raw.mute48_wav, R.string.mute,
+            R.drawable.ic_note_pause, R.drawable.ic_note_pause_eighth, R.drawable.ic_note_pause_sixteenth,
+            0L)
 )
 
 fun getNumAvailableNotes() = availableNotes.size
@@ -130,6 +190,14 @@ fun getNoteAudioResourceID(index : Int, sampleRate: Int) = when(sampleRate) {  /
 
 //fun getNoteStringResourceID(index : Int) = availableNotes[index].stringResourceID
 
-fun getNoteDrawableResourceID(index : Int) = availableNotes[index].drawableResourceID
+fun getNoteDrawableResourceID(index: Int, duration: NoteDuration) =
+    when (duration) {
+        NoteDuration.Quarter, NoteDuration.QuarterTriplet, NoteDuration.QuarterQuintuplet ->
+            availableNotes[index].drawableQuarterResourceID
+        NoteDuration.Eighth, NoteDuration.EighthTriplet, NoteDuration.EighthQuintuplet ->
+            availableNotes[index].drawableEighthResourceID
+        NoteDuration.Sixteenth, NoteDuration.SixteenthTriplet, NoteDuration.SixteenthQuintuplet ->
+            availableNotes[index].drawableSixteenthResourceID
+    }
 
 fun getNoteVibrationDuration(index : Int) = availableNotes[index].vibrationDuration

@@ -98,7 +98,7 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
                     if (index >= 0)
                         viewHolder.noteView?.animateNote(index)
                     if (bpm != null)
-                        viewHolder.tickVisualizer?.tick(Utilities.bpm2ms(bpm))
+                        viewHolder.tickVisualizer?.tick(Utilities.bpm2millis(bpm))
                 }
             }
         }

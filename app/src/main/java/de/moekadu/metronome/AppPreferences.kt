@@ -64,7 +64,7 @@ class AppPreferences {
             }
 
             val noteList = ArrayList<NoteListItem>()
-            noteList.add(NoteListItem(defaultNote, 1.0f, -1.0f))
+            noteList.add(NoteListItem(defaultNote, 1.0f, NoteDuration.Quarter))
             return noteList
         }
 

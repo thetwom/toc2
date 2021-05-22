@@ -61,13 +61,11 @@ class Utilities {
 //            return dp2px(cm * 160.0f / 2.54f)
 //        }
 
-        fun bpm2ms(bpm: Float): Long {
-            return (1000.0 * 60.0 / bpm).roundToLong()
-        }
+        fun bpm2seconds(bpm: Float) = 60.0 / bpm
 
-        fun ms2bpm(dt: Long): Float {
-            return 60.0f * 1000.0f / dt
-        }
+        fun bpm2millis(bpm: Float) = (1000.0 * 60.0 / bpm).roundToLong()
+
+        fun millis2bpm(dt: Long) = 60.0f * 1000.0f / dt
 
         fun getBpmString(bpm: Float, useGrouping: Boolean = true): String {
             val tolerance = 1e-6f
