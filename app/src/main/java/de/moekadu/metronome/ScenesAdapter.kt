@@ -85,10 +85,10 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
         }
     }
 
-    fun animateNoteAndTickVisualizer(index: Int, bpm: Float?, recyclerView: RecyclerView?) {
+    fun animateNoteAndTickVisualizer(index: Int, noteDurationInMillis: Long?, recyclerView: RecyclerView?) {
         if (recyclerView == null)
             return
-        if (index < 0 && bpm != null)
+        if (index < 0 && noteDurationInMillis != null)
             return
 
         for (i in 0 until recyclerView.childCount) {
@@ -97,8 +97,8 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
                 if (viewHolder.isActivated) {
                     if (index >= 0)
                         viewHolder.noteView?.animateNote(index)
-                    if (bpm != null)
-                        viewHolder.tickVisualizer?.tick(Utilities.bpm2millis(bpm))
+                    if (noteDurationInMillis != null)
+                        viewHolder.tickVisualizer?.tick(noteDurationInMillis)
                 }
             }
         }
@@ -130,7 +130,7 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
         holder.isActivated = (scene.stableId == activatedStableId)
         holder.titleView?.text = scene.title
         //holder.dateView?.text = scene.date + "\n" + scene.time
-        holder.bpmView?.text = holder.view.context.getString(R.string.bpm, Utilities.getBpmString(scene.bpm))
+        holder.bpmView?.text = holder.view.context.getString(R.string.bpm, Utilities.getBpmString(scene.bpm.bpm))
 //        Log.v("Metronome", "SceneDatabase.onBindViewHolder: scene.noteList = ${scene.noteList}, scene.bpm = ${scene.bpm}")
 
         holder.noteView?.setNoteList(scene.noteList)

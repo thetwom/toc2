@@ -270,7 +270,9 @@ class ScenesFragment : Fragment() {
         metronomeViewModel.noteStartedEvent.observe(viewLifecycleOwner) { noteListItem ->
             metronomeViewModel.noteList.value?.let { noteList ->
                 val index = noteList.indexOfFirst { it.uid == noteListItem.uid }
-                scenesAdapter.animateNoteAndTickVisualizer(index, metronomeViewModel.bpm.value, scenesRecyclerView)
+                val bpmQuarter = metronomeViewModel.bpm.value?.bpmQuarter
+                val noteDurationInMillis = if (bpmQuarter == null) null else noteListItem.duration.durationInMillis(bpmQuarter)
+                scenesAdapter.animateNoteAndTickVisualizer(index, noteDurationInMillis, scenesRecyclerView)
             }
         }
 
@@ -289,12 +291,12 @@ class ScenesFragment : Fragment() {
 
         viewModel.activeStableId.observe(viewLifecycleOwner) { stableId ->
 //            Log.v("Metronome", "ScenesFragment: observing stable id: $stableId")
-            viewModel.scenes.value?.getScene(stableId)?.let { item ->
-                if (item.noteList.size > 0)
-                    metronomeViewModel.setNoteList(item.noteList)
+            viewModel.scenes.value?.getScene(stableId)?.let { scene ->
+                if (scene.noteList.size > 0)
+                    metronomeViewModel.setNoteList(scene.noteList)
                 speedLimiter?.let {
-                    it.checkSavedItemBpmAndAlert(item.bpm, requireContext())
-                    metronomeViewModel.setBpm(it.limit(item.bpm))
+                    it.checkSavedItemBpmAndAlert(scene.bpm.bpm, requireContext())
+                    metronomeViewModel.setBpm(it.limit(scene.bpm))
                 }
                 metronomeViewModel.setNextNoteIndex(0)
 

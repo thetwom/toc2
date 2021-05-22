@@ -23,6 +23,7 @@ import android.annotation.SuppressLint
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Bundle
 import android.text.InputType
+import android.util.Log
 import android.view.*
 import android.widget.EditText
 import android.widget.ImageButton
@@ -124,7 +125,7 @@ class MetronomeFragment : Fragment() {
                 editText.setPadding(pad, pad, pad, pad)
 
                 viewModel.bpm.value?.let { bpm ->
-                    editText.setText(Utilities.getBpmString(bpm, false))
+                    editText.setText(Utilities.getBpmString(bpm.bpm, false))
                 }
 
                 editText.hint = getString(R.string.bpm, "")
@@ -168,6 +169,7 @@ class MetronomeFragment : Fragment() {
         speedPanel?.speedChangedListener = object : SpeedPanel.SpeedChangedListener {
             override fun onSpeedChanged(bpmDiff: Float) {
                 viewModel.bpm.value?.let { currentBpm ->
+//                    Log.v("Metronome", "MetronomeFragment->speedPanel: currentBpm=$currentBpm, bpmDiff=$bpmDiff")
                     viewModel.setBpm(currentBpm + bpmDiff)
                 }
             }
@@ -303,8 +305,8 @@ class MetronomeFragment : Fragment() {
                     viewModel.noteList.value?.firstOrNull { it.uid == uid }?.let { noteListItem ->
                         singleNotePlayer.play(noteListItem.id, noteListItem.volume)
                         if (vibrate) {
-                            viewModel.bpm.value?.let{
-                                vibratingNote?.vibrate(noteListItem.volume, noteListItem, it)
+                            viewModel.bpm.value?.bpmQuarter?.let{ bpmQuarter ->
+                                vibratingNote?.vibrate(noteListItem.volume, noteListItem, bpmQuarter)
                             }
                         }
                     }
@@ -401,9 +403,9 @@ class MetronomeFragment : Fragment() {
                 ?: true
 
         // register all observers
-        viewModel.bpm.observe(viewLifecycleOwner) {
+        viewModel.bpm.observe(viewLifecycleOwner) { bpm ->
 //            Log.v("Metronome", "MetronomeFragment: viewModel.bpm: $it")
-            bpmText?.text = getString(R.string.bpm, Utilities.getBpmString(it, bpmIncrement))
+            bpmText?.text = getString(R.string.bpm, Utilities.getBpmString(bpm.bpm, bpmIncrement))
         }
 
         // set status without animation on load ...
@@ -426,10 +428,13 @@ class MetronomeFragment : Fragment() {
             }
         }
 
-        viewModel.noteStartedEvent.observe(viewLifecycleOwner) {
-            viewModel.bpm.value?.let { bpm -> tickVisualizer?.tick(Utilities.bpm2millis(bpm)) }
-            noteView?.animateNote(it.uid)
-            soundChooser?.animateNote(it.uid)
+        viewModel.noteStartedEvent.observe(viewLifecycleOwner) { note ->
+            //viewModel.bpm.value?.let { bpm -> tickVisualizer?.tick(Utilities.bpm2millis(bpm)) }
+            viewModel.bpm.value?.bpmQuarter?.let { bpmQuarter ->
+                tickVisualizer?.tick(note.duration.durationInMillis(bpmQuarter))
+            }
+            noteView?.animateNote(note.uid)
+            soundChooser?.animateNote(note.uid)
         }
 
         viewModel.noteList.observe(viewLifecycleOwner) {

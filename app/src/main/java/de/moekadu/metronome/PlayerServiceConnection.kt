@@ -31,13 +31,13 @@ import android.util.Log
 import androidx.lifecycle.*
 
 class PlayerServiceConnection(
-        context: Context, private val initialBpm: Float, private val initialNoteList: ArrayList<NoteListItem>) {
+        context: Context, private val initialBpm: Bpm, private val initialNoteList: ArrayList<NoteListItem>) {
 
     private val _noteList = MutableLiveData<ArrayList<NoteListItem> >()
     val noteList: LiveData<ArrayList<NoteListItem> > get() = _noteList
 
-    private val _bpm = MutableLiveData<Float>()
-    val bpm: LiveData<Float> get() = _bpm
+    private val _bpm = MutableLiveData<Bpm>()
+    val bpm: LiveData<Bpm> get() = _bpm
 
     private val _playerStatus = MutableLiveData(PlayerStatus.Paused)
     val playerStatus: LiveData<PlayerStatus> get() = _playerStatus
@@ -62,7 +62,7 @@ class PlayerServiceConnection(
             noteStartedEvent.triggerEvent(noteListItem)
         }
 
-        override fun onSpeedChanged(bpm: Float) {
+        override fun onSpeedChanged(bpm: Bpm) {
             if (_bpm.value != bpm)
                 _bpm.value = bpm
         }
@@ -128,7 +128,7 @@ class PlayerServiceConnection(
         }
     }
 
-    fun setBpm(bpm: Float) {
+    fun setBpm(bpm: Bpm) {
         try {
             serviceBinder?.service?.bpm = bpm
         }
@@ -206,12 +206,8 @@ class PlayerServiceConnection(
         @Volatile
         private var instance: PlayerServiceConnection? = null
 
-        fun getInstance(
-            context: Context,
-            initialBpm: Float,
-            initialNoteList: ArrayList<NoteListItem>
-        ) =
-            instance ?: synchronized(this) {
+        fun getInstance(context: Context, initialBpm: Bpm, initialNoteList: ArrayList<NoteListItem>) =
+                instance ?: synchronized(this) {
                 instance ?: PlayerServiceConnection(context, initialBpm, initialNoteList)
                     .also { instance = it }
             }

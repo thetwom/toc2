@@ -21,7 +21,7 @@ package de.moekadu.metronome
 
 class InitialValues {
     companion object {
-        const val bpm = 120f
+        val bpm = Bpm(120f, NoteDuration.Quarter)
         const val minimumBpm = 20f
         const val maximumBpm = 250f
         const val bpmPerCm = 2.0f

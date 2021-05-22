@@ -90,11 +90,11 @@ class PlayerNotification(val context: PlayerService) {
 
     private val messageWhat = 3282
 
-    var bpm = -1.0f
+    var bpm = Bpm(-1.0f, NoteDuration.Quarter)
         set(value) {
             if (value != field) {
                 field = value
-                notificationView.setTextViewText(R.id.notification_bpm_text, context.getString(R.string.bpm, Utilities.getBpmString(value, bpmIncrement)))
+                notificationView.setTextViewText(R.id.notification_bpm_text, context.getString(R.string.bpm, Utilities.getBpmString(value.bpm, bpmIncrement)))
             }
         }
 

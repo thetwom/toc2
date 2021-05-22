@@ -104,6 +104,10 @@ class SpeedLimiter(private val sharedPreferences: SharedPreferences, private val
         return bpmCorrected
     }
 
+    fun limit(bpm: Bpm): Bpm {
+        return bpm.copy(bpm = limit(bpm.bpm))
+    }
+
     fun checkSavedItemBpmAndAlert(bpm: Float, contextForMessages: Context) {
         var message = ""
 

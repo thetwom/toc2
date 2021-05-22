@@ -20,37 +20,42 @@
 package de.moekadu.metronome
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.min
 
 data class Scene(var title: String = "", var date: String = "",
-                 var time: String = "", var bpm: Float = 0f, var noteList: ArrayList<NoteListItem>,
+                 var time: String = "", var bpm: Bpm = Bpm(0f, NoteDuration.Quarter),
+                 var noteList: ArrayList<NoteListItem>,
                  val stableId: Long) {
     companion object {
         const val NO_STABLE_ID = 0L
     }
 }
 
-//private fun isVersion1LargerThanVersion2(v1: String, v2: String): Boolean {
-//    val l1 = v1.split('.')
-//    val l2 = v2.split('.')
-//    val count = min(l1.size, l2.size)
-//
-//    var isLarger = false
-//    for (i in 0 until count) {
-//        if (l1[i] > l2[i]) {
-//            isLarger = true
-//            break
-//        }
-//        else if (l1[i] < l2[i]) {
-//            break
-//        }
-//    }
-//
-//    return isLarger
-//}
+private fun isVersion1LargerOrEqualThanVersion2(v1: String, v2: String): Boolean {
+    if (v1 == v2)
+        return true
+
+    val l1 = v1.split('.')
+    val l2 = v2.split('.')
+    val count = min(l1.size, l2.size)
+
+    var isLarger = false
+    for (i in 0 until count) {
+        if (l1[i] > l2[i]) {
+            isLarger = true
+            break
+        }
+        else if (l1[i] < l2[i]) {
+            break
+        }
+    }
+
+    return isLarger
+}
 
 class SceneDatabase {
     private val _scenes = mutableListOf<Scene>()
@@ -76,7 +81,7 @@ class SceneDatabase {
         return scenes.firstOrNull { it.stableId == stableId }
     }
 
-    fun editScene(stableId: Long?, title: String? = null, bpm: Float? = null, noteList: ArrayList<NoteListItem>? = null) {
+    fun editScene(stableId: Long?, title: String? = null, bpm: Bpm? = null, noteList: ArrayList<NoteListItem>? = null) {
         if (stableId == null)
             return
         val scene = getScene(stableId) ?: return
@@ -135,8 +140,9 @@ class SceneDatabase {
         val stringBuilder = StringBuilder()
         stringBuilder.append(String.format(Locale.ENGLISH, "%50s", BuildConfig.VERSION_NAME))
         for (si in scenes) {
-            stringBuilder.append(String.format(Locale.ENGLISH, "%200s%10s%5s%12.5f%sEND",
-                    si.title, si.date, si.time, si.bpm, noteListToString(si.noteList)))
+            stringBuilder.append(String.format(Locale.ENGLISH, "%200s%10s%5s%12.5f%30s%sEND",
+                si.title, si.date, si.time, si.bpm.bpm, si.bpm.noteDuration.toString(),
+                noteListToString(si.noteList)))
         }
 //        Log.v("Metronome", "SceneDatabase.getSceneString: string= ${stringBuilder}")
         return stringBuilder.toString()
@@ -184,7 +190,7 @@ class SceneDatabase {
             else if (sceneString.length < 50)
                 return ScenesAndFileCheckResult(FileCheck.Invalid, scenes)
 
-            // val version = dataString.substring(0, 50).trim()
+            val version = sceneString.substring(0, 50).trim()
 //        Log.v("Metronome", "SceneDatabase.loadDataFromString: version = $version, ${isVersion1LargerThanVersion2(BuildConfig.VERSION_NAME, version)}")
             var pos = 50
             var numScenesRead = 0
@@ -202,14 +208,24 @@ class SceneDatabase {
                     return ScenesAndFileCheckResult(FileCheck.Invalid, scenes)
                 val time = sceneString.substring(pos, pos + 5)
                 pos += 5
-                if (pos + 6 >= sceneString.length)
+                if (pos + 12 >= sceneString.length)
                     return ScenesAndFileCheckResult(FileCheck.Invalid, scenes)
-                val bpm = try {
+                val bpmValue = try {
                     (sceneString.substring(pos, pos + 12).trim()).toFloat()
                 } catch (e: NumberFormatException) {
                     return ScenesAndFileCheckResult(FileCheck.Invalid, scenes)
                 }
                 pos += 12
+                val noteDuration = if (isVersion1LargerOrEqualThanVersion2(version, "4.0.0")) {
+//                    Log.v("Metronome", "SceneDatabase.stringToScenes: version=$version >= 4.0.0")
+                    if (pos + 30 >= sceneString.length)
+                        return ScenesAndFileCheckResult(FileCheck.Invalid, scenes)
+                    val noteDurationString = sceneString.substring(pos, pos + 30).trim()
+                    pos += 30
+                    NoteDuration.valueOf(noteDurationString)
+                } else {
+                    NoteDuration.Quarter
+                }
 
                 val noteListEnd = sceneString.indexOf("END", pos)
                 if (noteListEnd == -1)
@@ -219,7 +235,7 @@ class SceneDatabase {
                     return ScenesAndFileCheckResult(FileCheck.Invalid, scenes)
                 pos = noteListEnd + 3
 
-                val si = Scene(title, date, time, bpm, stringToNoteList(noteList), Scene.NO_STABLE_ID)
+                val si = Scene(title, date, time, Bpm(bpmValue, noteDuration), stringToNoteList(noteList), Scene.NO_STABLE_ID)
                 scenes.add(si)
                 ++numScenesRead
             }

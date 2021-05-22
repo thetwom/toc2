@@ -42,7 +42,7 @@ class PlayerService : LifecycleService() {
         fun onPlay()
         fun onPause()
         fun onNoteStarted(noteListItem: NoteListItem)
-        fun onSpeedChanged(bpm: Float)
+        fun onSpeedChanged(bpm: Bpm)
         fun onNoteListChanged(noteList: ArrayList<NoteListItem>)
     }
 
@@ -53,12 +53,13 @@ class PlayerService : LifecycleService() {
 
     var bpm = InitialValues.bpm
         set(value) {
-            val newBpm = speedLimiter.limit(value)
+            Log.v("Metronome", "PlayerService.bpm: value=$value")
+            val newBpm = speedLimiter.limit(value.bpm)
             val tolerance = 1e-6
-            if (abs(field - newBpm) < tolerance)
+            if (abs(field.bpm - newBpm) < tolerance && value.noteDuration == field.noteDuration)
                 return
 
-            field = newBpm
+            field = Bpm(newBpm, value.noteDuration)
             statusChangedListeners.forEach {s -> s.onSpeedChanged(field)}
 
 //            val duration = computeNoteDurationInSeconds(field)
@@ -66,7 +67,7 @@ class PlayerService : LifecycleService() {
 //                noteList[i].duration = duration
 //            }
 
-            audioMixer?.setBpmQuarter(field)
+            audioMixer?.setBpmQuarter(field.bpmQuarter)
 //            audioMixer?.noteList = noteList
 
             notification?.bpm = field
@@ -122,11 +123,11 @@ class PlayerService : LifecycleService() {
             val decrementSpeed = extras.getBoolean(DECREMENT_SPEED, false)
 
             if (newBpm > 0)
-                bpm = newBpm
+                bpm = bpm.copy(bpm = newBpm)
             if (incrementSpeed)
-                bpm += speedLimiter.bpmIncrement.value!!
+                bpm = bpm.copy(bpm = bpm.bpm + speedLimiter.bpmIncrement.value!!)
             if (decrementSpeed)
-                bpm -= speedLimiter.bpmIncrement.value!!
+                bpm = bpm.copy(bpm = bpm.bpm - speedLimiter.bpmIncrement.value!!)
 
             if (myAction == PlaybackStateCompat.ACTION_PLAY) {
                 // Log.v("Metronome", "ActionReceiver:onReceive : set state to playing");
@@ -158,7 +159,7 @@ class PlayerService : LifecycleService() {
         }
 
         audioMixer = AudioMixer(applicationContext, lifecycleScope)
-        audioMixer?.setBpmQuarter(bpm)
+        audioMixer?.setBpmQuarter(bpm.bpmQuarter)
         audioMixer?.noteList = noteList
 
         // callback for ui stuff
@@ -178,7 +179,7 @@ class PlayerService : LifecycleService() {
                 withContext(Dispatchers.Default) {
                     if (noteListItem != null) {
                         if (getNoteVibrationDuration(noteListItem.id) > 0L)
-                            vibrator?.vibrate(noteListItem.volume, noteListItem, bpm)
+                            vibrator?.vibrate(noteListItem.volume, noteListItem, bpm.bpmQuarter)
                     }
                 }
             }
@@ -211,7 +212,7 @@ class PlayerService : LifecycleService() {
         })
 
         playbackStateBuilder.setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE or PlaybackStateCompat.ACTION_PLAY_PAUSE)
-                .setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, InitialValues.bpm)
+                .setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, InitialValues.bpm.bpm)
 
         playbackState = playbackStateBuilder.build()
         mediaSession?.setPlaybackState(playbackState)
@@ -282,17 +283,17 @@ class PlayerService : LifecycleService() {
         return super.onUnbind(intent)
     }
 
-    private fun computeNoteDurationInSeconds(bpm: Float) : Float {
-        return Utilities.bpm2millis(bpm) / 1000.0f
-    }
+//    private fun computeNoteDurationInSeconds(bpm: Float) : Float {
+//        return Utilities.bpm2millis(bpm) / 1000.0f
+//    }
 
     fun addValueToBpm(bpmDiff : Float) {
-        bpm += bpmDiff
+        bpm = bpm.copy(bpm = bpm.bpm + bpmDiff)
     }
 
     fun startPlay() {
         // Log.v("Metronome", "PlayerService:startPlay")
-        playbackState = playbackStateBuilder.setState(PlaybackStateCompat.STATE_PLAYING, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, bpm).build()
+        playbackState = playbackStateBuilder.setState(PlaybackStateCompat.STATE_PLAYING, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, bpm.bpm).build()
         mediaSession?.setPlaybackState(playbackState)
 
         notification?.state = state
@@ -307,7 +308,7 @@ class PlayerService : LifecycleService() {
     fun stopPlay() {
         // Log.v("Metronome", "PlayerService:stopPlay")
 
-        playbackState = playbackStateBuilder.setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, bpm).build()
+        playbackState = playbackStateBuilder.setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, bpm.bpm).build()
         mediaSession?.setPlaybackState(playbackState)
 
         stopForeground(false)
@@ -322,7 +323,7 @@ class PlayerService : LifecycleService() {
 
     fun syncClickWithUptimeMillis(uptimeMillis: Long) {
         if(state == PlaybackStateCompat.STATE_PLAYING)
-            audioMixer?.synchronizeTime(uptimeMillis, computeNoteDurationInSeconds(bpm))
+            audioMixer?.synchronizeTime(uptimeMillis, bpm.beatDurationInSeconds)
     }
 
     fun setNextNoteIndex(index: Int) {

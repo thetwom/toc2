@@ -39,7 +39,6 @@ class AppPreferences {
             val preferences = activity.getPreferences(Context.MODE_PRIVATE)
             return preferences.getFloat(key, default)
         }
-
         private fun writePreferenceFloat(key: String, value: Float, activity: FragmentActivity) {
             val preferences = activity.getPreferences(Context.MODE_PRIVATE)
             val editor = preferences.edit()
@@ -47,15 +46,23 @@ class AppPreferences {
             editor.apply()
         }
 
-        fun writeMetronomeState(bpm: Float?, noteList: ArrayList<NoteListItem>?, activity: FragmentActivity) {
-            if (bpm != null)
-                writePreferenceFloat("speed", bpm, activity)
+        fun writeMetronomeState(bpm: Bpm?, noteList: ArrayList<NoteListItem>?, activity: FragmentActivity) {
+            if (bpm != null) {
+                writePreferenceFloat("bpm", bpm.bpm, activity)
+                writePreferenceString("beatNote", bpm.noteDuration.toString(), activity)
+            }
             if (noteList != null)
                 writePreferenceString("sound", noteListToString(noteList), activity)
         }
 
-        fun readMetronomeBpm(activity: FragmentActivity): Float {
-            return readPreferenceFloat("speed", InitialValues.bpm, activity)
+        fun readMetronomeBpm(activity: FragmentActivity): Bpm {
+            val speed = readPreferenceFloat("speed", -1f, activity)
+            val bpm = readPreferenceFloat("bpm", -1f, activity)
+            val bpmToUse = if (bpm > 0.0) bpm else if (speed > 0.0) speed else InitialValues.bpm.bpm
+
+            val noteDurationString = readPreferenceString("beatNote", activity) ?:  NoteDuration.Quarter.toString()
+            val noteDuration = NoteDuration.valueOf(noteDurationString)
+            return Bpm(bpmToUse, noteDuration)
         }
 
         fun readMetronomeNoteList(activity: FragmentActivity): ArrayList<NoteListItem> {

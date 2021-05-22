@@ -32,7 +32,7 @@ import kotlin.collections.ArrayList
 class SaveSceneDialog {
     companion object {
         @SuppressLint("SimpleDateFormat")
-        fun save(context: Context, bpm: Float?, noteList: ArrayList<NoteListItem>?, saveItem: (Scene) -> Boolean) {
+        fun save(context: Context, bpm: Bpm?, noteList: ArrayList<NoteListItem>?, saveItem: (Scene) -> Boolean) {
             if (bpm == null || noteList == null)
                 return
 
