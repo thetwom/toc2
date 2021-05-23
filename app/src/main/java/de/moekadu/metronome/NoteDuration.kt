@@ -29,7 +29,7 @@ fun NoteDuration.durationInSeconds(bpmQuarter: Float) =
         NoteDuration.Quarter -> bpmToSeconds(bpmQuarter)
     }
 
-fun NoteDuration.durationInMillis(bpmQuarter: Float) = durationInSeconds(bpmQuarter).roundToLong()
+fun NoteDuration.durationInMillis(bpmQuarter: Float) = (1000f * durationInSeconds(bpmQuarter)).roundToLong()
 
 /// Given beats per minute for specific NoteDuration, convert the values into quarters notes per minute.
 /**

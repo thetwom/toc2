@@ -431,6 +431,7 @@ class MetronomeFragment : Fragment() {
         viewModel.noteStartedEvent.observe(viewLifecycleOwner) { note ->
             //viewModel.bpm.value?.let { bpm -> tickVisualizer?.tick(Utilities.bpm2millis(bpm)) }
             viewModel.bpm.value?.bpmQuarter?.let { bpmQuarter ->
+                //Log.v("Metronome", "MetronomeFragment: noteStrated: bpmQuarter=$bpmQuarter, durationMillis=${note.duration.durationInMillis(bpmQuarter)}")
                 tickVisualizer?.tick(note.duration.durationInMillis(bpmQuarter))
             }
             noteView?.animateNote(note.uid)
