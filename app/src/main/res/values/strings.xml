@@ -124,5 +124,6 @@
     <string name="sharing_num_scenes">Sharing %d scenes.</string>
     <string name="no_scenes_for_sharing">There are no scenes, which can be shared.</string>
     <string name="max_speed_larger_than_allowed">Given maximum speed (%s) must be smaller than %s.</string>
+    <string name="delete_note">Delete note</string>
 
 </resources>

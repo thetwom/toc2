@@ -88,6 +88,8 @@ class MetronomeFragment : Fragment() {
     private var tickVisualizer: TickVisualizer? = null
     private var soundChooser: SoundChooser? = null
     private var savedSoundChooserNoteIndex = -1
+    private var soundChooser2: SoundChooser2? = null
+
     private var volumeSliders: VolumeSliders? = null
     private var savedVolumeSlidersFolded = true
 
@@ -333,6 +335,8 @@ class MetronomeFragment : Fragment() {
             override fun onStatusChanged(status: SoundChooser.Status) { }
         }
 
+        soundChooser2 = SoundChooser2(view)
+
         sceneTitle = view.findViewById(R.id.scene_title_active)
         sceneTitle?.setOnClickListener {
             if (scenesViewModel.editingStableId.value != Scene.NO_STABLE_ID) {
@@ -431,7 +435,7 @@ class MetronomeFragment : Fragment() {
         viewModel.noteStartedEvent.observe(viewLifecycleOwner) { note ->
             //viewModel.bpm.value?.let { bpm -> tickVisualizer?.tick(Utilities.bpm2millis(bpm)) }
             viewModel.bpm.value?.bpmQuarter?.let { bpmQuarter ->
-                //Log.v("Metronome", "MetronomeFragment: noteStrated: bpmQuarter=$bpmQuarter, durationMillis=${note.duration.durationInMillis(bpmQuarter)}")
+                //Log.v("Metronome", "MetronomeFragment: noteStarted: bpmQuarter=$bpmQuarter, durationMillis=${note.duration.durationInMillis(bpmQuarter)}")
                 tickVisualizer?.tick(note.duration.durationInMillis(bpmQuarter))
             }
             noteView?.animateNote(note.uid)
