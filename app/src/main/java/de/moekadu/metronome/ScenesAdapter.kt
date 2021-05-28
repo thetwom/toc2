@@ -50,10 +50,12 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
                 if (value) {
                     //view.setBackgroundResource(R.drawable.scene_background_active)
                     selectedView?.visibility = View.VISIBLE
+                    tickVisualizer?.visibility = View.VISIBLE
                 }
                 else {
                     //view.setBackgroundResource(R.drawable.scene_background)
                     selectedView?.visibility = View.INVISIBLE
+                    tickVisualizer?.visibility = View.GONE
                 }
             }
 
@@ -117,10 +119,10 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
             noteView = view.findViewById(R.id.scene_sounds)
             tickVisualizer = view.findViewById(R.id.scene_ticks_visualizer)
             selectedView =  view.findViewById(R.id.scene_active)
-           view.setOnClickListener {
-               activatedStableId = itemId
-               onSceneClickedListener?.onSceneClicked(itemId)
-           }
+            view.setOnClickListener {
+                activatedStableId = itemId
+                onSceneClickedListener?.onSceneClicked(itemId)
+            }
        }
     }
 

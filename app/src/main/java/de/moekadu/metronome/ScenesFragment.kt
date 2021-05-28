@@ -161,7 +161,7 @@ class ScenesFragment : Fragment() {
         }
 
         scenesRecyclerView = view.findViewById(R.id.scenes)
-        scenesRecyclerView?.setHasFixedSize(true)
+        scenesRecyclerView?.setHasFixedSize(false)
         scenesRecyclerView?.layoutManager = LinearLayoutManager(requireContext())
         scenesRecyclerView?.adapter = scenesAdapter
 //        setSelectionTracker()

@@ -28,6 +28,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.View
+import android.view.animation.AccelerateInterpolator
 import android.view.animation.LinearInterpolator
 import kotlin.math.*
 
@@ -60,8 +61,10 @@ class TickVisualizer(context : Context, attrs : AttributeSet?, defStyleAttr: Int
         style = Paint.Style.FILL
     }
 
-    private val animator1 = ValueAnimator.ofFloat(0f, PI.toFloat()).apply {
+    //private val animator1 = ValueAnimator.ofFloat(0f, PI.toFloat()).apply {
+    private val animator1 = ValueAnimator.ofFloat(1f, 0f).apply {
         interpolator = LinearInterpolator()
+       // interpolator = AccelerateInterpolator()
         addUpdateListener { invalidate() }
     }
 
@@ -89,78 +92,112 @@ class TickVisualizer(context : Context, attrs : AttributeSet?, defStyleAttr: Int
         val markerThickness: Float
         val pos0: Float
         val length: Float
+        val lengthTot: Float
+
+        val progress = animator1.animatedValue as Float
 
         if (vertical) {
-            length = (height - paddingTop - paddingBottom).toFloat()
+            lengthTot = (height - paddingTop - paddingBottom).toFloat()
+            length = 0.5f * lengthTot * progress
             markerThickness = (width - paddingLeft - paddingRight).toFloat()
-            pos0 = paddingTop + 0.5f * length
+            pos0 = paddingTop + 0.5f * lengthTot
         }
         else {
-            length = (width - paddingLeft - paddingRight).toFloat()
+            lengthTot = (width - paddingLeft - paddingRight).toFloat()
+            length = 0.5f * lengthTot * progress
             markerThickness = (height - paddingBottom - paddingTop).toFloat()
-            pos0 = paddingLeft + 0.5f * length
+            pos0 = paddingLeft + 0.5f * lengthTot
         }
-        val markerLength = 1.5f * markerThickness
 
-        val duration250 = Utilities.bpm2ms(250f)
-        val ampMax = 0.5f * length - markerLength
-        var amp1 = Utilities.dp2px(20f) * max(animator1.duration, duration250) / duration250
-        amp1 = min(ampMax, amp1)
-        var amp2 = Utilities.dp2px(20f) * max(animator2.duration, duration250) / duration250
-        amp2 = min(ampMax, amp2)
-
-        val a1 = amp1 * sin(animator1.animatedValue as Float)
-        val a2 = amp2 * sin(animator2.animatedValue as Float)
+        val duration140 = Utilities.bpm2ms(120f)
+        val x = if (animator1.duration < duration140) {
+            paint.alpha = (255 * min(1f, max(0f, 2.0f * progress - 1f))).toInt()
+            0.5f * lengthTot
+        } else {
+            paint.alpha = 255
+            length
+        }
 
         if (vertical) {
-            canvas?.drawRect(paddingLeft.toFloat(), pos0 + a2, paddingLeft + markerThickness, pos0 + a2 + markerLength, paint)
-            canvas?.drawRect(paddingLeft.toFloat(), pos0 - a1 - markerLength, paddingLeft + markerThickness, pos0 - a1, paint)
+            canvas?.drawRect(paddingLeft.toFloat(), pos0 - x, paddingLeft + markerThickness, pos0 + x, paint)
         }
         else {
-            canvas?.drawRect(pos0 + a2, paddingTop.toFloat(), pos0 + a2 + markerLength, paddingTop + markerThickness, paint)
-            canvas?.drawRect(pos0 - a1 - markerLength, paddingTop.toFloat(), pos0 - a1, paddingTop + markerThickness, paint)
+            canvas?.drawRect(pos0 - x, paddingTop.toFloat(), pos0 + x, paddingTop + markerThickness, paint)
         }
 
-        val maxActiveWidth = 0.5f * length
-        val activeWidth = min(2 * if(nextPoint == 1) amp2 else amp1, maxActiveWidth)
-
-        val activeAnimatorVal = if(nextPoint == 1) animator2.animatedFraction else animator1.animatedFraction
-        val animationDuration = if(nextPoint == 1) animator2.duration else animator1.duration
-        val duration100 = Utilities.bpm2ms(100f)
-        val activeAnimatorValMod = activeAnimatorVal * animationDuration.toFloat() / min(animationDuration, duration100)
-
-        val explodeLength = activeWidth * 2f / PI.toFloat() * atan(8 * activeAnimatorValMod)
-        paintExplode.alpha = (255 * max(0f, 1f-activeAnimatorValMod)).toInt() //max(0f, (1.0f - activeAnimatorValMod)).toInt())
-//        Log.v("Metronome", "TickVisualizer2:onDraw: explodeWidth=$explodeLength, alpha=${paintExplode.alpha}")
-        if (vertical) {
-            if (nextPoint == 1)
-                canvas?.drawRect(paddingLeft.toFloat(), pos0, paddingLeft + markerThickness, pos0 + explodeLength, paintExplode)
-            else
-                canvas?.drawRect(paddingLeft.toFloat(), pos0 - explodeLength, paddingLeft + markerThickness, pos0, paintExplode)
-        }
-        else {
-            if (nextPoint == 1)
-                canvas?.drawRect(pos0, paddingTop.toFloat(), pos0 + explodeLength, paddingTop + markerThickness, paintExplode)
-            else
-                canvas?.drawRect(pos0 - explodeLength, paddingTop.toFloat(), pos0, paddingTop + markerThickness, paintExplode)
-        }
+//        val markerLength = 1.5f * markerThickness
+//
+//        val duration250 = Utilities.bpm2ms(250f)
+//        val ampMax = 0.5f * length - markerLength
+//        var amp1 = Utilities.dp2px(20f) * max(animator1.duration, duration250) / duration250
+//        amp1 = min(ampMax, amp1)
+//        var amp2 = Utilities.dp2px(20f) * max(animator2.duration, duration250) / duration250
+//        amp2 = min(ampMax, amp2)
+//
+//        val a1 = amp1 * sin(animator1.animatedValue as Float)
+//        val a2 = amp2 * sin(animator2.animatedValue as Float)
+//
+//        if (vertical) {
+//            canvas?.drawRect(paddingLeft.toFloat(), pos0 + a2, paddingLeft + markerThickness, pos0 + a2 + markerLength, paint)
+//            canvas?.drawRect(paddingLeft.toFloat(), pos0 - a1 - markerLength, paddingLeft + markerThickness, pos0 - a1, paint)
+//        }
+//        else {
+//            canvas?.drawRect(pos0 + a2, paddingTop.toFloat(), pos0 + a2 + markerLength, paddingTop + markerThickness, paint)
+//            canvas?.drawRect(pos0 - a1 - markerLength, paddingTop.toFloat(), pos0 - a1, paddingTop + markerThickness, paint)
+//        }
+//
+//        val maxActiveWidth = 0.5f * length
+//        val activeWidth = min(2 * if(nextPoint == 1) amp2 else amp1, maxActiveWidth)
+//
+//        val activeAnimatorVal = if(nextPoint == 1) animator2.animatedFraction else animator1.animatedFraction
+//        val animationDuration = if(nextPoint == 1) animator2.duration else animator1.duration
+//        val duration100 = Utilities.bpm2ms(100f)
+//
+//        if (true) {
+//            val activeAnimatorValMod = activeAnimatorVal * animationDuration.toFloat() / min(animationDuration / 2, duration100)
+//            paintExplode.alpha = (255 * max(0f, 1f-activeAnimatorValMod)).toInt() //max(0f, (1.0f - activeAnimatorValMod)).toInt())
+//            canvas?.drawRect(paddingLeft.toFloat(), paddingTop.toFloat(), (width - paddingRight).toFloat(),
+//                (height - paddingTop).toFloat(), paintExplode)
+//        } else {
+//        val activeAnimatorValMod = activeAnimatorVal * animationDuration.toFloat() / min(animationDuration, duration100)
+//
+//        val explodeLength = activeWidth * 2f / PI.toFloat() * atan(8 * activeAnimatorValMod)
+//        paintExplode.alpha = (255 * max(0f, 1f-activeAnimatorValMod)).toInt() //max(0f, (1.0f - activeAnimatorValMod)).toInt())
+////        Log.v("Metronome", "TickVisualizer2:onDraw: explodeWidth=$explodeLength, alpha=${paintExplode.alpha}")
+//        if (vertical) {
+//            if (nextPoint == 1)
+//                canvas?.drawRect(paddingLeft.toFloat(), pos0, paddingLeft + markerThickness, pos0 + explodeLength, paintExplode)
+//            else
+//                canvas?.drawRect(paddingLeft.toFloat(), pos0 - explodeLength, paddingLeft + markerThickness, pos0, paintExplode)
+//        }
+//        else {
+//            if (nextPoint == 1)
+//                canvas?.drawRect(pos0, paddingTop.toFloat(), pos0 + explodeLength, paddingTop + markerThickness, paintExplode)
+//            else
+//                canvas?.drawRect(pos0 - explodeLength, paddingTop.toFloat(), pos0, paddingTop + markerThickness, paintExplode)
+//        }
+//      }
     }
 
     fun tick(duration : Long) {
-        if (nextPoint == 1) {
-            animator1.end()
-            animator1.duration = duration
-            animator1.start()
-            nextPoint = 2
-        } else {
-            animator2.end()
-            animator2.duration = duration
-            animator2.start()
-            nextPoint = 1
-        }
+        animator1.end()
+        animator1.duration = duration
+        animator1.start()
+
+//        if (nextPoint == 1) {
+//            animator1.end()
+//            animator1.duration = duration
+//            animator1.start()
+//            nextPoint = 2
+//        } else {
+//            animator2.end()
+//            animator2.duration = duration
+//            animator2.start()
+//            nextPoint = 1
+//        }
     }
 
     fun stop( ) {
-        nextPoint = 1
+//        nextPoint = 1
     }
 }
