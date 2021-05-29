@@ -21,6 +21,8 @@
 
 package de.moekadu.metronome
 
+import android.animation.ArgbEvaluator
+import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
@@ -73,6 +75,9 @@ class TickVisualizer(context : Context, attrs : AttributeSet?, defStyleAttr: Int
         addUpdateListener { invalidate() }
     }
 
+    //private val alphaAnimator = ObjectAnimator.ofObject(this, "backgroundColor", ArgbEvaluator(), Color.GREEN, Color.WHITE)
+    private val alphaAnimator = ObjectAnimator.ofFloat(this, "alpha", 1f, 0f)
+
     private var nextPoint = 1
 
     constructor(context: Context, attrs: AttributeSet? = null) : this(context, attrs, R.attr.tickVisualizerStyle)
@@ -84,46 +89,50 @@ class TickVisualizer(context : Context, attrs : AttributeSet?, defStyleAttr: Int
             vertical = ta.getBoolean(R.styleable.TickVisualizer_vertical, vertical)
             ta.recycle()
         }
+        setBackgroundColor(color)
+        alpha = 0f
     }
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
-        val markerThickness: Float
-        val pos0: Float
-        val length: Float
-        val lengthTot: Float
+//        val markerThickness: Float
+//        val pos0: Float
+//        val length: Float
+//        val lengthTot: Float
+//
+//        val progress = animator1.animatedValue as Float
+//
+//        if (vertical) {
+//            lengthTot = (height - paddingTop - paddingBottom).toFloat()
+//            length = 0.5f * lengthTot * progress
+//            markerThickness = (width - paddingLeft - paddingRight).toFloat()
+//            pos0 = paddingTop + 0.5f * lengthTot
+//        }
+//        else {
+//            lengthTot = (width - paddingLeft - paddingRight).toFloat()
+//            length = 0.5f * lengthTot * progress
+//            markerThickness = (height - paddingBottom - paddingTop).toFloat()
+//            pos0 = paddingLeft + 0.5f * lengthTot
+//        }
+//
+//        val duration140 = Utilities.bpm2ms(120f)
+//        val x = if (animator1.duration < duration140) {
+//            paint.alpha = (255 * min(1f, max(0f, 2.0f * progress - 1f))).toInt()
+//            0.5f * lengthTot
+//        } else {
+//            paint.alpha = 255
+//            length
+//        }
+//
+//        if (vertical) {
+//            canvas?.drawRect(paddingLeft.toFloat(), pos0 - x, paddingLeft + markerThickness, pos0 + x, paint)
+//        }
+//        else {
+//            canvas?.drawRect(pos0 - x, paddingTop.toFloat(), pos0 + x, paddingTop + markerThickness, paint)
+//        }
 
-        val progress = animator1.animatedValue as Float
 
-        if (vertical) {
-            lengthTot = (height - paddingTop - paddingBottom).toFloat()
-            length = 0.5f * lengthTot * progress
-            markerThickness = (width - paddingLeft - paddingRight).toFloat()
-            pos0 = paddingTop + 0.5f * lengthTot
-        }
-        else {
-            lengthTot = (width - paddingLeft - paddingRight).toFloat()
-            length = 0.5f * lengthTot * progress
-            markerThickness = (height - paddingBottom - paddingTop).toFloat()
-            pos0 = paddingLeft + 0.5f * lengthTot
-        }
-
-        val duration140 = Utilities.bpm2ms(120f)
-        val x = if (animator1.duration < duration140) {
-            paint.alpha = (255 * min(1f, max(0f, 2.0f * progress - 1f))).toInt()
-            0.5f * lengthTot
-        } else {
-            paint.alpha = 255
-            length
-        }
-
-        if (vertical) {
-            canvas?.drawRect(paddingLeft.toFloat(), pos0 - x, paddingLeft + markerThickness, pos0 + x, paint)
-        }
-        else {
-            canvas?.drawRect(pos0 - x, paddingTop.toFloat(), pos0 + x, paddingTop + markerThickness, paint)
-        }
 
 //        val markerLength = 1.5f * markerThickness
 //
@@ -180,9 +189,12 @@ class TickVisualizer(context : Context, attrs : AttributeSet?, defStyleAttr: Int
     }
 
     fun tick(duration : Long) {
-        animator1.end()
-        animator1.duration = duration
-        animator1.start()
+//        animator1.end()
+//        animator1.duration = duration
+//        animator1.start()
+        alphaAnimator.end()
+        alphaAnimator.duration = duration
+        alphaAnimator.start()
 
 //        if (nextPoint == 1) {
 //            animator1.end()
