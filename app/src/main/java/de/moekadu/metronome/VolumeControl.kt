@@ -79,7 +79,7 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         }
 
     private val iSpace = Utilities.dp2px(2f)
-    var volume: Float = 0f
+    var volume: Float = -1f
         private set
 
     /// Cached volume
@@ -173,6 +173,8 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             ta.recycle()
         }
 
+        setVolume(0f)
+
         addView(backgroundView)
         addView(belowSliderView1)
         addView(belowSliderView2)
@@ -221,7 +223,6 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                 MeasureSpec.makeMeasureSpec(belowSliderHeight2, MeasureSpec.EXACTLY)
         )
 
-        setSliderToMatchVolume()
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }
 
@@ -258,6 +259,7 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                 sliderHorizontal + sliderButton.measuredWidth,
                 sliderVertical + sliderButton.measuredHeight
         )
+        setSliderToMatchVolume()
     }
 
     override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {

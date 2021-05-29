@@ -190,7 +190,7 @@
         app:layout_constraintTop_toTopOf="parent"
         android:src="@drawable/ic_scenes_swipe2"
         android:scaleType="fitEnd"
-        android:tint="@color/scene_swipe_button_icon"
+        app:tint="@color/scene_swipe_button_icon"
         android:background="@null"
         android:padding="8dp"
         android:elevation="0dp"

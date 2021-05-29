@@ -140,7 +140,8 @@ class MetronomeViewModel(private val playerConnection: PlayerServiceConnection):
     }
 
     override fun onCleared() {
-        playerConnection.onDestroy()
+//        Log.v("Metronome", "MetronomeViewModel.onCleared")
+        PlayerServiceConnection.onDestroy()
         super.onCleared()
     }
 

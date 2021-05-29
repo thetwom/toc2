@@ -23,7 +23,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.OpenableColumns
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.appcompat.app.AlertDialog
@@ -60,6 +59,7 @@ class SceneArchiving(private val scenesFragment: ScenesFragment) {
         }
 
         override fun parseResult(resultCode: Int, intent: Intent?): Uri? {
+//            Log.v("Metronome", "SceneArchiving.FileReaderContract.parseResult: $intent, $resultCode, ${resultCode== Activity.RESULT_OK}")
             return intent?.data
         }
     }
@@ -75,6 +75,7 @@ class SceneArchiving(private val scenesFragment: ScenesFragment) {
     }
 
     private val _unarchiveScenes = scenesFragment.registerForActivityResult(FileReaderContract()) { uri ->
+//        Log.v("Metronome", "SceneArchiving._unarchiveScenes: uri=$uri")
         loadScenes(uri)
     }
 
@@ -105,10 +106,12 @@ class SceneArchiving(private val scenesFragment: ScenesFragment) {
     }
 
     fun loadScenes(uri: Uri?){
+//        Log.v("Metronome", "SceneArchiving.loadScenes: uri=$uri")
         val context = scenesFragment.context
 
         if (context != null && uri != null) {
             val filename = getFilenameFromUri(context, uri)
+//            Log.v("Metronome", "SceneArchiving.loadScenes: $filename")
             val databaseString = context.contentResolver?.openInputStream(uri)?.use { stream ->
                 stream.reader().use {
                     it.readText()

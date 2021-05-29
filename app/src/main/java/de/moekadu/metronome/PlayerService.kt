@@ -26,6 +26,7 @@ import android.os.Binder
 import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Log
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
@@ -273,7 +274,7 @@ class PlayerService : LifecycleService() {
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
-        // Log.v("Metronome", "PlayerService:onUnbind");
+//        Log.v("Metronome", "PlayerService:onUnbind");
         stopPlay()
         return super.onUnbind(intent)
     }

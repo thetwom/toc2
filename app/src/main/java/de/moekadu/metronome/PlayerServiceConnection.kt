@@ -110,10 +110,6 @@ class PlayerServiceConnection(
         bindToService()
     }
 
-    fun onDestroy() {
-        unbindFromService()
-    }
-
     fun play() {
         try {
             serviceBinder?.service?.startPlay()
@@ -210,10 +206,21 @@ class PlayerServiceConnection(
         @Volatile
         private var instance: PlayerServiceConnection? = null
 
-        fun getInstance(context: Context, initialBpm: Float, initialNoteList: ArrayList<NoteListItem>) =
-                instance ?: synchronized(this) {
+        fun getInstance(
+            context: Context,
+            initialBpm: Float,
+            initialNoteList: ArrayList<NoteListItem>
+        ) =
+            instance ?: synchronized(this) {
                 instance ?: PlayerServiceConnection(context, initialBpm, initialNoteList)
-                        .also { instance = it }
+                    .also { instance = it }
             }
+
+        fun onDestroy() {
+            synchronized(this) {
+                instance?.unbindFromService()
+                    .also { instance = null }
+            }
+        }
     }
 }

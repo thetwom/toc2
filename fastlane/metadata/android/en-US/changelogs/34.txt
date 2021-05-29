@@ -19,3 +19,5 @@ v3.2.1
 - Don't allow speed of 0bpm
 - Maximum allowed speed limited to 10000bpm
 - Don't use grouping-characters in text input of speed
+- Fix issue when metronome was killed during play and then restarted
+- Fix issue with volume sliders which were not always updated
