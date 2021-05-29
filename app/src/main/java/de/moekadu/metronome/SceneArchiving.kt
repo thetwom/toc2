@@ -121,7 +121,9 @@ class SceneArchiving(private val scenesFragment: ScenesFragment) {
             val (check, scenes) = SceneDatabase.stringToScenes(databaseString)
             SceneDatabase.toastFileCheckString(context, filename, check)
 
-            if (scenesFragment.numScenes() == 0) {
+            if (check != SceneDatabase.FileCheck.Ok) {
+                return
+            } else if (scenesFragment.numScenes() == 0) {
                 scenesFragment.loadScenes(scenes, SceneDatabase.InsertMode.Replace)
             } else {
 //            Log.v("Metronome", "SceneArchiving.loadScenes: filename = $filename")
