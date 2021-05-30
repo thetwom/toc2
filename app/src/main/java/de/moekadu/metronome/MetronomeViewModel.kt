@@ -92,6 +92,17 @@ class MetronomeViewModel(private val playerConnection: PlayerServiceConnection):
         }
     }
 
+    fun setNoteListDuration(uid: UId, duration: NoteDuration) {
+        playerConnection.modifyNoteList { noteList ->
+            var success = false
+            noteList.filter { uid == it.uid }.forEach {
+                it.duration = duration
+                success = true
+            }
+            success
+        }
+    }
+
     fun addNote(noteListItem: NoteListItem, index: Int? = null) {
         playerConnection.modifyNoteList { noteList ->
             val i = if (index == null) noteList.size else min(index, noteList.size)
