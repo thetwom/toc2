@@ -335,7 +335,7 @@ class MetronomeFragment : Fragment() {
             override fun onStatusChanged(status: SoundChooser.Status) { }
         }
 
-        soundChooser2 = SoundChooser2(view)
+        soundChooser2 = SoundChooser2(view, viewModel, viewLifecycleOwner)
 
         sceneTitle = view.findViewById(R.id.scene_title_active)
         sceneTitle?.setOnClickListener {

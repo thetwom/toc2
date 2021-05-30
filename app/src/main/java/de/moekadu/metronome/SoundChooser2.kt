@@ -4,10 +4,11 @@ import android.view.View
 import android.widget.ImageButton
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.lifecycle.LifecycleOwner
 import androidx.transition.AutoTransition
 import androidx.transition.TransitionManager
 
-class SoundChooser2(val view: View) {
+class SoundChooser2(val view: View, val viewModel: MetronomeViewModel, val viewLifecycleOwner: LifecycleOwner) {
 
     private val constraintLayout: ConstraintLayout = view.findViewById(R.id.metronome_layout)
 
@@ -50,6 +51,10 @@ class SoundChooser2(val view: View) {
 
     private val doneButton = view.findViewById<ImageButton>(R.id.sound_chooser_done_button).apply {
         setOnClickListener { deactivate() }
+    }
+
+    init {
+        noteChoices[0].isActivated = true
     }
 
     private fun activateStatic(animationDuration: Long = 200L) {
