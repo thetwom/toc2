@@ -426,8 +426,9 @@ class MetronomeFragment : Fragment() {
 
         viewModel.noteStartedEvent.observe(viewLifecycleOwner) {
             viewModel.bpm.value?.let { bpm -> tickVisualizer?.tick(Utilities.bpm2ms(bpm)) }
-            noteView?.animateNote(it.uid)
-            soundChooser?.animateNote(it.uid)
+            // TODO: Enable the next two lines again
+            // noteView?.animateNote(it.uid)
+            // soundChooser?.animateNote(it.uid)
         }
 
         viewModel.noteList.observe(viewLifecycleOwner) {

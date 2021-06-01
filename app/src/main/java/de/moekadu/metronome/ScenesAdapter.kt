@@ -97,8 +97,9 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
             val child = recyclerView.getChildAt(i)
             (recyclerView.getChildViewHolder(child) as ScenesAdapter.ViewHolder).let { viewHolder ->
                 if (viewHolder.isActivated) {
-                    if (index >= 0)
-                        viewHolder.noteView?.animateNote(index)
+                    // TODO: Enable this again
+//                    if (index >= 0)
+//                        viewHolder.noteView?.animateNote(index)
                     if (bpm != null)
                         viewHolder.tickVisualizer?.tick(Utilities.bpm2ms(bpm))
                 }

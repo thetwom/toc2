@@ -80,6 +80,9 @@ class TickVisualizer(context : Context, attrs : AttributeSet?, defStyleAttr: Int
 
     private var nextPoint = 1
 
+    private var numBars = 2
+    private var currentBar = 0
+
     constructor(context: Context, attrs: AttributeSet? = null) : this(context, attrs, R.attr.tickVisualizerStyle)
 
     init {
@@ -89,17 +92,32 @@ class TickVisualizer(context : Context, attrs : AttributeSet?, defStyleAttr: Int
             vertical = ta.getBoolean(R.styleable.TickVisualizer_vertical, vertical)
             ta.recycle()
         }
-        setBackgroundColor(color)
-        alpha = 0f
+        //setBackgroundColor(color)
+        //alpha = 0f
     }
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
+        if (vertical) {
+            val lengthTot = (height - paddingTop - paddingBottom).toFloat()
+            val lengthBar = lengthTot / numBars
+            val yEnd = height - paddingBottom - currentBar * lengthBar
+            val yStart = yEnd - lengthBar
+            canvas?.drawRect(paddingLeft.toFloat(), yStart, (width - paddingRight).toFloat(), yEnd, paint)
+        } else {
+            val lengthTot = (width - paddingTop - paddingBottom).toFloat()
+            val lengthBar = lengthTot / numBars
+            val xStart = paddingLeft + currentBar * lengthBar
+            val xEnd = xStart + lengthBar
+            canvas?.drawRect(xStart, paddingTop.toFloat(), xEnd, (height - paddingBottom).toFloat(), paint)
+        }
+
 //        val markerThickness: Float
 //        val pos0: Float
 //        val length: Float
 //        val lengthTot: Float
+
 //
 //        val progress = animator1.animatedValue as Float
 //
@@ -189,12 +207,17 @@ class TickVisualizer(context : Context, attrs : AttributeSet?, defStyleAttr: Int
     }
 
     fun tick(duration : Long) {
+        currentBar += 1
+        if (currentBar == numBars)
+            currentBar = 0
+        invalidate()
 //        animator1.end()
 //        animator1.duration = duration
 //        animator1.start()
-        alphaAnimator.end()
-        alphaAnimator.duration = duration
-        alphaAnimator.start()
+
+//        alphaAnimator.end()
+//        alphaAnimator.duration = duration
+//        alphaAnimator.start()
 
 //        if (nextPoint == 1) {
 //            animator1.end()
