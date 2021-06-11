@@ -9,6 +9,7 @@
     <attr name="tickVisualizerStyle" format="reference"/>
     <attr name="noteViewStyle" format="reference"/>
     <attr name="soundChooserStyle" format="reference"/>
+    <attr name="soundChooserStyle3" format="reference"/>
     <attr name="playButtonStyle" format="reference"/>
     <attr name="savedItemStyle" format="reference"/>
 
@@ -20,7 +21,7 @@
     <attr name="onBackgroundColor" format="color" />
     <attr name="textColor" format="color" />
      <attr name="lineColor" format="color"/>
-    <attr name="noteColor" format="color"/>
+    <attr name="noteColor" format="color|reference"/>
     <attr name="noteHighlightColor" format="color"/>
     <attr name="volumeControlBackgroundColor" format="color"/>
     <attr name="volumeControlSliderColor" format="color"/>
@@ -34,6 +35,7 @@
     <attr name="deleteColor" format="color"/>
     <attr name="onDeleteColor" format="color"/>
     <attr name="separatorColor" format="color"/>
+    <attr name="actionButtonTintList" format="color|reference"/>
 
     <attr name="minimumDeleteButtonHeight" format="dimension"/>
     <attr name="elementElevation" format="dimension"/>

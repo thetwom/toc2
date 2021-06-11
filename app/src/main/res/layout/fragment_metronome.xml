@@ -633,5 +633,11 @@
         android:contentDescription="@string/add_note"
         />
 
+    <de.moekadu.metronome.SoundChooser3
+        android:id="@+id/sound_chooser3"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="20dp"
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

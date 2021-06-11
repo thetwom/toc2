@@ -90,6 +90,8 @@ class MetronomeFragment : Fragment() {
     private var savedSoundChooserNoteIndex = -1
     private var soundChooser2: SoundChooser2? = null
 
+    private var soundChooser3: SoundChooser3? = null
+
     private var volumeSliders: VolumeSliders? = null
     private var savedVolumeSlidersFolded = true
 
@@ -337,6 +339,51 @@ class MetronomeFragment : Fragment() {
 
         soundChooser2 = SoundChooser2(view, viewModel, viewLifecycleOwner)
 
+        soundChooser3 = view.findViewById(R.id.sound_chooser3)
+        soundChooser3?.stateChangedListener = object : SoundChooser3.StateChangedListener {
+//            override fun onSoundChooserDeactivated(uid: UId?) {
+//                if (uid != null)
+//                    noteView?.highlightNote(uid, false)
+//            }
+//            override fun onNoteIdChanged(uid: UId, noteId: Int, status: SoundChooser.Status) {
+//                viewModel.setNoteListId(uid, noteId)
+//                if (viewModel.playerStatus.value != PlayerStatus.Playing && status == SoundChooser.Status.Static && context != null) {
+//                    viewModel.noteList.value?.firstOrNull { it.uid == uid }?.let { noteListItem ->
+//                        singleNotePlayer.play(noteListItem.id, noteListItem.volume)
+//                        if (vibrate) {
+//                            viewModel.bpm.value?.bpmQuarter?.let{ bpmQuarter ->
+//                                vibratingNote?.vibrate(noteListItem.volume, noteListItem, bpmQuarter)
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//
+//            override fun onVolumeChanged(uid: UId, volume: Float, status: SoundChooser.Status) {
+//                viewModel.setNoteListVolume(uid, volume)
+//                if (viewModel.playerStatus.value != PlayerStatus.Playing && context != null) {
+//                    viewModel.noteList.value?.firstOrNull { it.uid == uid }?.let { noteListItem ->
+//                        singleNotePlayer.play(noteListItem.id, noteListItem.volume)
+//                    }
+//                }
+//            }
+
+            override fun addNote(note: NoteListItem) {
+                viewModel.addNote(note)
+            }
+
+            override fun removeNote(uid: UId) {
+                viewModel.removeNote(uid)
+            }
+
+            override fun onNoteMoved(uid: UId, toIndex: Int) {
+                viewModel.moveNote(uid, toIndex)
+            }
+
+//            override fun onStatusChanged(status: SoundChooser.Status) { }
+        }
+
+
         sceneTitle = view.findViewById(R.id.scene_title_active)
         sceneTitle?.setOnClickListener {
             if (scenesViewModel.editingStableId.value != Scene.NO_STABLE_ID) {
@@ -448,6 +495,7 @@ class MetronomeFragment : Fragment() {
                 noteView?.setNoteList(it)
                 soundChooser?.setNoteList(it)
                 volumeSliders?.setNoteList(it)
+                soundChooser3?.setNoteList(it, 200L)
             }
         }
 

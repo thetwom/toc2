@@ -43,6 +43,7 @@
         <item name="volumeControlStyle">@style/Widget.AppTheme.VolumeControlStyle</item>
         <item name="tickVisualizerStyle">@style/Widget.AppTheme.TickVisualizerStyle</item>
         <item name="playButtonStyle">@style/Widget.AppTheme.PlayButtonStyle</item>
+        <item name="soundChooserStyle3">@style/Widget.AppTheme.SoundChooserStyle3</item>
 
         <item name="windowActionModeOverlay">true</item>
         <item name="actionModeStyle">@style/Widget.App.ActionMode</item>
@@ -99,6 +100,29 @@
         <item name="elementPadding">4dp</item>
         <item name="volumeColor">?attr/colorPrimaryFaint</item>
         <item name="backgroundViewColor">?android:colorBackground</item>
+    </style>
+
+    <declare-styleable name="SoundChooser3">
+        <attr name="noteColor"/>
+        <attr name="noteHighlightColor"/>
+        <attr name="elementElevation"/>
+        <attr name="activeTranslationZ"/>
+        <attr name="elementPadding"/>
+        <attr name="volumeColor"/>
+        <attr name="backgroundViewColor"/>
+        <attr name="actionButtonTintList"/>
+    </declare-styleable>
+
+    <style name="Widget.AppTheme.SoundChooserStyle3" parent="">
+        <item name="noteColor">?attr/colorPrimary</item>
+        <item name="noteHighlightColor">?attr/colorPrimary</item>
+        <item name="elementElevation">5dp</item>
+        <item name="activeTranslationZ">30dp</item>
+        <item name="elementPadding">4dp</item>
+        <item name="volumeColor">?attr/colorPrimaryFaint</item>
+        <item name="backgroundViewColor">?android:colorBackground</item>
+        <item name="volumeColor">?attr/colorOnPrimary</item>
+        <item name="actionButtonTintList">?attr/colorOnPrimary</item>
     </style>
 
     <declare-styleable name="PlayButton">
