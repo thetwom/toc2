@@ -37,6 +37,7 @@ class SoundChooserControlButton2(
     var translationYInit = 0f
     var translationXTarget = 0f
     var translationYTarget = 0f
+    var moveToTargetOnDelete = false
     val uid = note.uid
 
     var isActive = false
@@ -58,7 +59,7 @@ class SoundChooserControlButton2(
         noteList.add(note)
         setNoteList(noteList)
         highlightNote(0, true)
-        visibility = INVISIBLE
+        visibility = GONE
     }
 
 //    override fun onTouchEvent(event: MotionEvent?): Boolean {

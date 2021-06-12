@@ -12,6 +12,9 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.core.view.setPadding
+import androidx.transition.AutoTransition
+import androidx.transition.TransitionManager
+import androidx.transition.TransitionSet
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -65,16 +68,16 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         scaleType = ImageView.ScaleType.FIT_CENTER
         setPadding(0)
         translationZ = 6f
-        visibility = INVISIBLE
+        visibility = GONE
     }
 
     private val doneButton = ImageButton(context).apply {
         setBackgroundResource(R.drawable.plus_button_background)
         setImageResource(R.drawable.ic_done_small)
         scaleType = ImageView.ScaleType.FIT_CENTER
-        translationZ = 6f
+        translationZ = 5.9f
         setPadding(0)
-        visibility = INVISIBLE
+        visibility = GONE
     }
 
     private val actionButtonsToNoteViewRatio = 0.85f
@@ -162,17 +165,18 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             stateChangedListener?.addNote(newNote)
         }
         deleteButton.setOnClickListener {
-            activeControlButton?.let { button ->
-                val buttonIndex = controlButtons.indexOf(activeControlButton)
-                nextActiveControlButtonUidOnNoteListChange =
-                    if (buttonIndex < 0) null
-                    else if (buttonIndex >= controlButtons.size - 1) controlButtons[controlButtons.size - 2].uid
-                    else controlButtons[buttonIndex + 1].uid
-                stateChangedListener?.removeNote(button.uid)
-            }
+            deleteNote(activeControlButton?.uid)
+//            activeControlButton?.let { button ->
+//                val buttonIndex = controlButtons.indexOf(activeControlButton)
+//                nextActiveControlButtonUidOnNoteListChange =
+//                    if (buttonIndex < 0) null
+//                    else if (buttonIndex >= controlButtons.size - 1) controlButtons[controlButtons.size - 2].uid
+//                    else controlButtons[buttonIndex + 1].uid
+//                stateChangedListener?.removeNote(button.uid)
+//            }
         }
         doneButton.setOnClickListener {
-            hideStaticChooser(200L)
+            hideSoundChooser(200L)
         }
     }
 
@@ -233,28 +237,44 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 
         val plusButtonRight = getPlusButtonRight(viewWidth)
         val plusButtonBottom = getPlusButtonBottom(viewHeight)
+        val plusButtonLeft = plusButtonRight - plusButton.measuredWidth
+        val plusButtonTop = plusButtonBottom - plusButton.measuredHeight
 
-        plusButton.layout(
-            plusButtonRight - plusButton.measuredWidth,
-            plusButtonBottom - plusButton.measuredHeight,
-            plusButtonRight,
-            plusButtonBottom
-        )
+        plusButton.layout(plusButtonLeft, plusButtonTop, plusButtonRight, plusButtonBottom)
 
-        // layout at position of plus button, exact position is done later by using translation
+        // find position of delete and done button
+        var deleteButtonLeft = plusButtonLeft
+        var deleteButtonTop = plusButtonTop
+
+        var doneButtonLeft = plusButtonLeft
+        var doneButtonTop = plusButtonTop
+
+        if (status == Status.Static) {
+            when (orientation) {
+                Orientation.Landscape -> {
+                    deleteButtonLeft += (plusButton.measuredWidth + actionButtonSpacing).toInt()
+                    doneButtonLeft = (deleteButtonLeft + deleteButton.measuredWidth + actionButtonSpacing).toInt()
+                }
+                Orientation.Portrait -> {
+                    deleteButtonTop = getDeleteButtonStaticStateTop(viewHeight)
+                    doneButtonLeft = (deleteButtonLeft - deleteButton.measuredWidth - actionButtonSpacing).toInt()
+                    doneButtonTop = deleteButtonTop
+                }
+            }
+        }
+
         deleteButton.layout(
-            plusButtonRight - deleteButton.measuredWidth,
-            plusButtonBottom - deleteButton.measuredHeight,
-            plusButtonRight,
-            plusButtonBottom
+            deleteButtonLeft,
+            deleteButtonTop,
+            deleteButtonLeft + deleteButton.measuredWidth,
+            deleteButtonTop + deleteButton.measuredHeight
         )
 
-        // layout at position of plus button, exact position is done later by using translation
         doneButton.layout(
-            plusButtonRight - doneButton.measuredWidth,
-            plusButtonBottom - doneButton.measuredHeight,
-            plusButtonRight,
-            plusButtonBottom
+            doneButtonLeft,
+            doneButtonTop,
+            doneButtonLeft + doneButton.measuredWidth,
+            doneButtonTop + doneButton.measuredHeight
         )
 
         val noteViewLeft = noteViewRight - noteView.measuredWidth
@@ -266,14 +286,12 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             noteViewBottom)
 
         controlButtons.forEachIndexed { index, button ->
-            button.layout(0, 0, button.measuredWidth, button. measuredHeight)
             NoteView.computeBoundingBox(index, controlButtons.size, noteView.measuredWidth, noteView.measuredHeight, measureRect)
-            button.translationXTarget = measureRect.centerX() - 0.5f * button.measuredWidth + noteViewLeft
-            //button.translationXTarget = measureRect.left.toFloat() + noteViewLeft
-            button.translationYTarget = measureRect.top.toFloat() + noteViewTop
-//            Log.v("Metronome", "SoundChooser3.onLayout: button.translateionXTarget = ${button.translationXTarget} ")
-            if (button.visibility == View.INVISIBLE || !button.isMoving)
-                button.moveToTarget(0L)
+            val buttonLeft = (measureRect.centerX() - 0.5f * button.measuredWidth + noteViewLeft).roundToInt()
+            val buttonTop = measureRect.top + noteViewTop
+            // don't re-layout for base or dynamic case since this would clash with the current translationX/Y
+            //if (button.translationXTarget == 0f && button.translationYTarget == 0f)
+                button.layout(buttonLeft, buttonTop, buttonLeft + button.measuredWidth, buttonTop + button. measuredHeight)
         }
 
         // TODO: start static sound chooser if required
@@ -288,6 +306,7 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         when (action) {
             MotionEvent.ACTION_DOWN -> {
                 val previousActiveButton = activeControlButton
+                var newActiveButton: SoundChooserControlButton2? = null
                 for (button in controlButtons) {
                     if (button.containsCoordinates(event.x, event.y)) {
                         button.eventXOnDown = event.x
@@ -295,19 +314,21 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                         button.translationXInit = button.translationX
                         button.translationYInit = button.translationY
                         button.isMoving = true
-                        setActiveControlButton(button, 150L)
+                        newActiveButton = button
                         requestDisallowInterceptTouchEvent(true)
                         triggerStaticSoundChooserOnUp = true
                     }
                 }
 
-                controlButtons.filter { it != activeControlButton }
-                    .forEach { it.moveToTargetAndDisappear(200L) }
-
-                if (activeControlButton != null && status == Status.Off)
-                    showMoveOnlyState(200L)
-                if (activeControlButton != previousActiveButton && activeControlButton != null)
+                if (newActiveButton != null && newActiveButton != previousActiveButton) {
+                    setActiveControlButton(newActiveButton, 200L)
+                    if (status == Status.Off)
+                        showMoveOnlyState(200L)
                     return true
+                }
+//                controlButtons.filter { it != activeControlButton }
+//                    .forEach { it.moveToTargetAndDisappear(200L) }
+
             }
             MotionEvent.ACTION_MOVE -> {
                 activeControlButton?.let { button ->
@@ -323,13 +344,16 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 if (deleteButton.isActivated) {
                     triggerStaticSoundChooserOnUp = false
-                    activeControlButton?.let { button ->
-                        button.isMoving = false
-                        stateChangedListener?.removeNote(button.uid)
-                        // disappearing is handled by the the setNoteList-method
-                    }
+                    activeControlButton?.moveToTargetOnDelete = true
+                    deleteNote(activeControlButton?.uid)
+//                    activeControlButton?.let { button ->
+//                        button.isMoving = false
+//                        stateChangedListener?.removeNote(button.uid)
+//                        // disappearing is handled by the the setNoteList-method
+//                    }
                     deleteButton.isActivated = false
-                    hideStaticChooser(200L)
+                    if (status != Status.Static)
+                        hideSoundChooser(0L)
                     return true
                 }
 
@@ -339,127 +363,51 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                     showStaticChooser(200L)
                     triggerStaticSoundChooserOnUp = false
                 } else {
-                    for (button in controlButtons)
-                        button.moveToTargetAndDisappear(200L)
-                    activeControlButton = null
+                    hideSoundChooser(200L)
                 }
             }
         }
         return true
     }
 
-    fun showMoveOnlyState(animationDuration: Long = 200L) {
+    fun showMoveOnlyState(animationDuration: Long) {
         status = Status.MoveNote
 
-        if (animationDuration == 0L) {
-            deleteButton.alpha = 1f
-            deleteButton.translationX = 0f
-            deleteButton.translationY = 0f
-            deleteButton.visibility = VISIBLE
-        } else {
-            if (deleteButton.visibility != VISIBLE)
-                deleteButton.alpha = 0f
-            deleteButton.visibility = VISIBLE
-            deleteButton.animate()
-                .setDuration(animationDuration)
-                .translationX(0f)
-                .translationY(0f)
-                .alpha(1f)
-        }
+//        if (animationDuration > 0L)
+//            startTransitionManager(animationDuration)
+
+        doneButton.visibility = VISIBLE // this is behind other buttons, but made visible to prepare for static sound chooser animations
+        deleteButton.visibility = VISIBLE
+        requestLayout()
     }
 
-    fun showStaticChooser(animationDuration: Long = 200L) {
+    fun showStaticChooser(animationDuration: Long) {
+        if (status == Status.Static)
+            return
         status = Status.Static
-        val deleteButtonTranslationX: Float
-        val deleteButtonTranslationY: Float
 
-        val doneButtonTranslationX: Float
-        val doneButtonTranslationY: Float
-
-        val actionButtonSize = getActionButtonSize(measuredHeight)
-
-        when (orientation) {
-            Orientation.Landscape -> {
-                deleteButtonTranslationX = actionButtonSize + actionButtonSpacing
-                deleteButtonTranslationY = 0f
-                doneButtonTranslationX =
-                    deleteButtonTranslationX + actionButtonSize + actionButtonSpacing
-                doneButtonTranslationY = 0f
-            }
-            Orientation.Portrait -> {
-                val deleteButtonTop = getDeleteButtonStaticStateTop(measuredHeight)
-                deleteButtonTranslationX = 0f
-                deleteButtonTranslationY = (deleteButtonTop - deleteButton.top).toFloat()
-                doneButtonTranslationX =
-                    deleteButtonTranslationX - actionButtonSize - actionButtonSpacing
-                doneButtonTranslationY = deleteButtonTranslationY
-            }
-        }
-
-        if (animationDuration > 0L) {
-            if (doneButton.visibility != VISIBLE)
-                doneButton.alpha = 0f
-            if (deleteButton.visibility != VISIBLE)
-                deleteButton.alpha = 0f
-
-            doneButton.animate()
-                .setDuration(animationDuration)
-                .translationX(doneButtonTranslationX)
-                .translationY(doneButtonTranslationY)
-                .alpha(1.0f)
-
-            deleteButton.animate()
-                .setDuration(animationDuration)
-                .translationX(deleteButtonTranslationX)
-                .translationY(deleteButtonTranslationY)
-                .alpha(1.0f)
-        } else {
-            deleteButton.translationX = deleteButtonTranslationX
-            deleteButton.translationY = deleteButtonTranslationY
-            deleteButton.alpha = 1.0f
-            doneButton.translationX = doneButtonTranslationX
-            doneButton.translationY = doneButtonTranslationY
-            doneButton.alpha = 1.0f
-        }
-
+        if (animationDuration > 0L)
+            startTransitionManager(animationDuration)
         deleteButton.visibility = VISIBLE
         doneButton.visibility = VISIBLE
+        requestLayout()
     }
 
-    fun hideStaticChooser(animationDuration: Long = 200L) {
+    fun hideSoundChooser(animationDuration: Long) {
+        if (status == Status.Off)
+            return
+        Log.v("Metronome", "SoundChooser3.hideSoundChooser")
         status = Status.Off
-        if (animationDuration > 0L) {
-            if (doneButton.visibility == VISIBLE) {
-                doneButton.animate()
-                    .setDuration(animationDuration)
-                    .alpha(0f)
-                    .withEndAction {
-                        doneButton.translationX = 0f
-                        doneButton.translationY = 0f
-                        doneButton.visibility = View.INVISIBLE
-                    }
-            }
-            if (deleteButton.visibility == VISIBLE) {
-                deleteButton.animate()
-                    .setDuration(animationDuration)
-                    .alpha(0f)
-                    .withEndAction {
-                        deleteButton.translationX = 0f
-                        deleteButton.translationY = 0f
-                        deleteButton.visibility = View.INVISIBLE
-                    }
-            }
-            controlButtons.forEach {
-                it.moveToTargetAndDisappear(animationDuration)
-            }
-        } else {
-            doneButton.visibility = INVISIBLE
-            deleteButton.visibility = INVISIBLE
-            controlButtons.forEach { it.visibility = INVISIBLE}
-        }
+
+        if (animationDuration > 0L)
+            startTransitionManager(animationDuration)
+
+        doneButton.visibility = GONE
+        deleteButton.visibility = GONE
+        setActiveControlButton(null)
     }
 
-    fun setNoteList(noteList: ArrayList<NoteListItem>, animationDuration: Long = 0L) {
+    fun setNoteList(noteList: ArrayList<NoteListItem>, animationDuration: Long) {
 
         noteView.setNoteList(noteList)
 
@@ -469,6 +417,8 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                 target.set(source)
             }
         } else { // reorder renew, ... control button list
+//            if (animationDuration > 0L)
+//                startTransitionManager(animationDuration)
             val map = controlButtons.map { it.uid to it }.toMap().toMutableMap()
             controlButtons.clear()
             for (note in noteList) {
@@ -485,7 +435,7 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                         noteHighlightColor
                     )
                     s.translationZ = 8f
-                    //s.visibility = View.INVISIBLE
+                    //s.visibility = View.GONE
                     controlButtons.add(s)
                     addView(s)
                 }
@@ -493,23 +443,18 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             // remove remaining control buttons
             map.forEach {
                 val s = it.value
-                if (s.visibility == View.VISIBLE && animationDuration > 0L) {
-                    if (status != Status.Static) {
-                        s.translationXTarget =
-                            deleteButton.x + 0.5f * (deleteButton.width - s.width)
-                        s.translationYTarget =
-                            deleteButton.y + 0.5f * (deleteButton.height - s.height)
-                    }
-                    s.moveToTargetAndDisappear(200L) {
-                        removeView(s)
-                    }
+                if (s.visibility == VISIBLE && animationDuration > 0L && s.moveToTargetOnDelete) {
+                    s.translationXTarget =  deleteButton.x + 0.5f * (deleteButton.width - s.width) - s.left
+                    s.translationYTarget = deleteButton.y + 0.5f * (deleteButton.height - s.height) - s.top
+                    s.moveToTargetAndDisappear(200L) { removeView(s) }
                 } else {
                     removeView(s)
                 }
             }
 
             controlButtons.forEachIndexed { index, button -> button.numberOffset = index }
-            setControlButtonTargetTranslations()
+            //setControlButtonTargetTranslations()
+            requestLayout()
         }
 
         if (status == Status.Static && nextActiveControlButtonUidOnNoteListChange != null) {
@@ -521,25 +466,21 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     }
 
     private fun setActiveControlButton(newActiveButton: SoundChooserControlButton2?, animationDuration: Long = 0L) {
+        if (activeControlButton === newActiveButton)
+            return
+
+//        if (animationDuration > 0L)
+//            startTransitionManager(animationDuration)
+
+        Log.v("Metronome", "SoundChooser3.setControlButton: controlButtons.size = ${controlButtons.size}")
         for (button in controlButtons) {
             if (newActiveButton === button) {
-                if (animationDuration == 0L) {
-                    button.visibility = VISIBLE
-                } else if (button.visibility != VISIBLE) {
-                    button.alpha = 0f
-                    button.visibility = VISIBLE
-                    button.animate().setDuration(animationDuration).alpha(1f)
-                }
+//                Log.v("Metronome", "SoundChooser3.setActiveControlButton: visible")
+                button.visibility = VISIBLE
             }
             else {
-                if (animationDuration == 0L) {
-                    button.visibility = INVISIBLE
-                } else if (button.visibility == VISIBLE) {
-                    button.animate()
-                        .setDuration(animationDuration)
-                        .alpha(0f)
-                        .withEndAction { button.visibility = INVISIBLE }
-                }
+//                Log.v("Metronome", "SoundChooser3.setActiveControlButton: gone")
+                button.visibility = GONE
             }
         }
         activeControlButton = newActiveButton
@@ -559,13 +500,34 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         }
     }
 
-    private fun setControlButtonTargetTranslations() {
-        val rect = Rect()
-        controlButtons.forEachIndexed { index, button ->
-            NoteView.computeBoundingBox(index, controlButtons.size, noteView.measuredWidth, noteView.measuredHeight, rect)
-            button.setTargetTranslation(rect.left.toFloat() + noteView.x, rect.top.toFloat() + noteView.y)
+    private fun deleteNote(uid: UId?) {
+        if (uid == null)
+            return
+        if (activeControlButton?.uid == uid) {
+            val buttonIndex = controlButtons.indexOf(activeControlButton)
+            nextActiveControlButtonUidOnNoteListChange =
+                if (buttonIndex < 0) null
+                else if (buttonIndex >= controlButtons.size - 1) controlButtons[controlButtons.size - 2].uid
+                else controlButtons[buttonIndex + 1].uid
         }
+        stateChangedListener?.removeNote(uid)
     }
+    private fun startTransitionManager(animationDuration: Long = 200L) {
+        TransitionManager.beginDelayedTransition(this,
+            AutoTransition().apply {
+                duration = animationDuration
+                ordering = TransitionSet.ORDERING_TOGETHER
+            }
+        )
+    }
+
+//    private fun setControlButtonTargetTranslations() {
+//        val rect = Rect()
+//        controlButtons.forEachIndexed { index, button ->
+//            NoteView.computeBoundingBox(index, controlButtons.size, noteView.measuredWidth, noteView.measuredHeight, rect)
+//            button.setTargetTranslation(rect.left.toFloat() + noteView.x, rect.top.toFloat() + noteView.y)
+//        }
+//    }
 
     private fun isViewCenterXOverDeleteButton(view: View): Boolean {
         val centerX = view.x + 0.5f * view.width
