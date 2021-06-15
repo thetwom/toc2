@@ -637,6 +637,7 @@
         android:id="@+id/sound_chooser3"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        app:noteHighlightColor="?attr/colorSecondary"
         android:elevation="20dp"
         />
 

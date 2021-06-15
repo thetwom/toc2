@@ -376,7 +376,7 @@ class MetronomeFragment : Fragment() {
                 viewModel.removeNote(uid)
             }
 
-            override fun onNoteMoved(uid: UId, toIndex: Int) {
+            override fun moveNote(uid: UId, toIndex: Int) {
                 viewModel.moveNote(uid, toIndex)
             }
 

@@ -360,24 +360,33 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     }
 
     fun highlightNote(index: Int, flag: Boolean) {
-        for(j in notes.indices) {
-            if(index == j)
-                notes[j].highlight = flag
-            else
-                notes[j].highlight = false
-        }
+        if (index in 0 until notes.size)
+            notes[index].highlight = flag
+//        for(j in notes.indices) {
+//            if(index == j)
+//                notes[j].highlight = flag
+//            else
+//                notes[j].highlight = false
+//        }
         highlightNumber(index, flag)
+    }
+
+    fun setNoteAlpha(uid: UId?, alpha: Float) {
+        if (uid == null)
+            return
+        notes.filter { it.uid == uid }.forEach { it.noteImage.alpha = alpha }
     }
 
     fun highlightNote(uid: UId?, flag : Boolean) {
         if(uid == null)
             return
-        for(n in notes) {
-            if(n.uid == uid)
-                n.highlight = flag
-            else
-                n.highlight = false
-        }
+        notes.filter { it.uid == uid }.forEach { it.highlight = flag }
+//        for(n in notes) {
+//            if(n.uid == uid)
+//                n.highlight = flag
+//            else
+//                n.highlight = false
+//        }
 
         val index = notes.indexOfFirst { uid == it.uid }
         if (index >= 0)
@@ -385,10 +394,12 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     }
 
     private fun highlightNumber(index: Int, flag: Boolean) {
-        if (index < numbering.size) {
-            for (i in numbering.indices)
-                numbering[i].isSelected = (flag && i == index)
-        }
+        if (index in 0 until numbering.size)
+            numbering[index].isSelected = flag
+//        if (index < numbering.size) {
+//            for (i in numbering.indices)
+//                numbering[i].isSelected = (flag && i == index)
+//        }
     }
 
     fun setNoteList(noteList: ArrayList<NoteListItem>) {

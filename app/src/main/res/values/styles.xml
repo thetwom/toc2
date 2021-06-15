@@ -121,8 +121,7 @@
         <item name="elementPadding">4dp</item>
         <item name="volumeColor">?attr/colorPrimaryFaint</item>
         <item name="backgroundViewColor">?android:colorBackground</item>
-        <item name="volumeColor">?attr/colorOnPrimary</item>
-        <item name="actionButtonTintList">?attr/colorOnPrimary</item>
+        <item name="actionButtonTintList">@color/plus_button_foreground</item>
     </style>
 
     <declare-styleable name="PlayButton">
