@@ -44,6 +44,7 @@
         <item name="tickVisualizerStyle">@style/Widget.AppTheme.TickVisualizerStyle</item>
         <item name="playButtonStyle">@style/Widget.AppTheme.PlayButtonStyle</item>
         <item name="soundChooserStyle3">@style/Widget.AppTheme.SoundChooserStyle3</item>
+        <item name="gridSelectionStyle">@style/Widget.AppTheme.GridSelectionStyle</item>
 
         <item name="windowActionModeOverlay">true</item>
         <item name="actionModeStyle">@style/Widget.App.ActionMode</item>
@@ -122,6 +123,30 @@
         <item name="volumeColor">?attr/colorPrimaryFaint</item>
         <item name="backgroundViewColor">?android:colorBackground</item>
         <item name="actionButtonTintList">@color/plus_button_foreground</item>
+    </style>
+
+    <declare-styleable name="GridSelection">
+        <attr name="numRows"/>
+        <attr name="numCols"/>
+        <attr name="buttonSpacing"/>
+        <attr name="backgroundTopLeft"/>
+        <attr name="backgroundTopRight"/>
+        <attr name="backgroundBottomLeft"/>
+        <attr name="backgroundBottomRight"/>
+        <attr name="backgroundLeft"/>
+        <attr name="backgroundRight"/>
+        <attr name="backgroundCenter"/>
+    </declare-styleable>
+
+    <style name="Widget.AppTheme.GridSelectionStyle" parent="">
+        <item name="buttonSpacing">1dp</item>
+        <item name="backgroundTopLeft">@drawable/grid_background_topleft</item>
+        <item name="backgroundTopRight">@drawable/grid_background_topright</item>
+        <item name="backgroundBottomLeft">@drawable/grid_background_bottomleft</item>
+        <item name="backgroundBottomRight">@drawable/grid_background_bottomright</item>
+        <item name="backgroundLeft">@drawable/grid_background_left</item>
+        <item name="backgroundRight">@drawable/grid_background_right</item>
+        <item name="backgroundCenter">@drawable/grid_background_center</item>
     </style>
 
     <declare-styleable name="PlayButton">

@@ -141,6 +141,7 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 //            noteHighlightColor = ta.getColorStateList(R.styleable.SoundChooser_noteHighlightColor)
 //            backgroundView.setBackgroundColor(ta.getColor(R.styleable.SoundChooser_backgroundViewColor, Color.WHITE))
             ta.recycle()
+
         }
 
         noteView.volumeColor = volumeColor

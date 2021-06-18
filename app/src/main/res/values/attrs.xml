@@ -10,6 +10,7 @@
     <attr name="noteViewStyle" format="reference"/>
     <attr name="soundChooserStyle" format="reference"/>
     <attr name="soundChooserStyle3" format="reference"/>
+    <attr name="gridSelectionStyle" format="reference"/>
     <attr name="playButtonStyle" format="reference"/>
     <attr name="savedItemStyle" format="reference"/>
 
@@ -46,4 +47,15 @@
 
     <attr name="vertical" format="boolean" />
     <attr name="showNumbers" format="boolean" />
+
+    <attr name="numRows" format="integer"/>
+    <attr name="numCols" format="integer"/>
+    <attr name="buttonSpacing" format="dimension"/>
+    <attr name="backgroundTopLeft" format="integer"/>
+    <attr name="backgroundTopRight" format="integer"/>
+    <attr name="backgroundBottomLeft" format="integer"/>
+    <attr name="backgroundBottomRight" format="integer"/>
+    <attr name="backgroundLeft" format="integer"/>
+    <attr name="backgroundRight" format="integer"/>
+    <attr name="backgroundCenter" format="integer"/>
 </resources>
