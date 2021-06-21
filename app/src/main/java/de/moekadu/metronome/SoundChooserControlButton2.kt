@@ -26,8 +26,8 @@ import android.util.Log
 
 @SuppressLint("ViewConstructor")
 class SoundChooserControlButton2(
-        context: Context, val note: NoteListItem, volumeColor: Int,
-        noteColor: ColorStateList?, noteHighlightColor: ColorStateList?) : NoteView(context) {
+    context: Context, noteListItem: NoteListItem, volumeColor: Int,
+    noteColor: ColorStateList?, noteHighlightColor: ColorStateList?) : NoteView(context) {
 
     private var isMovingToTarget = false
     private var cachedAnimationDuration = 0L
@@ -47,18 +47,17 @@ class SoundChooserControlButton2(
     var translationYTarget = 0f
         private set
     var moveToTargetOnDelete = false
-    val uid = note.uid
 
     var leftBoundToSwitchPosition = 0f
     var rightBoundToSwitchPosition = 0f
 
     var isActive = false
 
-    var volume = note.volume
-        private set
-    var noteId = note.id
-        private set
-
+    val note = noteListItem.clone()
+    val uid get() = note.uid
+    val volume get() = note.volume
+    val noteId get() = note.id
+    val noteDuration get() = note.duration
 
     init {
         setBackgroundResource(R.drawable.control_button_background)
@@ -68,18 +67,19 @@ class SoundChooserControlButton2(
         this.noteColor = noteColor
         this.noteColor = noteHighlightColor
         val noteList = ArrayList<NoteListItem>()
-        noteList.add(note)
+        noteList.add(noteListItem)
         setNoteList(noteList)
         highlightNote(0, true)
         visibility = GONE
     }
 
     fun set(noteListItem: NoteListItem) {
-        require(noteListItem.uid == uid)
+        require(noteListItem.uid == note.uid)
+        note.set(noteListItem)
         setNoteId(0, noteListItem.id)
         setVolume(0, noteListItem.volume)
-        noteId = noteListItem.id
-        volume = noteListItem.volume
+        setDuration(0, noteListItem.duration)
+        Log.v("Metronome", "SoundChooserControlButton2.set: noteListItem.duration: ${noteListItem.duration}")
     }
 
     fun containsCoordinates(xCo: Float, yCo: Float): Boolean {

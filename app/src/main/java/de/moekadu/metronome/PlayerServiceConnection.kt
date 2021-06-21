@@ -68,6 +68,7 @@ class PlayerServiceConnection(
         }
 
         override fun onNoteListChanged(noteList: ArrayList<NoteListItem>) {
+//            Log.v("Metronome", "PlayerServiceConnection.onNoteListChanged")
             _noteList.value = noteList
         }
     }

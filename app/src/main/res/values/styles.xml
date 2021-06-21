@@ -115,7 +115,7 @@
     </declare-styleable>
 
     <style name="Widget.AppTheme.SoundChooserStyle3" parent="">
-        <item name="noteColor">?attr/colorPrimary</item>
+        <item name="noteColor">@color/grid_foreground</item>
         <item name="noteHighlightColor">?attr/colorPrimary</item>
         <item name="elementElevation">5dp</item>
         <item name="activeTranslationZ">30dp</item>

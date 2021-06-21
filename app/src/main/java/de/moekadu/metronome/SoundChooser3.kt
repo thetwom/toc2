@@ -13,18 +13,218 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.core.view.setPadding
 import kotlin.math.absoluteValue
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+
+// Portrait Layout:
+// |-----|-------------------------------------| y = 0.94
+// |  v  |         Tuplets : ??? x h/2         |
+// |  o  |-------------------------------------| y = 0.846
+// |  l  |          Note duration: ??? x h/2   |
+// |  u  |-------------------------------------| y = 0.752
+// |  m  |                                     |
+// |  e  |        Note selection:              |
+// |  :  |           ??? x 2 * h               |
+// |  r  |                                     |
+// |  1  |                                     |
+// |  :  |                                     |
+// |  5  |                                     |
+// |-----------------------|---------|---------|  y = 0.376
+// |                       | done:   | delete: |
+// |                       |  h x h  |  h x h  |
+// |                       |         |         |
+// |---------------------------------|---------|  y = 0.188
+// |                                 | plus:   |
+// |                noteView: h      |  h x h  |
+// |                                 |         |
+// |-------------------------------------------|
+
+// Landscape layout:
+// |-----|-------------------------------|                            --- y = 0.9
+// |  v  |       Tuplets: 4*h x h/2      |
+// |  o  |-------------------------------|                            --- y = 0.75
+// |  l  |    Note duration: 4*h x h/2   |
+// |  u  |-------------------------------|------------------------------| y = 0.6
+// |  m  |                                                              |
+// |  e  |        Note selection:  max(7*h,all space) x h               |
+// |     |                                                              |
+// |---------------------------------|---------|---------|---------|----| y = 0.3
+// |                                 | plus:   | delete: | done:   |
+// |                noteView: h      |  h x h  |   h x h |  h x h  |
+// |                                 |         |         |         |
+// |-------------------------------------------|---------|---------|
+private class SoundChooserViewMeasures(
+        val viewSpacing: Float,
+        val noteViewHeightPercent: Float,
+        val plusButtonRightPercent: Float, // only landscape
+        val paddingLeft: Int,
+        val paddingTop: Int,
+        val paddingRight: Int,
+        val paddingBottom: Int,
+        val staticElementPadding: Int) {
+    private val actionButtonsToNoteViewRatio = 0.85f
+    private val gridCellHeightToNoteViewRatio = 0.9f
+
+    val noteView = Rect()
+    val extraNoteLines = Rect()
+    val plus = Rect()
+    val delete = Rect()
+    val done = Rect()
+    val noteSelection = Rect()
+    val noteDuration = Rect()
+    val tuplets = Rect()
+    val volume = Rect()
+
+    fun layoutPortrait(width: Int, height: Int) {
+        // vertical pass
+        noteView.bottom = height - paddingBottom
+        noteView.top = (noteView.bottom - noteViewHeightPercent * height).roundToInt()
+        //Log.v("Metronome", "SoundChooser3.layotPortrait: ${noteView.bottom}, ${noteView.top} ")
+        extraNoteLines.bottom = noteView.bottom
+        extraNoteLines.top = noteView.top
+
+        val plusButtonHeight = (actionButtonsToNoteViewRatio * noteView.height())
+        plus.top = (noteView.centerY() - 0.5f * plusButtonHeight).roundToInt()
+        plus.bottom = plus.top + plusButtonHeight.roundToInt()
+
+        delete.bottom = (noteView.top - viewSpacing).roundToInt()
+        delete.top = delete.bottom - plus.height()
+
+        done.bottom = delete.bottom
+        done.top = delete.top
+
+        val gridCellHeightMax = (done.top - 3 * viewSpacing - staticElementPadding) / 3f
+        val gridCellDesired = noteView.height() * gridCellHeightToNoteViewRatio
+        val gridCellHeight = min(gridCellHeightMax, gridCellDesired)
+
+        noteSelection.bottom = (done.top - viewSpacing).roundToInt()
+        noteSelection.top = (noteSelection.bottom - 2 * gridCellHeight).roundToInt()
+
+        noteDuration.bottom = (noteSelection.top - viewSpacing).roundToInt()
+        noteDuration.top = (noteDuration.bottom - 0.5f * gridCellHeight).roundToInt()
+
+        tuplets.bottom = (noteDuration.top - viewSpacing).roundToInt()
+        tuplets.top = (tuplets.bottom - 0.5f * gridCellHeight).roundToInt()
+
+        volume.bottom = noteSelection.bottom
+        volume.top = tuplets.top
+
+        // horizontal pass
+        extraNoteLines.right = width - paddingRight
+        extraNoteLines.left = (extraNoteLines.right - 2 * viewSpacing - plus.height()).roundToInt()
+
+        plus.left = (extraNoteLines.centerX() - 0.5f * plus.height()).roundToInt()
+        plus.right = plus.left + plus.height()
+
+        noteView.right = extraNoteLines.left
+        noteView.left = paddingLeft
+
+        delete.right = plus.right
+        delete.left = delete.right - delete.height()
+
+        done.right = (delete.left - viewSpacing).roundToInt()
+        done.left = done.right - done.height()
+
+        // volume width:
+        // user the larger value of "ratio 1:7" and tuplets height
+        // but max 0.2 * width of view
+        val volumeWidth = min(0.2f * width, max(volume.height() / 7.0f, 0.8f * noteDuration.height()))
+        //Log.v("Metronome", "SoundChooser3: h/5=${volume.height()/5.0f}")
+        volume.left = staticElementPadding
+        volume.right = (volume.left + volumeWidth).roundToInt()
+
+        noteSelection.left = (volume.right + viewSpacing).roundToInt()
+        noteSelection.right = width - staticElementPadding
+
+        noteDuration.left = noteSelection.left
+        noteDuration.right = noteSelection.right
+
+        tuplets.left = noteDuration.left
+        tuplets.right = noteDuration.right
+    }
+
+    fun layoutLandscape(width: Int, height: Int) {
+        // vertical pass
+        noteView.bottom = height - paddingBottom
+        noteView.top = (noteView.bottom - noteViewHeightPercent * height).roundToInt()
+
+        extraNoteLines.bottom = noteView.bottom
+        extraNoteLines.top = noteView.top
+
+        val plusButtonHeight = (actionButtonsToNoteViewRatio * noteView.height())
+        plus.top = (noteView.centerY() - 0.5f * plusButtonHeight).roundToInt()
+        plus.bottom = plus.top + plusButtonHeight.roundToInt()
+
+        delete.bottom = plus.bottom
+        delete.top = plus.top
+
+        done.bottom = delete.bottom
+        done.top = delete.top
+
+        val gridCellHeightMax = (noteView.top - 3 * viewSpacing - staticElementPadding) / 2f
+        val gridCellDesired = noteView.height() * gridCellHeightToNoteViewRatio
+        val gridCellHeight = min(gridCellHeightMax, gridCellDesired)
+
+        noteSelection.bottom = (noteView.top - viewSpacing).roundToInt()
+        noteSelection.top = (noteSelection.bottom - gridCellHeight).roundToInt()
+
+        noteDuration.bottom = (noteSelection.top - viewSpacing).roundToInt()
+        noteDuration.top = (noteDuration.bottom - 0.5f * gridCellHeight).roundToInt()
+
+        tuplets.bottom = (noteDuration.top - viewSpacing).roundToInt()
+        tuplets.top = (tuplets.bottom - 0.5f * gridCellHeight).roundToInt()
+
+        volume.bottom = noteSelection.bottom
+        volume.top = tuplets.top
+
+        // horizontal pass
+        plus.right = (width * plusButtonRightPercent).roundToInt()
+        plus.left = plus.right - plus.height()
+
+        extraNoteLines.right = width - paddingRight
+        extraNoteLines.left = (plus.left - viewSpacing).roundToInt()
+
+        noteView.right = extraNoteLines.left
+        noteView.left = paddingLeft
+
+        delete.left = (plus.right + viewSpacing).roundToInt()
+        delete.right = delete.left + delete.height()
+
+        done.left = (delete.left + viewSpacing).roundToInt()
+        done.right = done.left + done.height()
+
+        // volume width:
+        // user the larger value of "ratio 1:5" and tuplets height
+        // but max 0.2 * width of view
+        val volumeWidth = min(0.2f * width, max(volume.height() / 7.0f, 0.8f * noteDuration.height()))
+        volume.left = staticElementPadding
+        volume.right = (volume.left + volumeWidth).roundToInt()
+
+        noteSelection.left = (volume.right + viewSpacing).roundToInt()
+        // note selection width: max space, but not don't exceed square ratio of single notes
+        noteSelection.right = max(width - staticElementPadding,
+            noteSelection.left + getNumAvailableNotes() * noteSelection.height())
+
+        noteDuration.left = noteSelection.left
+        noteDuration.right = max(noteSelection.right, noteDuration.left + 4 * noteSelection.height())
+
+        tuplets.left = noteDuration.left
+        tuplets.right = noteDuration.right
+    }
+}
+
 
 class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     : ViewGroup(context, attrs, defStyleAttr) {
 
     interface StateChangedListener {
-        fun onNoteIdChanged(uid: UId, noteId: Int, status: Status) {}
-        fun onVolumeChanged(uid: UId, volume: Float, status: Status) {}
+        fun changeNoteId(uid: UId, noteId: Int, status: Status)
+        fun changeVolume(uid: UId, volume: Float, status: Status)
+        fun changeNoteDuration(uid: UId, duration: NoteDuration) {}
         fun addNote(note: NoteListItem)
-        fun removeNote(uid: UId) {}
-        fun moveNote(uid: UId, toIndex: Int) {}
+        fun removeNote(uid: UId)
+        fun moveNote(uid: UId, toIndex: Int)
     }
 
     var stateChangedListener: StateChangedListener? = null
@@ -41,11 +241,7 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     private var noteColor: ColorStateList? = null
     private var noteHighlightColor: ColorStateList? = null
 
-    private val noteViewTopFraction = 0.82f
-    private val plusButtonRightFraction = 1f
-    private val actionButtonTopFraction = 0.64f
     private val orientation = Orientation.Portrait
-    private val actionButtonSpacing = Utilities.dp2px(4f)
 
     private val plusButton = ImageButton(context).apply {
         setBackgroundResource(R.drawable.plus_button_background)
@@ -78,7 +274,12 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         visibility = GONE
     }
 
-    private val actionButtonsToNoteViewRatio = 0.85f
+    private val volumeControl = VolumeControl(context).apply {
+        vertical = true
+    }
+    private var noteSelection: GridSelection
+    private var noteDuration: GridSelection
+    private var tuplets: GridSelection
 
     private val temporaryBackground = View(context).apply {
         setBackgroundColor(Color.WHITE)
@@ -90,32 +291,10 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     private var nextActiveControlButtonUidOnNoteListChange: UId? = null
     private val measureRect = Rect()
 
-    private fun getNoteViewBottom(viewHeight: Int) = viewHeight - paddingBottom
-    private fun getNoteViewTop(viewHeight: Int) = viewHeight * noteViewTopFraction
-    private fun getNoteViewHeight(viewHeight: Int) =
-        (getNoteViewBottom(viewHeight) - getNoteViewTop(viewHeight)).roundToInt()
-    private fun getActionButtonSize(viewHeight: Int) =
-        (actionButtonsToNoteViewRatio * getNoteViewHeight(viewHeight)).roundToInt()
-    private fun getPlusButtonBottom(viewHeight: Int) =
-        getNoteViewBottom(viewHeight) - (getNoteViewHeight(viewHeight) - getActionButtonSize(viewHeight)) / 2
-    private fun getDeleteButtonStaticStateTop(viewHeight: Int) =
-        when (orientation) {
-            Orientation.Portrait -> {
-                (viewHeight * actionButtonTopFraction).roundToInt()
-            }
-            Orientation.Landscape -> {
-                getPlusButtonBottom(viewHeight) - getActionButtonSize(viewHeight)
-            }
-        }
+    private val staticElementPadding = Utilities.dp2px(8f).roundToInt()
+    private val viewSpacing = Utilities.dp2px(8f)
 
-    private fun getPlusButtonNoteLinesRight(viewWidth: Int)
-            = min((viewWidth * plusButtonRightFraction).roundToInt(), viewWidth - paddingRight)
-    private fun getPlusButtonRight(viewWidth: Int)
-            = (getPlusButtonNoteLinesRight(viewWidth) - actionButtonSpacing).roundToInt()
-    private fun getNoteViewRight(viewWidth: Int, viewHeight: Int)
-        = (getPlusButtonRight(viewWidth) - getActionButtonSize(viewHeight) - actionButtonSpacing).roundToInt()
-    private fun getNoteViewWidth(viewWidth: Int, viewHeight: Int)
-            = getNoteViewRight(viewWidth, viewHeight) - paddingLeft
+    private var soundChooserViewMeasures: SoundChooserViewMeasures
 
     constructor(context: Context, attrs: AttributeSet? = null) : this(context, attrs, R.attr.soundChooserStyle3)
 
@@ -129,6 +308,8 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             deleteButton.imageTintList = actionButtonTintList
             doneButton.imageTintList = actionButtonTintList
 
+            temporaryBackground.backgroundTintList = ta.getColorStateList(R.styleable.SoundChooser3_backgroundViewColor)
+
             noteColor = ta.getColorStateList(R.styleable.SoundChooser3_noteColor)
             noteHighlightColor = ta.getColorStateList(R.styleable.SoundChooser3_noteHighlightColor)
 
@@ -137,13 +318,12 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 //            activeTranslationZ = ta.getDimension(R.styleable.SoundChooser_activeTranslationZ, activeTranslationZ)
 //            elementPadding = ta.getDimension(R.styleable.SoundChooser_elementPadding, elementPadding)
             volumeColor = ta.getColor(R.styleable.SoundChooser3_volumeColor, Color.GRAY)
-//            noteColor = ta.getColorStateList(R.styleable.SoundChooser_noteColor)
-//            noteHighlightColor = ta.getColorStateList(R.styleable.SoundChooser_noteHighlightColor)
-//            backgroundView.setBackgroundColor(ta.getColor(R.styleable.SoundChooser_backgroundViewColor, Color.WHITE))
             ta.recycle()
 
         }
 
+        soundChooserViewMeasures = SoundChooserViewMeasures(viewSpacing, 0.188f, 1.0f,
+            paddingLeft, paddingTop, paddingTop, paddingRight, staticElementPadding)
         noteView.volumeColor = volumeColor
         noteView.noteColor = noteColor
         noteView.noteHighlightColor = noteHighlightColor
@@ -156,6 +336,89 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         addView(plusButton)
         addView(deleteButton)
         addView(doneButton)
+
+        addView(volumeControl)
+        volumeControl.onVolumeChangedListener = VolumeControl.OnVolumeChangedListener { volume ->
+            activeControlButton?.let { controlButton ->
+                if (controlButton.volume != volume) {
+//                    controlButton.setVolume(0, volume)
+                    stateChangedListener?.changeVolume(controlButton.uid, volume, status)
+                }
+            }
+        }
+
+//
+//        // TODO: numRows, numCols, spacing must be a parameter
+        noteSelection = GridSelection(2, 4, Utilities.dp2px(2f).roundToInt(),
+            R.drawable.grid_background_topleft_withlines,
+            R.drawable.grid_background_topright_withlines,
+            R.drawable.grid_background_bottomleft_withlines,
+            R.drawable.grid_background_bottomright_withlines,
+            R.drawable.grid_background_left_withlines,
+            R.drawable.grid_background_right_withlines,
+            R.drawable.grid_background_center_withlines,
+            noteColor
+        )
+        noteSelection.activeButtonChangedListener = object : GridSelection.ActiveButtonChangedListener {
+            override fun onActiveButtonChanged(index: Int) {
+                activeControlButton?.let { controlButton ->
+                    if (controlButton.noteId != index && index < getNumAvailableNotes()) {
+//                        controlButton.setNoteId(0, index)
+                        stateChangedListener?.changeNoteId(controlButton.uid, index, status)
+                    }
+                }
+            }
+        }
+        noteSelection.addView(this)
+        setNoteSelectionNotes(NoteDuration.Quarter)
+
+        noteDuration = GridSelection(1, 3, Utilities.dp2px(2f).roundToInt(),
+            R.drawable.grid_background_topleft,
+            R.drawable.grid_background_topright,
+            R.drawable.grid_background_bottomleft,
+            R.drawable.grid_background_bottomright,
+            R.drawable.grid_background_left,
+            R.drawable.grid_background_right,
+            R.drawable.grid_background_center,
+            noteColor
+        )
+        noteDuration.addView(this)
+        noteDuration.setButtonDrawable(0, R.drawable.ic_note_duration_sixteenth)
+        noteDuration.setButtonDrawable(1, R.drawable.ic_note_duration_eighth)
+        noteDuration.setButtonDrawable(2, R.drawable.ic_note_duration_quarter)
+
+        tuplets = GridSelection(1, 3, Utilities.dp2px(2f).roundToInt(),
+            R.drawable.grid_background_topleft,
+            R.drawable.grid_background_topright,
+            R.drawable.grid_background_bottomleft,
+            R.drawable.grid_background_bottomright,
+            R.drawable.grid_background_left,
+            R.drawable.grid_background_right,
+            R.drawable.grid_background_center,
+            noteColor
+        )
+        tuplets.addView(this)
+        tuplets.setButtonDrawable(0, R.drawable.ic_note_duration_normal)
+        tuplets.setButtonDrawable(1, R.drawable.ic_note_duration_triplet)
+        tuplets.setButtonDrawable(2, R.drawable.ic_note_duration_quintuplet)
+
+        noteDuration.activeButtonChangedListener =
+            GridSelection.ActiveButtonChangedListener { index ->
+                activeControlButton?.let { controlButton ->
+                    val noteDuration = getSelectedNoteDuration(index, tuplets.activeButtonIndex)
+                    Log.v("Metronome", "SoundChooser3: noteDuration.onActiveButtonChanged: duration=$noteDuration, controlButton.duration=${controlButton.noteDuration}")
+                    if (controlButton.noteDuration != noteDuration)
+                        stateChangedListener?.changeNoteDuration(controlButton.uid, noteDuration)
+                }
+            }
+        tuplets.activeButtonChangedListener =
+            GridSelection.ActiveButtonChangedListener { index ->
+                activeControlButton?.let { controlButton ->
+                    val noteDuration = getSelectedNoteDuration(noteDuration.activeButtonIndex, index)
+                    if (controlButton.noteDuration != noteDuration)
+                        stateChangedListener?.changeNoteDuration(controlButton.uid, noteDuration)
+                }
+            }
 
         plusButton.setOnClickListener {
             val newNote = controlButtons.lastOrNull()?.note?.clone()?.apply { uid = UId.create() }
@@ -179,6 +442,19 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         }
     }
 
+    private fun measureView(view: View, rect: Rect) {
+//        Log.v("Metronome", "SoundChooser3.measureView: $rect")
+        view.measure(
+            MeasureSpec.makeMeasureSpec(rect.width(), MeasureSpec.EXACTLY),
+            MeasureSpec.makeMeasureSpec(rect.height(), MeasureSpec.EXACTLY)
+        )
+    }
+
+    private fun layoutView(view: View, rect: Rect) {
+//        Log.v("Metronome", "SoundChooser3.layoutView: $rect")
+        view.layout(rect.left, rect.top, rect.right, rect.bottom)
+    }
+
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         Log.v("Metronome", "SoundChooser3.onMeasure")
         val measuredWidth = MeasureSpec.getSize(widthMeasureSpec)
@@ -186,28 +462,30 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 
         temporaryBackground.measure(widthMeasureSpec, heightMeasureSpec)
 
-        val noteViewHeight = getNoteViewHeight(measuredHeight)
-        val noteViewWidth = getNoteViewWidth(measuredWidth, measuredHeight)
+        soundChooserViewMeasures.layoutPortrait(measuredWidth, measuredHeight)
 
-        val noteViewHeightSpec = MeasureSpec.makeMeasureSpec(noteViewHeight, MeasureSpec.EXACTLY)
-        val noteViewWidthSpec = MeasureSpec.makeMeasureSpec(noteViewWidth, MeasureSpec.EXACTLY)
+        measureView(noteView, soundChooserViewMeasures.noteView)
+        measureView(volumeControl, soundChooserViewMeasures.volume)
+        measureView(plusButtonNoteLines, soundChooserViewMeasures.extraNoteLines)
+        measureView(plusButton, soundChooserViewMeasures.plus)
+        measureView(deleteButton, soundChooserViewMeasures.delete)
+        measureView(doneButton, soundChooserViewMeasures.done)
 
-        noteView.measure(noteViewWidthSpec, noteViewHeightSpec)
-
-        val actionButtonSizeSpec = MeasureSpec.makeMeasureSpec(
-            getActionButtonSize(measuredHeight),
-            MeasureSpec.EXACTLY
+        noteSelection.measure(
+            soundChooserViewMeasures.noteSelection.width(),
+            soundChooserViewMeasures.noteSelection.height()
         )
-        plusButton.measure(actionButtonSizeSpec, actionButtonSizeSpec)
-        doneButton.measure(actionButtonSizeSpec, actionButtonSizeSpec)
-        deleteButton.measure(actionButtonSizeSpec, actionButtonSizeSpec)
-
-        val noteLinesWidthSpec = MeasureSpec.makeMeasureSpec(
-            getPlusButtonNoteLinesRight(measuredWidth) - getNoteViewRight(measuredWidth, measuredHeight),
-            MeasureSpec.EXACTLY
+        noteDuration.measure(
+           soundChooserViewMeasures.noteDuration.width(),
+            soundChooserViewMeasures.noteDuration.height()
         )
-        plusButtonNoteLines.measure(noteLinesWidthSpec, noteViewHeightSpec)
+        tuplets.measure(
+            soundChooserViewMeasures.tuplets.width(),
+            soundChooserViewMeasures.tuplets.height()
+        )
 
+        val noteViewWidth = soundChooserViewMeasures.noteView.width()
+        val noteViewHeight = soundChooserViewMeasures.noteView.height()
         controlButtons.forEachIndexed { index, button ->
             NoteView.computeBoundingBox(index, controlButtons.size, noteViewWidth, noteViewHeight, measureRect)
             button.measure(
@@ -222,58 +500,47 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         Log.v("Metronome", "SoundChooser3.onLayout")
         val viewHeight = b - t
         val viewWidth = r - l
-        val noteViewBottom = getNoteViewBottom(viewHeight)
-        val noteViewRight = getNoteViewRight(viewWidth, viewHeight)
+        soundChooserViewMeasures.layoutPortrait(viewWidth, viewHeight)
 
         temporaryBackground.layout(
-            0, 0, temporaryBackground.measuredWidth, temporaryBackground.measuredHeight
+           0, 0, temporaryBackground.measuredWidth, temporaryBackground.measuredHeight
         )
 
-        plusButtonNoteLines.layout(
-            noteViewRight, // noteViewRight is noteLinesLeft
-            noteViewBottom - plusButtonNoteLines.measuredHeight,
-            noteViewRight + plusButtonNoteLines.measuredWidth,
-            noteViewBottom
+        layoutView(noteView, soundChooserViewMeasures.noteView)
+        layoutView(volumeControl, soundChooserViewMeasures.volume)
+        layoutView(plusButtonNoteLines, soundChooserViewMeasures.extraNoteLines)
+        layoutView(plusButton, soundChooserViewMeasures.plus)
+        // position of the following elements on plus button ... will change by using translation later
+        layoutView(deleteButton, soundChooserViewMeasures.plus)
+        layoutView(doneButton, soundChooserViewMeasures.plus)
+
+        noteSelection.layout(
+            soundChooserViewMeasures.noteSelection.left,
+            soundChooserViewMeasures.noteSelection.top,
+            soundChooserViewMeasures.noteSelection.right,
+            soundChooserViewMeasures.noteSelection.bottom
         )
-
-        val plusButtonRight = getPlusButtonRight(viewWidth)
-        val plusButtonBottom = getPlusButtonBottom(viewHeight)
-
-        plusButton.layout(
-            plusButtonRight - plusButton.measuredWidth,
-            plusButtonBottom - plusButton.measuredHeight,
-            plusButtonRight,
-            plusButtonBottom
+        noteDuration.layout(
+            soundChooserViewMeasures.noteDuration.left,
+            soundChooserViewMeasures.noteDuration.top,
+            soundChooserViewMeasures.noteDuration.right,
+            soundChooserViewMeasures.noteDuration.bottom
         )
-
-        // layout at position of plus button, exact position is done later by using translation
-        deleteButton.layout(
-            plusButtonRight - deleteButton.measuredWidth,
-            plusButtonBottom - deleteButton.measuredHeight,
-            plusButtonRight,
-            plusButtonBottom
+        tuplets.layout(
+            soundChooserViewMeasures.tuplets.left,
+            soundChooserViewMeasures.tuplets.top,
+            soundChooserViewMeasures.tuplets.right,
+            soundChooserViewMeasures.tuplets.bottom
         )
-
-        // layout at position of plus button, exact position is done later by using translation
-        doneButton.layout(
-            plusButtonRight - doneButton.measuredWidth,
-            plusButtonBottom - doneButton.measuredHeight,
-            plusButtonRight,
-            plusButtonBottom
-        )
-
-        val noteViewLeft = noteViewRight - noteView.measuredWidth
-        val noteViewTop = noteViewBottom - noteView.measuredHeight
-        noteView.layout(
-            noteViewLeft,
-            noteViewTop,
-            noteViewRight,
-            noteViewBottom)
 
         controlButtons.forEach { button ->
             button.layout(0, 0, button.measuredWidth, button.measuredHeight)
         }
-        setControlButtonTargetTranslations(noteViewLeft, noteViewTop)
+        setControlButtonTargetTranslations(
+            soundChooserViewMeasures.noteView.left,
+            soundChooserViewMeasures.noteView.top
+        )
+
         controlButtons.forEach { button ->
             //if (button.visibility != VISIBLE || !button.isBeingDragged)
             if (!button.isBeingDragged)
@@ -345,9 +612,7 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                 }
 
                 if (triggerStaticSoundChooserOnUp) {
-                    activeControlButton?.let {
-                        it.moveToTarget(200L) // { activeControlButton?.stopDragging() }
-                    }
+                    activeControlButton?.moveToTarget(200L)
                     showStaticChooser(200L)
                     triggerStaticSoundChooserOnUp = false
                 } else if (status != Status.Static){
@@ -355,9 +620,7 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                     hideSoundChooser(200L)
                 }
                 else {
-                    activeControlButton?.let {
-                        it.moveToTarget(200L) // { activeControlButton?.stopDragging() }
-                    }
+                    activeControlButton?.moveToTarget(200L)
                 }
             }
         }
@@ -390,31 +653,11 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         if (status == Status.Static)
             return
         status = Status.Static
-        val deleteButtonTranslationX: Float
-        val deleteButtonTranslationY: Float
 
-        val doneButtonTranslationX: Float
-        val doneButtonTranslationY: Float
-
-        val actionButtonSize = getActionButtonSize(measuredHeight)
-
-        when (orientation) {
-            Orientation.Landscape -> {
-                deleteButtonTranslationX = actionButtonSize + actionButtonSpacing
-                deleteButtonTranslationY = 0f
-                doneButtonTranslationX =
-                    deleteButtonTranslationX + actionButtonSize + actionButtonSpacing
-                doneButtonTranslationY = 0f
-            }
-            Orientation.Portrait -> {
-                val deleteButtonTop = getDeleteButtonStaticStateTop(measuredHeight)
-                deleteButtonTranslationX = 0f
-                deleteButtonTranslationY = (deleteButtonTop - deleteButton.top).toFloat()
-                doneButtonTranslationX =
-                    deleteButtonTranslationX - actionButtonSize - actionButtonSpacing
-                doneButtonTranslationY = deleteButtonTranslationY
-            }
-        }
+        val deleteButtonTranslationX: Float = (soundChooserViewMeasures.delete.left - soundChooserViewMeasures.plus.left).toFloat()
+        val deleteButtonTranslationY: Float = (soundChooserViewMeasures.delete.top - soundChooserViewMeasures.plus.top).toFloat()
+        val doneButtonTranslationX: Float = (soundChooserViewMeasures.done.left - soundChooserViewMeasures.plus.left).toFloat()
+        val doneButtonTranslationY: Float = (soundChooserViewMeasures.done.top - soundChooserViewMeasures.plus.top).toFloat()
 
         if (animationDuration > 0L) {
             if (doneButton.visibility != VISIBLE)
@@ -449,7 +692,7 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     fun hideSoundChooser(animationDuration: Long) {
         if (status == Status.Off)
             return
-        Log.v("Metronome", "SoundChooser3.hideSoundChooser: animationDuration=$animationDuration")
+//        Log.v("Metronome", "SoundChooser3.hideSoundChooser: animationDuration=$animationDuration")
         status = Status.Off
 
         if (animationDuration > 0L) {
@@ -481,8 +724,9 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     }
 
     fun setNoteList(noteList: ArrayList<NoteListItem>, animationDuration: Long) {
-
+        Log.v("Metronome", "SoundChooser3.setNoteList: noteList[0] = ${noteList[0].duration}")
         noteView.setNoteList(noteList)
+        val noteDurationBefore = activeControlButton?.noteDuration
 
         // update control buttons if uid did not change
         if (areNoteListUidEqualToControlButtonUid(noteList)) {
@@ -539,6 +783,12 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             }
             nextActiveControlButtonUidOnNoteListChange = null
         }
+
+        activeControlButton?.noteDuration?.let {noteDuration ->
+            if (noteDuration != noteDurationBefore)
+                setNoteSelectionNotes(noteDuration)
+        }
+
     }
 
     private fun setActiveControlButton(button: SoundChooserControlButton2?, animationDuration: Long) {
@@ -564,6 +814,15 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                 //it.moveToTargetAndDisappear(animationDuration) { it.visibility = GONE }
                 it.moveToTarget(animationDuration, true) { it.visibility = GONE }
             }
+        }
+
+        // set static sound chooser elements
+        activeControlButton?.let { controlButton ->
+            volumeControl.setVolume(controlButton.volume, animationDuration)
+            noteSelection.setActiveButton(controlButton.noteId)
+            noteDuration.setActiveButton(getNoteDurationIndex(controlButton.noteDuration))
+            tuplets.setActiveButton(getTupletIndex(controlButton.noteDuration))
+            setNoteSelectionNotes(controlButton.noteDuration)
         }
     }
 
@@ -653,6 +912,49 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         val centerX = view.x + 0.5f * view.width
         return centerX > deleteButton.x && centerX < deleteButton.x + deleteButton.width
     }
+
+    private fun getSelectedNoteDuration(indexDuration: Int, indexTuplets: Int): NoteDuration {
+        Log.v("Metronome", "SoundChooser3.getSelectedNoteDuration: indexDuration: $indexDuration, indexTuplets: $indexTuplets")
+        return when (indexTuplets) {
+            1 -> when (indexDuration) {
+                1 -> NoteDuration.EighthTriplet
+                0 -> NoteDuration.SixteenthTriplet
+                else -> NoteDuration.QuarterTriplet
+            }
+            2 -> when (indexDuration) {
+                1 -> NoteDuration.EighthQuintuplet
+                0 -> NoteDuration.SixteenthQuintuplet
+                else -> NoteDuration.QuarterQuintuplet
+            }
+            else -> when (indexDuration) {
+                1 -> NoteDuration.Eighth
+                0 -> NoteDuration.Sixteenth
+                else -> NoteDuration.Quarter
+            }
+        }
+    }
+
+    private fun getNoteDurationIndex(noteDuration: NoteDuration): Int {
+        return when (noteDuration) {
+            NoteDuration.Quarter, NoteDuration.QuarterTriplet, NoteDuration.QuarterQuintuplet -> 2
+            NoteDuration.Eighth, NoteDuration.EighthTriplet, NoteDuration.EighthQuintuplet -> 1
+            NoteDuration.Sixteenth, NoteDuration.SixteenthTriplet, NoteDuration.SixteenthQuintuplet -> 0
+        }
+    }
+
+    private fun getTupletIndex(noteDuration: NoteDuration): Int {
+        return when (noteDuration) {
+            NoteDuration.Quarter, NoteDuration.Eighth, NoteDuration.Sixteenth -> 0
+            NoteDuration.QuarterTriplet, NoteDuration.EighthTriplet, NoteDuration.SixteenthTriplet -> 1
+            NoteDuration.QuarterQuintuplet, NoteDuration.EighthQuintuplet, NoteDuration.SixteenthQuintuplet -> 2
+        }
+    }
+
+    private fun setNoteSelectionNotes(noteDuration: NoteDuration) {
+        for (note in 0 until getNumAvailableNotes())
+            noteSelection.setButtonDrawable(note, getNoteDrawableResourceID(note, noteDuration))
+    }
+
     enum class Orientation {Landscape, Portrait}
     enum class Status { Off, MoveNote, Dynamic, Static}
 }

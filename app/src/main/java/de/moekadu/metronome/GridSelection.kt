@@ -1,40 +1,32 @@
 package de.moekadu.metronome
 
 import android.content.Context
-import android.content.res.Resources
-import android.graphics.Outline
-import android.graphics.Rect
-import android.graphics.drawable.Drawable
-import android.util.AttributeSet
+import android.content.res.ColorStateList
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewOutlineProvider
 import android.widget.ImageButton
+import android.widget.ImageView
 import kotlin.math.roundToInt
 
-class GridSelection(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
-    : ViewGroup(context, attrs, defStyleAttr) {
+class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
+                    val drawableTopLeft: Int, val drawableTopRight: Int,
+                    val drawableBottomLeft: Int, val drawableBottomRight: Int,
+                    val drawableLeft: Int, val drawableRight: Int,
+                    val drawableCenter: Int,
+                    val tint: ColorStateList?) {
+
     // TODO: store and load state, deactivate buttons
-    interface ActiveButtonChangedListener {
+    fun interface ActiveButtonChangedListener {
         fun onActiveButtonChanged(index: Int)
     }
 
     var activeButtonChangedListener: ActiveButtonChangedListener? = null
 
-    private var drawableTopLeft = 0
-    private var drawableTopRight = 0
-    private var drawableBottomLeft = 0
-    private var drawableBottomRight = 0
-    private var drawableLeft = 0
-    private var drawableRight = 0
-    private var drawableCenter = 0
-
-    private var numRows = 1
-    private var numCols = 2
-
-    private var buttonSpacing = Utilities.dp2px(1f)
-
     private val buttons = ArrayList<ImageButton>()
+
+    val activeButtonIndex get() = buttons.indexOfFirst { it.isActivated }
 
 //    private val outlineProvider = object : ViewOutlineProvider() {
 //        private val rectInt = Rect()
@@ -44,40 +36,13 @@ class GridSelection(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 //            outline.setRoundRect(rectInt, cornerRad)
 //        }
 //    }
-    constructor(context: Context, attrs: AttributeSet? = null) : this(
-        context,
-        attrs,
-        R.attr.gridSelectionStyle
-    )
-
-    init {
+    fun addView(viewGroup: ViewGroup){
         //setOutlineProvider(outlineProvider)
-        attrs?.let {
-            val ta = context.obtainStyledAttributes(
-                attrs, R.styleable.GridSelection,
-                defStyleAttr, R.style.Widget_AppTheme_SoundChooserStyle3
-            )
 
-            drawableTopLeft = ta.getResourceId(R.styleable.GridSelection_backgroundTopLeft, 0)
-            drawableTopRight = ta.getResourceId(R.styleable.GridSelection_backgroundTopRight, 0)
-            drawableBottomLeft = ta.getResourceId(R.styleable.GridSelection_backgroundBottomLeft, 0)
-            drawableBottomRight = ta.getResourceId(R.styleable.GridSelection_backgroundBottomRight, 0)
-            drawableLeft = ta.getResourceId(R.styleable.GridSelection_backgroundLeft, 0)
-            drawableRight = ta.getResourceId(R.styleable.GridSelection_backgroundRight, 0)
-            drawableCenter = ta.getResourceId(R.styleable.GridSelection_backgroundCenter, 0)
-
-            numRows = ta.getInteger(R.styleable.GridSelection_numRows, numRows)
-            numCols = ta.getInteger(R.styleable.GridSelection_numCols, numCols)
-            buttonSpacing = ta.getDimension(R.styleable.GridSelection_buttonSpacing, buttonSpacing)
-            ta.recycle()
-        }
-
-        //setBackgroundResource(R.drawable.grid_background_center)
-
-        for (col in 0 until numCols) {
-            for (row in 0 until numRows) {
+      for (row in 0 until numRows) {
+          for (col in 0 until numCols) {
                 val index = buttons.size
-                val button = ImageButton(context).apply {
+                val button = ImageButton(viewGroup.context).apply {
                     setPadding(0, 0, 0, 0)
                     elevation = Utilities.dp2px(3f)
                     val backgroundId = (when {
@@ -94,42 +59,53 @@ class GridSelection(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                         setActiveButton(index)
                         activeButtonChangedListener?.onActiveButtonChanged(index)
                     }
+                    scaleType = ImageView.ScaleType.FIT_CENTER
+                    imageTintList = tint
                 }
                 buttons.add(button)
-                addView(button)
+                viewGroup.addView(button)
             }
         }
     }
 
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val measuredWidth = MeasureSpec.getSize(widthMeasureSpec)
-        val measuredHeight = MeasureSpec.getSize(heightMeasureSpec)
+    fun measure(measuredWidth: Int, measuredHeight: Int) {
+        val buttonHorizontalSpace = (measuredWidth - (numCols - 1) * buttonSpacing)
+        val buttonVerticalSpace = (measuredHeight - (numRows - 1) * buttonSpacing)
+        val buttonWidth = buttonHorizontalSpace / numCols
+        val buttonHeight = buttonVerticalSpace / numRows
+        val numWiderButtons =  buttonHorizontalSpace % numCols
+        val numHigherButtons =  buttonVerticalSpace % numRows
+        val buttonWidthSpec = View.MeasureSpec.makeMeasureSpec(buttonWidth, View.MeasureSpec.EXACTLY)
+        val buttonHeightSpec = View.MeasureSpec.makeMeasureSpec(buttonHeight, View.MeasureSpec.EXACTLY)
+        val buttonWidthSpecWide = View.MeasureSpec.makeMeasureSpec(buttonWidth + 1, View.MeasureSpec.EXACTLY)
+        val buttonHeightSpecHigh = View.MeasureSpec.makeMeasureSpec(buttonHeight + 1, View.MeasureSpec.EXACTLY)
 
-        val buttonWidth = ((measuredWidth - paddingLeft - paddingRight - (numCols - 1) * buttonSpacing) / numCols).roundToInt()
-        val buttonHeight = ((measuredHeight - paddingTop - paddingBottom - (numRows - 1) * buttonSpacing) / numRows).roundToInt()
-        val buttonWidthSpec = MeasureSpec.makeMeasureSpec(buttonWidth, MeasureSpec.EXACTLY)
-        val buttonHeightSpec = MeasureSpec.makeMeasureSpec(buttonHeight, MeasureSpec.EXACTLY)
-        buttons.forEach { it.measure(buttonWidthSpec, buttonHeightSpec) }
-
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-    }
-
-    override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
-        val buttonWidth = buttons[0].measuredWidth
-        val buttonHeight = buttons[0].measuredHeight
-
-        for (iCol in 0 until numCols) {
-            for (iRow in 0 until numRows) {
-                val button = buttons[iCol * numRows + iRow]
-                val buttonLeft = (paddingLeft + iCol * (buttonWidth + buttonSpacing)).roundToInt()
-                val buttonTop = (paddingTop + iRow * (buttonHeight + buttonSpacing)).roundToInt()
-                button.layout(buttonLeft, buttonTop, buttonLeft + buttonWidth, buttonTop + buttonHeight)
+        for (iRow in 0 until numRows) {
+            val h = if (iRow <= numHigherButtons) buttonHeightSpecHigh else buttonHeightSpec
+            for (iCol in 0 until numCols) {
+            val w = if (iCol <= numWiderButtons) buttonWidthSpecWide else buttonWidthSpec
+                buttons.forEach { it.measure(w, h) }
             }
         }
     }
 
-    fun setButtonDrawable(index: Int, ressourceId: Int) {
-        buttons[index].setImageResource(ressourceId)
+    fun layout(l: Int, t: Int, r: Int, b: Int) {
+
+        var posY = t
+        for (iRow in 0 until numRows) {
+            var posX = l
+            for (iCol in 0 until numCols) {
+                val button = buttons[iRow * numCols + iCol]
+                button.layout(posX, posY, posX + button.measuredWidth, posY + button.measuredHeight)
+                posX += button.measuredWidth + buttonSpacing
+            }
+            val button0 = buttons[iRow * numCols]
+            posY += button0.measuredHeight + buttonSpacing
+        }
+    }
+
+    fun setButtonDrawable(index: Int, resourceId: Int) {
+        buttons[index].setImageResource(resourceId)
     }
 
     fun setActiveButton(index: Int) {

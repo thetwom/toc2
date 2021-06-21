@@ -340,6 +340,7 @@ class PlayerService : LifecycleService() {
 
     fun modifyNoteList(op: (ArrayList<NoteListItem>) -> Boolean) {
         val modified = op(noteList)
+        Log.v("Metronome", "PlayerService.modifyNoteList: modified=$modified")
         if (modified) {
             audioMixer?.noteList = noteList
             for (s in statusChangedListeners)

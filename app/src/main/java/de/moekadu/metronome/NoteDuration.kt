@@ -48,3 +48,39 @@ fun NoteDuration.bpmQuarter(bpm: Float) =
         NoteDuration.QuarterQuintuplet -> bpm * 4.0f / 5.0f
         NoteDuration.Quarter -> bpm
     }
+
+fun NoteDuration.isNoTuplet() = (
+        this == NoteDuration.Quarter ||
+        this == NoteDuration.Eighth ||
+        this == NoteDuration.Sixteenth
+        )
+
+fun NoteDuration.isTriplet() = (
+        this == NoteDuration.QuarterTriplet ||
+        this == NoteDuration.EighthTriplet ||
+        this == NoteDuration.SixteenthTriplet
+        )
+
+fun NoteDuration.isQuintuplet() = (
+        this == NoteDuration.QuarterQuintuplet ||
+        this == NoteDuration.EighthQuintuplet ||
+        this == NoteDuration.SixteenthQuintuplet
+        )
+
+fun NoteDuration.hasBaseTypeQuarter() = (
+        this == NoteDuration.Quarter ||
+        this == NoteDuration.QuarterTriplet ||
+        this == NoteDuration.QuarterQuintuplet
+        )
+
+fun NoteDuration.hasBaseTypeEighth() = (
+        this == NoteDuration.Eighth ||
+        this == NoteDuration.EighthTriplet ||
+        this == NoteDuration.EighthQuintuplet
+        )
+
+fun NoteDuration.hasBaseTypeSixteenth() = (
+        this == NoteDuration.Sixteenth ||
+        this == NoteDuration.SixteenthTriplet ||
+        this == NoteDuration.SixteenthQuintuplet
+        )

@@ -41,7 +41,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.widget.TextViewCompat
 import kotlin.math.max
 
-
 open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
     : ViewGroup(context, attrs, defStyleAttr) {
 
@@ -110,6 +109,8 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
     private val volumeView = NoteViewVolume(context)
 
+    private val tuplets = ArrayList<TupletView>()
+
     inner class Note (noteListItem: NoteListItem) {
 
         private val noteListItem = noteListItem.clone()
@@ -154,23 +155,40 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
         fun set(newNoteListItem: NoteListItem) {
             require(noteListItem.uid == newNoteListItem.uid)
-            if (newNoteListItem.id != noteListItem.id)
+            if (newNoteListItem.id != noteListItem.id || newNoteListItem.duration != noteListItem.duration)
                 drawableID = getNoteDrawableResourceID(newNoteListItem.id, newNoteListItem.duration)
             noteListItem.set(newNoteListItem)
         }
 
-        fun setNoteId(id: Int) {
-            if (id != noteListItem.id) {
-                drawableID = getNoteDrawableResourceID(id, noteListItem.duration)
-                noteListItem.id = id
+        var noteId: Int
+            set(value) {
+                if (value != noteListItem.id) {
+                    drawableID = getNoteDrawableResourceID(value, noteListItem.duration)
+                    noteListItem.id = value
+                }
             }
-        }
+            get() {
+                return noteListItem.id
+            }
 
-        fun getNoteId() = noteListItem.id
+        var volume: Float
+            set(value) {
+                noteListItem.volume = value
+            }
+            get() {
+                return noteListItem.volume
+            }
 
-        fun setVolume(volume: Float) {
-            noteListItem.volume = volume
-        }
+        var duration: NoteDuration
+            set(value) {
+                if (value != noteListItem.duration) {
+                    drawableID = getNoteDrawableResourceID(noteListItem.id, value)
+                    noteListItem.duration = value
+                }
+            }
+            get() {
+                return noteListItem.duration
+            }
     }
 
     private val notes = ArrayList<Note>()
@@ -271,11 +289,14 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         for(n in numbering)
             n.measure(textHeightSpec, textHeightSpec)
 
+        for (tuplet in tuplets)
+            tuplet.measureOnNoteView(this, totalWidth, totalHeight, notes.size)
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         val totalWidth = r - l - paddingLeft - paddingRight
+        val totalHeight = b - t - paddingTop - paddingBottom
 
         volumeView.layout(paddingLeft, paddingTop, paddingLeft + volumeView.measuredWidth, paddingTop + volumeView.measuredHeight)
         lineView.layout(paddingLeft, paddingTop, paddingLeft + lineView.measuredWidth, paddingTop + lineView.measuredHeight)
@@ -305,6 +326,9 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 //                textView.layout(0,0,1000,1000)
             }
         }
+
+        for (tuplet in tuplets)
+            tuplet.layoutOnNoteView(this, totalWidth, totalHeight, notes.size, paddingLeft, paddingTop)
     }
 
     override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
@@ -445,15 +469,21 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             }
             requestLayout()
         }
+        detectAllTuplets()
     }
 
     fun setNoteId(index: Int, id: Int) {
-        notes.getOrNull(index)?.setNoteId(id)
+        notes.getOrNull(index)?.noteId = id
     }
 
     fun setVolume(index: Int, volume: Float) {
-        notes.getOrNull(index)?.setVolume(volume)
+        notes.getOrNull(index)?.volume = volume
         volumeView.setVolume(index, volume)
+    }
+
+    fun setDuration(index: Int, duration: NoteDuration) {
+        notes.getOrNull(index)?.duration = duration
+        detectAllTuplets()
     }
 
     fun animateNote(index: Int) {
@@ -498,5 +528,126 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             removeView(numbering.last())
             numbering.removeLast()
         }
+    }
+
+    private fun detectAllTuplets() {
+        var numTuplets = detectTuplets(0, 3)
+        numTuplets = detectTuplets(numTuplets, 5)
+        for (i in numTuplets until tuplets.size)
+            removeView(tuplets[i])
+        tuplets.subList(numTuplets, tuplets.size).clear()
+    }
+    private fun detectTuplets(firstTupletIndex: Int, numTupletNotes: Int): Int {
+
+        var numTupletsTotal = firstTupletIndex
+
+        var quarterCounts = 0
+        var eighthCounts = 0
+        var sixteenthCounts = 0
+
+        var tupletStartIndex = -1
+
+        Log.v("Metronome", "NoteView.detectTuplets: |")
+        Log.v("Metronome", "NoteView.detectTuplets: |")
+        Log.v("Metronome", "NoteView.detectTuplets: |")
+
+        notes.forEachIndexed { index, note ->
+            val duration = note.duration
+
+            val isTuplet = (numTupletNotes == 3 && duration.isTriplet()) || (numTupletNotes == 5 && duration.isQuintuplet())
+            var endTuplet = index == (notes.size - 1)
+            var tupletComplete = false
+
+            if (isTuplet){
+                when {
+                    duration.hasBaseTypeQuarter() -> quarterCounts += 1
+                    duration.hasBaseTypeEighth()  -> eighthCounts += 1
+                    duration.hasBaseTypeSixteenth() -> sixteenthCounts += 1
+                    else -> throw RuntimeException("Unknown duration base type")
+                }
+            }
+
+            Log.v("Metronome", "NoteView.detectTuplets: isTuplet=$isTuplet, numQuarter: quarterCounts= $quarterCounts, eighthCounts=$eighthCounts, sixteenthCounts=$sixteenthCounts, endTuplet=$endTuplet, tupletStartIndex=$tupletStartIndex")
+            // start collecting for a new tuplet
+            if (isTuplet && tupletStartIndex == -1) {
+                tupletStartIndex = index
+            }
+            else if (isTuplet && tupletStartIndex >= 0) {
+                if (sixteenthCounts > 0) {
+                    if (quarterCounts > 0) {
+                        endTuplet = true
+                        tupletComplete = false
+                    } else {
+                        val numSixteenth = sixteenthCounts + 2 * eighthCounts
+                        if (numSixteenth == numTupletNotes) {
+                            endTuplet = true
+                            tupletComplete = true
+                        } else if (numSixteenth > numTupletNotes) {
+                            endTuplet = true
+                            tupletComplete = false
+                        }
+                    }
+                } else if (eighthCounts > 0) {
+                    val numEighth = eighthCounts + 2 * quarterCounts
+                    if (numEighth == numTupletNotes) {
+                        endTuplet = true
+                        tupletComplete = true
+                    } else if (numEighth > numTupletNotes) {
+                        endTuplet = true
+                        tupletComplete = false
+                    }
+                } else if (quarterCounts > 0) {
+                    if (quarterCounts == numTupletNotes) {
+                        endTuplet = true
+                        tupletComplete = true
+                    }
+                    else if (quarterCounts > numTupletNotes) {
+                        throw RuntimeException("There should not be more quarter notes than tuplet notes")
+                    }
+                }
+            } else if (!isTuplet) {
+                endTuplet = true
+            }
+
+            if (endTuplet && tupletStartIndex >= 0) {
+
+                val tupletEndIndex = if (tupletComplete || (isTuplet && index==(notes.size-1))) index else index - 1
+
+                val tuplet = if (numTupletsTotal >= tuplets.size) {
+                    val newTuplet = TupletView(context)
+                    addView(newTuplet)
+                    tuplets.add(newTuplet)
+                    newTuplet
+                } else {
+                    tuplets[numTupletsTotal]
+                }
+                tuplet.tupletNumber = numTupletNotes
+                tuplet.setStartAndEnd(tupletStartIndex, tupletEndIndex)
+                tuplet.tupletComplete = tupletComplete
+                ++numTupletsTotal
+                Log.v("Metronome", "NoteView.detectTuplets: ENDING TUPLET")
+
+                // reset values
+                sixteenthCounts = 0
+                eighthCounts = 0
+                quarterCounts = 0
+
+                // store tupletStart - tupletEnd
+                // count current note to contribute to tuplet
+                if (!tupletComplete && isTuplet) {
+                    when {
+                        duration.hasBaseTypeQuarter() -> quarterCounts = 1
+                        duration.hasBaseTypeEighth() -> eighthCounts = 1
+                        duration.hasBaseTypeSixteenth() -> sixteenthCounts = 1
+                        else -> throw RuntimeException("Unknown duration base type")
+                    }
+                    tupletStartIndex = index
+                }
+                else {
+                    tupletStartIndex = -1
+                }
+            }
+        }
+        return numTupletsTotal
     }
 }
