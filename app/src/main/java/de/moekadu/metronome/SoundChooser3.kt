@@ -276,6 +276,7 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 
     private val volumeControl = VolumeControl(context).apply {
         vertical = true
+        visibility = GONE
     }
     private var noteSelection: GridSelection
     private var noteDuration: GridSelection
@@ -359,6 +360,7 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             R.drawable.grid_background_center_withlines,
             noteColor
         )
+        noteSelection.visibility = GONE
         noteSelection.activeButtonChangedListener = object : GridSelection.ActiveButtonChangedListener {
             override fun onActiveButtonChanged(index: Int) {
                 activeControlButton?.let { controlButton ->
@@ -382,6 +384,7 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             R.drawable.grid_background_center,
             noteColor
         )
+        noteDuration.visibility = GONE
         noteDuration.addView(this)
         noteDuration.setButtonDrawable(0, R.drawable.ic_note_duration_sixteenth)
         noteDuration.setButtonDrawable(1, R.drawable.ic_note_duration_eighth)
@@ -397,6 +400,7 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             R.drawable.grid_background_center,
             noteColor
         )
+        tuplets.visibility = GONE
         tuplets.addView(this)
         tuplets.setButtonDrawable(0, R.drawable.ic_note_duration_normal)
         tuplets.setButtonDrawable(1, R.drawable.ic_note_duration_triplet)
@@ -664,6 +668,8 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                 doneButton.alpha = 0f
             if (deleteButton.visibility != VISIBLE)
                 deleteButton.alpha = 0f
+            if (volumeControl.visibility != VISIBLE)
+                volumeControl.alpha = 0f
 
             doneButton.animate()
                 .setDuration(animationDuration)
@@ -676,6 +682,9 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                 .translationX(deleteButtonTranslationX)
                 .translationY(deleteButtonTranslationY)
                 .alpha(1.0f)
+            volumeControl.animate()
+                .setDuration(animationDuration)
+                .alpha(1.0f)
         } else {
             deleteButton.translationX = deleteButtonTranslationX
             deleteButton.translationY = deleteButtonTranslationY
@@ -683,10 +692,16 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             doneButton.translationX = doneButtonTranslationX
             doneButton.translationY = doneButtonTranslationY
             doneButton.alpha = 1.0f
+            volumeControl.alpha = 1.0f
         }
 
         deleteButton.visibility = VISIBLE
         doneButton.visibility = VISIBLE
+        volumeControl.visibility = VISIBLE
+
+        noteSelection.emerge(animationDuration)
+        noteDuration.emerge(animationDuration)
+        tuplets.emerge(animationDuration)
     }
 
     fun hideSoundChooser(animationDuration: Long) {
@@ -716,10 +731,23 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                         deleteButton.visibility = GONE
                     }
             }
+            if (volumeControl.visibility == VISIBLE) {
+                volumeControl.animate()
+                    .setDuration(animationDuration)
+                    .alpha(0f)
+                    .withEndAction {
+                        deleteButton.visibility = GONE
+                    }
+            }
         } else {
             doneButton.visibility = GONE
             deleteButton.visibility = GONE
+            volumeControl.visibility = GONE
         }
+        noteSelection.disappear(animationDuration)
+        noteDuration.disappear(animationDuration)
+        tuplets.disappear(animationDuration)
+
         setActiveControlButton(null, animationDuration)
     }
 

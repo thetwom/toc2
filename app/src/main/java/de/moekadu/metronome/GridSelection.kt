@@ -2,6 +2,7 @@ package de.moekadu.metronome
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.opengl.Visibility
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -22,6 +23,12 @@ class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
         fun onActiveButtonChanged(index: Int)
     }
 
+    var visibility: Int = View.VISIBLE
+        set(value) {
+            buttons.forEach { it.visibility = value }
+            field = value
+        }
+
     var activeButtonChangedListener: ActiveButtonChangedListener? = null
 
     private val buttons = ArrayList<ImageButton>()
@@ -36,6 +43,41 @@ class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
 //            outline.setRoundRect(rectInt, cornerRad)
 //        }
 //    }
+
+    fun emerge(animationDuration: Long) {
+        if (animationDuration == 0L) {
+            visibility = View.VISIBLE
+        } else {
+            buttons.forEach {
+                if (it.visibility != View.VISIBLE)
+                    it.alpha = 0f
+                it.visibility = View.VISIBLE
+                it.animate()
+                    .setDuration(animationDuration)
+                    .alpha(1.0f)
+            }
+        }
+    }
+
+    fun disappear(animationDuration: Long) {
+        if (animationDuration == 0L) {
+            visibility = View.GONE
+        } else {
+            buttons.forEach {
+                if (it.visibility == View.VISIBLE) {
+                    it.animate()
+                        .setDuration(animationDuration)
+                        .alpha(0f)
+                        .withEndAction {
+                            it.visibility = View.GONE
+                        }
+                } else {
+                    it.visibility = View.GONE
+                }
+            }
+        }
+    }
+
     fun addView(viewGroup: ViewGroup){
         //setOutlineProvider(outlineProvider)
 
@@ -61,6 +103,7 @@ class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
                     }
                     scaleType = ImageView.ScaleType.FIT_CENTER
                     imageTintList = tint
+                    visibility = this@GridSelection.visibility
                 }
                 buttons.add(button)
                 viewGroup.addView(button)
