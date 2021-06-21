@@ -43,6 +43,7 @@ class TupletView(context: Context) : androidx.appcompat.widget.AppCompatImageVie
         background = null
         paint.style = Paint.Style.STROKE
         paint.color = Color.BLUE
+        paint.isAntiAlias = true
     }
 
     fun setStartAndEnd(from: Int, to: Int) {
@@ -53,10 +54,12 @@ class TupletView(context: Context) : androidx.appcompat.widget.AppCompatImageVie
         endIndex = to
         requestLayout()
     }
+
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         val strokeWidth = 0.15f * measuredHeight
         paint.strokeWidth = strokeWidth
+        paint.color = imageTintList?.defaultColor ?: Color.GREEN
         val centerY = 0.5f * measuredHeight
         val centerX = 0.5f * measuredWidth
         val space = 0.5f * measuredHeight

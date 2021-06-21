@@ -40,11 +40,14 @@ import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.content.ContextCompat
 import androidx.core.widget.TextViewCompat
 import kotlin.math.max
+import kotlin.math.roundToInt
 
 open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
     : ViewGroup(context, attrs, defStyleAttr) {
 
     companion object {
+        const val NOTE_IMAGE_HEIGHT_SCALING = 0.85f
+
         /// Compute bounding box for a note with a given index.
         /**
          * @param index Index of note in note list.
@@ -88,6 +91,9 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                         if (i < numbering.size)
                             numbering[i].setTextColor(value)
                     }
+                }
+                for (t in tuplets) {
+                    t.imageTintList = value
                 }
             }
             field = value
@@ -272,9 +278,10 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
         val totalWidth = measuredWidth - paddingLeft - paddingRight
         val totalHeight = measuredHeight - paddingTop - paddingBottom
+        val totalHeightExcludingTuplet = (NOTE_IMAGE_HEIGHT_SCALING * totalHeight).roundToInt()
 
         val widthSpec = MeasureSpec.makeMeasureSpec(totalWidth, MeasureSpec.EXACTLY)
-        val heightSpec = MeasureSpec.makeMeasureSpec(totalHeight, MeasureSpec.EXACTLY)
+        val heightSpec = MeasureSpec.makeMeasureSpec(totalHeightExcludingTuplet, MeasureSpec.EXACTLY)
         volumeView.measure(widthSpec, heightSpec)
         lineView.measure(widthSpec, heightSpec)
 
@@ -284,7 +291,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         for(n in notes)
             n.noteImage.measure(noteWidthSpec, heightSpec)
 
-        val textHeightSpec = MeasureSpec.makeMeasureSpec((0.2f * totalHeight).toInt(), MeasureSpec.EXACTLY)
+        val textHeightSpec = MeasureSpec.makeMeasureSpec((0.2f * totalHeightExcludingTuplet).toInt(), MeasureSpec.EXACTLY)
         //val textHeightSpec = MeasureSpec.makeMeasureSpec(1000, MeasureSpec.EXACTLY)
         for(n in numbering)
             n.measure(textHeightSpec, textHeightSpec)
@@ -297,9 +304,11 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         val totalWidth = r - l - paddingLeft - paddingRight
         val totalHeight = b - t - paddingTop - paddingBottom
+        val totalHeightExcludingTuplet = (NOTE_IMAGE_HEIGHT_SCALING * totalHeight).roundToInt()
+        val excludingTupletTop = paddingTop + totalHeight - totalHeightExcludingTuplet
 
-        volumeView.layout(paddingLeft, paddingTop, paddingLeft + volumeView.measuredWidth, paddingTop + volumeView.measuredHeight)
-        lineView.layout(paddingLeft, paddingTop, paddingLeft + lineView.measuredWidth, paddingTop + lineView.measuredHeight)
+        volumeView.layout(paddingLeft, excludingTupletTop, paddingLeft + volumeView.measuredWidth, excludingTupletTop + volumeView.measuredHeight)
+        lineView.layout(paddingLeft, excludingTupletTop, paddingLeft + lineView.measuredWidth, excludingTupletTop + lineView.measuredHeight)
 
         val noteHorizontalSpace = totalWidth / notes.size.toFloat()
 
@@ -310,9 +319,9 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             val noteImageHeight = noteView.measuredHeight
 
             val noteLeft = (noteCenter - 0.5f * noteImageWidth).toInt()
-            val noteTop = paddingTop
+            val noteTop = excludingTupletTop
             val noteRight = noteLeft + noteImageWidth
-            val noteBottom = paddingTop + noteImageHeight
+            val noteBottom = excludingTupletTop + noteImageHeight
             noteView.layout(noteLeft, noteTop, noteRight, noteBottom)
 
             if (i < numbering.size) {
@@ -621,6 +630,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                 } else {
                     tuplets[numTupletsTotal]
                 }
+                tuplet.imageTintList = noteColor
                 tuplet.tupletNumber = numTupletNotes
                 tuplet.setStartAndEnd(tupletStartIndex, tupletEndIndex)
                 tuplet.tupletComplete = tupletComplete

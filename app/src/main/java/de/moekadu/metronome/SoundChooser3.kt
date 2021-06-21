@@ -82,10 +82,10 @@ private class SoundChooserViewMeasures(
         noteView.top = (noteView.bottom - noteViewHeightPercent * height).roundToInt()
         //Log.v("Metronome", "SoundChooser3.layotPortrait: ${noteView.bottom}, ${noteView.top} ")
         extraNoteLines.bottom = noteView.bottom
-        extraNoteLines.top = noteView.top
+        extraNoteLines.top = noteView.bottom - (noteView.height() * NoteView.NOTE_IMAGE_HEIGHT_SCALING).roundToInt()
 
-        val plusButtonHeight = (actionButtonsToNoteViewRatio * noteView.height())
-        plus.top = (noteView.centerY() - 0.5f * plusButtonHeight).roundToInt()
+        val plusButtonHeight = (actionButtonsToNoteViewRatio * extraNoteLines.height())
+        plus.top = (extraNoteLines.centerY() - 0.5f * plusButtonHeight).roundToInt()
         plus.bottom = plus.top + plusButtonHeight.roundToInt()
 
         delete.bottom = (noteView.top - viewSpacing).roundToInt()
@@ -150,10 +150,10 @@ private class SoundChooserViewMeasures(
         noteView.top = (noteView.bottom - noteViewHeightPercent * height).roundToInt()
 
         extraNoteLines.bottom = noteView.bottom
-        extraNoteLines.top = noteView.top
+        extraNoteLines.top = noteView.bottom - (noteView.height() * NoteView.NOTE_IMAGE_HEIGHT_SCALING).roundToInt()
 
-        val plusButtonHeight = (actionButtonsToNoteViewRatio * noteView.height())
-        plus.top = (noteView.centerY() - 0.5f * plusButtonHeight).roundToInt()
+        val plusButtonHeight = (actionButtonsToNoteViewRatio * extraNoteLines.height())
+        plus.top = (extraNoteLines.centerY() - 0.5f * plusButtonHeight).roundToInt()
         plus.bottom = plus.top + plusButtonHeight.roundToInt()
 
         delete.bottom = plus.bottom
@@ -322,7 +322,7 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 
         }
 
-        soundChooserViewMeasures = SoundChooserViewMeasures(viewSpacing, 0.188f, 1.0f,
+        soundChooserViewMeasures = SoundChooserViewMeasures(viewSpacing, 0.22f, 1.0f,
             paddingLeft, paddingTop, paddingTop, paddingRight, staticElementPadding)
         noteView.volumeColor = volumeColor
         noteView.noteColor = noteColor
