@@ -116,6 +116,14 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     private val volumeView = NoteViewVolume(context)
 
     private val tuplets = ArrayList<TupletView>()
+    var showTuplets = true
+        set(value) {
+            if (field == value)
+                return
+            field = value
+            tuplets.forEach { it.visibility = if (value) VISIBLE else GONE }
+            requestLayout()
+        }
 
     inner class Note (noteListItem: NoteListItem) {
 
@@ -276,9 +284,11 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         val measuredWidth = MeasureSpec.getSize(widthMeasureSpec)
         val measuredHeight = MeasureSpec.getSize(heightMeasureSpec)
 
+        val heightScaling = if (showTuplets) NOTE_IMAGE_HEIGHT_SCALING else 1.0f
+
         val totalWidth = measuredWidth - paddingLeft - paddingRight
         val totalHeight = measuredHeight - paddingTop - paddingBottom
-        val totalHeightExcludingTuplet = (NOTE_IMAGE_HEIGHT_SCALING * totalHeight).roundToInt()
+        val totalHeightExcludingTuplet = (heightScaling * totalHeight).roundToInt()
 
         val widthSpec = MeasureSpec.makeMeasureSpec(totalWidth, MeasureSpec.EXACTLY)
         val heightSpec = MeasureSpec.makeMeasureSpec(totalHeightExcludingTuplet, MeasureSpec.EXACTLY)
@@ -298,13 +308,15 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
         for (tuplet in tuplets)
             tuplet.measureOnNoteView(this, totalWidth, totalHeight, notes.size)
+
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         val totalWidth = r - l - paddingLeft - paddingRight
         val totalHeight = b - t - paddingTop - paddingBottom
-        val totalHeightExcludingTuplet = (NOTE_IMAGE_HEIGHT_SCALING * totalHeight).roundToInt()
+        val heightScaling = if (showTuplets) NOTE_IMAGE_HEIGHT_SCALING else 1.0f
+        val totalHeightExcludingTuplet = (heightScaling * totalHeight).roundToInt()
         val excludingTupletTop = paddingTop + totalHeight - totalHeightExcludingTuplet
 
         volumeView.layout(paddingLeft, excludingTupletTop, paddingLeft + volumeView.measuredWidth, excludingTupletTop + volumeView.measuredHeight)
@@ -628,7 +640,10 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                 val tupletEndIndex = if (tupletComplete) index else index - 1
 
                 val tuplet = if (numTupletsTotal >= tuplets.size) {
-                    val newTuplet = TupletView(context)
+                    val newTuplet = TupletView(context).apply {
+                        visibility = if (showTuplets) VISIBLE else GONE
+                    }
+
                     addView(newTuplet)
                     tuplets.add(newTuplet)
                     newTuplet

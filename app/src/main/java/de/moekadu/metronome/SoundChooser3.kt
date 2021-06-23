@@ -547,7 +547,9 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                     min(measureRect.width(), measureRect.height()),
                     MeasureSpec.EXACTLY
                 ),
-                MeasureSpec.makeMeasureSpec(measureRect.height(), MeasureSpec.EXACTLY),
+                MeasureSpec.makeMeasureSpec(
+                    (NoteView.NOTE_IMAGE_HEIGHT_SCALING * measureRect.height()).roundToInt(),
+                    MeasureSpec.EXACTLY)
             )
         }
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
@@ -601,7 +603,7 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         }
         setControlButtonTargetTranslations(
             soundChooserViewMeasures.noteView.left,
-            soundChooserViewMeasures.noteView.top
+            (soundChooserViewMeasures.noteView.bottom - NoteView.NOTE_IMAGE_HEIGHT_SCALING * soundChooserViewMeasures.noteView.height()).roundToInt()
         )
 
         controlButtons.forEach { button ->
@@ -871,7 +873,7 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                         volumeColor,
                         noteColor,
                         noteColor //  noteHighlightColor
-                    )
+                    ).apply {showTuplets = false}
                     s.translationZ = 8f
                     //s.visibility = View.GONE
                     controlButtons.add(s)
@@ -893,7 +895,10 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             }
 
             controlButtons.forEachIndexed { index, button -> button.numberOffset = index }
-            setControlButtonTargetTranslations(noteView.x.roundToInt(), noteView.y.roundToInt())
+            setControlButtonTargetTranslations(
+                noteView.x.roundToInt(),
+                (noteView.y + (1.0 - NoteView.NOTE_IMAGE_HEIGHT_SCALING) * noteView.height).roundToInt()
+            )
             //controlButtons.forEach { it.moveToTarget(0L) }
             //requestLayout()
         }
