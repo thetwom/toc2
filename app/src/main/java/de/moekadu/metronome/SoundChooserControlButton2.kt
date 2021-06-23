@@ -51,6 +51,8 @@ class SoundChooserControlButton2(
     var leftBoundToSwitchPosition = 0f
     var rightBoundToSwitchPosition = 0f
 
+    val centerY get() = y + 0.5f * height
+
     var isActive = false
 
     val note = noteListItem.clone()

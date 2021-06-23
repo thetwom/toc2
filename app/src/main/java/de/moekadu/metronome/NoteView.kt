@@ -560,14 +560,19 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         Log.v("Metronome", "NoteView.detectTuplets: |")
         Log.v("Metronome", "NoteView.detectTuplets: |")
 
-        notes.forEachIndexed { index, note ->
-            val duration = note.duration
+        for (index in 0 .. notes.size) {
+            val note = if (index < notes.size) notes[index] else null
+            val duration = note?.duration
 
-            val isTuplet = (numTupletNotes == 3 && duration.isTriplet()) || (numTupletNotes == 5 && duration.isQuintuplet())
-            var endTuplet = index == (notes.size - 1)
+            val isTuplet = if (duration == null) {
+                false
+            } else {
+                (numTupletNotes == 3 && duration.isTriplet()) || (numTupletNotes == 5 && duration.isQuintuplet())
+            }
+            var endTuplet = false
             var tupletComplete = false
 
-            if (isTuplet){
+            if (isTuplet && duration != null){
                 when {
                     duration.hasBaseTypeQuarter() -> quarterCounts += 1
                     duration.hasBaseTypeEighth()  -> eighthCounts += 1
@@ -620,7 +625,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
             if (endTuplet && tupletStartIndex >= 0) {
 
-                val tupletEndIndex = if (tupletComplete || (isTuplet && index==(notes.size-1))) index else index - 1
+                val tupletEndIndex = if (tupletComplete) index else index - 1
 
                 val tuplet = if (numTupletsTotal >= tuplets.size) {
                     val newTuplet = TupletView(context)
@@ -644,7 +649,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
                 // store tupletStart - tupletEnd
                 // count current note to contribute to tuplet
-                if (!tupletComplete && isTuplet) {
+                if (!tupletComplete && isTuplet && duration != null) {
                     when {
                         duration.hasBaseTypeQuarter() -> quarterCounts = 1
                         duration.hasBaseTypeEighth() -> eighthCounts = 1
