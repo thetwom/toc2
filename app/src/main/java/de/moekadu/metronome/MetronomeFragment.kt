@@ -356,11 +356,20 @@ class MetronomeFragment : Fragment() {
                 viewModel.setNoteListDuration(uid, duration)
             }
 
-            override fun changeVolume(uid: UId, volume: Float, status: SoundChooser3.Status) {
+            override fun changeVolume(uid: UId, volume: Float) {
                 viewModel.setNoteListVolume(uid, volume)
                 if (viewModel.playerStatus.value != PlayerStatus.Playing && context != null) {
                     viewModel.noteList.value?.firstOrNull { it.uid == uid }?.let { noteListItem ->
                         singleNotePlayer.play(noteListItem.id, noteListItem.volume)
+                    }
+                }
+            }
+
+            override fun changeVolume(index: Int, volume: Float) {
+                viewModel.setNoteListVolume(index, volume)
+                if (viewModel.playerStatus.value != PlayerStatus.Playing && context != null) {
+                    viewModel.noteList.value?.getOrNull(index)?.id?.let { id ->
+                        singleNotePlayer.play(id, volume)
                     }
                 }
             }

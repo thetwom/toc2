@@ -77,6 +77,9 @@ private class SoundChooserViewMeasures(
     val dynamicSelection = Rect()
     val volume = Rect()
 
+    val volumeSliders = Rect()
+    var volumeSlidersButtonSize = 0
+
     fun layoutPortrait(width: Int, height: Int) {
         // vertical pass
         noteView.bottom = height - paddingBottom
@@ -114,6 +117,10 @@ private class SoundChooserViewMeasures(
         dynamicSelection.bottom = (noteView.top + viewSpacing).roundToInt()
         dynamicSelection.top = staticElementPadding
 
+        volumeSliders.bottom = (noteView.top - viewSpacing).roundToInt()
+        volumeSliders.top = staticElementPadding
+        volumeSlidersButtonSize = (plusButtonHeight / 2).roundToInt()
+
         // horizontal pass
         extraNoteLines.right = width - paddingRight
         extraNoteLines.left = (extraNoteLines.right - 2 * viewSpacing - plus.height()).roundToInt()
@@ -149,6 +156,9 @@ private class SoundChooserViewMeasures(
 
         dynamicSelection.left = 0
         dynamicSelection.right = dynamicSelection.left + plus.width()
+
+        volumeSliders.left = noteView.left
+        volumeSliders.right = noteView.right
     }
 
     fun layoutLandscape(width: Int, height: Int) {
@@ -188,6 +198,10 @@ private class SoundChooserViewMeasures(
         dynamicSelection.bottom = (noteView.top + viewSpacing).roundToInt()
         dynamicSelection.top = staticElementPadding
 
+        volumeSliders.bottom = (noteView.top - viewSpacing).roundToInt()
+        volumeSliders.top = staticElementPadding
+        volumeSlidersButtonSize = (plusButtonHeight / 2).roundToInt()
+
         // horizontal pass
         plus.right = (width * plusButtonRightPercent).roundToInt()
         plus.left = plus.right - plus.height()
@@ -224,17 +238,20 @@ private class SoundChooserViewMeasures(
 
         dynamicSelection.left = 0
         dynamicSelection.right = dynamicSelection.left + plus.width()
+
+        volumeSliders.left = noteView.left
+        volumeSliders.right = noteView.right
     }
 }
-
 
 class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     : ViewGroup(context, attrs, defStyleAttr) {
 
     interface StateChangedListener {
         fun changeNoteId(uid: UId, noteId: Int, status: Status)
-        fun changeVolume(uid: UId, volume: Float, status: Status)
-        fun changeNoteDuration(uid: UId, duration: NoteDuration) {}
+        fun changeVolume(uid: UId, volume: Float)
+        fun changeVolume(index: Int, volume: Float)
+        fun changeNoteDuration(uid: UId, duration: NoteDuration)
         fun addNote(note: NoteListItem)
         fun removeNote(uid: UId)
         fun moveNote(uid: UId, toIndex: Int)
@@ -296,6 +313,8 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     private var tuplets: GridSelection
 
     private var dynamicSelection: DynamicSelection
+
+    private var volumeSliders: VolumeSliders2
 
     private val temporaryBackground = View(context).apply {
         setBackgroundColor(Color.WHITE)
@@ -368,7 +387,7 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             activeControlButton?.let { controlButton ->
                 if (controlButton.volume != volume) {
 //                    controlButton.setVolume(0, volume)
-                    stateChangedListener?.changeVolume(controlButton.uid, volume, status)
+                    stateChangedListener?.changeVolume(controlButton.uid, volume)
                 }
             }
         }
@@ -463,6 +482,25 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         )
         dynamicSelection.addView(this, getNumAvailableNotes())
 
+        volumeSliders = VolumeSliders2(context)
+        volumeSliders.addButtons(this)
+        volumeSliders.volumeChangedListener = object : VolumeSliders2.VolumeChangedListener {
+            override fun onVolumeChanged(index: Int, volume: Float) {
+                stateChangedListener?.changeVolume(index, volume)
+            }
+
+            override fun fold() {
+                volumeSliders.fold(200L)
+                hideBackground(200L)
+            }
+
+            override fun unfold() {
+                hideSoundChooser(200L)
+                volumeSliders.unfold(200L)
+                showBackground(200L)
+            }
+        }
+
         plusButton.setOnClickListener {
             val newNote = controlButtons.lastOrNull()?.note?.clone()?.apply { uid = UId.create() }
                 ?: NoteListItem(defaultNote, 1.0f, NoteDuration.Quarter)
@@ -531,6 +569,12 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             soundChooserViewMeasures.dynamicSelection.width(),
             soundChooserViewMeasures.dynamicSelection.height()
         )
+        volumeSliders.measure(
+            soundChooserViewMeasures.noteView.width(),
+            soundChooserViewMeasures.noteView.height(),
+            soundChooserViewMeasures.volumeSliders.height(),
+            soundChooserViewMeasures.volumeSlidersButtonSize
+        )
 
         val noteViewWidth = soundChooserViewMeasures.noteView.width()
         val noteViewHeight = soundChooserViewMeasures.noteView.height()
@@ -597,7 +641,12 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             soundChooserViewMeasures.dynamicSelection.right,
             soundChooserViewMeasures.dynamicSelection.bottom
         )
-
+        volumeSliders.layout(
+            soundChooserViewMeasures.volumeSliders.left,
+            soundChooserViewMeasures.volumeSliders.bottom,
+            soundChooserViewMeasures.noteView.width(),
+            soundChooserViewMeasures.noteView.height(),
+        )
         controlButtons.forEach { button ->
             button.layout(0, 0, button.measuredWidth, button.measuredHeight)
         }
@@ -721,9 +770,37 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         }
     }
 
+    fun showBackground(animationDuration: Long) {
+        val alphaEnd = 0.8f
+
+        if (animationDuration > 0L) {
+            if (temporaryBackground.visibility != VISIBLE)
+                temporaryBackground.alpha = 0f
+            temporaryBackground.visibility = VISIBLE
+            temporaryBackground.animate()
+                .setDuration(animationDuration)
+                .alpha(alphaEnd)
+        } else {
+            temporaryBackground.alpha = alphaEnd
+            temporaryBackground.visibility = VISIBLE
+        }
+    }
+
+    fun hideBackground(animationDuration: Long) {
+        if (animationDuration > 0L && temporaryBackground.visibility == VISIBLE) {
+            temporaryBackground.animate()
+                .setDuration(animationDuration)
+                .alpha(0f)
+                .withEndAction { temporaryBackground.visibility = GONE }
+        } else {
+            temporaryBackground.visibility = GONE
+        }
+
+    }
     fun showDynamicChooser(animationDuration: Long) {
         if (status == Status.Dynamic)
             return
+        showBackground(animationDuration)
         status = Status.Dynamic
         dynamicSelection.setActiveButton(0, 0L)
 
@@ -751,6 +828,8 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         if (status == Status.Static)
             return
         status = Status.Static
+        volumeSliders.fold(200L)
+        showBackground(200L)
 
         val deleteButtonTranslationX: Float = (soundChooserViewMeasures.delete.left - soundChooserViewMeasures.plus.left).toFloat()
         val deleteButtonTranslationY: Float = (soundChooserViewMeasures.delete.top - soundChooserViewMeasures.plus.top).toFloat()
@@ -833,6 +912,7 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                         deleteButton.visibility = GONE
                     }
             }
+
         } else {
             doneButton.visibility = GONE
             deleteButton.visibility = GONE
@@ -842,13 +922,15 @@ class SoundChooser3(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         noteDuration.disappear(animationDuration)
         tuplets.disappear(animationDuration)
         dynamicSelection.disappear(animationDuration)
-
+        hideBackground(animationDuration)
         setActiveControlButton(null, animationDuration)
     }
 
     fun setNoteList(noteList: ArrayList<NoteListItem>, animationDuration: Long) {
         Log.v("Metronome", "SoundChooser3.setNoteList: noteList[0] = ${noteList[0].duration}")
         noteView.setNoteList(noteList)
+        volumeSliders.setNoteList(this, noteList, animationDuration)
+
         val noteDurationBefore = activeControlButton?.noteDuration
 
         // update control buttons if uid did not change
