@@ -95,21 +95,33 @@
 <!--        app:layout_constraintTop_toTopOf="parent"-->
 <!--        tools:ignore="HardcodedText" />-->
 
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/scene_bpm_duration"
+        android:layout_width="25sp"
+        android:layout_height="30sp"
+        android:scaleType="fitEnd"
+        app:layout_constraintTop_toTopOf="@id/scene_sounds"
+        app:layout_constraintBottom_toBottomOf="@id/scene_sounds"
+        app:layout_constraintStart_toStartOf="parent"
+        android:src="@drawable/ic_note_duration_quarter"
+        android:tint="?attr/colorPrimary"
+        android:background="@null"
+        />
     <TextView
         android:id="@+id/scene_bpm"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:padding="4dp"
-        android:paddingStart="8dp"
+        android:paddingStart="4dp"
         android:paddingEnd="4dp"
         android:text="65 bpm"
         android:textSize="16sp"
-        android:gravity="center"
-        android:textColor="?attr/colorSecondary"
+        android:gravity="start"
+        android:textColor="?attr/colorPrimary"
         android:minWidth="70dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/scene_sounds"
-        app:layout_constraintBottom_toBottomOf="@id/scene_sounds"
+        app:layout_constraintStart_toEndOf="@id/scene_bpm_duration"
+        app:layout_constraintTop_toTopOf="@id/scene_bpm_duration"
+        app:layout_constraintBottom_toBottomOf="@id/scene_bpm_duration"
         app:layout_constraintEnd_toStartOf="@id/scene_sounds"
         tools:ignore="HardcodedText" />
 

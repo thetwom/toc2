@@ -43,7 +43,6 @@ class MainActivity : AppCompatActivity() {
     // TODO: test different device formats
     // TODO: translations
 
-    // TODO: show beat duartion type in scenes
     // TODO: Allow "odd" speeds e.g. during load or when typing
 
     private val metronomeViewModel by viewModels<MetronomeViewModel> {
