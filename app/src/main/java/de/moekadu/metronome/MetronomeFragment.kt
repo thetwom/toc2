@@ -30,8 +30,10 @@ import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.AppCompatTextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
+import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.preference.PreferenceManager
@@ -73,10 +75,8 @@ class MetronomeFragment : Fragment() {
     private var speedLimiter: SpeedLimiter? = null
 
     private var constraintLayout: ConstraintLayout? = null
-    private var bpmText: TextView? = null
+    private var bpmText: AppCompatTextView? = null
     private var playButton: PlayButton? = null
-    private var noteView: NoteView? = null
-    private var plusButton: ImageButton? = null
     private var clearAllButton: ImageButton? = null
     private var sceneTitle: TextView? = null
     private var swipeToScenesView: ImageButton? = null
@@ -86,13 +86,12 @@ class MetronomeFragment : Fragment() {
     private val noteListBackup = ArrayList<NoteListItem>()
 
     private var tickVisualizer: TickVisualizer? = null
-    private var soundChooser: SoundChooser? = null
-    private var savedSoundChooserNoteIndex = -1
+    // private var soundChooser: SoundChooser? = null
+    // private var savedSoundChooserNoteIndex = -1
 
     private var soundChooser3: SoundChooser3? = null
 
-    private var volumeSliders: VolumeSliders? = null
-    private var savedVolumeSlidersFolded = true
+    private var beatDurationManager: BeatDurationManager? = null
 
     private var sharedPreferenceChangeListener: OnSharedPreferenceChangeListener? = null
     private var bpmIncrement = Utilities.bpmIncrements[InitialValues.bpmIncrementIndex]
@@ -183,15 +182,6 @@ class MetronomeFragment : Fragment() {
             }
         }
 
-        volumeSliders = view.findViewById(R.id.volume_sliders)
-        volumeSliders?.volumeChangedListener = VolumeSliders.VolumeChangedListener { index, volume ->
-            viewModel.setNoteListVolume(index, volume)
-            if (viewModel.playerStatus.value != PlayerStatus.Playing && context != null) {
-                viewModel.noteList.value?.get(index)?.let { noteListItem ->
-                    singleNotePlayer.play(noteListItem.id, noteListItem.volume)
-                }
-            }
-        }
         tickVisualizer = view.findViewById(R.id.tick_visualizer)
 
         playButton = view.findViewById(R.id.play_button)
@@ -212,65 +202,6 @@ class MetronomeFragment : Fragment() {
             }
         }
 
-        noteView = view.findViewById(R.id.note_view)
-        noteView?.onNoteClickListener = object : NoteView.OnNoteClickListener {
-            override fun onDown(event: MotionEvent?, uid: UId?, noteIndex: Int): Boolean {
-//                Log.v("Metronome", "MetronomeFragment.noteView.onClickListener.onDown: noteIndex=$noteIndex, uid=$uid")
-                // we want to make sure that the click is either captured by the sound chooser or be this noteview
-                // - when the soundchooser is currently active it won't caputure the click, so we do it
-                // - when the soundchooser is inactive, we can't capture the click, since the sound chooser
-                //    needs to capture it.
-                val captureClick = soundChooser?.choiceStatus != SoundChooser.Status.Off
-                if (uid != null) {
-                    view.parent.requestDisallowInterceptTouchEvent(true)
-                    soundChooser?.setActiveControlButton(uid)
-                    noteView?.highlightNote(uid, true)
-                }
-                return captureClick
-            }
-
-            override fun onUp(event: MotionEvent?, uid: UId?, noteIndex: Int): Boolean {
-                return true
-            }
-
-            override fun onMove(event: MotionEvent?, uid: UId?, noteIndex: Int): Boolean {
-                return true
-            }
-        }
-
-        noteView?.addOnLayoutChangeListener { v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
-            if (left != oldLeft || top != oldTop || right != oldRight || bottom != oldBottom) {
-                volumeSliders?.setNoteViewBoundingBox(
-                        left + v.paddingLeft,
-                        top + v.paddingTop,
-                        right - v.paddingLeft,
-                        bottom - v.paddingBottom
-                )
-                soundChooser?.setNoteViewBoundingBox(
-                        left + v.paddingLeft,
-                        top + v.paddingTop,
-                        right - v.paddingLeft,
-                        bottom - v.paddingBottom
-                )
-//                Log.v("Metronome", "MetronomeFragment.noteView.onLayoutChangedListener: height = ${bottom - top}, ${v.height}, ${noteView?.height}")
-            }
-        }
-
-        plusButton = view.findViewById(R.id.plus_button)
-        plusButton?.setOnClickListener {
-            val newNote = viewModel.noteList.value?.lastOrNull()?.clone()?.apply { uid = UId.create() }
-                    ?: NoteListItem(defaultNote, 1.0f, NoteDuration.Quarter)
-            viewModel.addNote(newNote)
-
-            if (soundChooser?.choiceStatus == SoundChooser.Status.Static) {
-                noteView?.highlightNote(newNote.uid, true)
-            }
-        }
-        plusButton?.setOnTouchListener { _, event ->
-            if (event.actionMasked == MotionEvent.ACTION_DOWN)
-                view.parent.requestDisallowInterceptTouchEvent(true)
-            false
-        }
 
         clearAllButton = view.findViewById(R.id.clear_all_button)
         clearAllButton?.setOnClickListener {
@@ -294,46 +225,6 @@ class MetronomeFragment : Fragment() {
             if (event.actionMasked == MotionEvent.ACTION_DOWN)
                 view.parent.requestDisallowInterceptTouchEvent(true)
             false
-        }
-
-        soundChooser = view.findViewById(R.id.sound_chooser)
-        soundChooser?.stateChangedListener = object : SoundChooser.StateChangedListener {
-            override fun onSoundChooserDeactivated(uid: UId?) {
-                if (uid != null)
-                    noteView?.highlightNote(uid, false)
-            }
-            override fun onNoteIdChanged(uid: UId, noteId: Int, status: SoundChooser.Status) {
-                viewModel.setNoteListId(uid, noteId)
-                if (viewModel.playerStatus.value != PlayerStatus.Playing && status == SoundChooser.Status.Static && context != null) {
-                    viewModel.noteList.value?.firstOrNull { it.uid == uid }?.let { noteListItem ->
-                        singleNotePlayer.play(noteListItem.id, noteListItem.volume)
-                        if (vibrate) {
-                            viewModel.bpm.value?.bpmQuarter?.let{ bpmQuarter ->
-                                vibratingNote?.vibrate(noteListItem.volume, noteListItem, bpmQuarter)
-                            }
-                        }
-                    }
-                }
-            }
-
-            override fun onVolumeChanged(uid: UId, volume: Float, status: SoundChooser.Status) {
-                viewModel.setNoteListVolume(uid, volume)
-                if (viewModel.playerStatus.value != PlayerStatus.Playing && context != null) {
-                    viewModel.noteList.value?.firstOrNull { it.uid == uid }?.let { noteListItem ->
-                        singleNotePlayer.play(noteListItem.id, noteListItem.volume)
-                    }
-                }
-            }
-
-            override fun onNoteRemoved(uid: UId) {
-                viewModel.removeNote(uid)
-            }
-
-            override fun onNoteMoved(uid: UId, toIndex: Int) {
-                viewModel.moveNote(uid, toIndex)
-            }
-
-            override fun onStatusChanged(status: SoundChooser.Status) { }
         }
 
         soundChooser3 = view.findViewById(R.id.sound_chooser3)
@@ -389,6 +280,10 @@ class MetronomeFragment : Fragment() {
 //            override fun onStatusChanged(status: SoundChooser.Status) { }
         }
 
+        beatDurationManager = BeatDurationManager(view)
+        beatDurationManager?.beatDurationChangedListener = BeatDurationManager.BeatDurationChangedListener {
+            viewModel.setBpm(it)
+        }
 
         sceneTitle = view.findViewById(R.id.scene_title_active)
         sceneTitle?.setOnClickListener {
@@ -455,14 +350,13 @@ class MetronomeFragment : Fragment() {
         vibrate = sharedPreferences.getBoolean("vibrate", false)
         vibratingNote?.strength = sharedPreferences.getInt("vibratestrength", 50)
 
-        savedSoundChooserNoteIndex = savedInstanceState?.getInt("soundChooserNoteIndex", -1) ?: -1
-        savedVolumeSlidersFolded = savedInstanceState?.getBoolean("volumeSlidersFolded", true)
-                ?: true
+        // savedSoundChooserNoteIndex = savedInstanceState?.getInt("soundChooserNoteIndex", -1) ?: -1
 
         // register all observers
         viewModel.bpm.observe(viewLifecycleOwner) { bpm ->
 //            Log.v("Metronome", "MetronomeFragment: viewModel.bpm: $it")
-            bpmText?.text = getString(R.string.bpm, Utilities.getBpmString(bpm.bpm, bpmIncrement))
+            bpmText?.text = getString(R.string.eqbpm, Utilities.getBpmString(bpm.bpm, bpmIncrement))
+            beatDurationManager?.setBeatDuration(bpm.noteDuration)
         }
 
         // set status without animation on load ...
@@ -491,16 +385,13 @@ class MetronomeFragment : Fragment() {
                 //Log.v("Metronome", "MetronomeFragment: noteStarted: bpmQuarter=$bpmQuarter, durationMillis=${note.duration.durationInMillis(bpmQuarter)}")
                 tickVisualizer?.tick(note.duration.durationInMillis(bpmQuarter))
             }
-            noteView?.animateNote(note.uid)
-            soundChooser?.animateNote(note.uid)
+
+            soundChooser3?.animateNote(note.uid)
         }
 
         viewModel.noteList.observe(viewLifecycleOwner) {
             viewModel.noteList.value?.let {
 //                Log.v("Metronome", "MetronomeFragment: observing noteList" )
-                noteView?.setNoteList(it)
-                soundChooser?.setNoteList(it)
-                volumeSliders?.setNoteList(it)
                 soundChooser3?.setNoteList(it, 200L)
             }
         }
@@ -517,21 +408,21 @@ class MetronomeFragment : Fragment() {
             updateSceneTitleTextAndSwipeView()
         }
 
-        if (!savedVolumeSlidersFolded || savedSoundChooserNoteIndex >= 0) {
-            view.post {
-                viewModel.noteList.value?.let { notes ->
-                    if (savedSoundChooserNoteIndex >= 0 && savedSoundChooserNoteIndex < notes.size) {
-                        val note = notes[savedSoundChooserNoteIndex]
-                        soundChooser?.setActiveControlButton(note.uid)
-                        noteView?.highlightNote(note.uid, true)
-                        soundChooser?.activateStaticChoices(0L)
-                    }
-                }
-
-                if (!savedVolumeSlidersFolded)
-                    volumeSliders?.unfold(0L)
-            }
-        }
+//        if (!savedVolumeSlidersFolded || savedSoundChooserNoteIndex >= 0) {
+//            view.post {
+//                viewModel.noteList.value?.let { notes ->
+//                    if (savedSoundChooserNoteIndex >= 0 && savedSoundChooserNoteIndex < notes.size) {
+//                        val note = notes[savedSoundChooserNoteIndex]
+//                        soundChooser?.setActiveControlButton(note.uid)
+//                        noteView?.highlightNote(note.uid, true)
+//                        soundChooser?.activateStaticChoices(0L)
+//                    }
+//                }
+//
+//                if (!savedVolumeSlidersFolded)
+//                    volumeSliders?.unfold(0L)
+//            }
+//        }
         return view
     }
 
@@ -557,14 +448,14 @@ class MetronomeFragment : Fragment() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        if(soundChooser?.choiceStatus == SoundChooser.Status.Static) {
-            viewModel.noteList.value?.let { notes ->
-                val noteIndex = notes.indexOfFirst { it.uid == soundChooser?.activeNoteUid }
-                if (noteIndex >= 0)
-                    outState.putInt("soundChooserNoteIndex", noteIndex)
-            }
-        }
-        outState.putBoolean("volumeSlidersFolded", volumeSliders?.folded ?: true)
+//        if(soundChooser?.choiceStatus == SoundChooser.Status.Static) {
+//            viewModel.noteList.value?.let { notes ->
+//                val noteIndex = notes.indexOfFirst { it.uid == soundChooser?.activeNoteUid }
+//                if (noteIndex >= 0)
+//                    outState.putInt("soundChooserNoteIndex", noteIndex)
+//            }
+//        }
+        // outState.putBoolean("volumeSlidersFolded", volumeSliders?.folded ?: true)
 
         super.onSaveInstanceState(outState)
     }
@@ -594,7 +485,8 @@ class MetronomeFragment : Fragment() {
         val editingStableId = scenesViewModel.editingStableId.value ?: Scene.NO_STABLE_ID
         val activeStableId = scenesViewModel.activeStableId.value ?: Scene.NO_STABLE_ID
 
-        if (animate && soundChooser?.choiceStatus == SoundChooser.Status.Off) // dont animate since otherwise animations will clash
+//        if (animate && soundChooser?.choiceStatus == SoundChooser.Status.Off) // dont animate since otherwise animations will clash
+        if (animate) // dont animate since otherwise animations will clash
             constraintLayout?.let { TransitionManager.beginDelayedTransition(it)}
 
         if (editingStableId != Scene.NO_STABLE_ID) {

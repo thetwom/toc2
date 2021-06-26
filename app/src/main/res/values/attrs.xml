@@ -58,4 +58,6 @@
     <attr name="backgroundLeft" format="integer"/>
     <attr name="backgroundRight" format="integer"/>
     <attr name="backgroundCenter" format="integer"/>
+    <attr name="noteViewHeightPercent" format="float"/>
+    <attr name="plusButtonRightPercent" format="float"/>
 </resources>

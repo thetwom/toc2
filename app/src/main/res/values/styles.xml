@@ -112,6 +112,11 @@
         <attr name="volumeColor"/>
         <attr name="backgroundViewColor"/>
         <attr name="actionButtonTintList"/>
+        <attr name="numRows"/>
+        <attr name="numCols"/>
+        <attr name="vertical"/>
+        <attr name="noteViewHeightPercent"/>
+        <attr name="plusButtonRightPercent"/>
     </declare-styleable>
 
     <style name="Widget.AppTheme.SoundChooserStyle3" parent="">
@@ -123,6 +128,11 @@
         <item name="volumeColor">?attr/colorPrimaryFaint</item>
         <item name="backgroundViewColor">?android:colorBackground</item>
         <item name="actionButtonTintList">@color/plus_button_foreground</item>
+        <item name="numRows">4</item>
+        <item name="numCols">2</item>
+        <item name="vertical">true</item>
+        <item name="noteViewHeightPercent">0.2</item>
+        <item name="plusButtonRightPercent">0.65</item>
     </style>
 
     <declare-styleable name="GridSelection">

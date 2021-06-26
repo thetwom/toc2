@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.opengl.Visibility
 import android.util.Log
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewOutlineProvider
@@ -100,6 +101,11 @@ class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
                     setOnClickListener {
                         setActiveButton(index)
                         activeButtonChangedListener?.onActiveButtonChanged(index)
+                    }
+                    setOnTouchListener { _, event ->
+                        if (event.actionMasked == MotionEvent.ACTION_DOWN)
+                            parent.requestDisallowInterceptTouchEvent(true)
+                        false
                     }
                     scaleType = ImageView.ScaleType.FIT_CENTER
                     imageTintList = tint

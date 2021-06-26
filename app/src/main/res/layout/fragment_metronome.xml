@@ -37,6 +37,13 @@
         app:layout_constraintTop_toTopOf="parent"
         />
 
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/note_view_top"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.77"
+        />
     <de.moekadu.metronome.SpeedPanel
         android:id="@+id/speed_panel"
         android:layout_width="0dp"
@@ -49,7 +56,7 @@
         android:layout_marginBottom="8dp"
         android:elevation="8dp"
         android:padding="10dp"
-        app:layout_constraintBottom_toTopOf="@id/note_view"
+        app:layout_constraintBottom_toTopOf="@id/note_view_top"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/bpm_text"
@@ -139,9 +146,78 @@
         android:visibility="gone"
         />
 
-    <TextView
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/beat_duration"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="@id/bpm_text"
+        app:layout_constraintBottom_toBottomOf="@id/bpm_text"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:scaleType="fitEnd"
+        android:padding="4dp"
+        android:src="@drawable/ic_note_duration_quarter"
+        android:tint="?attr/colorPrimary"
+        app:layout_constraintWidth_percent="0.3"
+        android:background="@null"
+        />
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/beat_duration_choice_sixteenth"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/beat_duration"
+        app:layout_constraintRight_toRightOf="@id/beat_duration"
+        android:scaleType="fitCenter"
+        android:padding="4dp"
+        android:elevation="12dp"
+        android:src="@drawable/ic_note_duration_sixteenth"
+        android:tint="@color/grid_foreground"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintHeight_percent="0.12"
+        android:background="@drawable/grid_background_left"
+        android:visibility="gone"
+        />
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/beat_duration_choice_eighth"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="@id/beat_duration_choice_sixteenth"
+        app:layout_constraintBottom_toBottomOf="@id/beat_duration_choice_sixteenth"
+        app:layout_constraintLeft_toRightOf="@id/beat_duration_choice_sixteenth"
+        android:scaleType="fitCenter"
+        android:padding="4dp"
+        android:elevation="12dp"
+        android:layout_marginLeft="1dp"
+        android:src="@drawable/ic_note_duration_eighth"
+        android:tint="@color/grid_foreground"
+        app:layout_constraintDimensionRatio="1:1"
+        android:background="@drawable/grid_background_center"
+        android:visibility="gone"
+        />
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/beat_duration_choice_quarter"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="@id/beat_duration_choice_eighth"
+        app:layout_constraintBottom_toBottomOf="@id/beat_duration_choice_eighth"
+        app:layout_constraintLeft_toRightOf="@id/beat_duration_choice_eighth"
+        android:scaleType="fitCenter"
+        android:padding="4dp"
+        android:elevation="12dp"
+        android:layout_marginLeft="1dp"
+        android:src="@drawable/ic_note_duration_quarter"
+        android:tint="@color/grid_foreground"
+        app:layout_constraintDimensionRatio="1:1"
+        android:background="@drawable/grid_background_right"
+        android:visibility="gone"
+        />
+
+
+    <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/bpm_text"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_gravity="center"
         android:layout_marginStart="0dp"
@@ -149,12 +225,14 @@
         android:layout_marginEnd="0dp"
         android:padding="8dp"
         android:elevation="4dp"
-        android:text="@string/bpm"
-        android:textAlignment="center"
+        android:text="@string/eqbpm"
         app:autoSizeTextType="uniform"
+        android:gravity="left"
+        android:maxLines="1"
+        android:ellipsize="none"
         android:textColor="?attr/colorPrimary"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@id/beat_duration"
         app:layout_constraintTop_toBottomOf="@id/scene_title_active"
         app:layout_constraintHeight_percent="0.12"
         tools:layout_conversion_wrapHeight="108"
@@ -188,50 +266,13 @@
     <!--    android:background="@drawable/scene_button_background"-->
 
     <ImageButton
-        android:id="@+id/plus_button_notelines"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:scaleType="fitXY"
-        android:layout_marginEnd="0dp"
-        android:layout_marginBottom="0dp"
-        app:layout_constraintBottom_toBottomOf="@id/note_view"
-        app:layout_constraintTop_toTopOf="@id/note_view"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintDimensionRatio="1:1"
-        android:background="@drawable/ic_notelines"
-        android:backgroundTint="?attr/colorOnBackground"
-        android:contentDescription="add note background"
-        tools:ignore="HardcodedText" />
-
-        <ImageButton
-            android:id="@+id/plus_button"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginBottom="8dp"
-            android:layout_marginTop="8dp"
-            android:scaleType="fitXY"
-            android:elevation="4dp"
-            app:layout_constraintBottom_toBottomOf="@id/plus_button_notelines"
-            app:layout_constraintTop_toTopOf="@id/plus_button_notelines"
-            app:layout_constraintRight_toRightOf="@id/plus_button_notelines"
-            app:layout_constraintLeft_toLeftOf="@id/plus_button_notelines"
-            app:layout_constraintDimensionRatio="1:1"
-            android:background="@drawable/plus_button_background"
-            app:tint="?attr/colorOnPrimary"
-            android:src="@drawable/ic_add"
-            android:contentDescription="@string/add_note"
-            />
-
-    <ImageButton
         android:id="@+id/clear_all_button"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginEnd="2dp"
         android:scaleType="fitXY"
         android:elevation="4dp"
-        app:layout_constraintBottom_toTopOf="@id/plus_button"
+        app:layout_constraintBottom_toTopOf="@id/note_view_top"
         app:layout_constraintHeight_percent="0.08"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintDimensionRatio="1:1"
@@ -241,57 +282,17 @@
         android:contentDescription="@string/clear_all"
         />
 
-    <de.moekadu.metronome.NoteView
-        android:id="@+id/note_view"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="0dp"
-        android:layout_marginEnd="0dp"
-        android:layout_marginBottom="0dp"
-        android:elevation="5dp"
-        app:noteColor="?attr/colorPrimary"
-        app:noteHighlightColor="?attr/colorSecondary"
-        app:showNumbers="true"
-        app:layout_constraintBottom_toTopOf="@id/tick_visualizer"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/plus_button_notelines"
-        app:layout_constraintHeight_percent="0.188"/>
-
-    <de.moekadu.metronome.SoundChooser
-        android:id="@+id/sound_chooser"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:activeTranslationZ="30dp"
-        app:noteColor="?attr/colorPrimary"
-        app:noteHighlightColor="?attr/colorSecondary"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="@id/note_view"
-        />
-<!--    android:visibility="invisible"-->
-
-    <de.moekadu.metronome.VolumeSliders
-        android:id="@+id/volume_sliders"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="0dp"
-        android:layout_marginEnd="0dp"
-        android:layout_marginBottom="0dp"
-        android:layout_marginTop="0dp"
-        android:padding="0dp"
-        android:backgroundTint="?attr/colorPrimary"
-        app:layout_constraintBottom_toTopOf="@id/note_view"
-        app:layout_constraintTop_toTopOf="parent"
-         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:activeTranslationZ="28dp"
-        />
-
     <de.moekadu.metronome.SoundChooser3
         android:id="@+id/sound_chooser3"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
         app:noteHighlightColor="?attr/colorSecondary"
-        android:elevation="20dp"
+        android:elevation="0dp"
+        app:layout_constraintBottom_toTopOf="@id/tick_visualizer"
+        app:layout_constraintTop_toTopOf="parent"
+        app:noteViewHeightPercent="0.22"
+        app:numRows="2"
+        app:numCols="4"
         />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

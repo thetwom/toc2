@@ -29,6 +29,7 @@
     <string name="woodblock" translatable="false">woodblock</string>
     <string name="mute">mute</string>
     <string name="bpm">%s bpm</string>
+    <string name="eqbpm">= %s bpm</string>
 
     <string name="scenes">Scenes</string>
     <string name="save_scene">Save scene</string>

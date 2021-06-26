@@ -104,13 +104,13 @@ class VolumeSliders2(context: Context) {
         val defaultHeight = 2f * noteViewHeight
         val tunerHeight =  min(maxHeight, defaultHeight).toInt()
 
-        var tunerWidth = Int.MAX_VALUE
+        var tunerWidth = (0.35f * noteViewHeight).roundToInt()
         for (i in volumeControls.indices) {
             NoteView.computeBoundingBox(i, volumeControls.size, noteViewWidth, noteViewHeight, boundingBox)
             tunerWidth = min((boundingBox.width() - tunerSpacing).toInt(), tunerWidth)
         }
 
-        tunerWidth = min((tunerHeight / 7f).toInt(), tunerWidth)
+        tunerWidth = min((tunerHeight / 4f).toInt(), tunerWidth)
 
         val volumeControlWidthSpec = View.MeasureSpec.makeMeasureSpec(tunerWidth, View.MeasureSpec.EXACTLY)
         val volumeControlHeightSpec = View.MeasureSpec.makeMeasureSpec(tunerHeight, View.MeasureSpec.EXACTLY)

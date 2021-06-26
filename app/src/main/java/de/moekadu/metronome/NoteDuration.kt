@@ -18,14 +18,14 @@ private fun bpmToSeconds(bpm: Float) = (60.0f / bpm)
 
 fun NoteDuration.durationInSeconds(bpmQuarter: Float) =
     when(this) {
-        NoteDuration.SixteenthTriplet -> bpmToSeconds(bpmQuarter / 4.0f * 2.0f / 3.0f)
-        NoteDuration.SixteenthQuintuplet -> bpmToSeconds(bpmQuarter / 4.0f * 4.0f / 5.0f)
-        NoteDuration.Sixteenth -> bpmToSeconds(bpmQuarter / 4.0f)
-        NoteDuration.EighthTriplet -> bpmToSeconds(bpmQuarter / 2.0f * 2.0f / 3.0f)
-        NoteDuration.EighthQuintuplet -> bpmToSeconds(bpmQuarter / 2.0f * 4.0f / 5.0f)
-        NoteDuration.Eighth -> bpmToSeconds(bpmQuarter / 2.0f)
-        NoteDuration.QuarterTriplet -> bpmToSeconds(bpmQuarter * 2.0f / 3.0f)
-        NoteDuration.QuarterQuintuplet -> bpmToSeconds(bpmQuarter * 4.0f / 5.0f)
+        NoteDuration.SixteenthTriplet -> bpmToSeconds(bpmQuarter) / 4.0f * 2.0f / 3.0f
+        NoteDuration.SixteenthQuintuplet -> bpmToSeconds(bpmQuarter) / 4.0f * 4.0f / 5.0f
+        NoteDuration.Sixteenth -> bpmToSeconds(bpmQuarter) / 4.0f
+        NoteDuration.EighthTriplet -> bpmToSeconds(bpmQuarter) / 2.0f * 2.0f / 3.0f
+        NoteDuration.EighthQuintuplet -> bpmToSeconds(bpmQuarter) / 2.0f * 4.0f / 5.0f
+        NoteDuration.Eighth -> bpmToSeconds(bpmQuarter) / 2.0f
+        NoteDuration.QuarterTriplet -> bpmToSeconds(bpmQuarter) * 2.0f / 3.0f
+        NoteDuration.QuarterQuintuplet -> bpmToSeconds(bpmQuarter) * 4.0f / 5.0f
         NoteDuration.Quarter -> bpmToSeconds(bpmQuarter)
     }
 

@@ -50,6 +50,12 @@ class MetronomeViewModel(private val playerConnection: PlayerServiceConnection):
         setBpm(newBpm)
     }
 
+    fun setBpm(duration: NoteDuration) {
+        val oldBpm = this.bpm.value
+        val newBpm = oldBpm?.copy(noteDuration =  duration) ?: Bpm(InitialValues.bpm.bpm, duration)
+        setBpm(newBpm)
+    }
+
     fun setBpm(bpm: Bpm) {
 //        Log.v("Metronome", "MetronomeViewModel: setBpm=$bpm")
         playerConnection.setBpm(bpm)
