@@ -227,6 +227,9 @@ class VolumeControl(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
+        if (!changed)
+            return
+
         val h = b - t
 //        Log.v("Metronome", "VolumeControl.onLayout: h = $h")
         backgroundView.layout(paddingLeft, paddingTop, backgroundView.measuredWidth, backgroundView.measuredHeight)

@@ -77,7 +77,6 @@ class MetronomeFragment : Fragment() {
     private var constraintLayout: ConstraintLayout? = null
     private var bpmText: AppCompatTextView? = null
     private var playButton: PlayButton? = null
-    private var clearAllButton: ImageButton? = null
     private var sceneTitle: TextView? = null
     private var swipeToScenesView: ImageButton? = null
 
@@ -202,31 +201,6 @@ class MetronomeFragment : Fragment() {
             }
         }
 
-
-        clearAllButton = view.findViewById(R.id.clear_all_button)
-        clearAllButton?.setOnClickListener {
-
-            viewModel.noteList.value?.let { notes ->
-                deepCopyNoteList(notes, noteListBackup)
-                val newNoteList = ArrayList<NoteListItem>()
-                newNoteList.add(NoteListItem(defaultNote))
-                viewModel.setNoteList(newNoteList)
-
-                getView()?.let { view ->
-                    Snackbar.make(view, getString(R.string.all_notes_deleted), Snackbar.LENGTH_LONG)
-                            .setAction(R.string.undo) {
-                                viewModel.setNoteList(noteListBackup)
-                                //noteList?.set(noteListBackup)
-                            }.show()
-                }
-            }
-        }
-        clearAllButton?.setOnTouchListener { _, event ->
-            if (event.actionMasked == MotionEvent.ACTION_DOWN)
-                view.parent.requestDisallowInterceptTouchEvent(true)
-            false
-        }
-
         soundChooser3 = view.findViewById(R.id.sound_chooser3)
         soundChooser3?.stateChangedListener = object : SoundChooser3.StateChangedListener {
             override fun changeNoteId(uid: UId, noteId: Int, status: SoundChooser3.Status) {
@@ -270,7 +244,27 @@ class MetronomeFragment : Fragment() {
             }
 
             override fun removeNote(uid: UId) {
-                viewModel.removeNote(uid)
+                if (viewModel.noteList.value?.size ?: 0 <= 1)
+                    Toast.makeText(context, context?.getString(R.string.cannot_delete_last_note), Toast.LENGTH_LONG).show()
+                else
+                    viewModel.removeNote(uid)
+            }
+
+            override fun removeAllNotes() {
+                viewModel.noteList.value?.let { notes ->
+                    deepCopyNoteList(notes, noteListBackup)
+                    val newNoteList = ArrayList<NoteListItem>()
+                    newNoteList.add(NoteListItem(defaultNote))
+                    viewModel.setNoteList(newNoteList)
+
+                    getView()?.let { view ->
+                        Snackbar.make(view, getString(R.string.all_notes_deleted), Snackbar.LENGTH_LONG)
+                            .setAction(R.string.undo) {
+                                viewModel.setNoteList(noteListBackup)
+                                //noteList?.set(noteListBackup)
+                            }.show()
+                    }
+                }
             }
 
             override fun moveNote(uid: UId, toIndex: Int) {

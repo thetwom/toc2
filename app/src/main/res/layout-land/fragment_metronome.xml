@@ -209,13 +209,13 @@
         android:padding="4dp"
         android:src="@drawable/ic_note_duration_quarter"
         android:tint="?attr/colorPrimary"
-        app:layout_constraintWidth_percent="0.1"
+        app:layout_constraintWidth_percent="0.15"
         android:background="@null"
         />
 
 
     <androidx.appcompat.widget.AppCompatImageButton
-        android:id="@+id/beat_duration_choice_sixteenth"
+        android:id="@+id/beat_duration_choice_quarter"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintTop_toBottomOf="@id/beat_duration"
@@ -223,7 +223,7 @@
         android:scaleType="fitCenter"
         android:padding="4dp"
         android:elevation="12dp"
-        android:src="@drawable/ic_note_duration_sixteenth"
+        android:src="@drawable/ic_note_duration_quarter"
         android:tint="@color/grid_foreground"
         app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintHeight_percent="0.21"
@@ -235,9 +235,9 @@
         android:id="@+id/beat_duration_choice_eighth"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintTop_toTopOf="@id/beat_duration_choice_sixteenth"
-        app:layout_constraintBottom_toBottomOf="@id/beat_duration_choice_sixteenth"
-        app:layout_constraintLeft_toRightOf="@id/beat_duration_choice_sixteenth"
+        app:layout_constraintTop_toTopOf="@id/beat_duration_choice_quarter"
+        app:layout_constraintBottom_toBottomOf="@id/beat_duration_choice_quarter"
+        app:layout_constraintLeft_toRightOf="@id/beat_duration_choice_quarter"
         android:scaleType="fitCenter"
         android:padding="4dp"
         android:elevation="12dp"
@@ -250,7 +250,7 @@
         />
 
     <androidx.appcompat.widget.AppCompatImageButton
-        android:id="@+id/beat_duration_choice_quarter"
+        android:id="@+id/beat_duration_choice_sixteenth"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintTop_toTopOf="@id/beat_duration_choice_eighth"
@@ -260,7 +260,7 @@
         android:padding="4dp"
         android:elevation="12dp"
         android:layout_marginLeft="1dp"
-        android:src="@drawable/ic_note_duration_quarter"
+        android:src="@drawable/ic_note_duration_sixteenth"
         android:tint="@color/grid_foreground"
         app:layout_constraintDimensionRatio="1:1"
         android:background="@drawable/grid_background_right"
@@ -287,25 +287,6 @@
         tools:layout_conversion_wrapHeight="108"
         tools:layout_conversion_wrapWidth="239"
         tools:ignore="HardcodedText" />
-
-
-    <ImageButton
-        android:id="@+id/clear_all_button"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="4dp"
-        android:scaleType="fitXY"
-        android:elevation="4dp"
-        app:layout_constraintBottom_toTopOf="@id/lower_guideline"
-        app:layout_constraintHeight_percent="0.12"
-        app:layout_constraintRight_toLeftOf="@id/speed_panel"
-        app:layout_constraintDimensionRatio="1:1"
-        android:background="@drawable/plus_button_background"
-        app:tint="?attr/colorOnPrimary"
-        android:src="@drawable/ic_baseline_delete_sweep"
-        android:contentDescription="@string/clear_all"
-        />
-
 
     <de.moekadu.metronome.SoundChooser3
         android:id="@+id/sound_chooser3"

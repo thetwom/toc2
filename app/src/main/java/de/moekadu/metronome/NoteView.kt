@@ -313,14 +313,29 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
+//        Log.v("Metronome", "NoteView.onLayout: changed: $changed")
+//        if (!changed)
+//            return
         val totalWidth = r - l - paddingLeft - paddingRight
         val totalHeight = b - t - paddingTop - paddingBottom
         val heightScaling = if (showTuplets) NOTE_IMAGE_HEIGHT_SCALING else 1.0f
         val totalHeightExcludingTuplet = (heightScaling * totalHeight).roundToInt()
         val excludingTupletTop = paddingTop + totalHeight - totalHeightExcludingTuplet
 
-        volumeView.layout(paddingLeft, excludingTupletTop, paddingLeft + volumeView.measuredWidth, excludingTupletTop + volumeView.measuredHeight)
-        lineView.layout(paddingLeft, excludingTupletTop, paddingLeft + lineView.measuredWidth, excludingTupletTop + lineView.measuredHeight)
+        if (changed) {
+            volumeView.layout(
+                paddingLeft,
+                excludingTupletTop,
+                paddingLeft + volumeView.measuredWidth,
+                excludingTupletTop + volumeView.measuredHeight
+            )
+            lineView.layout(
+                paddingLeft,
+                excludingTupletTop,
+                paddingLeft + lineView.measuredWidth,
+                excludingTupletTop + lineView.measuredHeight
+            )
+        }
 
         val noteHorizontalSpace = totalWidth / notes.size.toFloat()
 

@@ -21,11 +21,14 @@
 
 package de.moekadu.metronome
 
+import android.os.Parcelable
 import android.util.Log
+import kotlinx.parcelize.Parcelize
 import kotlin.RuntimeException
 import kotlin.math.min
 
-data class UId private constructor(private val id: Int) {
+@Parcelize
+data class UId private constructor(private val id: Int) : Parcelable{
     companion object {
         @Volatile
         private var c = 0

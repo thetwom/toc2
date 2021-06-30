@@ -54,17 +54,13 @@ class VolumeSliders2(context: Context) {
         setOnClickListener {
             volumeChangedListener?.unfold()
         }
-        setOnTouchListener { _, event ->
-            if (event.actionMasked == MotionEvent.ACTION_DOWN)
-                parent.requestDisallowInterceptTouchEvent(true)
-            false
-        }
+        disableSwipeForClickableButton(this)
     }
 
     private val closeButton = ImageButton(context).apply {
         scaleType = ImageView.ScaleType.FIT_CENTER
         background = AppCompatResources.getDrawable(context, R.drawable.plus_button_background)
-        setImageResource(R.drawable.ic_close)
+        setImageResource(R.drawable.ic_close_small)
         imageTintList =  AppCompatResources.getColorStateList(context, R.color.volumeslider_unfold_button_icon)
         setPadding(0, 0, 0, 0)
         elevation = Utilities.dp2px(2f)
@@ -72,11 +68,7 @@ class VolumeSliders2(context: Context) {
         setOnClickListener {
             volumeChangedListener?.fold()
         }
-        setOnTouchListener { _, event ->
-            if (event.actionMasked == MotionEvent.ACTION_DOWN)
-                parent.requestDisallowInterceptTouchEvent(true)
-            false
-        }
+        disableSwipeForClickableButton(this)
     }
 
     interface VolumeChangedListener {
@@ -93,12 +85,15 @@ class VolumeSliders2(context: Context) {
         viewGroup.addView(closeButton)
     }
 
-    fun measure(noteViewWidth: Int, noteViewHeight: Int, viewHeight: Int, foldingButtonHeight: Int) {
+    fun measure(noteViewWidth: Int, noteViewHeight: Int, viewHeight: Int,
+                foldingButtonHeight: Int, closeButtonHeight: Int) {
 //        Log.v("Metronome", "VolumeSliders.onMeasure")
 
-        val buttonSpec = View.MeasureSpec.makeMeasureSpec(foldingButtonHeight, View.MeasureSpec.EXACTLY)
-        closeButton.measure(buttonSpec, buttonSpec)
-        openButton.measure(buttonSpec, buttonSpec)
+        val openButtonSpec = View.MeasureSpec.makeMeasureSpec(foldingButtonHeight, View.MeasureSpec.EXACTLY)
+        openButton.measure(openButtonSpec, openButtonSpec)
+
+        val closeButtonSpec = View.MeasureSpec.makeMeasureSpec(closeButtonHeight, View.MeasureSpec.EXACTLY)
+        closeButton.measure(closeButtonSpec, closeButtonSpec)
 
         val maxHeight = viewHeight - buttonTunerSpacing - foldingButtonHeight
         val defaultHeight = 2f * noteViewHeight
@@ -119,17 +114,17 @@ class VolumeSliders2(context: Context) {
         }
     }
 
-    fun layout(l: Int, b: Int, noteViewWidth: Int, noteViewHeight: Int) {
+    fun layout(l: Int, b: Int, noteViewWidth: Int, noteViewHeight: Int, plusButtonLeft: Int) {
         openButton.layout(l, b - openButton.measuredHeight, l + openButton.measuredWidth, b)
-        val closeButtonBottom = if (volumeControls.size == 0) {
-            b
+        val closeButtonTop = if (volumeControls.size == 0) {
+            b - closeButton.height
         } else {
-            (b - volumeControls[0].measuredHeight - buttonTunerSpacing).roundToInt()
+            (b - volumeControls[0].measuredHeight)
         }
-        closeButton.layout(l,
-            closeButtonBottom - closeButton.measuredHeight,
-            l + closeButton.measuredWidth,
-            closeButtonBottom
+        closeButton.layout(plusButtonLeft,
+            closeButtonTop,
+            plusButtonLeft + closeButton.measuredWidth,
+            closeButtonTop + closeButton.measuredHeight
         )
 
         if (volumeControls.size > 0) {
@@ -195,57 +190,64 @@ class VolumeSliders2(context: Context) {
         return volumeControl
     }
 
+    fun hideOpenButton(animationDuration: Long) {
+        hideView(openButton, animationDuration)
+    }
+
+    fun showOpenButton(animationDuration: Long) {
+        emergeView(openButton, animationDuration)
+    }
+
     fun fold(animationDuration: Long) {
         folded = true
 
-        if(animationDuration > 0L) {
-            volumeControls.forEach {
-                if (it.visibility == View.VISIBLE)
-                    it.animate().alpha(0.0f).withEndAction { it.visibility = View.GONE }
-            }
-            if (closeButton.visibility == View.VISIBLE)
-                closeButton.animate().alpha(0.0f).withEndAction { closeButton.visibility = View.GONE }
-
-            if (openButton.visibility != View.VISIBLE)
-                openButton.alpha = 0f
-            openButton.visibility = View.VISIBLE
-            openButton.animate().alpha(1.0f)
-        } else {
-            openButton.alpha = 1f
-            openButton.visibility = View.VISIBLE
-            closeButton.visibility = View.GONE
-            volumeControls.forEach {
-                it.alpha = 1f
-                it.visibility = View.GONE
-            }
-        }
+        volumeControls.forEach { hideView(it, animationDuration) }
+        hideView(closeButton, animationDuration)
+        showOpenButton(animationDuration)
     }
 
     fun unfold(animationDuration: Long) {
         folded = false
 
-        if(animationDuration > 0L) {
-            volumeControls.forEach {
-                if (it.visibility != View.VISIBLE)
-                    it.alpha = 0f
-                it.animate().alpha(1.0f).withStartAction { it.visibility = View.VISIBLE }
-            }
-            if (openButton.visibility == View.VISIBLE)
-                openButton.animate().alpha(0.0f).withEndAction { openButton.visibility = View.GONE }
+        volumeControls.forEach { emergeView(it, animationDuration) }
+        hideOpenButton(animationDuration)
+        emergeView(closeButton, animationDuration)
+    }
 
-            if (closeButton.visibility != View.VISIBLE)
-                closeButton.alpha = 0f
-            closeButton.visibility = View.VISIBLE
-            closeButton.animate().alpha(1.0f)
-
-        } else {
-            volumeControls.forEach {
-                it.alpha = 1f
-                it.visibility = View.VISIBLE
+    companion object {
+        private fun emergeView(view: View, animationDuration: Long, alphaEnd: Float = 1f) {
+            if (view.visibility == View.VISIBLE && view.alpha == 1f)
+                return
+            if (animationDuration > 0L) {
+                if (view.visibility != View.VISIBLE)
+                    view.alpha = 0f
+                view.animate().setDuration(animationDuration)
+                    .withStartAction { view.visibility = View.VISIBLE }
+                    .alpha(alphaEnd)
+            } else {
+                view.visibility = View.VISIBLE
+                view.alpha = alphaEnd
             }
-            closeButton.alpha = 1f
-            closeButton.visibility = View.VISIBLE
-            openButton.visibility = View.GONE
+        }
+
+        private fun hideView(view: View, animationDuration: Long) {
+            if (view.visibility != View.VISIBLE)
+                return
+            if (animationDuration > 0L) {
+                view.animate().setDuration(animationDuration)
+                    .alpha(0f)
+                    .withEndAction { view.visibility = View.GONE }
+            } else {
+                view.visibility = View.GONE
+            }
+        }
+
+        private fun disableSwipeForClickableButton(view: View) {
+            view.setOnTouchListener { _, event ->
+                if (event.actionMasked == MotionEvent.ACTION_DOWN)
+                    view.parent.requestDisallowInterceptTouchEvent(true)
+                false
+            }
         }
     }
 }

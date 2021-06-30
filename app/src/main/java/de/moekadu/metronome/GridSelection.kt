@@ -24,15 +24,18 @@ class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
         fun onActiveButtonChanged(index: Int)
     }
 
-    var visibility: Int = View.VISIBLE
-        set(value) {
-            buttons.forEach { it.visibility = value }
-            field = value
-        }
+//    var visibility: Int = View.VISIBLE
+//        set(value) {
+//            buttons.forEach { it.visibility = value }
+//            field = value
+//        }
 
     var activeButtonChangedListener: ActiveButtonChangedListener? = null
 
     private val buttons = ArrayList<ImageButton>()
+    private val deactivatedIndices = ArrayList<Boolean>()
+
+    val size get() = buttons.size
 
     val activeButtonIndex get() = buttons.indexOfFirst { it.isActivated }
 
@@ -46,23 +49,29 @@ class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
 //    }
 
     fun emerge(animationDuration: Long) {
+        val alphaDeactivated = 0.5f
         if (animationDuration == 0L) {
-            visibility = View.VISIBLE
+            //visibility = View.VISIBLE
+            buttons.forEachIndexed { index, button ->
+                button.visibility = View.VISIBLE
+                button.alpha = if (deactivatedIndices[index]) alphaDeactivated else 1.0f
+            }
         } else {
-            buttons.forEach {
-                if (it.visibility != View.VISIBLE)
-                    it.alpha = 0f
-                it.visibility = View.VISIBLE
-                it.animate()
+            buttons.forEachIndexed { index, button ->
+                if (button.visibility != View.VISIBLE)
+                    button.alpha = 0f
+                button.visibility = View.VISIBLE
+                button.animate()
                     .setDuration(animationDuration)
-                    .alpha(1.0f)
+                    .alpha(if (deactivatedIndices[index]) alphaDeactivated else 1.0f)
             }
         }
     }
 
     fun disappear(animationDuration: Long) {
         if (animationDuration == 0L) {
-            visibility = View.GONE
+            //visibility = View.GONE
+            buttons.forEach { it.visibility = View.GONE }
         } else {
             buttons.forEach {
                 if (it.visibility == View.VISIBLE) {
@@ -99,8 +108,10 @@ class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
                     })
                     setBackgroundResource(backgroundId)
                     setOnClickListener {
-                        setActiveButton(index)
-                        activeButtonChangedListener?.onActiveButtonChanged(index)
+                        if (!deactivatedIndices[index]) {
+                            setActiveButton(index)
+                            activeButtonChangedListener?.onActiveButtonChanged(index)
+                        }
                     }
                     setOnTouchListener { _, event ->
                         if (event.actionMasked == MotionEvent.ACTION_DOWN)
@@ -109,9 +120,10 @@ class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
                     }
                     scaleType = ImageView.ScaleType.FIT_CENTER
                     imageTintList = tint
-                    visibility = this@GridSelection.visibility
+                    //visibility = this@GridSelection.visibility
                 }
                 buttons.add(button)
+                deactivatedIndices.add(false)
                 viewGroup.addView(button)
             }
         }
@@ -155,6 +167,11 @@ class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
 
     fun setButtonDrawable(index: Int, resourceId: Int) {
         buttons[index].setImageResource(resourceId)
+    }
+
+    fun deactivateButton(index: Int) {
+        Log.v("Metronome", "GridSelection.deactivateButton")
+        deactivatedIndices[index] = true
     }
 
     fun setActiveButton(index: Int) {
