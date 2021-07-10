@@ -423,7 +423,7 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
             val mixingBufferSize = min(player.bufferSizeInFrames / 2, 128)
             val mixingBuffer = FloatArray(mixingBufferSize)
 
-            // Total number of frames for which we queued track for playing. Is zeroed when player starts.
+            // Total number of frames for which we queued track for playing.
             var numMixedFrames = 0
             var nextNoteInfo = NextNoteInfo(0, player.bufferSizeInFrames / 2, 0)
 

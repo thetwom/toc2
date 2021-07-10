@@ -48,9 +48,10 @@
     <de.moekadu.metronome.TickVisualizerSync
         android:id="@+id/scene_ticks_visualizer"
         android:layout_width="match_parent"
-        android:layout_height="5dp"
+        android:layout_height="8dp"
         app:color="@color/colorPrimary"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottom_line"
+        android:visibility="gone"
         android:layout_marginBottom="4dp"
         />
 
@@ -59,7 +60,8 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:padding="8dp"
-        android:textSize="16sp"
+        android:textSize="18sp"
+        android:paddingBottom="2dp"
         android:text="@string/title"
         android:textColor="?attr/colorOnBackground"
         app:layout_constraintStart_toStartOf="parent"
@@ -69,13 +71,13 @@
     <de.moekadu.metronome.NoteView
         android:id="@+id/scene_sounds"
         android:layout_width="0dp"
-        android:layout_height="65dp"
+        android:layout_height="50dp"
         android:paddingStart="0dp"
         android:paddingTop="0dp"
-        android:paddingBottom="4dp"
+        android:paddingBottom="2dp"
         android:paddingEnd="0dp"
         android:clipToPadding="false"
-        app:showNumbers="true"
+        app:showNumbers="false"
         app:normalColor="?attr/colorBackgroundFloating"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/scene_bpm"
@@ -115,7 +117,7 @@
         android:paddingStart="4dp"
         android:paddingEnd="4dp"
         android:text="65 bpm"
-        android:textSize="16sp"
+        android:textSize="18sp"
         android:gravity="start"
         android:textColor="?attr/colorPrimary"
         android:minWidth="70dp"
@@ -125,5 +127,12 @@
         app:layout_constraintEnd_toStartOf="@id/scene_sounds"
         tools:ignore="HardcodedText" />
 
+    <View
+        android:id="@+id/bottom_line"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?attr/colorPrimary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

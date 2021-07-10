@@ -51,10 +51,12 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
                 if (value) {
                     //view.setBackgroundResource(R.drawable.scene_background_active)
                     selectedView?.visibility = View.VISIBLE
+                    tickVisualizer?.visibility = View.VISIBLE
                 }
                 else {
                     //view.setBackgroundResource(R.drawable.scene_background)
                     selectedView?.visibility = View.INVISIBLE
+                    tickVisualizer?.visibility = View.GONE
                     tickVisualizer?.stop()
                 }
             }
@@ -137,12 +139,12 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
             tickVisualizer?.noteStartedListener = TickVisualizerSync.NoteStartedListener {
                 noteView?.animateNote(it)
             }
-            selectedView =  view.findViewById(R.id.scene_active)
-           view.setOnClickListener {
-               activatedStableId = itemId
-               onSceneClickedListener?.onSceneClicked(itemId)
-           }
-       }
+            selectedView = view.findViewById(R.id.scene_active)
+            view.setOnClickListener {
+                activatedStableId = itemId
+                onSceneClickedListener?.onSceneClicked(itemId)
+            }
+        }
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
