@@ -1,16 +1,30 @@
+/*
+ * Copyright 2021 Michael Moessner
+ *
+ * This file is part of Metronome.
+ *
+ * Metronome is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Metronome is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Metronome.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package de.moekadu.metronome
 
-import android.content.Context
 import android.content.res.ColorStateList
-import android.opengl.Visibility
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewOutlineProvider
 import android.widget.ImageButton
 import android.widget.ImageView
-import kotlin.math.roundToInt
 
 class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
                     val drawableTopLeft: Int, val drawableTopRight: Int,
@@ -19,16 +33,9 @@ class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
                     val drawableCenter: Int,
                     val tint: ColorStateList?) {
 
-    // TODO: store and load state, deactivate buttons
     fun interface ActiveButtonChangedListener {
         fun onActiveButtonChanged(index: Int)
     }
-
-//    var visibility: Int = View.VISIBLE
-//        set(value) {
-//            buttons.forEach { it.visibility = value }
-//            field = value
-//        }
 
     var activeButtonChangedListener: ActiveButtonChangedListener? = null
 
@@ -39,19 +46,9 @@ class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
 
     val activeButtonIndex get() = buttons.indexOfFirst { it.isActivated }
 
-//    private val outlineProvider = object : ViewOutlineProvider() {
-//        private val rectInt = Rect()
-//        override fun getOutline(view: View?, outline: Outline) {
-//            val cornerRad = Utilities.dp2px(3f)
-//            rectInt.set(paddingLeft, paddingTop, measuredWidth - paddingRight, measuredHeight - paddingRight)
-//            outline.setRoundRect(rectInt, cornerRad)
-//        }
-//    }
-
     fun emerge(animationDuration: Long) {
         val alphaDeactivated = 0.5f
         if (animationDuration == 0L) {
-            //visibility = View.VISIBLE
             buttons.forEachIndexed { index, button ->
                 button.visibility = View.VISIBLE
                 button.alpha = if (deactivatedIndices[index]) alphaDeactivated else 1.0f
@@ -70,7 +67,6 @@ class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
 
     fun disappear(animationDuration: Long) {
         if (animationDuration == 0L) {
-            //visibility = View.GONE
             buttons.forEach { it.visibility = View.GONE }
         } else {
             buttons.forEach {
@@ -89,8 +85,6 @@ class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
     }
 
     fun addView(viewGroup: ViewGroup){
-        //setOutlineProvider(outlineProvider)
-
       for (row in 0 until numRows) {
           for (col in 0 until numCols) {
                 val index = buttons.size
@@ -120,7 +114,6 @@ class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
                     }
                     scaleType = ImageView.ScaleType.FIT_CENTER
                     imageTintList = tint
-                    //visibility = this@GridSelection.visibility
                 }
                 buttons.add(button)
                 deactivatedIndices.add(false)
@@ -150,7 +143,7 @@ class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
         }
     }
 
-    fun layout(l: Int, t: Int, r: Int, b: Int) {
+    fun layout(l: Int, t: Int) {
 
         var posY = t
         for (iRow in 0 until numRows) {
@@ -170,7 +163,7 @@ class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
     }
 
     fun deactivateButton(index: Int) {
-        Log.v("Metronome", "GridSelection.deactivateButton")
+//        Log.v("Metronome", "GridSelection.deactivateButton")
         deactivatedIndices[index] = true
     }
 

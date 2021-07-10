@@ -1,12 +1,27 @@
+/*
+ * Copyright 2021 Michael Moessner
+ *
+ * This file is part of Metronome.
+ *
+ * Metronome is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Metronome is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Metronome.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package de.moekadu.metronome
 
-import android.content.Context
 import android.content.res.ColorStateList
-import android.opengl.Visibility
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewOutlineProvider
 import android.view.animation.OvershootInterpolator
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -17,13 +32,8 @@ class DynamicSelection(val buttonSpacing: Int,
                        val backgroundDrawable: Int,
                        val tint: ColorStateList?) {
 
-    val scaleLargeButton = 2.0f //1.5f
-    val scaleLargeButtonNeighbor = 1.5f //1.2f
-//    var visibility: Int = View.GONE
-//        set(value) {
-//            buttons.forEach { it.visibility = value }
-//            field = value
-//        }
+    private val scaleLargeButton = 2.0f //1.5f
+    private val scaleLargeButtonNeighbor = 1.5f //1.2f
 
     private var lowestButtonBottom = 0
 
@@ -39,7 +49,6 @@ class DynamicSelection(val buttonSpacing: Int,
     fun emerge(animationDuration: Long) {
         if (animationDuration == 0L) {
             buttons.forEach { it.visibility = View.VISIBLE }
-            //visibility = View.VISIBLE
         } else {
             buttons.forEach {
                 if (it.visibility != View.VISIBLE)
@@ -49,14 +58,12 @@ class DynamicSelection(val buttonSpacing: Int,
                     .setDuration(animationDuration)
                     .alpha(1.0f)
             }
-            //visibility = View.VISIBLE
         }
     }
 
     fun disappear(animationDuration: Long) {
         if (animationDuration == 0L) {
             buttons.forEach { it.visibility = View.GONE }
-            //visibility = View.GONE
         } else {
             buttons.forEach {
                 if (it.visibility == View.VISIBLE) {
@@ -74,7 +81,6 @@ class DynamicSelection(val buttonSpacing: Int,
     }
 
     fun addView(viewGroup: ViewGroup, numViews: Int){
-        //setOutlineProvider(outlineProvider)
 
       for (iView in 0 until numViews) {
           val button = ImageButton(viewGroup.context).apply {
@@ -83,7 +89,7 @@ class DynamicSelection(val buttonSpacing: Int,
               setBackgroundResource(backgroundDrawable)
               scaleType = ImageView.ScaleType.FIT_CENTER
               imageTintList = tint
-              visibility = View.GONE // this@DynamicSelection.visibility
+              visibility = View.GONE
               pivotX = 0f
               pivotY = 1f
               translationX = this@DynamicSelection.translationX
@@ -106,7 +112,7 @@ class DynamicSelection(val buttonSpacing: Int,
         buttons.forEach { it.measure(buttonSizeSpec, buttonSizeSpec) }
     }
 
-    fun layout(l: Int, t: Int, r: Int, b: Int) {
+    fun layout(l: Int, b: Int) {
         buttons.forEach {
             it.layout(l, b, l + it.measuredWidth, b + it.measuredHeight)
         }
@@ -133,7 +139,7 @@ class DynamicSelection(val buttonSpacing: Int,
     }
 
     private fun scaleAndTranslateButton(button: View, factor: Float, translation: Float, animationDuration: Long) {
-        Log.v("Metronome", "DynamicSelection.scaleAndTranslateButton: animationDuratio=$animationDuration, visibility=${button.visibility}, VISIBLE=${View.VISIBLE}")
+//        Log.v("Metronome", "DynamicSelection.scaleAndTranslateButton: animationDuratio=$animationDuration, visibility=${button.visibility}, VISIBLE=${View.VISIBLE}")
         if (animationDuration == 0L || button.visibility != View.VISIBLE) {
             button.scaleX = factor
             button.scaleY = factor
@@ -179,17 +185,6 @@ class DynamicSelection(val buttonSpacing: Int,
             )
                 return index
         }
-//
-//        // TODO: Use theoretical position here for more stability!
-//        buttons.forEachIndexed { index, button ->
-//            val yTop = button.y - 0.5f * buttonSpacing
-//            val yBottom = button.y + button.height + 0.5f * buttonSpacing
-//            if ((yTop <= coordinateY && coordinateY < yBottom) ||
-//                (index == 0 && coordinateY >= yTop) ||
-//                (index == buttons.size - 1 && coordinateY < yBottom)
-//            )
-//                return index
-//        }
         return -1
     }
 }

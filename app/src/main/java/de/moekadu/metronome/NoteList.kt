@@ -88,28 +88,32 @@ fun deepCopyNoteList(origin: ArrayList<NoteListItem>, target: ArrayList<NoteList
 fun isNoteListStringValid(string: String): Boolean {
     val elements = string.split(" ")
     val version = getNoteListStringVersion(string)
-    Log.v("Metronome", "NoteList:isNoteListStringValid: string=$string")
-    if (version == 0) {
-        for (i in 0 until elements.size / 2) {
-            try {
-                elements[2 * i].toInt()
-                elements[2 * i + 1].toFloat()
-            } catch (e: NumberFormatException) {
-                return false
+//    Log.v("Metronome", "NoteList:isNoteListStringValid: string=$string")
+    when (version) {
+        0 -> {
+            for (i in 0 until elements.size / 2) {
+                try {
+                    elements[2 * i].toInt()
+                    elements[2 * i + 1].toFloat()
+                } catch (e: NumberFormatException) {
+                    return false
+                }
             }
         }
-    } else if (version == 1) {
-        for (i in 0 until elements.size / 3) {
-            try {
-                elements[3 * i + 1].toInt()
-                elements[3 * i + 2].toFloat()
-                NoteDuration.valueOf(elements[3 * i + 3])
-            } catch (e: NumberFormatException) {
-                return false
+        1 -> {
+            for (i in 0 until elements.size / 3) {
+                try {
+                    elements[3 * i + 1].toInt()
+                    elements[3 * i + 2].toFloat()
+                    NoteDuration.valueOf(elements[3 * i + 3])
+                } catch (e: NumberFormatException) {
+                    return false
+                }
             }
         }
-    } else {
-        throw RuntimeException("Invalid note list version: $version")
+        else -> {
+            throw RuntimeException("Invalid note list version: $version")
+        }
     }
     return true
 }
@@ -129,21 +133,25 @@ fun stringToNoteList(string: String): ArrayList<NoteListItem> {
     val version = getNoteListStringVersion(string)
 //    Log.v("Metronome", "NoteList: stringToNoteList: string: $string")
 
-    if (version == 0) {
-        for (i in 0 until elements.size / 2) {
-            val noteId = min(elements[2 * i].toInt(), getNumAvailableNotes() - 1)
-            val volume = elements[2 * i + 1].toFloat()
-            noteList.add(NoteListItem(noteId, volume, NoteDuration.Quarter))
+    when (version) {
+        0 -> {
+            for (i in 0 until elements.size / 2) {
+                val noteId = min(elements[2 * i].toInt(), getNumAvailableNotes() - 1)
+                val volume = elements[2 * i + 1].toFloat()
+                noteList.add(NoteListItem(noteId, volume, NoteDuration.Quarter))
+            }
         }
-    } else if (version == 1) {
-        for (i in 0 until elements.size / 3) {
-            val noteId = min(elements[3 * i + 1].toInt(), getNumAvailableNotes() - 1)
-            val volume = elements[3 * i + 2].toFloat()
-            val duration = NoteDuration.valueOf(elements[3 * i + 3])
-            noteList.add(NoteListItem(noteId, volume, duration))
+        1 -> {
+            for (i in 0 until elements.size / 3) {
+                val noteId = min(elements[3 * i + 1].toInt(), getNumAvailableNotes() - 1)
+                val volume = elements[3 * i + 2].toFloat()
+                val duration = NoteDuration.valueOf(elements[3 * i + 3])
+                noteList.add(NoteListItem(noteId, volume, duration))
+            }
         }
-    } else {
-        throw RuntimeException("Invalid note list version: $version")
+        else -> {
+            throw RuntimeException("Invalid note list version: $version")
+        }
     }
 
     return noteList

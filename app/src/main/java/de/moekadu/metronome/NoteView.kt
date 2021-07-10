@@ -302,20 +302,17 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             n.noteImage.measure(noteWidthSpec, heightSpec)
 
         val textHeightSpec = MeasureSpec.makeMeasureSpec((0.2f * totalHeightExcludingTuplet).toInt(), MeasureSpec.EXACTLY)
-        //val textHeightSpec = MeasureSpec.makeMeasureSpec(1000, MeasureSpec.EXACTLY)
         for(n in numbering)
             n.measure(textHeightSpec, textHeightSpec)
 
         for (tuplet in tuplets)
-            tuplet.measureOnNoteView(this, totalWidth, totalHeight, notes.size)
+            tuplet.measureOnNoteView(totalWidth, totalHeight, notes.size)
 
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
 //        Log.v("Metronome", "NoteView.onLayout: changed: $changed")
-//        if (!changed)
-//            return
         val totalWidth = r - l - paddingLeft - paddingRight
         val totalHeight = b - t - paddingTop - paddingBottom
         val heightScaling = if (showTuplets) NOTE_IMAGE_HEIGHT_SCALING else 1.0f
@@ -359,12 +356,11 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                 val textViewTop = textViewBottom - textView.measuredHeight
 //                Log.v("Metronome", "NoteView.onLayout, $textViewLeft, $textViewTop, $textViewRight, $textViewBottom")
                 textView.layout(textViewLeft, textViewTop, textViewRight, textViewBottom)
-//                textView.layout(0,0,1000,1000)
             }
         }
 
         for (tuplet in tuplets)
-            tuplet.layoutOnNoteView(this, totalWidth, totalHeight, notes.size, paddingLeft, paddingTop)
+            tuplet.layoutOnNoteView(totalWidth, totalHeight, notes.size, paddingLeft, paddingTop)
     }
 
     override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
@@ -422,12 +418,6 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     fun highlightNote(index: Int, flag: Boolean) {
         if (index in 0 until notes.size)
             notes[index].highlight = flag
-//        for(j in notes.indices) {
-//            if(index == j)
-//                notes[j].highlight = flag
-//            else
-//                notes[j].highlight = false
-//        }
         highlightNumber(index, flag)
     }
 
@@ -441,12 +431,6 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         if(uid == null)
             return
         notes.filter { it.uid == uid }.forEach { it.highlight = flag }
-//        for(n in notes) {
-//            if(n.uid == uid)
-//                n.highlight = flag
-//            else
-//                n.highlight = false
-//        }
 
         val index = notes.indexOfFirst { uid == it.uid }
         if (index >= 0)
@@ -456,10 +440,6 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     private fun highlightNumber(index: Int, flag: Boolean) {
         if (index in 0 until numbering.size)
             numbering[index].isSelected = flag
-//        if (index < numbering.size) {
-//            for (i in numbering.indices)
-//                numbering[i].isSelected = (flag && i == index)
-//        }
     }
 
     fun setNoteList(noteList: ArrayList<NoteListItem>) {

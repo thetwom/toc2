@@ -62,13 +62,7 @@ class PlayerService : LifecycleService() {
             field = Bpm(newBpm, value.noteDuration)
             statusChangedListeners.forEach {s -> s.onSpeedChanged(field)}
 
-//            val duration = computeNoteDurationInSeconds(field)
-//            for(i in noteList.indices) {
-//                noteList[i].duration = duration
-//            }
-
             audioMixer?.setBpmQuarter(field.bpmQuarter)
-//            audioMixer?.noteList = noteList
 
             notification?.bpm = field
             notification?.postNotificationUpdate()
@@ -93,9 +87,6 @@ class PlayerService : LifecycleService() {
     var noteList = ArrayList<NoteListItem>()
         set(value) {
             deepCopyNoteList(value, field)
-//            val duration = computeNoteDurationInSeconds(bpm)
-//            for(i in field.indices)
-//                field[i].duration = duration
             audioMixer?.noteList = field
             for (s in statusChangedListeners)
                 s.onNoteListChanged(field)
@@ -282,10 +273,6 @@ class PlayerService : LifecycleService() {
         stopPlay()
         return super.onUnbind(intent)
     }
-
-//    private fun computeNoteDurationInSeconds(bpm: Float) : Float {
-//        return Utilities.bpm2millis(bpm) / 1000.0f
-//    }
 
     fun addValueToBpm(bpmDiff : Float) {
         bpm = bpm.copy(bpm = bpm.bpm + bpmDiff)

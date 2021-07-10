@@ -22,24 +22,44 @@ package de.moekadu.metronome
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
+import android.util.Log
 
 @SuppressLint("ViewConstructor")
 class SoundChooserControlButton(
-        context: Context, note: NoteListItem, elevation: Float, volumeColor: Int,
-        noteColor: ColorStateList?, noteHighlightColor: ColorStateList?) : NoteView(context) {
+    context: Context, noteListItem: NoteListItem, volumeColor: Int,
+    noteColor: ColorStateList?, noteHighlightColor: ColorStateList?) : NoteView(context) {
 
+    private var isMovingToTarget = false
+    private var cachedAnimationDuration = 0L
+    private var cachedFadeOut = false
+
+    var isBeingDragged = false
     var eventXOnDown = 0f
+        private set
     var eventYOnDown = 0f
+        private set
     var translationXInit = 0f
+        private set
     var translationYInit = 0f
+        private set
     var translationXTarget = 0f
+        private set
     var translationYTarget = 0f
-    val uid = note.uid
+        private set
+    var moveToTargetOnDelete = false
 
-    var volume = note.volume
-        private set
-    var noteId = note.id
-        private set
+    var leftBoundToSwitchPosition = 0f
+    var rightBoundToSwitchPosition = 0f
+
+    val centerY get() = y + 0.5f * height
+
+    var isActive = false
+
+    val note = noteListItem.clone()
+    val uid get() = note.uid
+    val volume get() = note.volume
+    val noteId get() = note.id
+    val noteDuration get() = note.duration
 
     init {
         setBackgroundResource(R.drawable.control_button_background)
@@ -49,17 +69,33 @@ class SoundChooserControlButton(
         this.noteColor = noteColor
         this.noteColor = noteHighlightColor
         val noteList = ArrayList<NoteListItem>()
-        noteList.add(note)
+        noteList.add(noteListItem)
         setNoteList(noteList)
         highlightNote(0, true)
+        visibility = GONE
     }
 
     fun set(noteListItem: NoteListItem) {
-        require(noteListItem.uid == uid)
+        require(noteListItem.uid == note.uid)
+        note.set(noteListItem)
         setNoteId(0, noteListItem.id)
         setVolume(0, noteListItem.volume)
-        noteId = noteListItem.id
-        volume = noteListItem.volume
+        setDuration(0, noteListItem.duration)
+        Log.v("Metronome", "SoundChooserControlButton2.set: noteListItem.duration: ${noteListItem.duration}")
+    }
+
+    fun containsCoordinates(xCo: Float, yCo: Float): Boolean {
+        //Log.v("Metronome", "SoundChooserControlButton2.containsCoordinates: xCo=$xCo, x=$x, y=$y")
+        return xCo > x && xCo < x + width && yCo > y && yCo < y + height
+    }
+
+    fun coordinateXWithinBoundsToKeepPosition(coX: Float): Boolean {
+//        Log.v("Metronome", "SoundChooserControlButton2.coordinateXWihtinBoundsToKeepPosition: coX=$coX, leftBound=$leftBoundToSwitchPosition, rightBound=$rightBoundToSwitchPosition")
+        return coX in leftBoundToSwitchPosition..rightBoundToSwitchPosition
+    }
+    fun centerXWithinBoundsToKeepPosition(): Boolean {
+        val centerX = x + 0.5f * width
+        return coordinateXWithinBoundsToKeepPosition(centerX)
     }
 
     fun animateAllNotes() {
@@ -67,17 +103,62 @@ class SoundChooserControlButton(
             animateNote(i)
     }
 
-    fun moveToTarget(animationDuration: Long = 0L) {
-        if (animationDuration == 0L) {
+    fun startDragging(eventX: Float, eventY: Float) {
+        eventXOnDown = eventX
+        eventYOnDown = eventY
+        translationXInit = translationX
+        translationYInit = translationY
+        isBeingDragged = true
+    }
+
+    fun stopDragging() {
+      isBeingDragged = false
+    }
+
+    fun setTargetTranslation(xCo: Float, yCo: Float) {
+        if (xCo == translationXTarget && yCo == translationYTarget)
+            return
+
+        translationXTarget = xCo
+        translationYTarget = yCo
+
+        if (isMovingToTarget)
+            moveToTarget(cachedAnimationDuration, cachedFadeOut)
+    }
+
+    fun moveToTarget(animationDuration: Long = 0L, fadeOut: Boolean = false, endAction: (()->Unit)? = null) {
+        // don't interrupt running animations if it matches the settings
+        if (isMovingToTarget && endAction == null && fadeOut == cachedFadeOut)
+            return
+
+        if (animationDuration == 0L || visibility != VISIBLE) {
             translationX = translationXTarget
             translationY = translationYTarget
+            if (endAction != null)
+                endAction()
         }
-        else {
+        else if (translationX != translationXTarget || translationY != translationYTarget || fadeOut) {
+            animate().cancel()
+            val alphaEnd = if (fadeOut) 0.0f else alpha
+//            Log.v("Metronome", "SoundChooserControlButton2.moveTotarget, alpha=$alpha, alphaEnd=$alphaEnd")
             animate()
                     .setDuration(animationDuration)
+                    .alpha(alphaEnd)
                     .translationX(translationXTarget)
                     .translationY(translationYTarget)
-                    .start()
+                    .withStartAction {
+                        isMovingToTarget = true
+                        cachedAnimationDuration = animationDuration
+                        cachedFadeOut = fadeOut
+                    }
+                    .withEndAction {
+                        isMovingToTarget = false
+                        if (endAction != null)
+                            endAction()
+                    }
+        }
+        else if (endAction != null) {
+            endAction()
         }
     }
 }

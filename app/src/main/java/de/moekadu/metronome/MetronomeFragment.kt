@@ -83,10 +83,8 @@ class MetronomeFragment : Fragment() {
     private val noteListBackup = ArrayList<NoteListItem>()
 
     private var tickVisualizer: TickVisualizerSync? = null
-    // private var soundChooser: SoundChooser? = null
-    // private var savedSoundChooserNoteIndex = -1
 
-    private var soundChooser3: SoundChooser3? = null
+    private var soundChooser: SoundChooser? = null
 
     private var beatDurationManager: BeatDurationManager? = null
 
@@ -182,7 +180,7 @@ class MetronomeFragment : Fragment() {
         tickVisualizer = view.findViewById(R.id.tick_visualizer)
         // tick visualizer controls the note animation since it contains better time synchronization than the soundChooser
         tickVisualizer?.noteStartedListener = TickVisualizerSync.NoteStartedListener {
-            soundChooser3?.animateNote(it)
+            soundChooser?.animateNote(it)
         }
 
 
@@ -204,11 +202,11 @@ class MetronomeFragment : Fragment() {
             }
         }
 
-        soundChooser3 = view.findViewById(R.id.sound_chooser3)
-        soundChooser3?.stateChangedListener = object : SoundChooser3.StateChangedListener {
-            override fun changeNoteId(uid: UId, noteId: Int, status: SoundChooser3.Status) {
+        soundChooser = view.findViewById(R.id.sound_chooser3)
+        soundChooser?.stateChangedListener = object : SoundChooser.StateChangedListener {
+            override fun changeNoteId(uid: UId, noteId: Int, status: SoundChooser.Status) {
                 viewModel.setNoteListId(uid, noteId)
-                if (viewModel.playerStatus.value != PlayerStatus.Playing && status == SoundChooser3.Status.Static && context != null) {
+                if (viewModel.playerStatus.value != PlayerStatus.Playing && status == SoundChooser.Status.Static && context != null) {
                     viewModel.noteList.value?.firstOrNull { it.uid == uid }?.let { noteListItem ->
                         singleNotePlayer.play(noteListItem.id, noteListItem.volume)
                         if (vibrate) {
@@ -273,8 +271,6 @@ class MetronomeFragment : Fragment() {
             override fun moveNote(uid: UId, toIndex: Int) {
                 viewModel.moveNote(uid, toIndex)
             }
-
-//            override fun onStatusChanged(status: SoundChooser.Status) { }
         }
 
         beatDurationManager = BeatDurationManager(view)
@@ -347,8 +343,6 @@ class MetronomeFragment : Fragment() {
         vibrate = sharedPreferences.getBoolean("vibrate", false)
         vibratingNote?.strength = sharedPreferences.getInt("vibratestrength", 50)
 
-        // savedSoundChooserNoteIndex = savedInstanceState?.getInt("soundChooserNoteIndex", -1) ?: -1
-
         // register all observers
         viewModel.bpm.observe(viewLifecycleOwner) { bpm ->
 //            Log.v("Metronome", "MetronomeFragment: viewModel.bpm: $it")
@@ -380,7 +374,7 @@ class MetronomeFragment : Fragment() {
             tickVisualizer?.tick(noteStartTime.note.uid, noteStartTime.uptimeMillis, noteStartTime.noteCount)
             // don't animate note here, since this is controlled by the tickVisualizer.noteStartedListener defined above
             // this is done, since the tickvisualizer contains an extra time synchronazation mechanism
-            //soundChooser3?.animateNote(noteStartTime.note.uid)
+            //soundChooser?.animateNote(noteStartTime.note.uid)
         }
 
         viewModel.bpm.observe(viewLifecycleOwner) {
@@ -391,7 +385,7 @@ class MetronomeFragment : Fragment() {
             viewModel.noteList.value?.let {
 //                Log.v("Metronome", "MetronomeFragment: observing noteList" )
                 tickVisualizer?.setNoteList(it)
-                soundChooser3?.setNoteList(it, 200L)
+                soundChooser?.setNoteList(it, 200L)
             }
         }
 
@@ -406,22 +400,6 @@ class MetronomeFragment : Fragment() {
         scenesViewModel.editingStableId.observe(viewLifecycleOwner) {
             updateSceneTitleTextAndSwipeView()
         }
-
-//        if (!savedVolumeSlidersFolded || savedSoundChooserNoteIndex >= 0) {
-//            view.post {
-//                viewModel.noteList.value?.let { notes ->
-//                    if (savedSoundChooserNoteIndex >= 0 && savedSoundChooserNoteIndex < notes.size) {
-//                        val note = notes[savedSoundChooserNoteIndex]
-//                        soundChooser?.setActiveControlButton(note.uid)
-//                        noteView?.highlightNote(note.uid, true)
-//                        soundChooser?.activateStaticChoices(0L)
-//                    }
-//                }
-//
-//                if (!savedVolumeSlidersFolded)
-//                    volumeSliders?.unfold(0L)
-//            }
-//        }
         return view
     }
 
@@ -444,19 +422,6 @@ class MetronomeFragment : Fragment() {
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener)
         super.onStop()
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-//        if(soundChooser?.choiceStatus == SoundChooser.Status.Static) {
-//            viewModel.noteList.value?.let { notes ->
-//                val noteIndex = notes.indexOfFirst { it.uid == soundChooser?.activeNoteUid }
-//                if (noteIndex >= 0)
-//                    outState.putInt("soundChooserNoteIndex", noteIndex)
-//            }
-//        }
-        // outState.putBoolean("volumeSlidersFolded", volumeSliders?.folded ?: true)
-
-        super.onSaveInstanceState(outState)
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -484,7 +449,6 @@ class MetronomeFragment : Fragment() {
         val editingStableId = scenesViewModel.editingStableId.value ?: Scene.NO_STABLE_ID
         val activeStableId = scenesViewModel.activeStableId.value ?: Scene.NO_STABLE_ID
 
-//        if (animate && soundChooser?.choiceStatus == SoundChooser.Status.Off) // dont animate since otherwise animations will clash
         if (animate) // dont animate since otherwise animations will clash
             constraintLayout?.let { TransitionManager.beginDelayedTransition(it)}
 

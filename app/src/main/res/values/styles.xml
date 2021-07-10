@@ -39,12 +39,11 @@
         <item name="android:statusBarColor">#000000</item>
 
         <item name="controlPanelStyle">@style/Widget.AppTheme.ControlPanelStyle</item>
-        <item name="volumeSlidersStyle">@style/Widget.AppTheme.VolumeSlidersStyle</item>
         <item name="volumeControlStyle">@style/Widget.AppTheme.VolumeControlStyle</item>
         <item name="tickVisualizerStyle">@style/Widget.AppTheme.TickVisualizerStyle</item>
         <item name="tickVisualizerSyncStyle">@style/Widget.AppTheme.TickVisualizerSyncStyle</item>
         <item name="playButtonStyle">@style/Widget.AppTheme.PlayButtonStyle</item>
-        <item name="soundChooserStyle3">@style/Widget.AppTheme.SoundChooserStyle3</item>
+        <item name="soundChooserStyle">@style/Widget.AppTheme.SoundChooserStyle</item>
         <item name="gridSelectionStyle">@style/Widget.AppTheme.GridSelectionStyle</item>
 
         <item name="windowActionModeOverlay">true</item>
@@ -92,26 +91,6 @@
         <attr name="elementPadding"/>
         <attr name="volumeColor"/>
         <attr name="backgroundViewColor"/>
-    </declare-styleable>
-
-    <style name="Widget.AppTheme.SoundChooserStyle" parent="">
-        <item name="noteColor">?attr/colorPrimary</item>
-        <item name="noteHighlightColor">?attr/colorPrimary</item>
-        <item name="elementElevation">5dp</item>
-        <item name="activeTranslationZ">30dp</item>
-        <item name="elementPadding">4dp</item>
-        <item name="volumeColor">?attr/colorPrimaryFaint</item>
-        <item name="backgroundViewColor">?android:colorBackground</item>
-    </style>
-
-    <declare-styleable name="SoundChooser3">
-        <attr name="noteColor"/>
-        <attr name="noteHighlightColor"/>
-        <attr name="elementElevation"/>
-        <attr name="activeTranslationZ"/>
-        <attr name="elementPadding"/>
-        <attr name="volumeColor"/>
-        <attr name="backgroundViewColor"/>
         <attr name="actionButtonTintList"/>
         <attr name="numRows"/>
         <attr name="numCols"/>
@@ -120,7 +99,7 @@
         <attr name="plusButtonRightPercent"/>
     </declare-styleable>
 
-    <style name="Widget.AppTheme.SoundChooserStyle3" parent="">
+    <style name="Widget.AppTheme.SoundChooserStyle" parent="">
         <item name="noteColor">@color/grid_foreground</item>
         <item name="noteHighlightColor">?attr/colorPrimary</item>
         <item name="elementElevation">5dp</item>
@@ -200,24 +179,6 @@
         <item name="belowSliderColor">?attr/colorPrimaryFaint</item>
         <item name="backgroundColor">?attr/colorBackgroundFloating</item>
         <item name="vertical">true</item>
-    </style>
-
-    <declare-styleable name="VolumeSliders">
-        <attr name="sliderColor"/>
-        <attr name="backgroundSurfaceColor"/>
-        <attr name="iconColor"/>
-        <attr name="belowSliderColor"/>
-        <attr name="backgroundColor"/>
-        <attr name="activeTranslationZ"/>
-    </declare-styleable>
-
-    <style name="Widget.AppTheme.VolumeSlidersStyle" parent="">
-        <item name="backgroundSurfaceColor">?attr/colorBackgroundFloating</item>
-        <item name="sliderColor">?attr/colorPrimary</item>
-        <item name="iconColor">?attr/colorOnPrimary</item>
-        <item name="backgroundColor">?android:attr/colorBackground</item>
-        <item name="belowSliderColor">?attr/colorPrimaryFaint</item>
-        <item name="activeTranslationZ">12dp</item>
     </style>
 
 </resources>

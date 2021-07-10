@@ -4,13 +4,11 @@
     <attr name="colorPrimaryLight" format="color"/>
 
     <attr name="controlPanelStyle" format="reference"/>
-    <attr name="volumeSlidersStyle" format="reference"/>
     <attr name="volumeControlStyle" format="reference"/>
     <attr name="tickVisualizerStyle" format="reference"/>
     <attr name="tickVisualizerSyncStyle" format="reference"/>
     <attr name="noteViewStyle" format="reference"/>
     <attr name="soundChooserStyle" format="reference"/>
-    <attr name="soundChooserStyle3" format="reference"/>
     <attr name="gridSelectionStyle" format="reference"/>
     <attr name="playButtonStyle" format="reference"/>
     <attr name="savedItemStyle" format="reference"/>

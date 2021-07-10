@@ -164,7 +164,6 @@ class ScenesFragment : Fragment() {
         scenesRecyclerView?.setHasFixedSize(true)
         scenesRecyclerView?.layoutManager = LinearLayoutManager(requireContext())
         scenesRecyclerView?.adapter = scenesAdapter
-//        setSelectionTracker()
 
         val simpleTouchHelper = object : ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP or ItemTouchHelper.DOWN, ItemTouchHelper.LEFT) {
 
@@ -316,10 +315,6 @@ class ScenesFragment : Fragment() {
             }
         }
 
-//        if (metronomeViewModel.playerStatus.value == PlayerStatus.Playing)
-//            playFab?.setImageResource(R.drawable.ic_play_to_pause)
-//        else
-//            playFab?.setImageResource(R.drawable.ic_pause_to_play)
         playFabStatus = metronomeViewModel.playerStatus.value ?: PlayerStatus.Paused
 
         metronomeViewModel.playerStatus.observe(viewLifecycleOwner) { playerStatus ->

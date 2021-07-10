@@ -121,26 +121,30 @@ class SceneArchiving(private val scenesFragment: ScenesFragment) {
             val (check, scenes) = SceneDatabase.stringToScenes(databaseString)
             SceneDatabase.toastFileCheckString(context, filename, check)
 
-            if (check != SceneDatabase.FileCheck.Ok) {
-                return
-            } else if (scenesFragment.numScenes() == 0) {
-                scenesFragment.loadScenes(scenes, SceneDatabase.InsertMode.Replace)
-            } else {
-//            Log.v("Metronome", "SceneArchiving.loadScenes: filename = $filename")
-                val builder = AlertDialog.Builder(context).apply {
-                    setTitle(context.getString(R.string.load_scenes, scenes.size))
-                    setNegativeButton(R.string.abort) { dialog, _ -> dialog.dismiss() }
-                    setItems(R.array.load_scenes_list) { _, which ->
-                        val array = context.resources.getStringArray(R.array.load_scenes_list)
-                        val task = when (array[which]) {
-                            context.getString(R.string.prepend_current_list) -> SceneDatabase.InsertMode.Prepend
-                            context.getString(R.string.append_current_list) -> SceneDatabase.InsertMode.Append
-                            else -> SceneDatabase.InsertMode.Replace
-                        }
-                        scenesFragment.loadScenes(scenes, task)
-                    }
+            when {
+                check != SceneDatabase.FileCheck.Ok -> {
+                    return
                 }
-                builder.show()
+                scenesFragment.numScenes() == 0 -> {
+                    scenesFragment.loadScenes(scenes, SceneDatabase.InsertMode.Replace)
+                }
+                else -> {
+        //            Log.v("Metronome", "SceneArchiving.loadScenes: filename = $filename")
+                    val builder = AlertDialog.Builder(context).apply {
+                        setTitle(context.getString(R.string.load_scenes, scenes.size))
+                        setNegativeButton(R.string.abort) { dialog, _ -> dialog.dismiss() }
+                        setItems(R.array.load_scenes_list) { _, which ->
+                            val array = context.resources.getStringArray(R.array.load_scenes_list)
+                            val task = when (array[which]) {
+                                context.getString(R.string.prepend_current_list) -> SceneDatabase.InsertMode.Prepend
+                                context.getString(R.string.append_current_list) -> SceneDatabase.InsertMode.Append
+                                else -> SceneDatabase.InsertMode.Replace
+                            }
+                            scenesFragment.loadScenes(scenes, task)
+                        }
+                    }
+                    builder.show()
+                }
             }
         }
     }
