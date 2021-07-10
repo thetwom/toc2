@@ -23,7 +23,6 @@ import android.annotation.SuppressLint
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Bundle
 import android.text.InputType
-import android.util.Log
 import android.view.*
 import android.widget.EditText
 import android.widget.ImageButton
@@ -33,7 +32,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
-import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.preference.PreferenceManager
@@ -84,7 +82,7 @@ class MetronomeFragment : Fragment() {
 
     private val noteListBackup = ArrayList<NoteListItem>()
 
-    private var tickVisualizer: TickVisualizer? = null
+    private var tickVisualizer: TickVisualizerSync? = null
     // private var soundChooser: SoundChooser? = null
     // private var savedSoundChooserNoteIndex = -1
 
@@ -182,6 +180,11 @@ class MetronomeFragment : Fragment() {
         }
 
         tickVisualizer = view.findViewById(R.id.tick_visualizer)
+        // tick visualizer controls the note animation since it contains better time synchronization than the soundChooser
+        tickVisualizer?.noteStartedListener = TickVisualizerSync.NoteStartedListener {
+            soundChooser3?.animateNote(it)
+        }
+
 
         playButton = view.findViewById(R.id.play_button)
         playButton?.buttonClickedListener = object : PlayButton.ButtonClickedListener {
@@ -373,19 +376,21 @@ class MetronomeFragment : Fragment() {
             }
         }
 
-        viewModel.noteStartedEvent.observe(viewLifecycleOwner) { note ->
-            //viewModel.bpm.value?.let { bpm -> tickVisualizer?.tick(Utilities.bpm2millis(bpm)) }
-            viewModel.bpm.value?.bpmQuarter?.let { bpmQuarter ->
-                //Log.v("Metronome", "MetronomeFragment: noteStarted: bpmQuarter=$bpmQuarter, durationMillis=${note.duration.durationInMillis(bpmQuarter)}")
-                tickVisualizer?.tick(note.duration.durationInMillis(bpmQuarter))
-            }
+        viewModel.noteStartedEvent.observe(viewLifecycleOwner) { noteStartTime ->
+            tickVisualizer?.tick(noteStartTime.note.uid, noteStartTime.uptimeMillis, noteStartTime.noteCount)
+            // don't animate note here, since this is controlled by the tickVisualizer.noteStartedListener defined above
+            // this is done, since the tickvisualizer contains an extra time synchronazation mechanism
+            //soundChooser3?.animateNote(noteStartTime.note.uid)
+        }
 
-            soundChooser3?.animateNote(note.uid)
+        viewModel.bpm.observe(viewLifecycleOwner) {
+            tickVisualizer?.bpm = it
         }
 
         viewModel.noteList.observe(viewLifecycleOwner) {
             viewModel.noteList.value?.let {
 //                Log.v("Metronome", "MetronomeFragment: observing noteList" )
+                tickVisualizer?.setNoteList(it)
                 soundChooser3?.setNoteList(it, 200L)
             }
         }

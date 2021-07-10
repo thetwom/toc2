@@ -55,6 +55,7 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
                 else {
                     //view.setBackgroundResource(R.drawable.scene_background)
                     selectedView?.visibility = View.INVISIBLE
+                    tickVisualizer?.stop()
                 }
             }
 
@@ -63,7 +64,7 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
         var bpmView: TextView? = null
         var bpmDuration: AppCompatImageButton? = null
         var noteView: NoteView? = null
-        var tickVisualizer: TickVisualizer? = null
+        var tickVisualizer: TickVisualizerSync? = null
         var selectedView: View? = null
     }
 
@@ -87,7 +88,8 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
         }
     }
 
-    fun animateNoteAndTickVisualizer(index: Int, noteDurationInMillis: Long?, recyclerView: RecyclerView?) {
+    fun animateNoteAndTickVisualizer(index: Int, noteDurationInMillis: Long?,
+                                     noteStartUptimeMillis: Long, noteCount: Long, recyclerView: RecyclerView?) {
         if (recyclerView == null)
             return
         if (index < 0 && noteDurationInMillis != null)
@@ -97,11 +99,24 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
             val child = recyclerView.getChildAt(i)
             (recyclerView.getChildViewHolder(child) as ScenesAdapter.ViewHolder).let { viewHolder ->
                 if (viewHolder.isActivated) {
-                    if (index >= 0)
-                        viewHolder.noteView?.animateNote(index)
-                    if (noteDurationInMillis != null)
-                        viewHolder.tickVisualizer?.tick(noteDurationInMillis)
+                    if (index >= 0) {
+                        // noteView is now nimated through the tickVisualizer since this has better time syncrhonization
+                        //    viewHolder.noteView?.animateNote(index)
+                        if (noteDurationInMillis != null)
+                            viewHolder.tickVisualizer?.tick(index, noteStartUptimeMillis, noteCount)
+                    }
                 }
+            }
+        }
+    }
+
+    fun stopAnimation(recyclerView: RecyclerView?) {
+        if (recyclerView == null)
+            return
+        for (i in 0 until recyclerView.childCount) {
+            val child = recyclerView.getChildAt(i)
+            (recyclerView.getChildViewHolder(child) as ScenesAdapter.ViewHolder).let { viewHolder ->
+                viewHolder.tickVisualizer?.stop()
             }
         }
     }
@@ -119,6 +134,9 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
             bpmDuration = view.findViewById(R.id.scene_bpm_duration)
             noteView = view.findViewById(R.id.scene_sounds)
             tickVisualizer = view.findViewById(R.id.scene_ticks_visualizer)
+            tickVisualizer?.noteStartedListener = TickVisualizerSync.NoteStartedListener {
+                noteView?.animateNote(it)
+            }
             selectedView =  view.findViewById(R.id.scene_active)
            view.setOnClickListener {
                activatedStableId = itemId
@@ -145,6 +163,8 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
 //        Log.v("Metronome", "SceneDatabase.onBindViewHolder: scene.noteList = ${scene.noteList}, scene.bpm = ${scene.bpm}")
 
         holder.noteView?.setNoteList(scene.noteList)
+        holder.tickVisualizer?.setNoteList(scene.noteList)
+        holder.tickVisualizer?.bpm = scene.bpm
         // Log.v("Metronome", "SceneDatabase:onBindViewHolder (position = " + position + ")")
     }
 }

@@ -42,6 +42,7 @@
         <item name="volumeSlidersStyle">@style/Widget.AppTheme.VolumeSlidersStyle</item>
         <item name="volumeControlStyle">@style/Widget.AppTheme.VolumeControlStyle</item>
         <item name="tickVisualizerStyle">@style/Widget.AppTheme.TickVisualizerStyle</item>
+        <item name="tickVisualizerSyncStyle">@style/Widget.AppTheme.TickVisualizerSyncStyle</item>
         <item name="playButtonStyle">@style/Widget.AppTheme.PlayButtonStyle</item>
         <item name="soundChooserStyle3">@style/Widget.AppTheme.SoundChooserStyle3</item>
         <item name="gridSelectionStyle">@style/Widget.AppTheme.GridSelectionStyle</item>
@@ -175,6 +176,14 @@
     <style name="Widget.AppTheme.TickVisualizerStyle" parent="">
         <item name="color">?attr/colorSecondary</item>
         <item name="vertical">false</item>
+    </style>
+
+    <declare-styleable name="TickVisualizerSync">
+        <attr name="color"/>
+    </declare-styleable>
+
+    <style name="Widget.AppTheme.TickVisualizerSyncStyle" parent="">
+        <item name="color">?attr/colorSecondary</item>
     </style>
 
     <declare-styleable name="VolumeControl">

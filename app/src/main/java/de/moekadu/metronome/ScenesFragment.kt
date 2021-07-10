@@ -267,12 +267,13 @@ class ScenesFragment : Fragment() {
             }
         }
 
-        metronomeViewModel.noteStartedEvent.observe(viewLifecycleOwner) { noteListItem ->
+        metronomeViewModel.noteStartedEvent.observe(viewLifecycleOwner) { noteStart ->
             metronomeViewModel.noteList.value?.let { noteList ->
-                val index = noteList.indexOfFirst { it.uid == noteListItem.uid }
+                val index = noteList.indexOfFirst { it.uid == noteStart.note.uid }
                 val bpmQuarter = metronomeViewModel.bpm.value?.bpmQuarter
-                val noteDurationInMillis = if (bpmQuarter == null) null else noteListItem.duration.durationInMillis(bpmQuarter)
-                scenesAdapter.animateNoteAndTickVisualizer(index, noteDurationInMillis, scenesRecyclerView)
+                val noteDurationInMillis = if (bpmQuarter == null) null else noteStart.note.duration.durationInMillis(bpmQuarter)
+                scenesAdapter.animateNoteAndTickVisualizer(
+                    index, noteDurationInMillis, noteStart.uptimeMillis, noteStart.noteCount, scenesRecyclerView)
             }
         }
 
@@ -332,6 +333,9 @@ class ScenesFragment : Fragment() {
                 val drawable = playFab?.drawable as Animatable?
                 drawable?.start()
             }
+
+            if (playerStatus != PlayerStatus.Playing)
+                scenesAdapter.stopAnimation(scenesRecyclerView)
         }
 
         speedLimiter = SpeedLimiter(PreferenceManager.getDefaultSharedPreferences(requireContext()), viewLifecycleOwner)

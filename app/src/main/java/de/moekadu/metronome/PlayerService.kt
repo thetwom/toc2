@@ -41,7 +41,7 @@ class PlayerService : LifecycleService() {
     interface StatusChangedListener {
         fun onPlay()
         fun onPause()
-        fun onNoteStarted(noteListItem: NoteListItem)
+        fun onNoteStarted(noteListItem: NoteListItem, uptimeMillis: Long, noteCount: Long)
         fun onSpeedChanged(bpm: Bpm)
         fun onNoteListChanged(noteList: ArrayList<NoteListItem>)
     }
@@ -164,10 +164,10 @@ class PlayerService : LifecycleService() {
 
         // callback for ui stuff
         audioMixer?.registerNoteStartedListener(object : AudioMixer.NoteStartedListener {
-            override suspend fun onNoteStarted(noteListItem: NoteListItem?) {
+            override suspend fun onNoteStarted(noteListItem: NoteListItem?, uptimeMillis: Long, noteCount: Long) {
                 withContext(Dispatchers.Main) {
                     noteListItem?.let {
-                        statusChangedListeners.forEach { s -> s.onNoteStarted(it) }
+                        statusChangedListeners.forEach { s -> s.onNoteStarted(it, uptimeMillis, noteCount) }
                     }
                 }
             }
@@ -175,7 +175,7 @@ class PlayerService : LifecycleService() {
 
         // callback for vibrator (is registered in audioMixer later on)
         noteStartedListener4Vibration = object : AudioMixer.NoteStartedListener {
-            override suspend fun onNoteStarted(noteListItem: NoteListItem?) {
+            override suspend fun onNoteStarted(noteListItem: NoteListItem?, uptimeMillis: Long, noteCount: Long) {
                 withContext(Dispatchers.Default) {
                     if (noteListItem != null) {
                         if (getNoteVibrationDuration(noteListItem.id) > 0L)

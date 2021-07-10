@@ -74,6 +74,8 @@ class NoteListItem(var id : Int = 0, var volume : Float = 1.0f,
     }
 }
 
+data class NoteListItemStartTime(val note: NoteListItem, val uptimeMillis: Long, val noteCount: Long)
+
 fun deepCopyNoteList(origin: ArrayList<NoteListItem>, target: ArrayList<NoteListItem>) {
     if (target.size > origin.size)
         target.subList(origin.size, target.size).clear()

@@ -23,11 +23,9 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.media.session.PlaybackState
 import android.os.DeadObjectException
 import android.os.IBinder
 import android.support.v4.media.session.PlaybackStateCompat
-import android.util.Log
 import androidx.lifecycle.*
 
 class PlayerServiceConnection(
@@ -42,7 +40,7 @@ class PlayerServiceConnection(
     private val _playerStatus = MutableLiveData(PlayerStatus.Paused)
     val playerStatus: LiveData<PlayerStatus> get() = _playerStatus
 
-    val noteStartedEvent = LifecycleAwareEvent<NoteListItem>()
+    val noteStartedEvent = LifecycleAwareEvent<NoteListItemStartTime>()
 
     private val applicationContext = context.applicationContext
     private var serviceBinder: PlayerService.PlayerBinder? = null
@@ -58,8 +56,10 @@ class PlayerServiceConnection(
                 _playerStatus.value = PlayerStatus.Paused
         }
 
-        override fun onNoteStarted(noteListItem: NoteListItem) {
-            noteStartedEvent.triggerEvent(noteListItem)
+        override fun onNoteStarted(noteListItem: NoteListItem, uptimeMillis: Long, noteCount: Long) {
+
+            val noteStartedTime = NoteListItemStartTime(noteListItem, uptimeMillis, noteCount)
+            noteStartedEvent.triggerEvent(noteStartedTime)
         }
 
         override fun onSpeedChanged(bpm: Bpm) {

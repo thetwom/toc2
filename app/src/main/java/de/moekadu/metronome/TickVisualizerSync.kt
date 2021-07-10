@@ -1,0 +1,122 @@
+package de.moekadu.metronome
+
+import android.animation.TimeAnimator
+import android.content.Context
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.os.SystemClock
+import android.util.AttributeSet
+import android.util.Log
+import android.view.View
+
+class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
+    : View(context, attrs, defStyleAttr) {
+
+    fun interface NoteStartedListener {
+        fun onNoteStarted(uid: UId)
+    }
+
+    var noteStartedListener: NoteStartedListener? = null
+
+    private data class UidDuration(var uid: UId, var duration: NoteDuration)
+
+    private val paint = Paint().apply {
+        color = Color.RED
+    }
+
+    var bpm = Bpm(120f, NoteDuration.Quarter)
+    private val noteDurations = ArrayList<UidDuration>()
+
+    private var currentNoteIndex = 0
+    private var currentNoteUid: UId? = null
+    private var currentTickStartTime = -1L
+    private var currentTickEndTime = -1L
+    private var tickCount = 0L
+
+    private val animator = TimeAnimator().apply {
+        setTimeListener { animation, totalTime, deltaTime ->
+            val time = SystemClock.uptimeMillis()
+//            Log.v("Metronome", "TickVisualizerSync.timeAnimationListener: time=$time, currentTickEndTime=$currentTickEndTime")
+            if (time > currentTickEndTime) {
+                currentTickStartTime = currentTickEndTime
+                currentNoteIndex = if (currentNoteIndex + 1 >= noteDurations.size) 0 else currentNoteIndex + 1
+                currentNoteUid = noteDurations[currentNoteIndex].uid
+                currentNoteUid?.let {uid -> noteStartedListener?.onNoteStarted(uid)}
+                currentTickEndTime = currentTickStartTime + noteDurations[currentNoteIndex].duration.durationInMillis(bpm.bpmQuarter)
+                ++tickCount
+            }
+            invalidate()
+        }
+    }
+
+    constructor(context: Context, attrs: AttributeSet? = null) : this(context, attrs, R.attr.tickVisualizerSyncStyle)
+
+    init {
+        attrs?.let {
+            val ta = context.obtainStyledAttributes(attrs, R.styleable.TickVisualizerSync, defStyleAttr, R.style.Widget_AppTheme_TickVisualizerStyle)
+            paint.color = ta.getColor(R.styleable.TickVisualizerSync_color, paint.color)
+            ta.recycle()
+        }
+    }
+
+    fun tick(index: Int, startTime: Long, noteCount: Long) {
+        if (!animator.isRunning) {
+            tickCount = -1L
+            currentNoteIndex = 0
+        }
+
+        if (index in noteDurations.indices) {
+            val endTime = startTime + noteDurations[index].duration.durationInMillis(bpm.bpmQuarter)
+            // if "play" was called with too much delay, we rely on the automatic ticking of this class
+            if (SystemClock.uptimeMillis() <= endTime) {
+                currentTickStartTime = startTime
+                currentTickEndTime = endTime
+                if (tickCount != noteCount)
+                    noteStartedListener?.onNoteStarted(noteDurations[index].uid)
+                tickCount = noteCount
+                Log.v("Metronome", "TickVisualizer.tick: index=$index, currentNoteIndex=$currentNoteIndex")
+                currentNoteIndex = index
+                currentNoteUid = noteDurations[index].uid
+            }
+        }
+
+        if (!animator.isRunning)
+            animator.start()
+    }
+
+    fun tick(uid: UId, startTime: Long, noteCount: Long) {
+        val index = noteDurations.indexOfFirst { it.uid == uid }
+        tick(index, startTime, noteCount)
+    }
+
+    fun stop() {
+        animator.end()
+        invalidate()
+    }
+
+    fun setNoteList(noteList: ArrayList<NoteListItem>) {
+        // delete excess entries
+        if (noteDurations.size > noteList.size)
+            noteDurations.subList(noteList.size, noteDurations.size).clear()
+        // set values in available entries
+        for (i in noteDurations.indices) {
+            noteDurations[i].uid = noteList[i].uid
+            noteDurations[i].duration = noteList[i].duration
+        }
+        // add missing entries
+        for (i in noteDurations.size until noteList.size)
+            noteDurations.add(UidDuration(noteList[i].uid, noteList[i].duration))
+    }
+
+    override fun onDraw(canvas: Canvas?) {
+        super.onDraw(canvas)
+
+        if (animator.isRunning) {
+            if (tickCount % 2L == 0L)
+                canvas?.drawRect(0f, 0f, 0.5f * width, height.toFloat(), paint)
+            else
+                canvas?.drawRect(0.5f * width, 0f, width.toFloat(), height.toFloat(), paint)
+        }
+    }
+}

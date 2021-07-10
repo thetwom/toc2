@@ -124,7 +124,7 @@
         app:layout_constraintVertical_weight="0.56"
         />
 
- <de.moekadu.metronome.TickVisualizer
+ <de.moekadu.metronome.TickVisualizerSync
      android:id="@+id/tick_visualizer"
      android:layout_width="match_parent"
      android:layout_height="0dp"

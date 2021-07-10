@@ -41,10 +41,12 @@ import kotlin.math.roundToInt
  *  @param noteListItem NoteListItem which will be started
  *  @param noteStartedListener NoteStartedListener to be called.
  *  @param frameNumber Frame number when the noteStartedListener should be called.
+ *  @param noteCount Counter for played notes since player start
  */
 private class NoteStartedListenerAndFrame(val noteListItem: NoteListItem,
                                           val noteStartedListener: AudioMixer.NoteStartedListener,
-                                          val frameNumber: Int)
+                                          val frameNumber: Int,
+                                          val noteCount: Long)
 
 /// Note started listener together with delay.
 /**
@@ -63,7 +65,7 @@ private class NoteStartedListenerAndDelay(val noteStartedListener: AudioMixer.No
  */
 private data class QueuedNote(val noteId: Int, val startFrame: Int, val volume: Float)
 
-private data class NextNoteInfo(val nextNoteIndex: Int, val nextNoteFrame: Int)
+private data class NextNoteInfo(val nextNoteIndex: Int, val nextNoteFrame: Int, val noteCount: Long)
 
 /** Class containing info for synchronize click time to a given reference.
  * @param referenceTime Time in uptime millis (from call to SystemClock.uptimeMillis()
@@ -149,6 +151,7 @@ private fun queueNextNotes(nextNoteInfo: NextNoteInfo,
 
     var nextNoteIndex = nextNoteInfo.nextNoteIndex
     var nextNoteFrame = nextNoteInfo.nextNoteFrame
+    var noteCount = nextNoteInfo.noteCount
 
     while (nextNoteFrame < alreadyQueuedFrames + numFramesToQueue) {
         if (nextNoteIndex >= noteList.size)
@@ -162,16 +165,18 @@ private fun queueNextNotes(nextNoteInfo: NextNoteInfo,
         for (noteStartedListener in noteStartedListenersAndDelay) {
             noteStartedListenersAndFrames.add(
                     NoteStartedListenerAndFrame(noteListItem,
-                            noteStartedListener.noteStartedListener,
-                            nextNoteFrame + delayInFrames + (noteStartedListener.delayInMillis / 1000f * sampleRate).roundToInt())
+                        noteStartedListener.noteStartedListener,
+                        nextNoteFrame + delayInFrames + (noteStartedListener.delayInMillis / 1000f * sampleRate).roundToInt(),
+                        noteCount)
             )
         }
 
         // notes can have a duration of -1 if it is not yet set ... in this case we directly play the next note
         nextNoteFrame += (max(0f, noteListItem.duration.durationInSeconds(bpmQuarter)) * sampleRate).roundToInt()
         ++nextNoteIndex
+        ++noteCount
     }
-    return NextNoteInfo(nextNoteIndex, nextNoteFrame)
+    return NextNoteInfo(nextNoteIndex, nextNoteFrame, noteCount)
 }
 
 /// Mix all currently queued frames to the mixing buffer.
@@ -250,7 +255,7 @@ private fun synchronizeTime(synchronizeTimeInfo: SynchronizeTimeInfo, noteList: 
             * beatDurationInFrames)
     // Log.v("AudioMixer", "AudioMixer.synchronizeTime : correctedNextFrame=$correctedNextFrameIndex, nextTrackFrame=$nextTrackFrame")
     nextNoteFrame = correctedNextFrameIndex
-    return NextNoteInfo(nextNoteIndex, nextNoteFrame)
+    return NextNoteInfo(nextNoteIndex, nextNoteFrame, nextNoteInfo.noteCount)
 }
 
 /// Read note tracks and store them in an array.
@@ -301,8 +306,11 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
     interface NoteStartedListener {
         /// Callback function which is called when a playlist item starts
         /**
-         * @param noteListItem Note list item which is started. */
-        suspend fun onNoteStarted(noteListItem: NoteListItem?)
+         * @param noteListItem Note list item which is started.
+         * @param uptimeMillis Result of SystemClock.uptimeMillis when the note is started.
+         * @param noteCount Counter for notes since start of playing
+         */
+        suspend fun onNoteStarted(noteListItem: NoteListItem?, uptimeMillis: Long, noteCount: Long)
     }
 
     /// Callbacks when a note starts together with delay.
@@ -417,7 +425,7 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
 
             // Total number of frames for which we queued track for playing. Is zeroed when player starts.
             var numMixedFrames = 0
-            var nextNoteInfo = NextNoteInfo(0, player.bufferSizeInFrames / 2)
+            var nextNoteInfo = NextNoteInfo(0, player.bufferSizeInFrames / 2, 0)
 
             val noteListCopy = ArrayList<NoteListItem>()
 
@@ -472,8 +480,10 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                     it.frameNumber <= position
                 }.forEach {
                     val noteListItemCopy = it.noteListItem.clone()
+                    val uptimeMillis = SystemClock.uptimeMillis() - ((position - it.frameNumber) * 1000L) / player.sampleRate
+
                     launch {
-                        it.noteStartedListener.onNoteStarted(noteListItemCopy)
+                        it.noteStartedListener.onNoteStarted(noteListItemCopy, uptimeMillis, it.noteCount)
                     }
                 }
                 queuedNoteStartedListeners.removeAll { q -> q.frameNumber <= position }

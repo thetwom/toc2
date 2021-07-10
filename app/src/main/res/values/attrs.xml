@@ -7,6 +7,7 @@
     <attr name="volumeSlidersStyle" format="reference"/>
     <attr name="volumeControlStyle" format="reference"/>
     <attr name="tickVisualizerStyle" format="reference"/>
+    <attr name="tickVisualizerSyncStyle" format="reference"/>
     <attr name="noteViewStyle" format="reference"/>
     <attr name="soundChooserStyle" format="reference"/>
     <attr name="soundChooserStyle3" format="reference"/>
