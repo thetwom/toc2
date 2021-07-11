@@ -132,6 +132,10 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
         super.onDraw(canvas)
 
         if (animator.isRunning) {
+            //val uptimeMillis = SystemClock.uptimeMillis()
+            //val fraction = (uptimeMillis - currentTickStartTime).toFloat() / ( currentTickEndTime - currentTickStartTime)
+            //paint.alpha = (255 * (1 - fraction)).toInt()
+            //Log.v("Metronome", "TickVisualizerSync.onDraw: fraction=$fraction")
             if (tickCount % 2L == 0L)
                 canvas?.drawRect(0f, 0f, 0.5f * width, height.toFloat(), paint)
             else

@@ -145,7 +145,7 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         circlePaint.style = Paint.Style.STROKE
         val growthFactor = 1.1f
         val speedRad = 0.5f* (radius + innerRadius)
-        val strokeWidth = 0.3f * (radius - innerRadius)
+        val strokeWidth = 0.4f * (radius - innerRadius)
         circlePaint.strokeWidth = strokeWidth
 
         val angleMax  = -90.0f + 40.0f + shiftSpeedStrokesAngle
@@ -157,7 +157,7 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         while (angle >= angleMin) {
             canvas.drawArc(centerX - speedRad, centerY - speedRad,
                     centerX + speedRad, centerY + speedRad,
-                    angle, -2f, false, circlePaint)
+                    angle, -1.5f, false, circlePaint)
 
             dAngle *= growthFactor
             angle -= dAngle
