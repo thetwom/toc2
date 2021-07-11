@@ -29,13 +29,13 @@
     tools:context=".MetronomeFragment">
 
     <!-- Dummy transition view group which helps to prevent ViewPager2 error, that first transition after page change is skipped -->
-    <de.moekadu.metronome.DummyViewGroupWithTransition
-        android:id="@+id/dummy_view_group"
-        android:layout_width="1px"
-        android:layout_height="1px"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        />
+<!--    <de.moekadu.metronome.DummyViewGroupWithTransition-->
+<!--        android:id="@+id/dummy_view_group"-->
+<!--        android:layout_width="1px"-->
+<!--        android:layout_height="1px"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent"-->
+<!--        />-->
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/note_view_top"

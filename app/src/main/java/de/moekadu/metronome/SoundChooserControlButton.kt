@@ -70,7 +70,7 @@ class SoundChooserControlButton(
         this.noteColor = noteHighlightColor
         val noteList = ArrayList<NoteListItem>()
         noteList.add(noteListItem)
-        setNoteList(noteList)
+        setNoteList(noteList, 0L)
         highlightNote(0, true)
         visibility = GONE
     }

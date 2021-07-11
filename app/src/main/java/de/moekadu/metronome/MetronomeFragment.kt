@@ -23,6 +23,7 @@ import android.annotation.SuppressLint
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Bundle
 import android.text.InputType
+import android.util.Log
 import android.view.*
 import android.widget.EditText
 import android.widget.ImageButton
@@ -78,7 +79,7 @@ class MetronomeFragment : Fragment() {
     private var sceneTitle: TextView? = null
     private var swipeToScenesView: ImageButton? = null
 
-    private var dummyViewGroupWithTransition: DummyViewGroupWithTransition? = null
+//    private var dummyViewGroupWithTransition: DummyViewGroupWithTransition? = null
 
     private val noteListBackup = ArrayList<NoteListItem>()
 
@@ -109,7 +110,7 @@ class MetronomeFragment : Fragment() {
             true
         }
 
-        dummyViewGroupWithTransition = view.findViewById(R.id.dummy_view_group)
+//        dummyViewGroupWithTransition = view.findViewById(R.id.dummy_view_group)
 
         speedLimiter = SpeedLimiter(PreferenceManager.getDefaultSharedPreferences(requireContext()), viewLifecycleOwner)
 
@@ -361,17 +362,18 @@ class MetronomeFragment : Fragment() {
 //            Log.v("Metronome", "MetronomeFragment: viewModel.playerStatus: $it")
             when (it) {
                 PlayerStatus.Playing -> {
-                    playButton?.changeStatus(PlayButton.STATUS_PLAYING, true)
+                    playButton?.changeStatus(PlayButton.STATUS_PLAYING, viewModel.isVisible) // animate if visible
                 }
                 PlayerStatus.Paused, null -> {
                     tickVisualizer?.stop()
-                    playButton?.changeStatus(PlayButton.STATUS_PAUSED, true)
+                    playButton?.changeStatus(PlayButton.STATUS_PAUSED, viewModel.isVisible) // animate if visible
                 }
             }
         }
 
         viewModel.noteStartedEvent.observe(viewLifecycleOwner) { noteStartTime ->
-            tickVisualizer?.tick(noteStartTime.note.uid, noteStartTime.uptimeMillis, noteStartTime.noteCount)
+            if (viewModel.isVisible)
+                tickVisualizer?.tick(noteStartTime.note.uid, noteStartTime.uptimeMillis, noteStartTime.noteCount)
             // don't animate note here, since this is controlled by the tickVisualizer.noteStartedListener defined above
             // this is done, since the tickvisualizer contains an extra time synchronazation mechanism
             //soundChooser?.animateNote(noteStartTime.note.uid)
@@ -383,9 +385,9 @@ class MetronomeFragment : Fragment() {
 
         viewModel.noteList.observe(viewLifecycleOwner) {
             viewModel.noteList.value?.let {
-//                Log.v("Metronome", "MetronomeFragment: observing noteList" )
+//                Log.v("Metronome", "MetronomeFragment: observing noteList, viewModel.isVisible=${viewModel.isVisible}")
                 tickVisualizer?.setNoteList(it)
-                soundChooser?.setNoteList(it, 200L)
+                soundChooser?.setNoteList(it, if (viewModel.isVisible) 200L else 0L)
             }
         }
 
@@ -410,13 +412,13 @@ class MetronomeFragment : Fragment() {
         sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener)
     }
 
-    override fun onResume() {
+//    override fun onResume() {
 //        Log.v("Metronome", "MetronomeFragment.onResume()")
-        super.onResume()
+//        super.onResume()
         // we need this transition, since after viewpager activity, the first transition is skipped
         // so we do this dummy transition, which is allowed to be skipped
-        dummyViewGroupWithTransition?.dummyTransition()
-    }
+//        dummyViewGroupWithTransition?.dummyTransition()
+//    }
 
     override fun onStop() {
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
@@ -445,11 +447,11 @@ class MetronomeFragment : Fragment() {
         return false
     }
 
-    private fun updateSceneTitleTextAndSwipeView(animate: Boolean = true) {
+    private fun updateSceneTitleTextAndSwipeView() {
         val editingStableId = scenesViewModel.editingStableId.value ?: Scene.NO_STABLE_ID
         val activeStableId = scenesViewModel.activeStableId.value ?: Scene.NO_STABLE_ID
 
-        if (animate) // dont animate since otherwise animations will clash
+        if (viewModel.isVisible) // only animate if visible
             constraintLayout?.let { TransitionManager.beginDelayedTransition(it)}
 
         if (editingStableId != Scene.NO_STABLE_ID) {

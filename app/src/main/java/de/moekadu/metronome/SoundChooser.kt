@@ -281,8 +281,6 @@ private class SoundChooserViewMeasures(
 class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     : ViewGroup(context, attrs, defStyleAttr) {
 
-    // TODO: lock fragment change for slider button/plus button, ...
-
     @Parcelize
     private class SavedState(val status: Status, val uid: UId?, val volumeSlidersFolded: Boolean) :
         Parcelable
@@ -809,7 +807,6 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                 button.moveToTarget(0L)
         }
 
-        // TODO: start static sound chooser if required
         if (status == Status.Static && changed) {
             deleteButton.translationX =
                 (soundChooserViewMeasures.delete.left - soundChooserViewMeasures.plus.left).toFloat()
@@ -1094,7 +1091,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 
     fun setNoteList(noteList: ArrayList<NoteListItem>, animationDuration: Long) {
 //        Log.v("Metronome", "SoundChooser.setNoteList: noteList[0] = ${noteList[0].duration}")
-        noteView.setNoteList(noteList)
+        noteView.setNoteList(noteList, animationDuration)
         volumeSliders.setNoteList(this, noteList, animationDuration)
 
         val noteDurationBefore = activeControlButton?.noteDuration
@@ -1105,8 +1102,6 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                 target.set(source)
             }
         } else { // reorder renew, ... control button list
-//            if (animationDuration > 0L)
-//                startTransitionManager(animationDuration)
             val map = controlButtons.map { it.uid to it }.toMap().toMutableMap()
             controlButtons.clear()
             for (note in noteList) {
@@ -1142,6 +1137,10 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                 } else {
                     removeView(s)
                 }
+                // if note next active control button is set and active note is removed, set the last control button as active
+                if (s === activeControlButton && nextActiveControlButtonUidOnNoteListChange == null)
+                    nextActiveControlButtonUidOnNoteListChange = controlButtons.lastOrNull()?.uid
+
             }
 
             controlButtons.forEachIndexed { index, button -> button.numberOffset = index }
@@ -1164,7 +1163,6 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             if (noteDuration != noteDurationBefore)
                 setNoteSelectionNotes(noteDuration)
         }
-
     }
 
     private fun setActiveControlButton(

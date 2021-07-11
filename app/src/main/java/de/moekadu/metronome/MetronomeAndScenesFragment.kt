@@ -51,6 +51,9 @@ class MetronomeAndScenesFragment : Fragment() {
     private val pageChangeListener = object : ViewPager2.OnPageChangeCallback() {
         override fun onPageSelected(position: Int) {
             (activity as MainActivity?)?.setDisplayHomeButton()
+            metronomeViewModel.isVisible = (position == ViewPagerAdapter.METRONOME)
+            scenesViewModel.isVisible = (position == ViewPagerAdapter.SCENES)
+
             super.onPageSelected(position)
         }
 

@@ -25,8 +25,6 @@ import android.graphics.Color
 import android.graphics.Rect
 import android.graphics.drawable.Animatable
 import android.graphics.drawable.Drawable
-import android.transition.AutoTransition
-import android.transition.TransitionManager
 import android.util.AttributeSet
 import android.util.Log
 import android.util.TypedValue
@@ -39,6 +37,8 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.content.ContextCompat
 import androidx.core.widget.TextViewCompat
+import androidx.transition.AutoTransition
+import androidx.transition.TransitionManager
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -442,7 +442,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             numbering[index].isSelected = flag
     }
 
-    fun setNoteList(noteList: ArrayList<NoteListItem>) {
+    fun setNoteList(noteList: ArrayList<NoteListItem>, animationDuration: Long) {
         volumeView.setVolumes(noteList)
 
         val uidEqual = if (noteList.size == notes.size) {
@@ -462,7 +462,11 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         if (uidEqual) {
             noteList.zip(notes) { source, target -> target.set(source) }
         } else {
-            TransitionManager.beginDelayedTransition(this@NoteView, transition)
+            // currently disable animation since this is triggered already by the MetronomeFragment:updateSceneTitleAndSwipeView
+//            if (animationDuration > 0L) {
+//                transition.duration = animationDuration
+//                TransitionManager.beginDelayedTransition(this@NoteView, transition)
+//            }
             val map = notes.map {it.uid to it}.toMap().toMutableMap()
             notes.clear()
             for (note in noteList) {

@@ -44,6 +44,8 @@ class ScenesViewModel(initialDatabaseString: String) : ViewModel() {
     private var uriHandledByScenesFragment = false
     private var uriHandledByMetronomeAndScenesFragment = false
 
+    var isVisible = false
+
     init  {
         sceneDatabase.databaseChangedListener = SceneDatabase.DatabaseChangedListener {
 //            Log.v("Metronome", "ScenesViewModel.init: database changed")
