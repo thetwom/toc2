@@ -26,7 +26,6 @@ import android.os.Binder
 import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.util.Log
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
@@ -53,7 +52,7 @@ class PlayerService : LifecycleService() {
 
     var bpm = InitialValues.bpm
         set(value) {
-            Log.v("Metronome", "PlayerService.bpm: value=$value")
+//            Log.v("Metronome", "PlayerService.bpm: value=$value")
             val newBpm = speedLimiter.limit(value.bpm)
             val tolerance = 1e-6
             if (abs(field.bpm - newBpm) < tolerance && value.noteDuration == field.noteDuration)
@@ -327,7 +326,7 @@ class PlayerService : LifecycleService() {
 
     fun modifyNoteList(op: (ArrayList<NoteListItem>) -> Boolean) {
         val modified = op(noteList)
-        Log.v("Metronome", "PlayerService.modifyNoteList: modified=$modified")
+//        Log.v("Metronome", "PlayerService.modifyNoteList: modified=$modified")
         if (modified) {
             audioMixer?.noteList = noteList
             for (s in statusChangedListeners)

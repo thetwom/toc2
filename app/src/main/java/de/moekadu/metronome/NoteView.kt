@@ -563,10 +563,6 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
         var tupletStartIndex = -1
 
-        Log.v("Metronome", "NoteView.detectTuplets: |")
-        Log.v("Metronome", "NoteView.detectTuplets: |")
-        Log.v("Metronome", "NoteView.detectTuplets: |")
-
         for (index in 0 .. notes.size) {
             val note = if (index < notes.size) notes[index] else null
             val duration = note?.duration
@@ -588,7 +584,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                 }
             }
 
-            Log.v("Metronome", "NoteView.detectTuplets: isTuplet=$isTuplet, numQuarter: quarterCounts= $quarterCounts, eighthCounts=$eighthCounts, sixteenthCounts=$sixteenthCounts, endTuplet=$endTuplet, tupletStartIndex=$tupletStartIndex")
+//            Log.v("Metronome", "NoteView.detectTuplets: isTuplet=$isTuplet, numQuarter: quarterCounts= $quarterCounts, eighthCounts=$eighthCounts, sixteenthCounts=$sixteenthCounts, endTuplet=$endTuplet, tupletStartIndex=$tupletStartIndex")
             // start collecting for a new tuplet
             if (isTuplet && tupletStartIndex == -1) {
                 tupletStartIndex = index
@@ -650,7 +646,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                 tuplet.setStartAndEnd(tupletStartIndex, tupletEndIndex)
                 tuplet.tupletComplete = tupletComplete
                 ++numTupletsTotal
-                Log.v("Metronome", "NoteView.detectTuplets: ENDING TUPLET")
+//                Log.v("Metronome", "NoteView.detectTuplets: ENDING TUPLET")
 
                 // reset values
                 sixteenthCounts = 0

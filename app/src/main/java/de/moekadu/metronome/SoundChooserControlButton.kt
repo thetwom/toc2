@@ -81,16 +81,16 @@ class SoundChooserControlButton(
         setNoteId(0, noteListItem.id)
         setVolume(0, noteListItem.volume)
         setDuration(0, noteListItem.duration)
-        Log.v("Metronome", "SoundChooserControlButton2.set: noteListItem.duration: ${noteListItem.duration}")
+//        Log.v("Metronome", "SoundChooserControlButton.set: noteListItem.duration: ${noteListItem.duration}")
     }
 
     fun containsCoordinates(xCo: Float, yCo: Float): Boolean {
-        //Log.v("Metronome", "SoundChooserControlButton2.containsCoordinates: xCo=$xCo, x=$x, y=$y")
+        //Log.v("Metronome", "SoundChooserControlButton.containsCoordinates: xCo=$xCo, x=$x, y=$y")
         return xCo > x && xCo < x + width && yCo > y && yCo < y + height
     }
 
     fun coordinateXWithinBoundsToKeepPosition(coX: Float): Boolean {
-//        Log.v("Metronome", "SoundChooserControlButton2.coordinateXWihtinBoundsToKeepPosition: coX=$coX, leftBound=$leftBoundToSwitchPosition, rightBound=$rightBoundToSwitchPosition")
+//        Log.v("Metronome", "SoundChooserControlButton.coordinateXWihtinBoundsToKeepPosition: coX=$coX, leftBound=$leftBoundToSwitchPosition, rightBound=$rightBoundToSwitchPosition")
         return coX in leftBoundToSwitchPosition..rightBoundToSwitchPosition
     }
     fun centerXWithinBoundsToKeepPosition(): Boolean {
@@ -140,7 +140,7 @@ class SoundChooserControlButton(
         else if (translationX != translationXTarget || translationY != translationYTarget || fadeOut) {
             animate().cancel()
             val alphaEnd = if (fadeOut) 0.0f else alpha
-//            Log.v("Metronome", "SoundChooserControlButton2.moveTotarget, alpha=$alpha, alphaEnd=$alphaEnd")
+//            Log.v("Metronome", "SoundChooserControlButton.moveTotarget, alpha=$alpha, alphaEnd=$alphaEnd")
             animate()
                     .setDuration(animationDuration)
                     .alpha(alphaEnd)
