@@ -67,6 +67,14 @@ class PlayerService : LifecycleService() {
             notification?.postNotificationUpdate()
         }
 
+    var isMute = false
+        set(value) {
+            if (field != value) {
+                field = value
+                audioMixer?.setMute(value)
+            }
+        }
+
     val state
         get() = playbackState.state
 
@@ -151,6 +159,8 @@ class PlayerService : LifecycleService() {
         audioMixer = AudioMixer(applicationContext, lifecycleScope)
         audioMixer?.setBpmQuarter(bpm.bpmQuarter)
         audioMixer?.noteList = noteList
+
+        audioMixer?.setMute(isMute)
 
         // callback for ui stuff
         audioMixer?.registerNoteStartedListener(object : AudioMixer.NoteStartedListener {

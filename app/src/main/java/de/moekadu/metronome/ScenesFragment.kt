@@ -51,9 +51,10 @@ class ScenesFragment : Fragment() {
     }
     private val metronomeViewModel by activityViewModels<MetronomeViewModel> {
         val playerConnection = PlayerServiceConnection.getInstance(
-                requireContext(),
-                AppPreferences.readMetronomeBpm(requireActivity()),
-                AppPreferences.readMetronomeNoteList(requireActivity())
+            requireContext(),
+            AppPreferences.readMetronomeBpm(requireActivity()),
+            AppPreferences.readMetronomeNoteList(requireActivity()),
+            AppPreferences.readIsMute(requireActivity())
         )
         MetronomeViewModel.Factory(playerConnection)
     }

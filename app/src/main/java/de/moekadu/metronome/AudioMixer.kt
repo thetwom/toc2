@@ -28,6 +28,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.util.Log
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.sync.Mutex
@@ -340,6 +341,9 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
      */
     private var bpmQuarter = -1.0f
 
+    private val isMuteChannel = Channel<Boolean>(Channel.CONFLATED)
+    private var isMute: Boolean = false
+
     /// Register a NoteStartedListener (this will stop player).
     /**
      * @param noteStartedListener Instance to be registered.
@@ -349,13 +353,16 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
     fun registerNoteStartedListener(noteStartedListener: NoteStartedListener?, delayInMilliSeconds: Float = 0f) {
         if (noteStartedListener == null)
             return
+//        Log.v("Metronome", "AudioMixer.registerStartListener: launch")
         scope.launch(Dispatchers.Main) {
             noteStartedListenerLock.withLock {
                 noteStartedListeners.removeAll {it.noteStartedListener === noteStartedListener}
                 noteStartedListeners.add(NoteStartedListenerAndDelay(noteStartedListener, delayInMilliSeconds))
                 noteDelayInMillis = computeNoteDelayInMillis(noteStartedListeners)
             }
-        }
+        }//.invokeOnCompletion {
+         //   Log.v("Metronome", "AudioMixer.registerStartListener: completed")
+        //}
     }
 
     /// Unregister a NoteStartedListener (this will stop player).
@@ -394,9 +401,11 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
     }
 
     fun setBpmQuarter(bpmQuarter: Float) {
-        scope.launch(Dispatchers.Main) {
-            bpmQuarterChannel.send(bpmQuarter)
-        }
+        bpmQuarterChannel.offer(bpmQuarter)
+    }
+
+    fun setMute(state: Boolean) {
+        isMuteChannel.offer(state)
     }
 
     /// Start playing
@@ -452,6 +461,10 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                 }
                 require(bpmQuarter > 0.0f)
 
+                isMuteChannel.poll()?.let {
+                    isMute = it
+                }
+
                 nextNoteIndexModificationChannel.poll()?.let { index ->
                     nextNoteInfo = nextNoteInfo.copy(nextNoteIndex = index)
                 }
@@ -487,6 +500,9 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                     }
                 }
                 queuedNoteStartedListeners.removeAll { q -> q.frameNumber <= position }
+
+                if (isMute)
+                    mixingBuffer.fill(0f)
 
                 //Log.v("Metronome", "AudioMixer mixingBuffer:max: ${mixingBuffer[0]}")
                 player.write(mixingBuffer, 0, mixingBuffer.size, AudioTrack.WRITE_BLOCKING)

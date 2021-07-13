@@ -50,8 +50,9 @@ class MainActivity : AppCompatActivity() {
 
     private val metronomeViewModel by viewModels<MetronomeViewModel> {
         val playerConnection = PlayerServiceConnection.getInstance(this,
-                AppPreferences.readMetronomeBpm(this),
-                AppPreferences.readMetronomeNoteList(this)
+            AppPreferences.readMetronomeBpm(this),
+            AppPreferences.readMetronomeNoteList(this),
+            AppPreferences.readIsMute(this)
         )
         MetronomeViewModel.Factory(playerConnection)
     }
@@ -105,7 +106,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         AppPreferences.writeMetronomeState(
-                metronomeViewModel.bpm.value, metronomeViewModel.noteList.value, this)
+            metronomeViewModel.bpm.value, metronomeViewModel.noteList.value,
+            metronomeViewModel.mute.value, this)
         super.onStop()
     }
 //    override fun onSupportNavigateUp() : Boolean{

@@ -20,10 +20,8 @@
 package de.moekadu.metronome
 
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import androidx.appcompat.view.ActionMode
-import androidx.core.view.doOnAttach
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.viewpager2.widget.ViewPager2
@@ -32,9 +30,10 @@ class MetronomeAndScenesFragment : Fragment() {
 
     private val metronomeViewModel by activityViewModels<MetronomeViewModel> {
         val playerConnection = PlayerServiceConnection.getInstance(
-                requireContext(),
-                AppPreferences.readMetronomeBpm(requireActivity()),
-                AppPreferences.readMetronomeNoteList(requireActivity())
+            requireContext(),
+            AppPreferences.readMetronomeBpm(requireActivity()),
+            AppPreferences.readMetronomeNoteList(requireActivity()),
+            AppPreferences.readIsMute(requireActivity())
         )
         MetronomeViewModel.Factory(playerConnection)
     }
@@ -77,6 +76,12 @@ class MetronomeAndScenesFragment : Fragment() {
         // super.onCreateOptionsMenu(menu, inflater)
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        val muteIcon = menu.findItem(R.id.action_mute)
+        muteIcon.setIcon(if (metronomeViewModel.mute.value == true) R.drawable.ic_action_mute_active else R.drawable.ic_action_mute)
+        super.onPrepareOptionsMenu(menu)
+    }
+
     override fun onOptionsItemSelected(item : MenuItem) : Boolean {
         when (item.itemId) {
             R.id.action_load -> {
@@ -90,6 +95,10 @@ class MetronomeAndScenesFragment : Fragment() {
                 metronomeViewModel.setEditedSceneTitle(sceneTitle)
                 startEditingMode()
                 return true
+            }
+            R.id.action_mute -> {
+                val isMute = metronomeViewModel.mute.value ?: false
+                metronomeViewModel.setMute(!isMute)
             }
         }
         return false
@@ -106,6 +115,10 @@ class MetronomeAndScenesFragment : Fragment() {
 
         viewPager?.registerOnPageChangeCallback(pageChangeListener)
         viewPager?.offscreenPageLimit = 1
+
+        metronomeViewModel.mute.observe(viewLifecycleOwner) {
+            activity?.invalidateOptionsMenu()
+        }
 
         scenesViewModel.editingStableId.observe(viewLifecycleOwner) {
             lockViewPager()

@@ -33,6 +33,8 @@ class MetronomeViewModel(private val playerConnection: PlayerServiceConnection):
     val noteStartedEvent get() = playerConnection.noteStartedEvent
     val noteList get() = playerConnection.noteList
 
+    val mute: LiveData<Boolean> get() = playerConnection.mute
+
     private val _editedSceneTitle = MutableLiveData<String?>(null)
     val editedSceneTitle: LiveData<String?> get() = _editedSceneTitle
 
@@ -61,6 +63,10 @@ class MetronomeViewModel(private val playerConnection: PlayerServiceConnection):
     fun setBpm(bpm: Bpm) {
 //        Log.v("Metronome", "MetronomeViewModel: setBpm=$bpm")
         playerConnection.setBpm(bpm)
+    }
+
+    fun setMute(value: Boolean) {
+        playerConnection.isMute = value
     }
 
     fun setNoteList(noteList: ArrayList<NoteListItem>) {

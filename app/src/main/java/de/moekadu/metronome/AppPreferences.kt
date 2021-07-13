@@ -45,14 +45,33 @@ class AppPreferences {
             editor.putFloat(key, value)
             editor.apply()
         }
+        private fun readPreferenceBoolean(key: String, default: Boolean, activity: FragmentActivity): Boolean {
+            val preferences = activity.getPreferences(Context.MODE_PRIVATE)
+            return preferences.getBoolean(key, default)
+        }
 
-        fun writeMetronomeState(bpm: Bpm?, noteList: ArrayList<NoteListItem>?, activity: FragmentActivity) {
+        private fun writePreferenceBoolean(key: String, value: Boolean, activity: FragmentActivity) {
+            val preferences = activity.getPreferences(Context.MODE_PRIVATE)
+            val editor = preferences.edit()
+            editor.putBoolean(key, value)
+            editor.apply()
+        }
+
+        fun writeMetronomeState(bpm: Bpm?, noteList: ArrayList<NoteListItem>?, isMute: Boolean?,
+                                activity: FragmentActivity) {
             if (bpm != null) {
                 writePreferenceFloat("bpm", bpm.bpm, activity)
                 writePreferenceString("beatNote", bpm.noteDuration.toString(), activity)
             }
             if (noteList != null)
                 writePreferenceString("sound", noteListToString(noteList), activity)
+
+            if (isMute != null)
+                writePreferenceBoolean("isMute", isMute, activity)
+        }
+
+        fun readIsMute(activity: FragmentActivity): Boolean {
+            return readPreferenceBoolean("isMute", false, activity)
         }
 
         fun readMetronomeBpm(activity: FragmentActivity): Bpm {

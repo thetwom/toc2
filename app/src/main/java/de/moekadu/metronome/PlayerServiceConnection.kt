@@ -27,9 +27,11 @@ import android.os.DeadObjectException
 import android.os.IBinder
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.lifecycle.*
+import kotlinx.coroutines.sync.Mutex
 
 class PlayerServiceConnection(
-        context: Context, private val initialBpm: Bpm, private val initialNoteList: ArrayList<NoteListItem>) {
+        context: Context, private val initialBpm: Bpm, private val initialNoteList: ArrayList<NoteListItem>,
+        private val initialIsMute: Boolean) {
 
     private val _noteList = MutableLiveData<ArrayList<NoteListItem> >()
     val noteList: LiveData<ArrayList<NoteListItem> > get() = _noteList
@@ -39,6 +41,23 @@ class PlayerServiceConnection(
 
     private val _playerStatus = MutableLiveData(PlayerStatus.Paused)
     val playerStatus: LiveData<PlayerStatus> get() = _playerStatus
+
+    var isMute = false
+        set(value) {
+            if (value != field) {
+                try {
+                    serviceBinder?.service?.isMute = value
+                }
+                catch (_: DeadObjectException) {
+                    serviceBinder = null
+                }
+                _mute.value = value
+            }
+            field = value
+        }
+
+    private val _mute = MutableLiveData(isMute)
+    val mute: LiveData<Boolean> get() {return _mute}
 
     val noteStartedEvent = LifecycleAwareEvent<NoteListItemStartTime>()
 
@@ -89,6 +108,7 @@ class PlayerServiceConnection(
 
                     setBpm(initialBpm)
                     service.noteList = initialNoteList
+                    isMute = initialIsMute
 
                     if (_bpm.value != service.bpm)
                         _bpm.value = service.bpm
@@ -207,9 +227,10 @@ class PlayerServiceConnection(
         @Volatile
         private var instance: PlayerServiceConnection? = null
 
-        fun getInstance(context: Context, initialBpm: Bpm, initialNoteList: ArrayList<NoteListItem>) =
+        fun getInstance(context: Context, initialBpm: Bpm, initialNoteList: ArrayList<NoteListItem>,
+                        initialIsMute: Boolean) =
                 instance ?: synchronized(this) {
-                instance ?: PlayerServiceConnection(context, initialBpm, initialNoteList)
+                instance ?: PlayerServiceConnection(context, initialBpm, initialNoteList, initialIsMute)
                     .also { instance = it }
             }
 
