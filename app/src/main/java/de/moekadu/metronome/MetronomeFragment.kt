@@ -331,6 +331,13 @@ class MetronomeFragment : Fragment() {
                 "vibratestrength" -> {
                     vibratingNote?.strength = sharedPreferences.getInt("vibratestrength", 50)
                 }
+                "tickvisualization" -> {
+                    when (sharedPreferences.getString("tickvisualization", "leftright")) {
+                        "leftright" -> tickVisualizer?.visualizationType = TickVisualizerSync.VisualizationType.LeftRight
+                        "bounce" -> tickVisualizer?.visualizationType = TickVisualizerSync.VisualizationType.Bounce
+                        "fade" -> tickVisualizer?.visualizationType = TickVisualizerSync.VisualizationType.Fade
+                    }
+                }
             }
         }
 
@@ -344,6 +351,12 @@ class MetronomeFragment : Fragment() {
 
         vibrate = sharedPreferences.getBoolean("vibrate", false)
         vibratingNote?.strength = sharedPreferences.getInt("vibratestrength", 50)
+
+        when (sharedPreferences.getString("tickvisualization", "leftright")) {
+            "leftright" -> tickVisualizer?.visualizationType = TickVisualizerSync.VisualizationType.LeftRight
+            "bounce" -> tickVisualizer?.visualizationType = TickVisualizerSync.VisualizationType.Bounce
+            "fade" -> tickVisualizer?.visualizationType = TickVisualizerSync.VisualizationType.Fade
+        }
 
         // register all observers
         viewModel.bpm.observe(viewLifecycleOwner) { bpm ->

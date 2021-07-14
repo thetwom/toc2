@@ -43,6 +43,7 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
 
     var onSceneClickedListener: OnSceneClickedListener? = null
     private var activatedStableId = Scene.NO_STABLE_ID
+    private var tickVisualizationType = TickVisualizerSync.VisualizationType.LeftRight
 
     inner class ViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
         var isActivated = false
@@ -85,6 +86,18 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
                 val child = recyclerView.getChildAt(i)
                 (recyclerView.getChildViewHolder(child) as ScenesAdapter.ViewHolder).let { viewHolder ->
                     viewHolder.isActivated = (stableId == viewHolder.itemId)
+                }
+            }
+        }
+    }
+
+    fun setTickVisualizationType(style: TickVisualizerSync.VisualizationType, recyclerView: RecyclerView?) {
+        tickVisualizationType = style
+        if (recyclerView != null) {
+            for (i in 0 until recyclerView.childCount) {
+                val child = recyclerView.getChildAt(i)
+                (recyclerView.getChildViewHolder(child) as ScenesAdapter.ViewHolder).let { viewHolder ->
+                    viewHolder.tickVisualizer?.visualizationType = style
                 }
             }
         }
@@ -136,6 +149,7 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
             bpmDuration = view.findViewById(R.id.scene_bpm_duration)
             noteView = view.findViewById(R.id.scene_sounds)
             tickVisualizer = view.findViewById(R.id.scene_ticks_visualizer)
+            tickVisualizer?.visualizationType = tickVisualizationType
             tickVisualizer?.noteStartedListener = TickVisualizerSync.NoteStartedListener {
                 noteView?.animateNote(it)
             }

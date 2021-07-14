@@ -28,6 +28,10 @@ import android.os.SystemClock
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
+import kotlin.math.PI
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.sin
 
 class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     : View(context, attrs, defStyleAttr) {
@@ -52,6 +56,19 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
     private var currentTickStartTime = -1L
     private var currentTickEndTime = -1L
     private var tickCount = 0L
+
+    var visualizationType = VisualizationType.Bounce
+
+    val fraction: Float
+        get() {
+            var result = (
+                    (SystemClock.uptimeMillis() - currentTickStartTime).toFloat()
+                            / (currentTickEndTime - currentTickStartTime)
+                    )
+            result = max(0f, result)
+            result = min(1f, result)
+            return result
+        }
 
     private val animator = TimeAnimator().apply {
         setTimeListener { _, _ ,_ ->
@@ -94,7 +111,7 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
                 if (tickCount != noteCount)
                     noteStartedListener?.onNoteStarted(noteDurations[index].uid)
                 tickCount = noteCount
-                Log.v("Metronome", "TickVisualizer.tick: index=$index, currentNoteIndex=$currentNoteIndex")
+//                Log.v("Metronome", "TickVisualizer.tick: index=$index, currentNoteIndex=$currentNoteIndex")
                 currentNoteIndex = index
                 currentNoteUid = noteDurations[index].uid
             }
@@ -136,10 +153,47 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
             //val fraction = (uptimeMillis - currentTickStartTime).toFloat() / ( currentTickEndTime - currentTickStartTime)
             //paint.alpha = (255 * (1 - fraction)).toInt()
             //Log.v("Metronome", "TickVisualizerSync.onDraw: fraction=$fraction")
-            if (tickCount % 2L == 0L)
-                canvas?.drawRect(0f, 0f, 0.5f * width, height.toFloat(), paint)
-            else
-                canvas?.drawRect(0.5f * width, 0f, width.toFloat(), height.toFloat(), paint)
+
+            when (visualizationType) {
+                VisualizationType.LeftRight -> {
+                    paint.alpha = 255
+                    if (tickCount % 2L == 0L)
+                        canvas?.drawRect(0f, 0f, 0.5f * width, height.toFloat(), paint)
+                    else
+                        canvas?.drawRect(0.5f * width, 0f, width.toFloat(), height.toFloat(), paint)
+                }
+                VisualizationType.Fade -> {
+                    paint.alpha = (255 * (1 - fraction)).toInt()
+                    canvas?.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
+                }
+                VisualizationType.Bounce -> {
+                    val duration250 = Utilities.bpm2millis(200f)
+                    var amp = Utilities.dp2px(20f) * max(currentTickEndTime - currentTickStartTime, duration250) / duration250
+                    val ampMax = 0.5f * width * (1 - 0.2f)
+                    amp = min(amp, ampMax)
+                    val center = 0.5f * width
+                    val blockWidth = 0.5f * width - amp
+                    val shift = amp  * sin(PI.toFloat() * fraction)
+
+                    if (tickCount % 2L == 0L) {
+                        paint.alpha = 50
+                        canvas?.drawRect(center - blockWidth, 0f,
+                            center, height.toFloat(), paint)
+                        paint.alpha = 255
+                        canvas?.drawRect(center + shift, 0f,
+                            center + shift + blockWidth, height.toFloat(), paint)
+                    } else {
+                        paint.alpha = 255
+                        canvas?.drawRect(center - shift - blockWidth, 0f,
+                            center - shift, height.toFloat(), paint)
+                        paint.alpha = 50
+                        canvas?.drawRect(center, 0f,
+                            center + blockWidth, height.toFloat(), paint)
+                    }
+                }
+            }
         }
     }
+
+    enum class VisualizationType {LeftRight, Fade, Bounce}
 }

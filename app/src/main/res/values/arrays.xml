@@ -37,4 +37,16 @@
         <item>@string/prepend_current_list</item>
         <item>@string/append_current_list</item>
     </string-array>
+
+    <string-array name="tickVisualizationValues">
+        <item>@string/tickvis_bounce</item>
+        <item>@string/thickvis_fade</item>
+        <item>@string/thickvis_leftright</item>
+    </string-array>
+
+    <string-array name="tickVisualizationList">
+        <item>"bounce"</item>
+        <item>"fade"</item>
+        <item>"leftright"</item>
+    </string-array>
 </resources>

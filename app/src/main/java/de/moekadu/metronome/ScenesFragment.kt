@@ -20,6 +20,7 @@
 package de.moekadu.metronome
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Canvas
 import android.graphics.drawable.Animatable
 import android.os.Bundle
@@ -59,6 +60,7 @@ class ScenesFragment : Fragment() {
         MetronomeViewModel.Factory(playerConnection)
     }
     private var speedLimiter: SpeedLimiter? = null
+    private var sharedPreferenceChangeListener: SharedPreferences.OnSharedPreferenceChangeListener? = null
 
     private var scenesRecyclerView: RecyclerView? = null
     private val scenesAdapter = ScenesAdapter().apply {
@@ -345,7 +347,44 @@ class ScenesFragment : Fragment() {
         }
 
         speedLimiter = SpeedLimiter(PreferenceManager.getDefaultSharedPreferences(requireContext()), viewLifecycleOwner)
+
+        sharedPreferenceChangeListener =
+            SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
+                when (key) {
+                    "tickvisualization" -> {
+                        val type = when (sharedPreferences.getString("tickvisualization", "leftright")) {
+                            "leftright" -> TickVisualizerSync.VisualizationType.LeftRight
+                            "bounce" -> TickVisualizerSync.VisualizationType.Bounce
+                            "fade" -> TickVisualizerSync.VisualizationType.Fade
+                            else -> TickVisualizerSync.VisualizationType.LeftRight
+                        }
+                        scenesAdapter.setTickVisualizationType(type, scenesRecyclerView)
+                    }
+                }
+            }
+
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
+        val type = when (sharedPreferences.getString("tickvisualization", "leftright")) {
+            "leftright" -> TickVisualizerSync.VisualizationType.LeftRight
+            "bounce" -> TickVisualizerSync.VisualizationType.Bounce
+            "fade" -> TickVisualizerSync.VisualizationType.Fade
+            else -> TickVisualizerSync.VisualizationType.LeftRight
+        }
+        scenesAdapter.setTickVisualizationType(type, scenesRecyclerView)
+
         return view
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
+        sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener)
+    }
+
+    override fun onStop() {
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
+        sharedPreferences.unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener)
+        super.onStop()
     }
 
     override fun onResume() {

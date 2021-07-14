@@ -179,6 +179,14 @@ class SettingsFragment: PreferenceFragmentCompat() {
             true
         }
 
+        val tickvis = findPreference("tickvisualization") as ListPreference?
+        require(tickvis != null)
+        tickvis.summary = getTickVisualizationSummary(tickvis.value)
+        tickvis.setOnPreferenceChangeListener { it, value ->
+            it.summary = getTickVisualizationSummary(value as String)
+            true
+        }
+
         val resetSettings = findPreference("setdefault") as Preference?
         require(resetSettings != null)
         resetSettings.onPreferenceClickListener = Preference.OnPreferenceClickListener {
@@ -230,6 +238,18 @@ class SettingsFragment: PreferenceFragmentCompat() {
             return getString(R.string.light_appearance)
         }
         throw RuntimeException("No summary for given appearance value")
+    }
+
+    private fun getTickVisualizationSummary(state: String): String {
+
+        if (state == null || state == "leftright") {
+            return getString(R.string.thickvis_leftright)
+        } else if (state == "bounce") {
+            return getString(R.string.tickvis_bounce)
+        } else if (state == "fade") {
+            return getString(R.string.thickvis_fade)
+        }
+        throw RuntimeException("No summary for given tickvisualization value")
     }
 
     private fun getVibrationStrengthSummary(value: Int): String {

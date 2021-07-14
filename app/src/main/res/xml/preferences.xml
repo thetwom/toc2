@@ -84,6 +84,15 @@
         <!--app:title="test"-->
         <!--/>-->
 
+    <ListPreference
+        app:key="tickvisualization"
+        app:title="@string/tickvisualization"
+        android:entries="@array/tickVisualizationValues"
+        android:entryValues="@array/tickVisualizationList"
+        android:dialogTitle="@string/tickvisualization"
+        android:defaultValue="leftright"
+        />
+
     <SwitchPreferenceCompat
         app:key="screenon"
         app:title="@string/keep_screen_on"
