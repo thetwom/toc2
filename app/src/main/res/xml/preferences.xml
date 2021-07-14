@@ -25,12 +25,14 @@
         app:key="vibrate"
         app:title="@string/vibrate_notes"
         app:defaultValue="false"
+        app:icon="@drawable/ic_vibrating_note"
         />
     <SeekBarPreference
         app:key="vibratestrength"
         app:title="@string/vibrate_strength"
         android:defaultValue="50"
         android:dependency="vibrate"
+        app:icon="@drawable/ic_vibrating_note_strength"
         />
 
 <!--    This seems currently not to be necessary-->
@@ -45,12 +47,13 @@
         />
 
     <ListPreference
-      app:key="appearance"
-      app:title="@string/appearance"
-      android:entries="@array/appearanceValues"
-      android:entryValues="@array/appearanceList"
+        app:key="appearance"
+        app:title="@string/appearance"
+        android:entries="@array/appearanceValues"
+        android:entryValues="@array/appearanceList"
         android:dialogTitle="@string/appearance"
         android:defaultValue="auto"
+        app:icon="@drawable/ic_appearance"
     />
 
     <SeekBarPreference
@@ -85,16 +88,19 @@
         app:key="screenon"
         app:title="@string/keep_screen_on"
         app:defaultValue="false"
+        app:icon="@drawable/ic_screen_on"
         />
 
     <Preference
         app:key="setdefault"
         app:title="@string/reset_all_settings"
+        app:icon="@drawable/ic_reset"
         />
 
     <Preference
         app:key="about"
         app:title="@string/about"
+        app:icon="@drawable/ic_info"
         />
 
 </androidx.preference.PreferenceScreen>
