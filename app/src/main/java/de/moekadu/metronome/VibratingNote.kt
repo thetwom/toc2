@@ -59,6 +59,9 @@ class VibratingNote(context: Context) {
         val halfNoteDurationInMillis = (0.5f * note.duration.durationInMillis(bpmQuarter)).toLong()
         val duration = min(halfNoteDurationInMillis, (_strength * getNoteVibrationDuration(note.id)).toLong())
 
+        if (duration <= 0L)
+            return
+
         vibrator?.let {
             if (!it.hasVibrator())
                 return

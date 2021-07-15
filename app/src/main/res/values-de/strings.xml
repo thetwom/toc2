@@ -90,4 +90,5 @@
     <string name="thickvis_fade">Verblassen</string>
     <string name="thickvis_leftright">Wechselspiel</string>
     <string name="tickvis_bounce">Zusammenprallen</string>
+    <string name="eqbpm">= %s bpm</string>
 </resources>

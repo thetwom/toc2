@@ -172,6 +172,7 @@ val availableNotes = arrayOf(
         NoteInfo(R.raw.snare44_wav, R.raw.snare48_wav, R.string.snare,
             R.drawable.ic_note_c, R.drawable.ic_note_c_eighth, R.drawable.ic_note_c_sixteenth,
             65L),
+
         NoteInfo(R.raw.sticks44_wav, R.raw.sticks48_wav, R.string.sticks,
             R.drawable.ic_note_c_rim, R.drawable.ic_note_c_rim_eighth, R.drawable.ic_note_c_rim_sixteenth,
             65L),

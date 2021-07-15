@@ -312,6 +312,16 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
          * @param noteCount Counter for notes since start of playing
          */
         suspend fun onNoteStarted(noteListItem: NoteListItem?, uptimeMillis: Long, noteCount: Long)
+
+        /// Define on which thread to run onNoteStarted
+        /**
+         * If this returns false, we will run onNoteStarted directly on our mixer thread.
+         *   In this case, calling onNoteStarted must return immediately
+         * If this returns true, we will launch a new job, on which the onNoteStarted method is
+         *   called. Use this, when onNoteStarted uses withContext(....) or when it does not
+         *   return immediately.
+         */
+        // fun launchNewJob(): Boolean
     }
 
     /// Callbacks when a note starts together with delay.
