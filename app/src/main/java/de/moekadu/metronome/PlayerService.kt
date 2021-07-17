@@ -171,18 +171,21 @@ class PlayerService : LifecycleService() {
                     }
                 }
             }
+            override fun launchNewJob() = true
         })
 
         // callback for vibrator (is registered in audioMixer later on)
         noteStartedListener4Vibration = object : AudioMixer.NoteStartedListener {
             override suspend fun onNoteStarted(noteListItem: NoteListItem?, uptimeMillis: Long, noteCount: Long) {
-                withContext(Dispatchers.Default) {
+//                withContext(Dispatchers.Default) {
                     if (noteListItem != null) {
                         if (getNoteVibrationDuration(noteListItem.id) > 0L)
                             vibrator?.vibrate(noteListItem.volume, noteListItem, bpm.bpmQuarter)
                     }
-                }
+//                }
             }
+
+            override fun launchNewJob() = false
         }
 
         val activityIntent = Intent(this, MainActivity::class.java)

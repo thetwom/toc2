@@ -321,7 +321,7 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
          *   called. Use this, when onNoteStarted uses withContext(....) or when it does not
          *   return immediately.
          */
-        // fun launchNewJob(): Boolean
+        fun launchNewJob(): Boolean
     }
 
     /// Callbacks when a note starts together with delay.
@@ -504,8 +504,11 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                 }.forEach {
                     val noteListItemCopy = it.noteListItem.clone()
                     val uptimeMillis = SystemClock.uptimeMillis() - ((position - it.frameNumber) * 1000L) / player.sampleRate
-
-                    launch {
+                    if (it.noteStartedListener.launchNewJob()) {
+                        launch {
+                            it.noteStartedListener.onNoteStarted(noteListItemCopy, uptimeMillis, it.noteCount)
+                        }
+                    } else {
                         it.noteStartedListener.onNoteStarted(noteListItemCopy, uptimeMillis, it.noteCount)
                     }
                 }
