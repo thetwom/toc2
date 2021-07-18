@@ -28,35 +28,111 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
-import android.util.Log
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.coroutines.CoroutineContext
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
+/// Structure for notifying that note started playing.
+/**
+ * @param delayInMillis Initial delay in milliseconds when the NoteStartedListener should be called after
+ *   the note started playing.
+ * @param noteStartedListener Callback which is called when a note is started.
+ * @param coroutineContext CoroutineContext in which the noteStartedListener is called.
+ *   If this is null, we will call it directly within the player thread. In this case it should
+ *   return immediately.
+ * @param coroutineScope Scope for launching the coroutines. Only relevant, if coroutineContext
+ *   is not null.
+ */
+class NoteStartedMessaging(delayInMillis: Float, val noteStartedListener: AudioMixer.NoteStartedListener,
+                           val coroutineContext: CoroutineContext?, private val coroutineScope: CoroutineScope?) {
+
+    /// Info about a started note.
+    /**
+     * @param noteListItem Copy of noteListItem which is started
+     * @param startTimeUptimeMillis Time in SystemClock.uptimeMillis, when the note started.
+     * @param count Counter of started note starting with 0 when the AudioMixer starts playing.
+     */
+    private data class NoteStartedInfo(val noteListItem: NoteListItem, val startTimeUptimeMillis: Long, val count: Long)
+
+    /// Channel which transfers signals from the audio mixer to the noteStartedListener context.
+    private val channel = if (coroutineContext == null) null else Channel<NoteStartedInfo>(Channel.UNLIMITED)
+
+    /// Current delay in millis. This MUST only be called within the player thread!
+    var delayInMillis = delayInMillis
+        private set
+        get() {
+            changeDelayChannel.poll()?.let {
+                if (field != it)
+                    field = it
+            }
+            return field
+        }
+
+    /// Channel for transferring delay updates to the player thread.
+    private var changeDelayChannel = Channel<Float>(Channel.CONFLATED)
+
+    init {
+        coroutineContext?.let { context ->
+            require(coroutineScope != null)
+            coroutineScope.launch(context) {
+                channel?.consumeEach {
+//                    Log.v("Metronome", "NoteStartedChannel consumeEah: noteListItem.uid = ${it.noteListItem.uid}")
+                    noteStartedListener.onNoteStarted(it.noteListItem, it.startTimeUptimeMillis, it.count)
+                }
+            }
+        }
+    }
+
+    /// Offer a new message of a started notes to trigger a call to the note started listener.
+    /**
+     * @note This only has an effect if the coroutineContext of the lass is not null.
+     * @param noteListItem NoteListItem which starts playing.
+     * @param startTimeUptimeMillis SystemClock.uptimeMillis when the note started playing
+     * @param count Note count of the started note, counting the notes played after starting plying.
+     */
+    fun offer(noteListItem: NoteListItem, startTimeUptimeMillis: Long, count: Long) {
+        channel?.offer(NoteStartedInfo(noteListItem, startTimeUptimeMillis, count))
+    }
+
+    /// Call this to disconnect the channel, when this class is not needed anymore.
+    fun onDestroy() {
+        channel?.close()
+    }
+
+    /// Set a new delay. Can be called from any thread
+    /**
+     * @param delayInMillis New delay.
+     */
+    fun setDelay(delayInMillis: Float) {
+        changeDelayChannel.offer(delayInMillis)
+    }
+}
+
+/// Task class which tells if a channel should be registered or unregistered.
+/**
+ * @param noteStartedMessaging Channel which should be registered or unregistered.
+ * @param unregisterChannel If true, channel will be unregistered, if false, channel will be registered
+ */
+private class NoteStartedChannelWithAddOrRemoveInfo(val noteStartedMessaging: NoteStartedMessaging,
+                                                    val unregisterChannel: Boolean)
+
 /// Required information for handling the notifications when a playlist item starts.
 /**
  *  @param noteListItem NoteListItem which will be started
- *  @param noteStartedListener NoteStartedListener to be called.
+ *  @param noteStartedMessaging NoteStartedChannel where the info is sent.
  *  @param frameNumber Frame number when the noteStartedListener should be called.
  *  @param noteCount Counter for played notes since player start
  */
-private class NoteStartedListenerAndFrame(val noteListItem: NoteListItem,
-                                          val noteStartedListener: AudioMixer.NoteStartedListener,
-                                          val frameNumber: Int,
-                                          val noteCount: Long)
-
-/// Note started listener together with delay.
-/**
- * @param noteStartedListener NoteStartedListener
- * @param delayInMillis Delay in milliseconds when the NoteStartedListener should be called after
- *   the note started playing.
- */
-private class NoteStartedListenerAndDelay(val noteStartedListener: AudioMixer.NoteStartedListener,
-                                          var delayInMillis: Float)
+private class NoteStartedMessagingAndFrame(val noteListItem: NoteListItem,
+                                           val noteStartedMessaging: NoteStartedMessaging,
+                                           val frameNumber: Int,
+                                           val noteCount: Long)
 
 /// Class which stores tracks which are queued for the playing.
 /**
@@ -127,8 +203,8 @@ private fun createPlayer(): AudioTrack {
  * @param bpmQuarter Quarter notes per minute
  * @param alreadyQueuedFrames Frame number up to which we did already queued the notes.
  * @param numFramesToQueue Number of frames after alreadyQueuedFrames, for which we should queue the notes.
- * @param noteStartedListenersAndFrames ArrayList where we will append all new noteStartedListeners
- * @param noteStartedListenersAndDelay Array with all registered NoteStartedListeners together with the delay.
+ * @param noteStartedMessagesAndFrames ArrayList where we will append all new noteStartedChannels
+ * @param noteStartedMessages Array with all registered NoteStartedMessages together with the delay.
  * @param sampleRate Currently used sample rate
  * @param queuedNotes This is the queue where we add our notes.
  * @param delayInFrames Note delay in frames.
@@ -139,8 +215,8 @@ private fun queueNextNotes(nextNoteInfo: NextNoteInfo,
                            bpmQuarter: Float,
                            alreadyQueuedFrames: Int,
                            numFramesToQueue: Int,
-                           noteStartedListenersAndFrames: ArrayList<NoteStartedListenerAndFrame>,
-                           noteStartedListenersAndDelay: ArrayList<NoteStartedListenerAndDelay>,
+                           noteStartedMessagesAndFrames: ArrayList<NoteStartedMessagingAndFrame>,
+                           noteStartedMessages: ArrayList<NoteStartedMessaging>,
                            sampleRate: Int,
                            queuedNotes: ArrayList<QueuedNote>,
                            delayInFrames: Int) : NextNoteInfo{
@@ -163,12 +239,12 @@ private fun queueNextNotes(nextNoteInfo: NextNoteInfo,
         val queuedNote = QueuedNote(noteListItem.id, nextNoteFrame + delayInFrames, noteListItem.volume)
         queuedNotes.add(queuedNote)
 
-        for (noteStartedListener in noteStartedListenersAndDelay) {
-            noteStartedListenersAndFrames.add(
-                    NoteStartedListenerAndFrame(noteListItem,
-                        noteStartedListener.noteStartedListener,
-                        nextNoteFrame + delayInFrames + (noteStartedListener.delayInMillis / 1000f * sampleRate).roundToInt(),
-                        noteCount)
+        for (noteStartedChannel in noteStartedMessages) {
+            noteStartedMessagesAndFrames.add(
+                NoteStartedMessagingAndFrame(noteListItem,
+                    noteStartedChannel,
+                    nextNoteFrame + delayInFrames + (noteStartedChannel.delayInMillis / 1000f * sampleRate).roundToInt(),
+                    noteCount)
             )
         }
 
@@ -275,11 +351,11 @@ private fun createNoteSamples(context: Context, sampleRate: Int) : Array<FloatAr
 /**
  * This is the absolute value of the largest negative value or 0.
  *
- * @param noteStartedListenersWithDelay All available NoteStartedListeners with delay.
+ * @param noteStartedMessages All available NoteStartedListeners with delay.
  * @return Required note delay which is >= 0.
  */
-private fun computeNoteDelayInMillis(noteStartedListenersWithDelay: ArrayList<NoteStartedListenerAndDelay>): Float {
-    val minimumDelay = noteStartedListenersWithDelay.minByOrNull { it.delayInMillis }?.delayInMillis ?: return 0f
+private fun computeNoteDelayInMillis(noteStartedMessages: ArrayList<NoteStartedMessaging>): Float {
+    val minimumDelay = noteStartedMessages.minByOrNull { it.delayInMillis }?.delayInMillis ?: return 0f
     return max(-minimumDelay, 0f)
 }
 
@@ -304,34 +380,21 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
     private val noteListLock = Mutex()
 
     /// Interface for listener which is used when a new note list item starts
-    interface NoteStartedListener {
+    fun interface NoteStartedListener {
         /// Callback function which is called when a playlist item starts
         /**
          * @param noteListItem Note list item which is started.
          * @param uptimeMillis Result of SystemClock.uptimeMillis when the note is started.
          * @param noteCount Counter for notes since start of playing
          */
-        suspend fun onNoteStarted(noteListItem: NoteListItem?, uptimeMillis: Long, noteCount: Long)
-
-        /// Define on which thread to run onNoteStarted
-        /**
-         * If this returns false, we will run onNoteStarted directly on our mixer thread.
-         *   In this case, calling onNoteStarted must return immediately
-         * If this returns true, we will launch a new job, on which the onNoteStarted method is
-         *   called. Use this, when onNoteStarted uses withContext(....) or when it does not
-         *   return immediately.
-         */
-        fun launchNewJob(): Boolean
+        fun onNoteStarted(noteListItem: NoteListItem?, uptimeMillis: Long, noteCount: Long)
     }
 
-    /// Callbacks when a note starts together with delay.
-    private val noteStartedListeners = ArrayList<NoteStartedListenerAndDelay>()
+    /// Callback channels when a note starts together wit ha delay
+    private val noteStartedChannels = ArrayList<NoteStartedMessaging>()
 
-    /// Delay when notes start playing. This is the absolute of the largest negative value in noteStartedListener
-    private var noteDelayInMillis = 0f
-
-    /// Mutex to protect noteStartedListeners and noteDelayInMillis
-    private val noteStartedListenerLock = Mutex()
+    /// Channel for registering or unregistering NoteStartedChannels.
+    private val addOrRemoveNoteStartedChannel = Channel<NoteStartedChannelWithAddOrRemoveInfo>(Channel.UNLIMITED)
 
     /// Job which does the playing.
     private var job: Job? = null
@@ -354,59 +417,50 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
     private val isMuteChannel = Channel<Boolean>(Channel.CONFLATED)
     private var isMute: Boolean = false
 
-    /// Register a NoteStartedListener (this will stop player).
+    /// Create a new NoteStartedChannel.
     /**
-     * @param noteStartedListener Instance to be registered.
+     * @warning When this is not needed anymore, you MUST call unregisterNoteStartedChannel
+     * @info The delay can be changed later on by calling noteStartedChannel.changeDelay(...)
      * @param delayInMilliSeconds The NoteStartedListener will be started with the given delay after the
      *   note starts playing. Can be negative, in order to call this before the note starts.
+     * @return A new NoteStartedChannel.
      */
-    fun registerNoteStartedListener(noteStartedListener: NoteStartedListener?, delayInMilliSeconds: Float = 0f) {
-        if (noteStartedListener == null)
-            return
-//        Log.v("Metronome", "AudioMixer.registerStartListener: launch")
-        scope.launch(Dispatchers.Main) {
-            noteStartedListenerLock.withLock {
-                noteStartedListeners.removeAll {it.noteStartedListener === noteStartedListener}
-                noteStartedListeners.add(NoteStartedListenerAndDelay(noteStartedListener, delayInMilliSeconds))
-                noteDelayInMillis = computeNoteDelayInMillis(noteStartedListeners)
-            }
-        }//.invokeOnCompletion {
-         //   Log.v("Metronome", "AudioMixer.registerStartListener: completed")
-        //}
+    fun getNewNoteStartedChannel(delayInMilliSeconds: Float = 0f, coroutineContext: CoroutineContext?,
+                                 noteStartedListener: NoteStartedListener): NoteStartedMessaging {
+        val noteStartedChannel = NoteStartedMessaging(delayInMilliSeconds, noteStartedListener, coroutineContext, scope)
+        addOrRemoveNoteStartedChannel.offer(NoteStartedChannelWithAddOrRemoveInfo(noteStartedChannel, false))
+        return noteStartedChannel
     }
 
-    /// Unregister a NoteStartedListener (this will stop player).
+    /// Unregister a NoteStartedChannel.
     /**
-     * @param noteStartedListener Note started listener to unregister.
+     * @param noteStartedMessaging NoteStartedChannel to be unregistered.
      */
-    fun unregisterNoteStartedListener(noteStartedListener: NoteStartedListener?) {
-        if (noteStartedListener == null)
-            return
-        scope.launch(Dispatchers.Main) {
-            noteStartedListenerLock.withLock {
-                noteStartedListeners.removeAll { it.noteStartedListener === noteStartedListener }
-                noteDelayInMillis = computeNoteDelayInMillis(noteStartedListeners)
-            }
+    fun unregisterNoteStartedChannel(noteStartedMessaging: NoteStartedMessaging?) {
+        noteStartedMessaging?.let {
+            it.onDestroy()
+            addOrRemoveNoteStartedChannel.offer(
+                NoteStartedChannelWithAddOrRemoveInfo(it, true))
         }
     }
 
-    /// Change delay for a given NoteStartedListener
+    /// Read the list of channels to be registered/unregistered and update our noteStartedChannels list.
     /**
-     * @param noteStartedListener NoteStartedListener for which the delay should be changed
-     * @param delayInMillis The NoteStartedListener will be started with the given delay after the
-     *   note starts playing. Can be negative, in order to call this before the note starts.
+     * @note This must be called within the player thread
      */
-    fun setNoteStartedListenerDelay(noteStartedListener: NoteStartedListener?, delayInMillis: Float) {
-        if (noteStartedListener == null)
-            return
-
-        scope.launch(Dispatchers.Main) {
-            noteStartedListenerLock.withLock {
-                noteStartedListeners.find { it.noteStartedListener === noteStartedListener }?.let {
-                    it.delayInMillis = delayInMillis
-                    noteDelayInMillis = computeNoteDelayInMillis(noteStartedListeners)
+    private fun updateNoteStartedChannels() {
+        var addOrRemove = addOrRemoveNoteStartedChannel.poll()
+        while (addOrRemove != null) {
+            if (addOrRemove.unregisterChannel) {
+//                Log.v("Metronome", "AudioMixer.updateNoteStartedChannels: unregister channel")
+                noteStartedChannels.remove(addOrRemove.noteStartedMessaging)
+            } else {
+                if (!noteStartedChannels.contains(addOrRemove.noteStartedMessaging)) {
+//                    Log.v("Metronome", "AudioMixer.updateNoteStartedChannels: register channel")
+                    noteStartedChannels.add(addOrRemove.noteStartedMessaging)
                 }
             }
+            addOrRemove = addOrRemoveNoteStartedChannel.poll()
         }
     }
 
@@ -427,8 +481,7 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
             val noteSamples = createNoteSamples(context, player.sampleRate)
 
             val queuedNotes = ArrayList<QueuedNote>(32)
-
-            val queuedNoteStartedListeners = ArrayList<NoteStartedListenerAndFrame>()
+            val queuedNoteStartedChannels = ArrayList<NoteStartedMessagingAndFrame>()
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 val sampleRate = player.sampleRate
@@ -479,14 +532,13 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                     nextNoteInfo = nextNoteInfo.copy(nextNoteIndex = index)
                 }
 
-                val delayInFrames = noteStartedListenerLock.withLock {
-                    val delay = (noteDelayInMillis / 1000f * player.sampleRate).roundToInt()
+                updateNoteStartedChannels()
 
-                    nextNoteInfo = queueNextNotes(nextNoteInfo, noteListCopy, bpmQuarter, numMixedFrames,
-                            mixingBuffer.size, queuedNoteStartedListeners, noteStartedListeners,
-                            player.sampleRate, queuedNotes, delay)
-                    delay
-                }
+                val noteDelayInMillis = computeNoteDelayInMillis(noteStartedChannels)
+                val delayInFrames = (noteDelayInMillis / 1000f * player.sampleRate).roundToInt()
+                nextNoteInfo = queueNextNotes(nextNoteInfo, noteListCopy, bpmQuarter, numMixedFrames,
+                    mixingBuffer.size, queuedNoteStartedChannels, noteStartedChannels,
+                    player.sampleRate, queuedNotes, delayInFrames)
 
                 synchronizeTimeChannel.poll()?.let { synchronizeTimeInfo ->
                     nextNoteInfo = synchronizeTime(synchronizeTimeInfo, noteListCopy, bpmQuarter, nextNoteInfo, player, delayInFrames)
@@ -497,22 +549,23 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                 numMixedFrames += mixingBuffer.size
 
 //                Log.v("Metronome", "AudioMixer notificationMarkerPosition: ${player.notificationMarkerPosition}")
-                // call registered callbacks
+
                 val position = player.playbackHeadPosition
-                queuedNoteStartedListeners.filter {
+
+                // call registered callbacks
+//                Log.v("Metronome", "AudioMixer: numqueuedChannels = ${queuedNoteStartedChannels.size}")
+                queuedNoteStartedChannels.filter {
                     it.frameNumber <= position
                 }.forEach {
                     val noteListItemCopy = it.noteListItem.clone()
                     val uptimeMillis = SystemClock.uptimeMillis() - ((position - it.frameNumber) * 1000L) / player.sampleRate
-                    if (it.noteStartedListener.launchNewJob()) {
-                        launch {
-                            it.noteStartedListener.onNoteStarted(noteListItemCopy, uptimeMillis, it.noteCount)
-                        }
+                    if (it.noteStartedMessaging.coroutineContext == null) {
+                        it.noteStartedMessaging.noteStartedListener.onNoteStarted(noteListItemCopy, uptimeMillis, it.noteCount)
                     } else {
-                        it.noteStartedListener.onNoteStarted(noteListItemCopy, uptimeMillis, it.noteCount)
+                        it.noteStartedMessaging.offer(noteListItemCopy, uptimeMillis, it.noteCount)
                     }
                 }
-                queuedNoteStartedListeners.removeAll { q -> q.frameNumber <= position }
+                queuedNoteStartedChannels.removeAll { it.frameNumber <= position }
 
                 if (isMute)
                     mixingBuffer.fill(0f)

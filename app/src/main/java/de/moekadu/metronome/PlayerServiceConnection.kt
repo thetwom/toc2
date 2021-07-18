@@ -26,8 +26,8 @@ import android.content.ServiceConnection
 import android.os.DeadObjectException
 import android.os.IBinder
 import android.support.v4.media.session.PlaybackStateCompat
-import androidx.lifecycle.*
-import kotlinx.coroutines.sync.Mutex
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 
 class PlayerServiceConnection(
         context: Context, private val initialBpm: Bpm, private val initialNoteList: ArrayList<NoteListItem>,

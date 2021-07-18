@@ -20,7 +20,6 @@
 package de.moekadu.metronome
 
 import android.view.View
-import android.view.ViewGroup
 import androidx.appcompat.widget.AppCompatImageButton
 
 class BeatDurationManager(parent: View) {

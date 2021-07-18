@@ -21,7 +21,6 @@ package de.moekadu.metronome
 
 import android.content.Context
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.transition.AutoTransition

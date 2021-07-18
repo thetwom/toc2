@@ -20,9 +20,10 @@
 package de.moekadu.metronome
 
 import android.content.Context
-import android.graphics.*
-import android.util.Log
-import android.view.ViewGroup
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Rect
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt

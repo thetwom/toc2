@@ -22,9 +22,7 @@
 package de.moekadu.metronome
 
 import android.os.Parcelable
-import android.util.Log
 import kotlinx.parcelize.Parcelize
-import kotlin.RuntimeException
 import kotlin.math.min
 
 @Parcelize
@@ -87,9 +85,8 @@ fun deepCopyNoteList(origin: ArrayList<NoteListItem>, target: ArrayList<NoteList
 
 fun isNoteListStringValid(string: String): Boolean {
     val elements = string.split(" ")
-    val version = getNoteListStringVersion(string)
-//    Log.v("Metronome", "NoteList:isNoteListStringValid: string=$string")
-    when (version) {
+    //    Log.v("Metronome", "NoteList:isNoteListStringValid: string=$string")
+    when (val version = getNoteListStringVersion(string)) {
         0 -> {
             for (i in 0 until elements.size / 2) {
                 try {
@@ -130,10 +127,9 @@ fun noteListToString(noteList: ArrayList<NoteListItem>): String {
 fun stringToNoteList(string: String): ArrayList<NoteListItem> {
     val noteList = ArrayList<NoteListItem>()
     val elements = string.split(" ")
-    val version = getNoteListStringVersion(string)
-//    Log.v("Metronome", "NoteList: stringToNoteList: string: $string")
+    //    Log.v("Metronome", "NoteList: stringToNoteList: string: $string")
 
-    when (version) {
+    when (val version = getNoteListStringVersion(string)) {
         0 -> {
             for (i in 0 until elements.size / 2) {
                 val noteId = min(elements[2 * i].toInt(), getNumAvailableNotes() - 1)

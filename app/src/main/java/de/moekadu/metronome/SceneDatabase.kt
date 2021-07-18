@@ -20,10 +20,8 @@
 package de.moekadu.metronome
 
 import android.content.Context
-import android.util.Log
 import android.widget.Toast
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.math.min
 
 data class Scene(var title: String = "", var date: String = "",

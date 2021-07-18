@@ -30,13 +30,13 @@ import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlin.math.abs
 
 
 class PlayerService : LifecycleService() {
 
     private val playerBinder = PlayerBinder()
+
     interface StatusChangedListener {
         fun onPlay()
         fun onPause()
@@ -59,7 +59,7 @@ class PlayerService : LifecycleService() {
                 return
 
             field = Bpm(newBpm, value.noteDuration)
-            statusChangedListeners.forEach {s -> s.onSpeedChanged(field)}
+            statusChangedListeners.forEach { s -> s.onSpeedChanged(field) }
 
             audioMixer?.setBpmQuarter(field.bpmQuarter)
 
@@ -80,13 +80,13 @@ class PlayerService : LifecycleService() {
 
     private var notification: PlayerNotification? = null
 
-    private var mediaSession : MediaSessionCompat? = null
+    private var mediaSession: MediaSessionCompat? = null
     private val playbackStateBuilder = PlaybackStateCompat.Builder()
     var playbackState: PlaybackStateCompat = playbackStateBuilder.build()
         private set
 
     /// The audio mixer plays is the instance which does plays the metronome.
-    private var audioMixer : AudioMixer? = null
+    private var audioMixer: AudioMixer? = null
 
     private var vibrator: VibratingNote? = null
 
@@ -101,7 +101,8 @@ class PlayerService : LifecycleService() {
 
     private var sharedPreferenceChangeListener: OnSharedPreferenceChangeListener? = null
 
-    private var noteStartedListener4Vibration: AudioMixer.NoteStartedListener? = null
+    private var noteStartedMessaging4Visualization: NoteStartedMessaging? = null
+    private var noteStartedMessaging4Vibration: NoteStartedMessaging? = null
 
     inner class PlayerBinder : Binder() {
         val service
@@ -163,29 +164,15 @@ class PlayerService : LifecycleService() {
         audioMixer?.setMute(isMute)
 
         // callback for ui stuff
-        audioMixer?.registerNoteStartedListener(object : AudioMixer.NoteStartedListener {
-            override suspend fun onNoteStarted(noteListItem: NoteListItem?, uptimeMillis: Long, noteCount: Long) {
-                withContext(Dispatchers.Main) {
-                    noteListItem?.let {
-                        statusChangedListeners.forEach { s -> s.onNoteStarted(it, uptimeMillis, noteCount) }
-                    }
+        noteStartedMessaging4Visualization = audioMixer?.getNewNoteStartedChannel(
+            0f,
+            Dispatchers.Main
+        ) { noteListItem, uptimeMillis, noteCount ->
+            noteListItem?.let {
+                statusChangedListeners.forEach { s ->
+                    s.onNoteStarted(it, uptimeMillis, noteCount)
                 }
             }
-            override fun launchNewJob() = true
-        })
-
-        // callback for vibrator (is registered in audioMixer later on)
-        noteStartedListener4Vibration = object : AudioMixer.NoteStartedListener {
-            override suspend fun onNoteStarted(noteListItem: NoteListItem?, uptimeMillis: Long, noteCount: Long) {
-//                withContext(Dispatchers.Default) {
-                    if (noteListItem != null) {
-                        if (getNoteVibrationDuration(noteListItem.id) > 0L)
-                            vibrator?.vibrate(noteListItem.volume, noteListItem, bpm.bpmQuarter)
-                    }
-//                }
-            }
-
-            override fun launchNewJob() = false
         }
 
         val activityIntent = Intent(this, MainActivity::class.java)
@@ -215,7 +202,11 @@ class PlayerService : LifecycleService() {
         })
 
         playbackStateBuilder.setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE or PlaybackStateCompat.ACTION_PLAY_PAUSE)
-                .setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, InitialValues.bpm.bpm)
+            .setState(
+                PlaybackStateCompat.STATE_PAUSED,
+                PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN,
+                InitialValues.bpm.bpm
+            )
 
         playbackState = playbackStateBuilder.build()
         mediaSession?.setPlaybackState(playbackState)
@@ -224,22 +215,21 @@ class PlayerService : LifecycleService() {
 
         sharedPreferenceChangeListener = object : OnSharedPreferenceChangeListener {
 
-            override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
-                if(sharedPreferences == null || key == null)
+            override fun onSharedPreferenceChanged(
+                sharedPreferences: SharedPreferences?,
+                key: String?
+            ) {
+                if (sharedPreferences == null || key == null)
                     return
                 when (key) {
                     "vibrate" -> {
                         val vibrate = sharedPreferences.getBoolean("vibrate", false)
                         if (vibrate && vibrator == null) {
-                            vibrator = VibratingNote(this@PlayerService)
-                            vibrator?.strength = sharedPreferences.getInt("vibratestrength", 50)
-                            audioMixer?.registerNoteStartedListener(noteStartedListener4Vibration,
-                                    sharedPreferences.getInt("vibratedelay", 0).toFloat())
-
-                        }
-                        else if (!vibrate) {
-                            audioMixer?.unregisterNoteStartedListener(noteStartedListener4Vibration)
-                            vibrator = null
+                            val strength = sharedPreferences.getInt("vibratestrength", 50)
+                            val delay = sharedPreferences.getInt("vibratedelay", 0).toFloat()
+                            enableVibration(delay, strength)
+                        } else if (!vibrate) {
+                            disableVibration()
                         }
                     }
                     "vibratestrength" -> {
@@ -247,7 +237,7 @@ class PlayerService : LifecycleService() {
                     }
                     "vibratedelay" -> {
                         val delay = sharedPreferences.getInt("vibratedelay", 0).toFloat()
-                        audioMixer?.setNoteStartedListenerDelay(noteStartedListener4Vibration, delay)
+                        noteStartedMessaging4Vibration?.setDelay(delay)
                     }
                 }
             }
@@ -256,10 +246,9 @@ class PlayerService : LifecycleService() {
         sharedPreferences.registerOnSharedPreferenceChangeListener(sharedPreferenceChangeListener)
 
         if (sharedPreferences.getBoolean("vibrate", false)) {
-            vibrator = VibratingNote(this)
-            vibrator?.strength = sharedPreferences.getInt("vibratestrength", 50)
+            val strength = sharedPreferences.getInt("vibratestrength", 50)
             val delay = sharedPreferences.getInt("vibratedelay", 0).toFloat()
-            audioMixer?.registerNoteStartedListener(noteStartedListener4Vibration, delay)
+            enableVibration(delay, strength)
         }
     }
 
@@ -286,13 +275,17 @@ class PlayerService : LifecycleService() {
         return super.onUnbind(intent)
     }
 
-    fun addValueToBpm(bpmDiff : Float) {
+    fun addValueToBpm(bpmDiff: Float) {
         bpm = bpm.copy(bpm = bpm.bpm + bpmDiff)
     }
 
     fun startPlay() {
         // Log.v("Metronome", "PlayerService:startPlay")
-        playbackState = playbackStateBuilder.setState(PlaybackStateCompat.STATE_PLAYING, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, bpm.bpm).build()
+        playbackState = playbackStateBuilder.setState(
+            PlaybackStateCompat.STATE_PLAYING,
+            PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN,
+            bpm.bpm
+        ).build()
         mediaSession?.setPlaybackState(playbackState)
 
         notification?.state = state
@@ -301,27 +294,31 @@ class PlayerService : LifecycleService() {
         }
 
         audioMixer?.start()
-        statusChangedListeners.forEach {s -> s.onPlay()}
+        statusChangedListeners.forEach { s -> s.onPlay() }
     }
 
     fun stopPlay() {
         // Log.v("Metronome", "PlayerService:stopPlay")
 
-        playbackState = playbackStateBuilder.setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, bpm.bpm).build()
+        playbackState = playbackStateBuilder.setState(
+            PlaybackStateCompat.STATE_PAUSED,
+            PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN,
+            bpm.bpm
+        ).build()
         mediaSession?.setPlaybackState(playbackState)
 
         stopForeground(false)
 
         audioMixer?.stop()
 
-        statusChangedListeners.forEach {s -> s.onPause()}
+        statusChangedListeners.forEach { s -> s.onPause() }
 
         notification?.state = state
         notification?.postNotificationUpdate()
     }
 
     fun syncClickWithUptimeMillis(uptimeMillis: Long) {
-        if(state == PlaybackStateCompat.STATE_PLAYING)
+        if (state == PlaybackStateCompat.STATE_PLAYING)
             audioMixer?.synchronizeTime(uptimeMillis, bpm.beatDurationInSeconds)
     }
 
@@ -345,6 +342,29 @@ class PlayerService : LifecycleService() {
             for (s in statusChangedListeners)
                 s.onNoteListChanged(noteList)
         }
+    }
+
+    private fun enableVibration(delayInMillis: Float, strength: Int) {
+        if (noteStartedMessaging4Vibration != null)
+            return
+
+        vibrator = VibratingNote(this@PlayerService)
+        vibrator?.strength = strength
+
+        noteStartedMessaging4Vibration = audioMixer?.getNewNoteStartedChannel(
+            delayInMillis, null
+        ) { noteListItem, _, _ ->
+            if (noteListItem != null) {
+                if (getNoteVibrationDuration(noteListItem.id) > 0L)
+                    vibrator?.vibrate(noteListItem.volume, noteListItem, bpm.bpmQuarter)
+            }
+        }
+    }
+
+    private fun disableVibration() {
+        audioMixer?.unregisterNoteStartedChannel(noteStartedMessaging4Vibration)
+        vibrator = null
+        noteStartedMessaging4Vibration = null
     }
 
     companion object {

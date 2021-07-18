@@ -23,7 +23,6 @@ import android.content.Context
 import android.media.AudioManager
 import android.media.AudioTrack
 import android.media.SoundPool
-import android.util.Log
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.LifecycleOwner
