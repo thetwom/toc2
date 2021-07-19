@@ -1,0 +1,6 @@
+v4.0.0:
+- Notes with different speeds
+- UI improvements
+- Mute Button
+- More accurate tick visualization (still to be tested)
+- Choose between different tick visualizations

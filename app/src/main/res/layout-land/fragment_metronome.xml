@@ -299,7 +299,7 @@
         app:numRows="1"
         app:numCols="7"
         app:noteViewHeightPercent="0.35"
-        app:plusButtonRightPercent="0.57"
+        app:plusButtonRightPercent="0.55"
         app:vertical="false"
         />
 
