@@ -385,7 +385,8 @@ class MetronomeFragment : Fragment() {
         }
 
         viewModel.noteStartedEvent.observe(viewLifecycleOwner) { noteStartTime ->
-            if (viewModel.isVisible)
+            // only tick when it is explicitly playing otherwise the ticker could play forever
+            if (viewModel.isVisible && viewModel.playerStatus.value == PlayerStatus.Playing)
                 tickVisualizer?.tick(noteStartTime.note.uid, noteStartTime.uptimeMillis, noteStartTime.noteCount)
             // don't animate note here, since this is controlled by the tickVisualizer.noteStartedListener defined above
             // this is done, since the tickvisualizer contains an extra time synchronazation mechanism

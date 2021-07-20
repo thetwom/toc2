@@ -271,7 +271,7 @@ class ScenesFragment : Fragment() {
 
         metronomeViewModel.noteStartedEvent.observe(viewLifecycleOwner) { noteStart ->
             metronomeViewModel.noteList.value?.let { noteList ->
-                if (viewModel.isVisible) {
+                if (viewModel.isVisible && metronomeViewModel.playerStatus.value == PlayerStatus.Playing) {
                     val index = noteList.indexOfFirst { it.uid == noteStart.note.uid }
                     val bpmQuarter = metronomeViewModel.bpm.value?.bpmQuarter
                     val noteDurationInMillis =
