@@ -44,6 +44,12 @@ class ScenesViewModel(initialDatabaseString: String) : ViewModel() {
     private var uriHandledByMetronomeAndScenesFragment = false
 
     var isVisible = false
+        set(value) {
+            _isVisibleLiveData.value = value
+            field = value
+        }
+    private val _isVisibleLiveData = MutableLiveData(isVisible)
+    val isVisibleLiveData: LiveData<Boolean> get() = _isVisibleLiveData
 
     init  {
         sceneDatabase.databaseChangedListener = SceneDatabase.DatabaseChangedListener {

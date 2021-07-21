@@ -34,6 +34,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.preference.PreferenceManager
 import androidx.transition.TransitionManager
 import com.google.android.material.snackbar.Snackbar
@@ -384,9 +385,14 @@ class MetronomeFragment : Fragment() {
             }
         }
 
+        viewModel.isVisibleLiveData.observe(viewLifecycleOwner) { isVisible ->
+            if (!isVisible)
+                tickVisualizer?.stop()
+        }
+
         viewModel.noteStartedEvent.observe(viewLifecycleOwner) { noteStartTime ->
             // only tick when it is explicitly playing otherwise the ticker could play forever
-            if (viewModel.isVisible && viewModel.playerStatus.value == PlayerStatus.Playing)
+            if (viewModel.isVisible && viewModel.playerStatus.value == PlayerStatus.Playing && lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED))
                 tickVisualizer?.tick(noteStartTime.note.uid, noteStartTime.uptimeMillis, noteStartTime.noteCount)
             // don't animate note here, since this is controlled by the tickVisualizer.noteStartedListener defined above
             // this is done, since the tickvisualizer contains an extra time synchronazation mechanism
@@ -437,6 +443,7 @@ class MetronomeFragment : Fragment() {
     override fun onStop() {
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener)
+        tickVisualizer?.stop()
         super.onStop()
     }
 

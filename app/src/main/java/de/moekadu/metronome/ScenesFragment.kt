@@ -33,6 +33,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -68,6 +69,17 @@ class ScenesFragment : Fragment() {
             // this will lead to loading the clicked item
             viewModel.setActiveStableId(stableId)
         }
+
+        registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
+            override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) {
+                val currentStableId = viewModel.activeStableId.value ?: Scene.NO_STABLE_ID
+                if (currentStableId != Scene.NO_STABLE_ID) {
+                    if (viewModel.scenes.value?.getScene(currentStableId) == null)
+                        viewModel.setActiveStableId(Scene.NO_STABLE_ID)
+                }
+                super.onItemRangeRemoved(positionStart, itemCount)
+            }
+        })
     }
 
     private var lastRemovedItemIndex = -1
@@ -271,7 +283,7 @@ class ScenesFragment : Fragment() {
 
         metronomeViewModel.noteStartedEvent.observe(viewLifecycleOwner) { noteStart ->
             metronomeViewModel.noteList.value?.let { noteList ->
-                if (viewModel.isVisible && metronomeViewModel.playerStatus.value == PlayerStatus.Playing) {
+                if (viewModel.isVisible && metronomeViewModel.playerStatus.value == PlayerStatus.Playing  && lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
                     val index = noteList.indexOfFirst { it.uid == noteStart.note.uid }
                     val bpmQuarter = metronomeViewModel.bpm.value?.bpmQuarter
                     val noteDurationInMillis =
@@ -346,6 +358,12 @@ class ScenesFragment : Fragment() {
                 scenesAdapter.stopAnimation(scenesRecyclerView)
         }
 
+        viewModel.isVisibleLiveData.observe(viewLifecycleOwner) { isVisible ->
+            if (!isVisible)
+                scenesAdapter.stopAnimation(scenesRecyclerView)
+        }
+
+
         speedLimiter = SpeedLimiter(PreferenceManager.getDefaultSharedPreferences(requireContext()), viewLifecycleOwner)
 
         sharedPreferenceChangeListener =
@@ -384,6 +402,7 @@ class ScenesFragment : Fragment() {
     override fun onStop() {
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener)
+        scenesAdapter.stopAnimation(scenesRecyclerView)
         super.onStop()
     }
 

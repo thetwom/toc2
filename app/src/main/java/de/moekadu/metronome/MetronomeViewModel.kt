@@ -42,6 +42,12 @@ class MetronomeViewModel(private val playerConnection: PlayerServiceConnection):
         get() = _isParentViewPagerSwiping
 
     var isVisible = true
+        set(value) {
+            _isVisibleLiveData.value = value
+            field = value
+        }
+    private val _isVisibleLiveData = MutableLiveData(isVisible)
+    val isVisibleLiveData: LiveData<Boolean> get() = _isVisibleLiveData
 
     fun setParentViewPagerSwiping(isSwiping: Boolean) {
         _isParentViewPagerSwiping.value = isSwiping
