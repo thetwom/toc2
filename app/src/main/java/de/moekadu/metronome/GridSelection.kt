@@ -48,39 +48,15 @@ class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
 
     fun emerge(animationDuration: Long) {
         val alphaDeactivated = 0.5f
-        if (animationDuration == 0L) {
-            buttons.forEachIndexed { index, button ->
-                button.visibility = View.VISIBLE
-                button.alpha = if (deactivatedIndices[index]) alphaDeactivated else 1.0f
-            }
-        } else {
-            buttons.forEachIndexed { index, button ->
-                if (button.visibility != View.VISIBLE)
-                    button.alpha = 0f
-                button.visibility = View.VISIBLE
-                button.animate()
-                    .setDuration(animationDuration)
-                    .alpha(if (deactivatedIndices[index]) alphaDeactivated else 1.0f)
-            }
+        buttons.forEachIndexed { index, button ->
+            val alphaEnd = if (deactivatedIndices[index]) alphaDeactivated else 1.0f
+            AnimateView.emerge(button, animationDuration, alphaEnd)
         }
     }
 
     fun disappear(animationDuration: Long) {
-        if (animationDuration == 0L) {
-            buttons.forEach { it.visibility = View.GONE }
-        } else {
-            buttons.forEach {
-                if (it.visibility == View.VISIBLE) {
-                    it.animate()
-                        .setDuration(animationDuration)
-                        .alpha(0f)
-                        .withEndAction {
-                            it.visibility = View.GONE
-                        }
-                } else {
-                    it.visibility = View.GONE
-                }
-            }
+        buttons.forEach {
+            AnimateView.hide(it, animationDuration)
         }
     }
 

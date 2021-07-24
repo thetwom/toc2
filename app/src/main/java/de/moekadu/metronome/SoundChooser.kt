@@ -26,6 +26,7 @@ import android.graphics.Rect
 import android.os.Bundle
 import android.os.Parcelable
 import android.util.AttributeSet
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -563,14 +564,14 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             }
 
             override fun fold() {
-                volumeSliders.fold(200L)
-                hideBackground(200L)
+                volumeSliders.fold(animateLong)
+                hideBackground(animateLong)
             }
 
             override fun unfold() {
-                hideSoundChooser(200L)
-                volumeSliders.unfold(200L)
-                showBackground(200L)
+                hideSoundChooser(animateLong)
+                volumeSliders.unfold(animateLong)
+                showBackground(animateLong)
             }
         }
 
@@ -592,8 +593,8 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 //            }
         }
         doneButton.setOnClickListener {
-            hideSoundChooser(200L)
-            hideBackground(200L)
+            hideSoundChooser(animateLong)
+            hideBackground(animateLong)
         }
         clearAllButton.setOnClickListener {
             stateChangedListener?.removeAllNotes()
@@ -602,9 +603,9 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         backgroundSurface.setOnTouchListener { _, event ->
             when (event.actionMasked) {
                 MotionEvent.ACTION_UP -> {
-                    volumeSliders.fold(200L)
-                    hideBackground(200L)
-                    hideSoundChooser(200L)
+                    volumeSliders.fold(animateLong)
+                    hideBackground(animateLong)
+                    hideSoundChooser(animateLong)
                     performClick()
                     true
                 }
@@ -840,7 +841,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                     setActiveControlButton(newActiveButton, 0L)
 
                     if (status == Status.Off)
-                        showMoveOnlyState(200L)
+                        showMoveOnlyState(animateLong)
                     return true
                 } else if (newActiveButton != null && newActiveButton == previousActiveButton) {
                     return true
@@ -866,10 +867,11 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                     }
 
                     if (status == Status.Dynamic) {
-                        updateDynamicChooser(100L)
+                        updateDynamicChooser(animateShort)
                         triggerStaticSoundChooserOnUp = false
                     } else if (status != Status.Static && button.centerY < noteView.top + 0.2f * noteView.height) {
-                        showDynamicChooser(200L)
+                        showDynamicChooser(animateLong)
+                        triggerStaticSoundChooserOnUp = false
                     }
 
                     return true
@@ -889,16 +891,16 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                 }
 
                 if (triggerStaticSoundChooserOnUp) {
-                    activeControlButton?.moveToTarget(200L)
-                    showStaticChooser(200L)
+                    activeControlButton?.moveToTarget(animateLong)
+                    showStaticChooser(animateLong)
                     triggerStaticSoundChooserOnUp = false
                 } else if (status != Status.Static) {
                     // activeControlButton?.stopDragging()
-                    hideSoundChooser(200L)
+                    hideSoundChooser(animateLong)
                     if (volumeSliders.folded)
-                        hideBackground(200L)
+                        hideBackground(animateLong)
                 } else {
-                    activeControlButton?.moveToTarget(200L)
+                    activeControlButton?.moveToTarget(animateLong)
                 }
                 return true
             }
@@ -909,55 +911,58 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     fun showMoveOnlyState(animationDuration: Long) {
         if (status == Status.MoveNote)
             return
-
+//        Log.v("Metronome", "SoundChooser.showMoveOnlyState")
         status = Status.MoveNote
 
-        if (animationDuration == 0L) {
-            deleteButton.alpha = 1f
-            deleteButton.translationX = 0f
-            deleteButton.translationY = 0f
-            deleteButton.visibility = VISIBLE
-        } else {
-            if (deleteButton.visibility != VISIBLE)
-                deleteButton.alpha = 0f
-            deleteButton.visibility = VISIBLE
-            deleteButton.animate()
-                .setDuration(animationDuration)
-                .translationX(0f)
-                .translationY(0f)
-                .alpha(1f)
-        }
+        if (deleteButton.visibility != VISIBLE)
+            deleteButton.alpha = 0f
+        deleteButton.animate()
+            .setDuration(animationDuration)
+            .translationX(0f)
+            .translationY(0f)
+            .alpha(1f)
+            .withStartAction {
+                deleteButton.visibility = VISIBLE
+            }
+            .withEndAction { }
     }
 
     fun showBackground(animationDuration: Long) {
+//        Log.v("Metronome", "SoundChooser.showBackground")
         val alphaEnd = 0.8f
         translationZ = 25f
-        emergeView(backgroundSurface, animationDuration, alphaEnd)
-        hideView(clearAllButton, animationDuration)
+        AnimateView.emerge(backgroundSurface, animationDuration, alphaEnd, name = "backgroundSurface")
+        AnimateView.hide(clearAllButton, animationDuration, name = "clearAllButton")
     }
 
     fun hideBackground(animationDuration: Long) {
-        emergeView(clearAllButton, animationDuration)
-        if (animationDuration > 0L && backgroundSurface.visibility == VISIBLE) {
-            backgroundSurface.animate()
-                .setDuration(animationDuration)
-                .alpha(0f)
-                .withEndAction {
-                    backgroundSurface.visibility = GONE
-                    translationZ = 0f // background also defines the viewgroup translation
-                }
-        } else {
-            backgroundSurface.visibility = GONE
-            translationZ = 0f
-        }
-
+//        Log.v(
+//            "Metronome",
+//            "SoundChooser.hideBackground (d=$animationDuration, bS.visibility=${backgroundSurface.visibility} VISIBLE=$VISIBLE)"
+//        )
+        AnimateView.emerge(clearAllButton, animationDuration, name = "clearAllButton")
+        val animationDurationCorrected =
+            if (backgroundSurface.visibility == VISIBLE) animationDuration else 0L
+//        Log.v("Metronome", "SoundChooser.hideBackground: backgroundSurface")
+        backgroundSurface.animate()
+            .setDuration(animationDurationCorrected)
+            .alpha(0f)
+            .withEndAction {
+//                Log.v(
+//                    "Metronome",
+//                    "SoundChooser.hideBackground: backgroundSurface.ENDACTION (d=$animationDuration)"
+//                )
+                backgroundSurface.visibility = GONE
+                translationZ = 0f // background also defines the viewgroup translation
+            }
     }
 
-    fun showDynamicChooser(animationDuration: Long) {
+    private fun showDynamicChooser(animationDuration: Long) {
         if (status == Status.Dynamic)
             return
-        showBackground(animationDuration)
+//        Log.v("Metronome", "SoundChooser.showDynamicSoundChooser")
         status = Status.Dynamic
+        showBackground(animationDuration)
         dynamicSelection.setActiveButton(0, 0L)
 
         activeControlButton?.let {
@@ -969,7 +974,8 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         volumeSliders.hideOpenButton(animationDuration)
     }
 
-    fun updateDynamicChooser(animationDuration: Long) {
+    private fun updateDynamicChooser(animationDuration: Long) {
+//        Log.v("Metronome", "SoundChooser.updateDynamicSoundChooser")
         activeControlButton?.let { button ->
             dynamicSelection.translationX = button.x + button.width + viewSpacing
             val dynamicIndex = dynamicSelection.getButtonIndex(button.centerY)
@@ -984,9 +990,10 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     fun showStaticChooser(animationDuration: Long) {
         if (status == Status.Static)
             return
+//        Log.v("Metronome", "SoundChooser.showStaticSoundChooser")
         status = Status.Static
-        volumeSliders.fold(200L)
-        showBackground(200L)
+        volumeSliders.fold(animateLong)
+        showBackground(animateLong)
 
         val deleteButtonTranslationX: Float =
             (soundChooserViewMeasures.delete.left - soundChooserViewMeasures.plus.left).toFloat()
@@ -997,41 +1004,33 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         val doneButtonTranslationY: Float =
             (soundChooserViewMeasures.done.top - soundChooserViewMeasures.plus.top).toFloat()
 
-        if (animationDuration > 0L) {
-            if (doneButton.visibility != VISIBLE)
-                doneButton.alpha = 0f
-            if (deleteButton.visibility != VISIBLE)
-                deleteButton.alpha = 0f
-            if (volumeControl.visibility != VISIBLE)
-                volumeControl.alpha = 0f
+        if (doneButton.visibility != VISIBLE)
+            doneButton.alpha = 0f
+        if (deleteButton.visibility != VISIBLE)
+            deleteButton.alpha = 0f
+        if (volumeControl.visibility != VISIBLE)
+            volumeControl.alpha = 0f
 
-            doneButton.animate()
-                .setDuration(animationDuration)
-                .translationX(doneButtonTranslationX)
-                .translationY(doneButtonTranslationY)
-                .alpha(1.0f)
+        doneButton.animate()
+            .setDuration(animationDuration)
+            .translationX(doneButtonTranslationX)
+            .translationY(doneButtonTranslationY)
+            .alpha(1.0f)
+            .withStartAction { doneButton.visibility = VISIBLE }
+            .withEndAction {  }
 
-            deleteButton.animate()
-                .setDuration(animationDuration)
-                .translationX(deleteButtonTranslationX)
-                .translationY(deleteButtonTranslationY)
-                .alpha(1.0f)
-            volumeControl.animate()
-                .setDuration(animationDuration)
-                .alpha(1.0f)
-        } else {
-            deleteButton.translationX = deleteButtonTranslationX
-            deleteButton.translationY = deleteButtonTranslationY
-            deleteButton.alpha = 1.0f
-            doneButton.translationX = doneButtonTranslationX
-            doneButton.translationY = doneButtonTranslationY
-            doneButton.alpha = 1.0f
-            volumeControl.alpha = 1.0f
-        }
-
-        deleteButton.visibility = VISIBLE
-        doneButton.visibility = VISIBLE
-        volumeControl.visibility = VISIBLE
+        deleteButton.animate()
+            .setDuration(animationDuration)
+            .translationX(deleteButtonTranslationX)
+            .translationY(deleteButtonTranslationY)
+            .alpha(1.0f)
+            .withStartAction { deleteButton.visibility = VISIBLE }
+            .withEndAction {  }
+        volumeControl.animate()
+            .setDuration(animationDuration)
+            .alpha(1.0f)
+            .withStartAction { volumeControl.visibility = VISIBLE }
+            .withEndAction {  }
 
         volumeSliders.hideOpenButton(animationDuration)
         noteSelection.emerge(animationDuration)
@@ -1042,44 +1041,37 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     fun hideSoundChooser(animationDuration: Long) {
         if (status == Status.Off)
             return
-//        Log.v("Metronome", "SoundChooser.hideSoundChooser: animationDuration=$animationDuration")
+//        Log.v("Metronome", "SoundChooser.hideSoundChooser")
         status = Status.Off
 
-        if (animationDuration > 0L) {
-            if (doneButton.visibility == VISIBLE) {
-                doneButton.animate()
-                    .setDuration(animationDuration)
-                    .alpha(0f)
-                    .withEndAction {
-                        doneButton.translationX = 0f
-                        doneButton.translationY = 0f
-                        doneButton.visibility = GONE
-                    }
-            }
-            if (deleteButton.visibility == VISIBLE) {
-                deleteButton.animate()
-                    .setDuration(animationDuration)
-                    .alpha(0f)
-                    .withEndAction {
-                        deleteButton.translationX = 0f
-                        deleteButton.translationY = 0f
-                        deleteButton.visibility = GONE
-                    }
-            }
-            if (volumeControl.visibility == VISIBLE) {
-                volumeControl.animate()
-                    .setDuration(animationDuration)
-                    .alpha(0f)
-                    .withEndAction {
-                        deleteButton.visibility = GONE
-                    }
+        val animationDurationDone = if (doneButton.visibility == VISIBLE) animationDuration else 0L
+        doneButton.animate()
+            .setDuration(animationDurationDone)
+            .alpha(0f)
+            .withEndAction {
+                doneButton.translationX = 0f
+                doneButton.translationY = 0f
+                doneButton.visibility = GONE
             }
 
-        } else {
-            doneButton.visibility = GONE
-            deleteButton.visibility = GONE
-            volumeControl.visibility = GONE
-        }
+        val animationDurationDelete = if (deleteButton.visibility == VISIBLE) animationDuration else 0L
+        deleteButton.animate()
+            .setDuration(animationDurationDelete)
+            .alpha(0f)
+            .withEndAction {
+                deleteButton.translationX = 0f
+                deleteButton.translationY = 0f
+                deleteButton.visibility = GONE
+            }
+
+        val animationDurationVolumeControl = if (volumeControl.visibility == VISIBLE) animationDuration else 0L
+        volumeControl.animate()
+            .setDuration(animationDurationVolumeControl)
+            .alpha(0f)
+            .withEndAction {
+                deleteButton.visibility = GONE
+            }
+
         noteSelection.disappear(animationDuration)
         noteDuration.disappear(animationDuration)
         tuplets.disappear(animationDuration)
@@ -1176,16 +1168,8 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         controlButtons.forEach {
             noteView.setNoteAlpha(it.uid, if (it.uid == button?.uid) 0.3f else 1f)
 
-            if (animationDuration == 0L) {
-                if (it === button) {
-                    it.visibility = VISIBLE
-                    it.alpha = 1.0f
-                } else {
-                    it.visibility = GONE
-                }
-            } else if (it === button && it.visibility != VISIBLE) {
-                it.alpha = 0.0f
-                it.animate().setDuration(animationDuration).alpha(1.0f)
+            if (it === button) {
+                AnimateView.emerge(it, animationDuration)
             } else if (!(it === button) && it.visibility == VISIBLE) {
 //                Log.v("Metronome", "SoundChooser.setActiveControlButton, fade out")
                 //it.moveToTargetAndDisappear(animationDuration) { it.visibility = GONE }
@@ -1344,33 +1328,8 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     enum class Status { Off, MoveNote, Dynamic, Static }
 
     companion object {
-
-        private fun emergeView(view: View, animationDuration: Long, alphaEnd: Float = 1f) {
-            if (view.visibility == VISIBLE && view.alpha == 1f)
-                return
-            if (animationDuration > 0L) {
-                if (view.visibility != VISIBLE)
-                    view.alpha = 0f
-                view.animate().setDuration(animationDuration)
-                    .withStartAction { view.visibility = VISIBLE }
-                    .alpha(alphaEnd)
-            } else {
-                view.visibility = VISIBLE
-                view.alpha = alphaEnd
-            }
-        }
-
-        private fun hideView(view: View, animationDuration: Long) {
-            if (view.visibility != VISIBLE)
-                return
-            if (animationDuration > 0L) {
-                view.animate().setDuration(animationDuration)
-                    .alpha(0f)
-                    .withEndAction { view.visibility = GONE }
-            } else {
-                view.visibility = GONE
-            }
-        }
+        const val animateShort = 50L // 100L
+        const val animateLong = 100L // 200L
 
         private fun disableSwipeForClickableButton(view: View) {
             view.setOnTouchListener { _, event ->

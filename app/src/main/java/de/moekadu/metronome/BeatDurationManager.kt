@@ -63,40 +63,14 @@ class BeatDurationManager(parent: View) {
     }
 
     fun showDialog(animationDuration: Long) {
-        showButton(sixteenthView, animationDuration)
-        showButton(eighthView, animationDuration)
-        showButton(quarterView, animationDuration)
+        AnimateView.emerge(sixteenthView, animationDuration)
+        AnimateView.emerge(eighthView, animationDuration)
+        AnimateView.emerge(quarterView, animationDuration)
     }
 
     fun hideDialog(animationDuration: Long) {
-        hideButton(sixteenthView, animationDuration)
-        hideButton(eighthView, animationDuration)
-        hideButton(quarterView, animationDuration)
-    }
-
-    private fun showButton(view: View, animationDuration: Long) {
-        if (view.visibility == View.VISIBLE && view.alpha == 1f)
-            return
-        if (animationDuration > 0L) {
-            if (view.visibility != View.VISIBLE)
-                view.alpha = 0f
-            view.visibility = View.VISIBLE
-            view.animate().setDuration(animationDuration).alpha(1f)
-        } else {
-            view.visibility = View.VISIBLE
-            view.alpha = 1f
-        }
-    }
-
-    private fun hideButton(view: View, animationDuration: Long) {
-        if (view.visibility != View.VISIBLE)
-            return
-        if (animationDuration > 0L) {
-            view.animate().setDuration(animationDuration)
-                .alpha(0f)
-                .withEndAction{view.visibility = View.GONE}
-        } else {
-            view.visibility = View.GONE
-        }
+        AnimateView.hide(sixteenthView, animationDuration)
+        AnimateView.hide(eighthView, animationDuration)
+        AnimateView.hide(quarterView, animationDuration)
     }
 }

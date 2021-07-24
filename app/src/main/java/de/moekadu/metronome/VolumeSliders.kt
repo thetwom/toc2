@@ -191,56 +191,30 @@ class VolumeSliders(context: Context) {
     }
 
     fun hideOpenButton(animationDuration: Long) {
-        hideView(openButton, animationDuration)
+        AnimateView.hide(openButton, animationDuration)
     }
 
     fun showOpenButton(animationDuration: Long) {
-        emergeView(openButton, animationDuration)
+        AnimateView.emerge(openButton, animationDuration)
     }
 
     fun fold(animationDuration: Long) {
         folded = true
 
-        volumeControls.forEach { hideView(it, animationDuration) }
-        hideView(closeButton, animationDuration)
+        volumeControls.forEach { AnimateView.hide(it, animationDuration) }
+        AnimateView.hide(closeButton, animationDuration)
         showOpenButton(animationDuration)
     }
 
     fun unfold(animationDuration: Long) {
         folded = false
 
-        volumeControls.forEach { emergeView(it, animationDuration) }
+        volumeControls.forEach { AnimateView.emerge(it, animationDuration) }
         hideOpenButton(animationDuration)
-        emergeView(closeButton, animationDuration)
+        AnimateView.emerge(closeButton, animationDuration)
     }
 
     companion object {
-        private fun emergeView(view: View, animationDuration: Long, alphaEnd: Float = 1f) {
-            if (view.visibility == View.VISIBLE && view.alpha == 1f)
-                return
-            if (animationDuration > 0L) {
-                if (view.visibility != View.VISIBLE)
-                    view.alpha = 0f
-                view.animate().setDuration(animationDuration)
-                    .withStartAction { view.visibility = View.VISIBLE }
-                    .alpha(alphaEnd)
-            } else {
-                view.visibility = View.VISIBLE
-                view.alpha = alphaEnd
-            }
-        }
-
-        private fun hideView(view: View, animationDuration: Long) {
-            if (view.visibility != View.VISIBLE)
-                return
-            if (animationDuration > 0L) {
-                view.animate().setDuration(animationDuration)
-                    .alpha(0f)
-                    .withEndAction { view.visibility = View.GONE }
-            } else {
-                view.visibility = View.GONE
-            }
-        }
 
         private fun disableSwipeForClickableButton(view: View) {
             view.setOnTouchListener { _, event ->

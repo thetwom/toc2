@@ -47,36 +47,14 @@ class DynamicSelection(val buttonSpacing: Int,
     val activeButtonIndex get() = buttons.indexOfFirst { it.isActivated }
 
     fun emerge(animationDuration: Long) {
-        if (animationDuration == 0L) {
-            buttons.forEach { it.visibility = View.VISIBLE }
-        } else {
-            buttons.forEach {
-                if (it.visibility != View.VISIBLE)
-                    it.alpha = 0f
-                it.visibility = View.VISIBLE
-                it.animate()
-                    .setDuration(animationDuration)
-                    .alpha(1.0f)
-            }
+        buttons.forEach {
+            AnimateView.emerge(it, animationDuration)
         }
     }
 
     fun disappear(animationDuration: Long) {
-        if (animationDuration == 0L) {
-            buttons.forEach { it.visibility = View.GONE }
-        } else {
-            buttons.forEach {
-                if (it.visibility == View.VISIBLE) {
-                    it.animate()
-                        .setDuration(animationDuration)
-                        .alpha(0f)
-                        .withEndAction {
-                            it.visibility = View.GONE
-                        }
-                } else {
-                    it.visibility = View.GONE
-                }
-            }
+        buttons.forEach {
+            AnimateView.hide(it, animationDuration)
         }
     }
 
