@@ -799,27 +799,27 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             soundChooserViewMeasures.plus.left
         )
 
-            controlButtons.forEach { button ->
-                button.layout(0, 0, button.measuredWidth, button.measuredHeight)
+        controlButtons.forEach { button ->
+            button.layout(0, 0, button.measuredWidth, button.measuredHeight)
+        }
+
+        setControlButtonTargetTranslations(
+            soundChooserViewMeasures.noteView.left,
+            (soundChooserViewMeasures.noteView.bottom - NoteView.NOTE_IMAGE_HEIGHT_SCALING * soundChooserViewMeasures.noteView.height()).roundToInt()
+        )
+
+        controlButtons.forEach { button ->
+            //if (button.visibility != VISIBLE || !button.isBeingDragged)
+            if (button.visibility != VISIBLE) {
+//                Log.v("Metronome", "SoundChooser.onLayout: button.moveToTarget2")
+                button.moveToTarget2(0L)
             }
-
-            setControlButtonTargetTranslations(
-                soundChooserViewMeasures.noteView.left,
-                (soundChooserViewMeasures.noteView.bottom - NoteView.NOTE_IMAGE_HEIGHT_SCALING * soundChooserViewMeasures.noteView.height()).roundToInt()
-            )
-
-            controlButtons.forEach { button ->
-                //if (button.visibility != VISIBLE || !button.isBeingDragged)
-                if (button.visibility != VISIBLE) {
-                    Log.v("Metronome", "SoundChooser.onLayout: button.moveToTarget2")
-                    button.moveToTarget2(0L)
-                }
 //            if (!button.isBeingDragged) {
 //                Log.v("Metronome", "SoundChooser.onLayout: button.moveToTarget")
 //                //button.moveToTarget(0L)
 //                button.moveToTarget2(0L)
 //            }
-            }
+        }
 
         if (status == Status.Static && changed) {
             deleteButton.translationX =

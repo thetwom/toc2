@@ -37,6 +37,7 @@ import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.content.ContextCompat
 import androidx.core.widget.TextViewCompat
 import androidx.transition.AutoTransition
+import androidx.transition.TransitionManager
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -224,6 +225,8 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         return largestAspectRatio
     }
     private val largestAspectRatio = computeLargestAspectRatio()
+
+    private val transition = AutoTransition().apply { duration = 150L }
 
     interface OnNoteClickListener {
         fun onDown(event: MotionEvent?, uid: UId?, noteIndex: Int) : Boolean
@@ -459,10 +462,10 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             noteList.zip(notes) { source, target -> target.set(source) }
         } else {
             // currently disable animation since this is triggered already by the MetronomeFragment:updateSceneTitleAndSwipeView
-//            if (animationDuration > 0L) {
-//                transition.duration = animationDuration
-//                TransitionManager.beginDelayedTransition(this@NoteView, transition)
-//            }
+            if (animationDuration > 0L) {
+                transition.duration = animationDuration
+                TransitionManager.beginDelayedTransition(this@NoteView, transition)
+            }
             val map = notes.map {it.uid to it}.toMap().toMutableMap()
             notes.clear()
             for (note in noteList) {

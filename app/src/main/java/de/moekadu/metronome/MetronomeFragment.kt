@@ -36,6 +36,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.preference.PreferenceManager
+import androidx.transition.AutoTransition
 import androidx.transition.TransitionManager
 import com.google.android.material.snackbar.Snackbar
 import kotlin.math.roundToInt
@@ -86,7 +87,7 @@ class MetronomeFragment : Fragment() {
 
     private var tickVisualizer: TickVisualizerSync? = null
 
-    private var soundChooser: SoundChooser? = null
+    private lateinit var soundChooser: SoundChooser
 
     private var beatDurationManager: BeatDurationManager? = null
 
@@ -472,8 +473,13 @@ class MetronomeFragment : Fragment() {
         val editingStableId = scenesViewModel.editingStableId.value ?: Scene.NO_STABLE_ID
         val activeStableId = scenesViewModel.activeStableId.value ?: Scene.NO_STABLE_ID
 
-        if (viewModel.isVisible) // only animate if visible
-            constraintLayout?.let { TransitionManager.beginDelayedTransition(it)}
+        if (viewModel.isVisible) {// only animate if visible
+            constraintLayout?.let {
+                TransitionManager.beginDelayedTransition(it,
+                    AutoTransition().excludeTarget(soundChooser, true)
+                )
+            }
+        }
 
         if (editingStableId != Scene.NO_STABLE_ID) {
             sceneTitle?.translationZ = Utilities.dp2px(8f)
