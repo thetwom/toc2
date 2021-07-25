@@ -282,6 +282,8 @@ private class SoundChooserViewMeasures(
 class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     : ViewGroup(context, attrs, defStyleAttr) {
 
+    //  TODO: If opening dynamic sound chooser very quickly, the background flickers
+
     @Parcelize
     private class SavedState(val status: Status, val uid: UId?, val volumeSlidersFolded: Boolean) :
         Parcelable
@@ -656,9 +658,13 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             state.getParcelable<SavedState>("sound chooser state")?.let { soundChooserState ->
                 if (soundChooserState.status == Status.Static) {
                     soundChooserState.uid?.let { uid ->
-                        nextActiveControlButtonUidOnNoteListChange = uid
-                        //controlButtons.filter { it.uid == uid }.forEach { setActiveControlButton(it, 0L) }
-                        showStaticChooser(0L)
+                        //nextActiveControlButtonUidOnNoteListChange = uid
+                        post {
+                            controlButtons.firstOrNull { it.uid == uid }?.let { button ->
+                                showStaticChooser(0L)
+                                setActiveControlButton(button, 0L)
+                            }
+                        }
                     }
                 }
                 if (!soundChooserState.volumeSlidersFolded) {
@@ -793,20 +799,27 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             soundChooserViewMeasures.plus.left
         )
 
-        controlButtons.forEach { button ->
-            button.layout(0, 0, button.measuredWidth, button.measuredHeight)
-        }
+            controlButtons.forEach { button ->
+                button.layout(0, 0, button.measuredWidth, button.measuredHeight)
+            }
 
-        setControlButtonTargetTranslations(
-            soundChooserViewMeasures.noteView.left,
-            (soundChooserViewMeasures.noteView.bottom - NoteView.NOTE_IMAGE_HEIGHT_SCALING * soundChooserViewMeasures.noteView.height()).roundToInt()
-        )
+            setControlButtonTargetTranslations(
+                soundChooserViewMeasures.noteView.left,
+                (soundChooserViewMeasures.noteView.bottom - NoteView.NOTE_IMAGE_HEIGHT_SCALING * soundChooserViewMeasures.noteView.height()).roundToInt()
+            )
 
-        controlButtons.forEach { button ->
-            //if (button.visibility != VISIBLE || !button.isBeingDragged)
-            if (!button.isBeingDragged)
-                button.moveToTarget(0L)
-        }
+            controlButtons.forEach { button ->
+                //if (button.visibility != VISIBLE || !button.isBeingDragged)
+                if (button.visibility != VISIBLE) {
+                    Log.v("Metronome", "SoundChooser.onLayout: button.moveToTarget2")
+                    button.moveToTarget2(0L)
+                }
+//            if (!button.isBeingDragged) {
+//                Log.v("Metronome", "SoundChooser.onLayout: button.moveToTarget")
+//                //button.moveToTarget(0L)
+//                button.moveToTarget2(0L)
+//            }
+            }
 
         if (status == Status.Static && changed) {
             deleteButton.translationX =
@@ -891,7 +904,9 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                 }
 
                 if (triggerStaticSoundChooserOnUp) {
-                    activeControlButton?.moveToTarget(animateLong)
+//                    Log.v("Metronome", "SoundChooser.onTouchEvent: activeControlbutton.moveToTarget at triggerStaticSoundChooserUp")
+                    //activeControlButton?.moveToTarget(animateLong)
+                    activeControlButton?.moveToTarget2(animateLong)
                     showStaticChooser(animateLong)
                     triggerStaticSoundChooserOnUp = false
                 } else if (status != Status.Static) {
@@ -900,7 +915,9 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                     if (volumeSliders.folded)
                         hideBackground(animateLong)
                 } else {
-                    activeControlButton?.moveToTarget(animateLong)
+//                    Log.v("Metronome", "SoundChooser.onTouchEvent: activeControlbutton.moveToTarget at else")
+//                    activeControlButton?.moveToTarget(animateLong)
+                    activeControlButton?.moveToTarget2(animateLong)
                 }
                 return true
             }
@@ -1026,6 +1043,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             .alpha(1.0f)
             .withStartAction { deleteButton.visibility = VISIBLE }
             .withEndAction {  }
+
         volumeControl.animate()
             .setDuration(animationDuration)
             .alpha(1.0f)
@@ -1124,8 +1142,9 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                     val translationYTarget =
                         deleteButton.y + 0.5f * (deleteButton.height - s.height) - s.top
                     s.setTargetTranslation(translationXTarget, translationYTarget)
-                    //s.moveToTargetAndDisappear(animationDuration) { removeView(s) }
-                    s.moveToTarget(animationDuration, true) { removeView(s) }
+//                    Log.v("Metronome", "SoundChooser.setNoteList: s.moveToTarget and remove")
+                    //s.moveToTarget(animationDuration, true) { removeView(s) }
+                    s.moveToTarget2AndDisappear(animationDuration) {removeView(s)}
                 } else {
                     removeView(s)
                 }
@@ -1169,11 +1188,12 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             noteView.setNoteAlpha(it.uid, if (it.uid == button?.uid) 0.3f else 1f)
 
             if (it === button) {
-                AnimateView.emerge(it, animationDuration)
+                //AnimateView.emerge(it, animationDuration)
+                it.emerge(animationDuration)
             } else if (!(it === button) && it.visibility == VISIBLE) {
-//                Log.v("Metronome", "SoundChooser.setActiveControlButton, fade out")
-                //it.moveToTargetAndDisappear(animationDuration) { it.visibility = GONE }
-                it.moveToTarget(animationDuration, true) { it.visibility = GONE }
+//                Log.v("Metronome", "SoundChooser.setActiveControlButton: it.moveToTarget and fade")
+                //it.moveToTarget(animationDuration, true) { it.visibility = GONE }
+                it.moveToTarget2AndDisappear(animationDuration)
             }
         }
 

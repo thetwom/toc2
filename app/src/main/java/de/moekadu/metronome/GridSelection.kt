@@ -90,6 +90,7 @@ class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
                     }
                     scaleType = ImageView.ScaleType.FIT_CENTER
                     imageTintList = tint
+                    visibility = View.GONE
                 }
                 buttons.add(button)
                 deactivatedIndices.add(false)

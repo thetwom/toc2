@@ -22,15 +22,17 @@ package de.moekadu.metronome
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
+import android.opengl.Visibility
+import android.util.Log
 
 @SuppressLint("ViewConstructor")
 class SoundChooserControlButton(
     context: Context, noteListItem: NoteListItem, volumeColor: Int,
     noteColor: ColorStateList?, noteHighlightColor: ColorStateList?) : NoteView(context) {
 
-    private var isMovingToTarget = false
-    private var cachedAnimationDuration = 0L
-    private var cachedFadeOut = false
+//    private var isMovingToTarget = false
+//    private var cachedAnimationDuration = 0L
+//    private var cachedFadeOut = false
 
     var isBeingDragged = false
     var eventXOnDown = 0f
@@ -59,6 +61,10 @@ class SoundChooserControlButton(
     val volume get() = note.volume
     val noteId get() = note.id
     val noteDuration get() = note.duration
+
+    private var cachedVisibility: Int? = null
+    private var cachedAlpha: Float? = null
+    private var cachedEndAction: (()->Unit)? = null
 
     init {
         setBackgroundResource(R.drawable.control_button_background)
@@ -121,43 +127,92 @@ class SoundChooserControlButton(
         translationXTarget = xCo
         translationYTarget = yCo
 
-        if (isMovingToTarget)
-            moveToTarget(cachedAnimationDuration, cachedFadeOut)
+        //if (isMovingToTarget)
+        //    moveToTarget(cachedAnimationDuration, cachedFadeOut)
     }
 
-    fun moveToTarget(animationDuration: Long = 0L, fadeOut: Boolean = false, endAction: (()->Unit)? = null) {
-        // don't interrupt running animations if it matches the settings
-        if (isMovingToTarget && endAction == null && fadeOut == cachedFadeOut)
-            return
+//    fun moveToTarget(animationDuration: Long = 0L, fadeOut: Boolean = false, endAction: (()->Unit)? = null) {
+//        // don't interrupt running animations if it matches the settings
+//        if (isMovingToTarget && endAction == null && fadeOut == cachedFadeOut)
+//            return
+//
+////        if (animationDuration == 0L || visibility != VISIBLE) {
+////            translationX = translationXTarget
+////            translationY = translationYTarget
+////            if (endAction != null)
+////                endAction()
+////        }
+////        else if (translationX != translationXTarget || translationY != translationYTarget || fadeOut) {
+//            animate().cancel()
+//            val alphaEnd = if (fadeOut) 0.0f else alpha
+//            Log.v("Metronome", "SoundChooserControlButton.moveTotarget, alpha=$alpha, alphaEnd=$alphaEnd, fadeOut=$fadeOut, endAction=$endAction")
+//            animate()
+//                    .setDuration(animationDuration)
+//                    .alpha(alphaEnd)
+//                    .translationX(translationXTarget)
+//                    .translationY(translationYTarget)
+//                    .withStartAction {
+//                        isMovingToTarget = true
+//                        cachedAnimationDuration = animationDuration
+//                        cachedFadeOut = fadeOut
+//                    }
+//                    .withEndAction {
+//                        isMovingToTarget = false
+//                        if (endAction != null)
+//                            endAction()
+//                    }
+////        }
+////        else if (endAction != null) {
+////            endAction()
+////        }
+//    }
 
-        if (animationDuration == 0L || visibility != VISIBLE) {
-            translationX = translationXTarget
-            translationY = translationYTarget
-            if (endAction != null)
-                endAction()
-        }
-        else if (translationX != translationXTarget || translationY != translationYTarget || fadeOut) {
-            animate().cancel()
-            val alphaEnd = if (fadeOut) 0.0f else alpha
-//            Log.v("Metronome", "SoundChooserControlButton.moveTotarget, alpha=$alpha, alphaEnd=$alphaEnd")
-            animate()
-                    .setDuration(animationDuration)
-                    .alpha(alphaEnd)
-                    .translationX(translationXTarget)
-                    .translationY(translationYTarget)
-                    .withStartAction {
-                        isMovingToTarget = true
-                        cachedAnimationDuration = animationDuration
-                        cachedFadeOut = fadeOut
-                    }
-                    .withEndAction {
-                        isMovingToTarget = false
-                        if (endAction != null)
-                            endAction()
-                    }
-        }
-        else if (endAction != null) {
-            endAction()
-        }
+    private fun changeState(animationDuration: Long, alphaTarget: Float? = null,
+                            visibilityStart: Int? = null, visibilityEnd: Int? = null,
+                            endAction: (()->Unit)? = null) {
+        val animationDurationCorrected = if (visibility == VISIBLE || visibilityStart == VISIBLE) animationDuration else 0L
+        val alphaEnd = alphaTarget ?: cachedAlpha ?: alpha
+        require(!(visibilityStart != null && visibilityEnd != null))
+
+        animate()
+            .setDuration(animationDurationCorrected)
+            .translationX(translationXTarget)
+            .translationY(translationYTarget)
+            .alpha(alphaEnd)
+            .withStartAction {
+                visibilityStart?.let {
+                    visibility = it
+                }
+                cachedEndAction?.let {it()}
+                cachedEndAction = endAction
+
+                cachedAlpha = alphaEnd
+                cachedVisibility = visibilityEnd ?: cachedVisibility
+            }
+            .withEndAction {
+                translationX = translationXTarget
+                translationY = translationYTarget
+                visibility = visibilityEnd ?: cachedVisibility ?: visibility
+                cachedAlpha = null
+                cachedVisibility = null
+                cachedEndAction?.let {it()}
+                cachedEndAction = null
+            }
+    }
+
+    fun moveToTarget2(animationDuration: Long) {
+//        Log.v("Metronome", "SoundChooserControlButton.moveTotarget2")
+        changeState(animationDuration, null, null, null)
+    }
+
+    fun moveToTarget2AndDisappear(animationDuration: Long, endAction: (()->Unit)? = null) {
+//        Log.v("Metronome", "SoundChooserControlButton.moveTotarget2AndDisappear")
+        changeState(animationDuration, 0f, null, GONE, endAction)
+    }
+
+    fun emerge(animationDuration: Long) {
+//        Log.v("Metronome", "SoundChooserControlButton.emerge")
+        //val animationDurationCorrected = if (visibility == VISIBLE && alpha == 1f) 0L else animationDuration
+        changeState(animationDuration, 1f, VISIBLE, null)
     }
 }
