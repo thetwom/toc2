@@ -54,7 +54,7 @@
         android:layout_marginTop="8dp"
         android:layout_marginRight="8dp"
         android:layout_marginBottom="8dp"
-        android:elevation="8dp"
+        android:elevation="4dp"
         android:padding="10dp"
         app:layout_constraintBottom_toTopOf="@id/note_view_top"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -114,7 +114,7 @@
         android:layout_height="0dp"
         android:layout_marginStart="0dp"
         android:layout_marginEnd="0dp"
-        android:elevation="9dp"
+        android:elevation="5dp"
         android:padding="10dp"
         app:layout_constraintLeft_toRightOf="@id/play_button_left_spaceholder"
         app:layout_constraintRight_toLeftOf="@id/play_button_right_spaceholder"
@@ -231,13 +231,14 @@
         android:maxLines="1"
         android:ellipsize="none"
         android:textColor="?attr/colorPrimary"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/beat_duration"
         app:layout_constraintTop_toBottomOf="@id/scene_title_active"
+        app:layout_constraintWidth_percent="0.6"
         app:layout_constraintHeight_percent="0.12"
         tools:layout_conversion_wrapHeight="108"
         tools:layout_conversion_wrapWidth="239"
         tools:ignore="HardcodedText" />
+    <!--        app:layout_constraintEnd_toEndOf="parent"-->
 
 <!--    <View-->
 <!--        android:layout_width="0dp"-->
@@ -253,7 +254,7 @@
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         app:layout_constraintHeight_percent="0.1"
-        app:layout_constraintRight_toRightOf="@id/bpm_text"
+        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:src="@drawable/ic_scenes_swipe2"
         android:scaleType="fitEnd"

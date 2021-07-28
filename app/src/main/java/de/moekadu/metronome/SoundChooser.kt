@@ -282,7 +282,7 @@ private class SoundChooserViewMeasures(
 class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     : ViewGroup(context, attrs, defStyleAttr) {
 
-    //  TODO: If opening dynamic sound chooser very quickly, the background flickers
+    //  TODO: translationZ should use dp and not px
 
     @Parcelize
     private class SavedState(val status: Status, val uid: UId?, val volumeSlidersFolded: Boolean) :
@@ -947,7 +947,8 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     fun showBackground(animationDuration: Long) {
 //        Log.v("Metronome", "SoundChooser.showBackground")
         val alphaEnd = 0.8f
-        translationZ = 25f
+        //translationZ = 6f
+        elevation = Utilities.dp2px(6f)
         AnimateView.emerge(backgroundSurface, animationDuration, alphaEnd, name = "backgroundSurface")
         AnimateView.hide(clearAllButton, animationDuration, name = "clearAllButton")
     }
@@ -970,7 +971,8 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 //                    "SoundChooser.hideBackground: backgroundSurface.ENDACTION (d=$animationDuration)"
 //                )
                 backgroundSurface.visibility = GONE
-                translationZ = 0f // background also defines the viewgroup translation
+                elevation = 0f
+                //translationZ = 0f // background also defines the viewgroup translation
             }
     }
 
