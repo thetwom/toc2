@@ -282,8 +282,6 @@ private class SoundChooserViewMeasures(
 class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     : ViewGroup(context, attrs, defStyleAttr) {
 
-    //  TODO: translationZ should use dp and not px
-
     @Parcelize
     private class SavedState(val status: Status, val uid: UId?, val volumeSlidersFolded: Boolean) :
         Parcelable
@@ -307,7 +305,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 
     val noteView = NoteView(context).apply {
         showNumbers = true
-        translationZ = 1f
+        translationZ = Utilities.dp2px(1f)
     }
     private var volumeColor = Color.GRAY
     private var noteColor: ColorStateList? = null
@@ -319,21 +317,21 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         setBackgroundResource(R.drawable.plus_button_background)
         setImageResource(R.drawable.ic_add)
         scaleType = ImageView.ScaleType.FIT_CENTER
-        translationZ = 5f
+        translationZ = Utilities.dp2px(5f)
         setPadding(0)
         disableSwipeForClickableButton(this)
     }
     private val plusButtonNoteLines = ImageView(context).apply {
         setImageResource(R.drawable.ic_notelines)
         scaleType = ImageView.ScaleType.FIT_XY
-        translationZ = 1f
+        translationZ = Utilities.dp2px(1f)
     }
 
     private val clearAllButton = ImageButton(context).apply {
         setBackgroundResource(R.drawable.plus_button_background)
         setImageResource(R.drawable.ic_clear_all_small)
         scaleType = ImageView.ScaleType.FIT_XY
-        translationZ = 5f
+        translationZ = Utilities.dp2px(5f)
         setPadding(0)
         disableSwipeForClickableButton(this)
     }
@@ -343,7 +341,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         setImageResource(R.drawable.delete_button_icon_small)
         scaleType = ImageView.ScaleType.FIT_CENTER
         setPadding(0)
-        translationZ = 6f
+        translationZ = Utilities.dp2px(6f)
         visibility = GONE
         disableSwipeForClickableButton(this)
     }
@@ -352,7 +350,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         setBackgroundResource(R.drawable.plus_button_background)
         setImageResource(R.drawable.ic_done_small)
         scaleType = ImageView.ScaleType.FIT_CENTER
-        translationZ = 5.9f
+        translationZ = Utilities.dp2px(5.9f)
         setPadding(0)
         visibility = GONE
         disableSwipeForClickableButton(this)
@@ -947,8 +945,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     fun showBackground(animationDuration: Long) {
 //        Log.v("Metronome", "SoundChooser.showBackground")
         val alphaEnd = 0.8f
-        //translationZ = 6f
-        elevation = Utilities.dp2px(6f)
+        translationZ = Utilities.dp2px(6f)
         AnimateView.emerge(backgroundSurface, animationDuration, alphaEnd, name = "backgroundSurface")
         AnimateView.hide(clearAllButton, animationDuration, name = "clearAllButton")
     }
@@ -971,8 +968,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 //                    "SoundChooser.hideBackground: backgroundSurface.ENDACTION (d=$animationDuration)"
 //                )
                 backgroundSurface.visibility = GONE
-                elevation = 0f
-                //translationZ = 0f // background also defines the viewgroup translation
+                translationZ = 0f // background also defines the viewgroup translation
             }
     }
 
@@ -1129,7 +1125,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                         noteColor,
                         noteColor //  noteHighlightColor
                     ).apply { showTuplets = false }
-                    s.translationZ = 8f
+                    s.translationZ = Utilities.dp2px(8f)
                     //s.visibility = View.GONE
                     controlButtons.add(s)
                     addView(s)

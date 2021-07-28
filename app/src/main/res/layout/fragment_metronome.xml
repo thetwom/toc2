@@ -233,7 +233,7 @@
         android:textColor="?attr/colorPrimary"
         app:layout_constraintStart_toEndOf="@id/beat_duration"
         app:layout_constraintTop_toBottomOf="@id/scene_title_active"
-        app:layout_constraintWidth_percent="0.6"
+        app:layout_constraintWidth_percent="0.55"
         app:layout_constraintHeight_percent="0.12"
         tools:layout_conversion_wrapHeight="108"
         tools:layout_conversion_wrapWidth="239"
