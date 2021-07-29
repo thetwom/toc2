@@ -1,0 +1,16 @@
+v4.0.0:
+- Notes with different speeds
+- UI improvements
+- Mute Button
+- More accurate tick visualization (still to be tested)
+- Choose between different tick visualizations
+
+v4.0.1:
+- Fix: That tick visualization did sometimes not stop.
+- Fix: Stop showing active scene title when when it is deleted.
+- Fix: Animation issues.
+
+v4.1.0:
+- Impoved selection of different beat durations
+- Fix: UI issue with note editor and high-dpi devices
+- Fix: Avoid overlap of bpm-text and slide-to-scenes-image
