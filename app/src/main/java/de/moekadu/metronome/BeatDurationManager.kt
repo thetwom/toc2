@@ -28,6 +28,8 @@ class BeatDurationManager(parent: View) {
     private val sixteenthView = parent.findViewById<AppCompatImageButton>(R.id.beat_duration_choice_sixteenth)
     private val eighthView = parent.findViewById<AppCompatImageButton>(R.id.beat_duration_choice_eighth)
     private val quarterView = parent.findViewById<AppCompatImageButton>(R.id.beat_duration_choice_quarter)
+    private val background = parent.findViewById<View>(R.id.beat_duration_background)
+    private var dialogVisible = false
 
     fun interface BeatDurationChangedListener {
         fun changeBeatDuration(duration: NoteDuration)
@@ -37,19 +39,25 @@ class BeatDurationManager(parent: View) {
 
     init {
         beatDuration.setOnClickListener {
-            showDialog(200L)
+            if (dialogVisible)
+                hideDialog(150L)
+            else
+                showDialog(150L)
         }
         sixteenthView.setOnClickListener {
             beatDurationChangedListener?.changeBeatDuration(NoteDuration.Sixteenth)
-            hideDialog(200L)
+            hideDialog(150L)
         }
         eighthView.setOnClickListener {
             beatDurationChangedListener?.changeBeatDuration(NoteDuration.Eighth)
-            hideDialog(200L)
+            hideDialog(150L)
         }
         quarterView.setOnClickListener {
             beatDurationChangedListener?.changeBeatDuration(NoteDuration.Quarter)
-            hideDialog(200L)
+            hideDialog(150L)
+        }
+        background.setOnClickListener {
+            hideDialog(150L)
         }
     }
 
@@ -60,17 +68,45 @@ class BeatDurationManager(parent: View) {
             NoteDuration.Sixteenth -> beatDuration.setImageResource(R.drawable.ic_note_duration_sixteenth)
             else -> throw RuntimeException("Cannot handle beat duration: $duration")
         }
+        quarterView.isActivated = duration == NoteDuration.Quarter
+        eighthView.isActivated = duration == NoteDuration.Eighth
+        sixteenthView.isActivated = duration == NoteDuration.Sixteenth
     }
 
     fun showDialog(animationDuration: Long) {
+        dialogVisible = true
+        val alphaEnd = 0.8f
         AnimateView.emerge(sixteenthView, animationDuration)
         AnimateView.emerge(eighthView, animationDuration)
         AnimateView.emerge(quarterView, animationDuration)
+
+        val animationDurationCorrected = if (background.visibility == View.VISIBLE) 0L else animationDuration
+        if (background.visibility != View.VISIBLE)
+            background.alpha = 0f
+        background.animate()
+            .setDuration(animationDurationCorrected)
+            .alpha(alphaEnd)
+            .withStartAction {
+                background.visibility = View.VISIBLE
+                beatDuration.translationZ = background.elevation + Utilities.dp2px(1f)
+            }
+            .withEndAction {  }
     }
 
     fun hideDialog(animationDuration: Long) {
+        dialogVisible = false
         AnimateView.hide(sixteenthView, animationDuration)
         AnimateView.hide(eighthView, animationDuration)
         AnimateView.hide(quarterView, animationDuration)
+
+        val animationDurationCorrected = if (background.visibility != View.VISIBLE) 0L else animationDuration
+        background.animate()
+            .setDuration(animationDurationCorrected)
+            .alpha(0f)
+            .withEndAction {
+                background.visibility = View.GONE
+                beatDuration.translationZ = 0f
+            }
+
     }
 }

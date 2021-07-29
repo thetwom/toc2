@@ -222,7 +222,7 @@
         app:layout_constraintRight_toRightOf="@id/beat_duration"
         android:scaleType="fitCenter"
         android:padding="4dp"
-        android:elevation="12dp"
+        android:elevation="8dp"
         android:src="@drawable/ic_note_duration_quarter"
         android:tint="@color/grid_foreground"
         app:layout_constraintDimensionRatio="1:1"
@@ -240,7 +240,7 @@
         app:layout_constraintLeft_toRightOf="@id/beat_duration_choice_quarter"
         android:scaleType="fitCenter"
         android:padding="4dp"
-        android:elevation="12dp"
+        android:elevation="8dp"
         android:layout_marginLeft="1dp"
         android:src="@drawable/ic_note_duration_eighth"
         android:tint="@color/grid_foreground"
@@ -258,12 +258,21 @@
         app:layout_constraintLeft_toRightOf="@id/beat_duration_choice_eighth"
         android:scaleType="fitCenter"
         android:padding="4dp"
-        android:elevation="12dp"
+        android:elevation="8dp"
         android:layout_marginLeft="1dp"
         android:src="@drawable/ic_note_duration_sixteenth"
         android:tint="@color/grid_foreground"
         app:layout_constraintDimensionRatio="1:1"
         android:background="@drawable/grid_background_right"
+        android:visibility="gone"
+        />
+
+    <View
+        android:id="@+id/beat_duration_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="?android:attr/colorBackground"
+        android:elevation="7dp"
         android:visibility="gone"
         />
 
