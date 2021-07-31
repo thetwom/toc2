@@ -11,7 +11,8 @@ v4.0.1:
 - Fix: Animation issues.
 
 v4.1.0:
-- Impoved selection of different beat durations
+- Improved selection of different beat durations
 - Slight UI changes to better fit different aspect ratios
 - Fix: UI issue with note editor and high-dpi devices
 - Fix: Avoid overlap of bpm-text and slide-to-scenes-image
+- Fix: Incorrect note sizes for large displays
