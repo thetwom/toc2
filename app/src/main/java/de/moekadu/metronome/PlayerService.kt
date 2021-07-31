@@ -176,7 +176,7 @@ class PlayerService : LifecycleService() {
         }
 
         val activityIntent = Intent(this, MainActivity::class.java)
-        val launchActivity = PendingIntent.getActivity(this, 0, activityIntent, 0)
+        val launchActivity = PendingIntent.getActivity(this, 0, activityIntent, PendingIntent.FLAG_IMMUTABLE)
 
         notification = PlayerNotification(this)
 

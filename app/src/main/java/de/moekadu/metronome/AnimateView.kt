@@ -1,6 +1,5 @@
 package de.moekadu.metronome
 
-import android.util.Log
 import android.view.View
 
 class AnimateView {

@@ -52,7 +52,7 @@ class PlayerNotification(val context: PlayerService) {
     }
     private val notificationBuilder = NotificationCompat.Builder(context, App.CHANNEL_ID).apply {
         val actIntent = Intent(context, MainActivity::class.java)
-        val launchAct = PendingIntent.getActivity(context, 0, actIntent, 0)
+        val launchAct = PendingIntent.getActivity(context, 0, actIntent, PendingIntent.FLAG_IMMUTABLE)
         setContentTitle(context.getString(R.string.app_name))
                 .setSmallIcon(R.drawable.ic_toc_swb4)
                 .setContentIntent(launchAct)
@@ -116,14 +116,14 @@ class PlayerNotification(val context: PlayerService) {
                 if (state == PlaybackStateCompat.STATE_PLAYING) {
                     notificationView.setImageViewResource(R.id.notification_button, R.drawable.ic_pause2)
                     intent.putExtra(PlayerService.PLAYER_STATE, PlaybackStateCompat.ACTION_PAUSE)
-                    val pIntent = PendingIntent.getBroadcast(context, notificationStateID, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+                    val pIntent = PendingIntent.getBroadcast(context, notificationStateID, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
                     notificationView.setOnClickPendingIntent(R.id.notification_button, pIntent)
                 }
                 else { // if(getState() == PlaybackStateCompat.STATE_PAUSED){
                     // Log.v("Metronome", "ispaused");
                     notificationView.setImageViewResource(R.id.notification_button, R.drawable.ic_play2)
                     intent.putExtra(PlayerService.PLAYER_STATE, PlaybackStateCompat.ACTION_PLAY)
-                    val pIntent = PendingIntent.getBroadcast(context, notificationStateID, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+                    val pIntent = PendingIntent.getBroadcast(context, notificationStateID, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
                     notificationView.setOnClickPendingIntent(R.id.notification_button, pIntent)
                 }
             }

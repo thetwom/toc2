@@ -42,7 +42,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.75"
+        app:layout_constraintGuide_percent="0.73"
         />
     <de.moekadu.metronome.SpeedPanel
         android:id="@+id/speed_panel"
@@ -51,9 +51,8 @@
         android:layout_centerHorizontal="true"
         android:layout_gravity="center"
         android:layout_marginLeft="8dp"
-        android:layout_marginTop="8dp"
         android:layout_marginRight="8dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="12dp"
         android:elevation="4dp"
         android:padding="10dp"
         app:layout_constraintBottom_toTopOf="@id/note_view_top"
@@ -151,15 +150,18 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintTop_toTopOf="@id/bpm_text"
-        app:layout_constraintBottom_toBottomOf="@id/bpm_text"
         app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/bpm_text"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintHeight_percent="0.11"
+        app:layout_constraintDimensionRatio="1:1"
         android:scaleType="fitEnd"
         android:padding="4dp"
         android:src="@drawable/ic_note_duration_quarter"
         android:tint="?attr/colorPrimary"
-        app:layout_constraintWidth_percent="0.3"
         android:background="@null"
         />
+
 
     <androidx.appcompat.widget.AppCompatImageButton
         android:id="@+id/beat_duration_choice_quarter"
@@ -173,7 +175,7 @@
         android:src="@drawable/ic_note_duration_quarter"
         android:tint="@color/grid_foreground"
         app:layout_constraintDimensionRatio="1:1"
-        app:layout_constraintHeight_percent="0.12"
+        app:layout_constraintHeight_percent="0.11"
         android:background="@drawable/grid_background_left"
         android:visibility="gone"
         />
@@ -239,9 +241,12 @@
         android:maxLines="1"
         android:ellipsize="none"
         android:textColor="?attr/colorPrimary"
-        app:layout_constraintStart_toEndOf="@id/beat_duration"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/beat_duration"
         app:layout_constraintTop_toBottomOf="@id/scene_title_active"
-        app:layout_constraintWidth_percent="0.55"
+        app:layout_constraintBottom_toTopOf="@id/speed_panel"
+        app:layout_constraintVertical_chainStyle="spread"
+        app:layout_constraintDimensionRatio="3:1"
         app:layout_constraintHeight_percent="0.12"
         tools:layout_conversion_wrapHeight="108"
         tools:layout_conversion_wrapWidth="239"
@@ -259,11 +264,12 @@
 
     <ImageButton
         android:id="@+id/scenes_button"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintHeight_percent="0.1"
+        app:layout_constraintHeight_percent="0.09"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintDimensionRatio="1.4:1"
         android:src="@drawable/ic_scenes_swipe2"
         android:scaleType="fitEnd"
         app:tint="@color/scene_swipe_button_icon"
@@ -282,7 +288,7 @@
         android:elevation="0dp"
         app:layout_constraintBottom_toTopOf="@id/tick_visualizer"
         app:layout_constraintTop_toTopOf="parent"
-        app:noteViewHeightPercent="0.24"
+        app:noteViewHeightPercent="0.23"
         app:numRows="2"
         app:numCols="4"
         />

@@ -22,8 +22,6 @@ package de.moekadu.metronome
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
-import android.opengl.Visibility
-import android.util.Log
 
 @SuppressLint("ViewConstructor")
 class SoundChooserControlButton(

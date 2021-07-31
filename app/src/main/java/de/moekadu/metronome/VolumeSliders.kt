@@ -44,18 +44,18 @@ class VolumeSliders(context: Context) {
 
     private val boundingBox = Rect()
 
-    private val openButton = ImageButton(context).apply {
-        scaleType = ImageView.ScaleType.FIT_CENTER
-        background = AppCompatResources.getDrawable(context, R.drawable.plus_button_background)
-        setImageResource(R.drawable.ic_tune)
-        imageTintList =  AppCompatResources.getColorStateList(context, R.color.volumeslider_unfold_button_icon)
-        setPadding(0, 0, 0, 0)
-        elevation = Utilities.dp2px(2f)
-        setOnClickListener {
-            volumeChangedListener?.unfold()
-        }
-        disableSwipeForClickableButton(this)
-    }
+//    private val openButton = ImageButton(context).apply {
+//        scaleType = ImageView.ScaleType.FIT_CENTER
+//        background = AppCompatResources.getDrawable(context, R.drawable.plus_button_background)
+//        setImageResource(R.drawable.ic_tune)
+//        imageTintList =  AppCompatResources.getColorStateList(context, R.color.volumeslider_unfold_button_icon)
+//        setPadding(0, 0, 0, 0)
+//        elevation = Utilities.dp2px(2f)
+//        setOnClickListener {
+//            volumeChangedListener?.unfold()
+//        }
+//        disableSwipeForClickableButton(this)
+//    }
 
     private val closeButton = ImageButton(context).apply {
         scaleType = ImageView.ScaleType.FIT_CENTER
@@ -74,14 +74,14 @@ class VolumeSliders(context: Context) {
     interface VolumeChangedListener {
         fun onVolumeChanged(index: Int, volume: Float)
         fun fold()
-        fun unfold()
+        //fun unfold()
     }
 
     var volumeChangedListener: VolumeChangedListener? = null
 
 
     fun addButtons(viewGroup: ViewGroup) {
-        viewGroup.addView(openButton)
+//        viewGroup.addView(openButton)
         viewGroup.addView(closeButton)
     }
 
@@ -90,12 +90,12 @@ class VolumeSliders(context: Context) {
 //        Log.v("Metronome", "VolumeSliders.onMeasure")
 
         val openButtonSpec = View.MeasureSpec.makeMeasureSpec(foldingButtonHeight, View.MeasureSpec.EXACTLY)
-        openButton.measure(openButtonSpec, openButtonSpec)
+//        openButton.measure(openButtonSpec, openButtonSpec)
 
         val closeButtonSpec = View.MeasureSpec.makeMeasureSpec(closeButtonHeight, View.MeasureSpec.EXACTLY)
         closeButton.measure(closeButtonSpec, closeButtonSpec)
 
-        val maxHeight = viewHeight - buttonTunerSpacing - foldingButtonHeight
+        val maxHeight = viewHeight - buttonTunerSpacing //- foldingButtonHeight
         val defaultHeight = 2f * noteViewHeight
         val tunerHeight =  min(maxHeight, defaultHeight).toInt()
 
@@ -114,8 +114,9 @@ class VolumeSliders(context: Context) {
         }
     }
 
-    fun layout(l: Int, b: Int, noteViewWidth: Int, noteViewHeight: Int, plusButtonLeft: Int) {
-        openButton.layout(l, b - openButton.measuredHeight, l + openButton.measuredWidth, b)
+    fun layout(l: Int, b: Int, noteViewWidth: Int, noteViewHeight: Int, plusButtonLeft: Int,
+               orientation: SoundChooser.Orientation = SoundChooser.Orientation.Portrait) {
+
         val closeButtonTop = if (volumeControls.size == 0) {
             b - closeButton.height
         } else {
@@ -126,6 +127,18 @@ class VolumeSliders(context: Context) {
             plusButtonLeft + closeButton.measuredWidth,
             closeButtonTop + closeButton.measuredHeight
         )
+
+//        if (orientation == SoundChooser.Orientation.Portrait) {
+//            openButton.layout(l, b - openButton.measuredHeight, l + openButton.measuredWidth, b)
+//        }
+//        else {
+//            openButton.layout(
+//                plusButtonLeft,
+//                closeButtonTop,
+//                plusButtonLeft + openButton.measuredWidth,
+//                closeButtonTop + openButton.measuredHeight
+//            )
+//        }
 
         if (volumeControls.size > 0) {
             val tunerHeight = volumeControls[0].measuredHeight
@@ -190,27 +203,27 @@ class VolumeSliders(context: Context) {
         return volumeControl
     }
 
-    fun hideOpenButton(animationDuration: Long) {
-        AnimateView.hide(openButton, animationDuration)
-    }
+//    fun hideOpenButton(animationDuration: Long) {
+//        AnimateView.hide(openButton, animationDuration)
+//    }
 
-    fun showOpenButton(animationDuration: Long) {
-        AnimateView.emerge(openButton, animationDuration)
-    }
+//    fun showOpenButton(animationDuration: Long) {
+//        AnimateView.emerge(openButton, animationDuration)
+//    }
 
     fun fold(animationDuration: Long) {
         folded = true
 
         volumeControls.forEach { AnimateView.hide(it, animationDuration) }
         AnimateView.hide(closeButton, animationDuration)
-        showOpenButton(animationDuration)
+//        showOpenButton(animationDuration)
     }
 
     fun unfold(animationDuration: Long) {
         folded = false
 
         volumeControls.forEach { AnimateView.emerge(it, animationDuration) }
-        hideOpenButton(animationDuration)
+//        hideOpenButton(animationDuration)
         AnimateView.emerge(closeButton, animationDuration)
     }
 

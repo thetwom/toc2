@@ -99,6 +99,7 @@ private class SoundChooserViewMeasures(
     val dynamicSelection = Rect()
     val volume = Rect()
     val clearAll = Rect()
+    val openVolumeSliders = Rect()
 
     val volumeSliders = Rect()
     var volumeSlidersButtonSize = 0
@@ -144,8 +145,10 @@ private class SoundChooserViewMeasures(
         volumeSliders.top = staticElementPadding
         volumeSlidersButtonSize = (plusButtonHeight / 3f * 2f).roundToInt()
 
-        clearAll.bottom = (noteView.top - viewSpacing).roundToInt()
-        clearAll.top = clearAll.bottom - volumeSlidersButtonSize
+        openVolumeSliders.bottom = (noteView.top - viewSpacing).roundToInt()
+        openVolumeSliders.top = openVolumeSliders.bottom - volumeSlidersButtonSize
+        clearAll.bottom = openVolumeSliders.bottom
+        clearAll.top = openVolumeSliders.top
 
         // horizontal pass
         extraNoteLines.right = width - paddingRight
@@ -186,11 +189,15 @@ private class SoundChooserViewMeasures(
         volumeSliders.left = noteView.left
         volumeSliders.right = noteView.right
 
+        openVolumeSliders.left = 0
+        openVolumeSliders.right = openVolumeSliders.left + openVolumeSliders.height()
+
         clearAll.right = width
         clearAll.left = clearAll.right - clearAll.height()
     }
 
     fun layoutLandscape(width: Int, height: Int) {
+        //Log.v("Metronome", "SoundChooser.layoutLandscape: width=$width, height=$height")
         // vertical pass
         noteView.bottom = height - paddingBottom
         noteView.top = (noteView.bottom - noteViewHeightPercent * height).roundToInt()
@@ -231,8 +238,11 @@ private class SoundChooserViewMeasures(
         volumeSliders.top = staticElementPadding
         volumeSlidersButtonSize = (plusButtonHeight / 3f * 2f).roundToInt()
 
-        clearAll.bottom = (noteView.top - viewSpacing).roundToInt()
+        clearAll.bottom = (noteView.top - viewSpacing + 0.1f * noteView.height()).roundToInt()
         clearAll.top = clearAll.bottom - volumeSlidersButtonSize
+
+        openVolumeSliders.bottom = (clearAll.top - viewSpacing).roundToInt()
+        openVolumeSliders.top = openVolumeSliders.bottom - volumeSlidersButtonSize
 
         // horizontal pass
         plus.right = (width * plusButtonRightPercent).roundToInt()
@@ -259,11 +269,11 @@ private class SoundChooserViewMeasures(
 
         noteSelection.left = (volume.right + viewSpacing).roundToInt()
         // note selection width: max space, but not don't exceed square ratio of single notes
-        noteSelection.right = max(width - staticElementPadding,
+        noteSelection.right = min(width - staticElementPadding,
             noteSelection.left + getNumAvailableNotes() * noteSelection.height())
 
         noteDuration.left = noteSelection.left
-        noteDuration.right = max(noteSelection.right, noteDuration.left + 4 * noteSelection.height())
+        noteDuration.right = min(noteSelection.right, noteDuration.left + 4 * noteSelection.height())
 
         tuplets.left = noteDuration.left
         tuplets.right = noteDuration.right
@@ -276,6 +286,9 @@ private class SoundChooserViewMeasures(
 
         clearAll.left = plus.left
         clearAll.right = clearAll.left + clearAll.height()
+
+        openVolumeSliders.left = clearAll.left
+        openVolumeSliders.right = openVolumeSliders.left + openVolumeSliders.height()
     }
 }
 
@@ -330,7 +343,16 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     private val clearAllButton = ImageButton(context).apply {
         setBackgroundResource(R.drawable.plus_button_background)
         setImageResource(R.drawable.ic_clear_all_small)
-        scaleType = ImageView.ScaleType.FIT_XY
+        scaleType = ImageView.ScaleType.FIT_CENTER
+        translationZ = Utilities.dp2px(5f)
+        setPadding(0)
+        disableSwipeForClickableButton(this)
+    }
+
+    private val openVolumeSlidersButton = ImageButton(context).apply {
+        setBackgroundResource(R.drawable.plus_button_background)
+        setImageResource(R.drawable.ic_tune)
+        scaleType = ImageView.ScaleType.FIT_CENTER
         translationZ = Utilities.dp2px(5f)
         setPadding(0)
         disableSwipeForClickableButton(this)
@@ -408,6 +430,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             deleteButton.imageTintList = actionButtonTintList
             doneButton.imageTintList = actionButtonTintList
             clearAllButton.imageTintList = actionButtonTintList
+            openVolumeSlidersButton.imageTintList = actionButtonTintList
 
             backgroundSurface.backgroundTintList =
                 ta.getColorStateList(R.styleable.SoundChooser_backgroundViewColor)
@@ -456,6 +479,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         addView(deleteButton)
         addView(doneButton)
         addView(clearAllButton)
+        addView(openVolumeSlidersButton)
 
         addView(volumeControl)
         volumeControl.onVolumeChangedListener = VolumeControl.OnVolumeChangedListener { volume ->
@@ -565,14 +589,22 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 
             override fun fold() {
                 volumeSliders.fold(animateLong)
+                AnimateView.emerge(openVolumeSlidersButton, animateLong)
                 hideBackground(animateLong)
             }
 
-            override fun unfold() {
-                hideSoundChooser(animateLong)
-                volumeSliders.unfold(animateLong)
-                showBackground(animateLong)
-            }
+//            override fun unfold() {
+//                hideSoundChooser(animateLong)
+//                volumeSliders.unfold(animateLong)
+//                showBackground(animateLong)
+//            }
+        }
+
+        openVolumeSlidersButton.setOnClickListener {
+            hideSoundChooser(animateLong)
+            volumeSliders.unfold(animateLong)
+            AnimateView.hide(openVolumeSlidersButton, animateLong)
+            showBackground(animateLong)
         }
 
         plusButton.setOnClickListener {
@@ -702,6 +734,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         measureView(deleteButton, soundChooserViewMeasures.delete)
         measureView(doneButton, soundChooserViewMeasures.done)
         measureView(clearAllButton, soundChooserViewMeasures.clearAll)
+        measureView(openVolumeSlidersButton, soundChooserViewMeasures.openVolumeSliders)
 
         noteSelection.measure(
             soundChooserViewMeasures.noteSelection.width(),
@@ -771,6 +804,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             layoutView(doneButton, soundChooserViewMeasures.plus)
 
             layoutView(clearAllButton, soundChooserViewMeasures.clearAll)
+            layoutView(openVolumeSlidersButton, soundChooserViewMeasures.openVolumeSliders)
 
             noteSelection.layout(
                 soundChooserViewMeasures.noteSelection.left,
@@ -794,7 +828,8 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             soundChooserViewMeasures.volumeSliders.bottom,
             soundChooserViewMeasures.noteView.width(),
             soundChooserViewMeasures.noteView.height(),
-            soundChooserViewMeasures.plus.left
+            soundChooserViewMeasures.plus.left,
+            orientation
         )
 
         controlButtons.forEach { button ->
@@ -986,7 +1021,8 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                 stateChangedListener?.changeNoteId(it.uid, 0, status)
         }
         dynamicSelection.emerge(animationDuration)
-        volumeSliders.hideOpenButton(animationDuration)
+        AnimateView.hide(openVolumeSlidersButton, animationDuration)
+        //volumeSliders.hideOpenButton(animationDuration)
     }
 
     private fun updateDynamicChooser(animationDuration: Long) {
@@ -1048,7 +1084,8 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             .withStartAction { volumeControl.visibility = VISIBLE }
             .withEndAction {  }
 
-        volumeSliders.hideOpenButton(animationDuration)
+        AnimateView.hide(openVolumeSlidersButton, animationDuration, name = "openVolumeSlidersButton")
+        //volumeSliders.hideOpenButton(animationDuration)
         noteSelection.emerge(animationDuration)
         noteDuration.emerge(animationDuration)
         tuplets.emerge(animationDuration)
@@ -1092,8 +1129,10 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         noteDuration.disappear(animationDuration)
         tuplets.disappear(animationDuration)
         dynamicSelection.disappear(animationDuration)
-        if (volumeSliders.folded)
-            volumeSliders.showOpenButton(animationDuration)
+        if (volumeSliders.folded) {
+            AnimateView.emerge(openVolumeSlidersButton, animationDuration, name = "openVolumeSlidersButton")
+            //volumeSliders.showOpenButton(animationDuration)
+        }
         setActiveControlButton(null, animationDuration)
     }
 

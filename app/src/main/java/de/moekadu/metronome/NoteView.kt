@@ -150,7 +150,8 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             setImageResource(drawableID)
             setPadding(0, 0, 0, 0)
             background = null
-            scaleType = ImageView.ScaleType.CENTER_INSIDE
+            //setBackgroundColor(Color.RED)
+            scaleType = ImageView.ScaleType.FIT_CENTER
             if (noteColor != null && !highlight)
                 imageTintList = noteColor
             if (noteHighlightColor != null && highlight)

@@ -42,7 +42,7 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.65"
+        app:layout_constraintGuide_percent="0.6"
         />
 <!--    <androidx.constraintlayout.widget.Guideline-->
 <!--        android:id="@+id/text_upper_guideline"-->
@@ -66,6 +66,14 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_constraintGuide_percent="0.5"
+        />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/vertical_guideline_plus_right"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.55"
         />
 
     <androidx.constraintlayout.widget.Guideline
@@ -95,7 +103,7 @@
         android:id="@+id/scenes_button"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintHeight_percent="0.18"
+        app:layout_constraintHeight_percent="0.16"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:src="@drawable/ic_scenes_swipe2"
@@ -203,13 +211,14 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintTop_toTopOf="@id/bpm_text"
-        app:layout_constraintBottom_toBottomOf="@id/bpm_text"
         app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/bpm_text"
         android:scaleType="fitEnd"
         android:padding="4dp"
+        app:layout_constraintHorizontal_weight="1"
         android:src="@drawable/ic_note_duration_quarter"
         android:tint="?attr/colorPrimary"
-        app:layout_constraintWidth_percent="0.15"
+        app:layout_constraintDimensionRatio="1:1"
         android:background="@null"
         />
 
@@ -220,13 +229,13 @@
         android:layout_height="0dp"
         app:layout_constraintTop_toBottomOf="@id/beat_duration"
         app:layout_constraintRight_toRightOf="@id/beat_duration"
+        app:layout_constraintLeft_toLeftOf="@id/beat_duration"
         android:scaleType="fitCenter"
         android:padding="4dp"
         android:elevation="8dp"
         android:src="@drawable/ic_note_duration_quarter"
         android:tint="@color/grid_foreground"
         app:layout_constraintDimensionRatio="1:1"
-        app:layout_constraintHeight_percent="0.21"
         android:background="@drawable/grid_background_left"
         android:visibility="gone"
         />
@@ -288,11 +297,12 @@
         android:gravity="left"
         android:ellipsize="none"
         android:textColor="?attr/colorPrimary"
-        app:layout_constraintHeight_percent="0.21"
         app:layout_constraintBottom_toTopOf="@id/lower_guideline"
-        app:layout_constraintEnd_toStartOf="@id/speed_panel"
-        app:layout_constraintStart_toEndOf="@id/beat_duration"
+        app:layout_constraintLeft_toRightOf="@id/beat_duration"
+        app:layout_constraintRight_toLeftOf="@id/plus_button_placeholder"
         app:layout_constraintTop_toBottomOf="@id/scene_title_active"
+        app:layout_constraintHorizontal_weight="3"
+        app:layout_constraintDimensionRatio="3:1"
         tools:layout_conversion_wrapHeight="108"
         tools:layout_conversion_wrapWidth="239"
         tools:ignore="HardcodedText" />
@@ -307,9 +317,19 @@
         app:layout_constraintTop_toTopOf="parent"
         app:numRows="1"
         app:numCols="7"
-        app:noteViewHeightPercent="0.35"
+        app:noteViewHeightPercent="0.4"
         app:plusButtonRightPercent="0.55"
         app:vertical="false"
         />
+
+    <View
+        android:id="@+id/plus_button_placeholder"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintRight_toLeftOf="@id/vertical_guideline_plus_right"
+        app:layout_constraintTop_toBottomOf="@id/lower_guideline"
+        app:layout_constraintBottom_toBottomOf="@id/sound_chooser3"
+        app:layout_constraintDimensionRatio="1:1"
+        android:visibility="invisible"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

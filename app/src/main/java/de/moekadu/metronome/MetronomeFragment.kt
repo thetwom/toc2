@@ -183,7 +183,7 @@ class MetronomeFragment : Fragment() {
         tickVisualizer = view.findViewById(R.id.tick_visualizer)
         // tick visualizer controls the note animation since it contains better time synchronization than the soundChooser
         tickVisualizer?.noteStartedListener = TickVisualizerSync.NoteStartedListener {
-            soundChooser?.animateNote(it)
+            soundChooser.animateNote(it)
         }
 
 
@@ -206,7 +206,7 @@ class MetronomeFragment : Fragment() {
         }
 
         soundChooser = view.findViewById(R.id.sound_chooser3)
-        soundChooser?.stateChangedListener = object : SoundChooser.StateChangedListener {
+        soundChooser.stateChangedListener = object : SoundChooser.StateChangedListener {
             override fun changeNoteId(uid: UId, noteId: Int, status: SoundChooser.Status) {
                 viewModel.setNoteListId(uid, noteId)
                 if (viewModel.playerStatus.value != PlayerStatus.Playing && status == SoundChooser.Status.Static && context != null) {
@@ -408,7 +408,7 @@ class MetronomeFragment : Fragment() {
             viewModel.noteList.value?.let {
 //                Log.v("Metronome", "MetronomeFragment: observing noteList, viewModel.isVisible=${viewModel.isVisible}")
                 tickVisualizer?.setNoteList(it)
-                soundChooser?.setNoteList(it, if (viewModel.isVisible) 200L else 0L)
+                soundChooser.setNoteList(it, if (viewModel.isVisible) 200L else 0L)
             }
         }
 
