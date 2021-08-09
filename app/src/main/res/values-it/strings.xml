@@ -63,8 +63,10 @@
     <string name="save">Salva</string>
     <string name="dismiss">Annulla</string>
     <string name="max_allowed_characters">Lunghezza massima (caratteri): %d</string>
-
-    <string name="load_scenes">Carica elementi salvati (%d)</string>
+    <plurals name="load_scenes">
+        <item quantity="one">Carica elementi salvati (%d)</item>
+        <item quantity="other">Carica elementi salvati (%d)</item>
+    </plurals>
     <string name="abort">Annulla</string>
     <string name="replace_current_list">Sostituisci lista attuale</string>
     <string name="prepend_current_list">Inserisci all\'inizio della lista attuale</string>
@@ -100,5 +102,9 @@
     <string name="low_strength">Bassa intensità vibrazione (%.2f)</string>
     <string name="medium_strength">Media intensità vibrazione (%.2f)</string>
     <string name="high_strength">Alta intensità vibrazione (%.2f)</string>
-
+    <string name="share">Share scenes</string>
+    <plurals name="sharing_num_scenes">
+        <item quantity="one">Sharing %d scene</item>
+        <item quantity="other">Sharing %d scenes</item>
+    </plurals>
 </resources>

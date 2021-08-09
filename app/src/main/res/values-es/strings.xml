@@ -42,8 +42,10 @@
     <string name="save">Guardar</string>
     <string name="dismiss">Omitir</string>
     <string name="max_allowed_characters">Número máximo de caracteres: %d</string>
-
-    <string name="load_scenes">Load saved items (%d)</string>
+    <plurals name="load_scenes">
+        <item quantity="one">Lade %d Szene</item>
+        <item quantity="other">Lade %d Szenen</item>
+    </plurals>
     <string name="abort">Abortar</string>
     <string name="replace_current_list">Reemplazar lista actual</string>
     <string name="prepend_current_list">Anteponer a la lista actual</string>
@@ -67,6 +69,11 @@
     <string name="inconsistent_saved_increment">La velocidad guardada %s bpm no es resolvible al aumentar la velocidad actual %s bpm.\n</string>
     <string name="inconsistent_load_title">Carga inconsistente</string>
     <string name="inconsistent_summary">\nPor favor, establece los ajustes si quieres cargar tu selección correctamente.</string>
+    <string name="share">Share scenes</string>
+    <plurals name="sharing_num_scenes">
+        <item quantity="one">Sharing %d scene</item>
+        <item quantity="other">Sharing %d scenes</item>
+    </plurals>
     <string name="acknowledged">Agradecimientos</string>
 
     <string name="keep_screen_on">Pantalla encendida</string>

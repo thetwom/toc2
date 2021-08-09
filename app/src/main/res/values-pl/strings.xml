@@ -44,8 +44,12 @@
     <string name="save">Zapisz</string>
     <string name="dismiss">Odrzuć</string>
     <string name="max_allowed_characters">Maksymalna liczba znaków: %d</string>
-
-    <string name="load_scenes">Załaduj %d sceny</string>
+    <plurals name="load_scenes">
+        <item quantity="one">Załaduj %d sceny</item>
+        <item quantity="few">Załaduj %d sceny</item>
+        <item quantity="many">Załaduj %d sceny</item>
+        <item quantity="other">Załaduj %d sceny</item>
+    </plurals>
     <string name="abort">Przerwij</string>
     <string name="replace_current_list">Zastąp bieżącą listę</string>
     <string name="prepend_current_list">Dołącz na początku bieżącej listy</string>
@@ -96,5 +100,11 @@
     <string name="rename_scene">Zmień nazwę</string>
     <string name="scene">Scena: %s</string>
     <string name="failed_to_archive_scenes">Nie udało się zapisać scen do pliku.</string>
+    <plurals name="sharing_num_scenes">
+        <item quantity="one">Sharing %d scene</item>
+        <item quantity="few">Sharing %d scene</item>
+        <item quantity="many">Sharing %d scene</item>
+        <item quantity="other">Sharing %d scenes</item>
+    </plurals>
 
 </resources>

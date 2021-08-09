@@ -49,7 +49,10 @@
     <string name="save_to_disc">Szenen in Datei speichern</string>
     <string name="clear_all">Alle löschen</string>
     <string name="clear_all_question">Alle Szenen löschen?</string>
-    <string name="load_scenes">%d Einträge laden</string>
+    <plurals name="load_scenes">
+        <item quantity="one">Lade %d Szene</item>
+        <item quantity="other">Lade %d Szenen</item>
+    </plurals>
     <string name="abort">Abbrechen</string>
     <string name="replace_current_list">Aktuelle Liste ersetzen</string>
     <string name="prepend_current_list">Vor aktueller Liste einfügen</string>
@@ -82,7 +85,10 @@
     <string name="scene">Szene: %s</string>
     <string name="failed_to_archive_scenes">Speichern der Szenen fehlgeschlagen.</string>
     <string name="share">Szenen teilen</string>
-    <string name="sharing_num_scenes">Teile %d Szenen.</string>
+    <plurals name="sharing_num_scenes">
+        <item quantity="one">Teile %d Szene.</item>
+        <item quantity="other">Teile %d Szenen.</item>
+    </plurals>
     <string name="no_scenes_for_sharing">Keine zu teilenden Szenen verfügbar.</string>
     <string name="max_speed_larger_than_allowed">Vorgegebene Maximalgeschwindigkeit (%s) muss kleiner als %s sein.</string>
     <string name="delete_note">Note löschen</string>

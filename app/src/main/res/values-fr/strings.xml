@@ -50,8 +50,10 @@
     <string name="save">Sauver</string>
     <string name="dismiss">Annuler</string>
     <string name="max_allowed_characters">Nombre de caractères maximum\u00A0: %d</string>
-
-    <string name="load_scenes">Charger des réglages (%d)</string>
+    <plurals name="load_scenes">
+        <item quantity="one">Charger des réglages (%d)</item>
+        <item quantity="other">Charger des réglages (%d)</item>
+    </plurals>
     <string name="abort">Annuler</string>
     <string name="replace_current_list">Remplacer la liste</string>
     <string name="prepend_current_list">Ajouter au début de la liste</string>
@@ -79,7 +81,11 @@
     <string name="inconsistent_load_title">Chargement incorrect</string>
     <string name="inconsistent_summary">Modifiez votre configuration si vous voulez charger le réglage correctement.</string>
     <string name="acknowledged">Vu</string>
-
+    <string name="share">Share scenes</string>
+    <plurals name="sharing_num_scenes">
+        <item quantity="one">Sharing %d scene</item>
+        <item quantity="other">Sharing %d scenes</item>
+    </plurals>
     <string name="keep_screen_on">Garder l\'écran allumé</string>
     <string name="bpm">%s bpm</string>
     <string name="tap_in">TAP IN</string>

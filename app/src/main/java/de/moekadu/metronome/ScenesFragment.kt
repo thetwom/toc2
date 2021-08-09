@@ -148,7 +148,7 @@ class ScenesFragment : Fragment() {
                         putExtra(Intent.EXTRA_STREAM, uri)
                         putExtra(Intent.EXTRA_EMAIL, "")
                         putExtra(Intent.EXTRA_CC, "")
-                        putExtra(Intent.EXTRA_TITLE, getString(R.string.sharing_num_scenes, numScenes))
+                        putExtra(Intent.EXTRA_TITLE, resources.getQuantityString(R.plurals.sharing_num_scenes, numScenes, numScenes))
                         type = "text/plain"
                         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     }

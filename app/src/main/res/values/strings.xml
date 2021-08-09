@@ -69,8 +69,10 @@
     <string name="save">Save</string>
     <string name="dismiss">Dismiss</string>
     <string name="max_allowed_characters">Maximum character number: %d</string>
-
-    <string name="load_scenes">Loading %d scenes</string>
+    <plurals name="load_scenes">
+        <item quantity="one">Loading %d scene</item>
+        <item quantity="other">Loading %d scenes</item>
+    </plurals>
     <string name="abort">Abort</string>
     <string name="replace_current_list">Replace current list</string>
     <string name="prepend_current_list">Prepend to current list</string>
@@ -122,7 +124,10 @@
     <string name="scene">Scene: %s</string>
     <string name="failed_to_archive_scenes">Failed to store scenes to file.</string>
     <string name="share">Share scenes</string>
-    <string name="sharing_num_scenes">Sharing %d scenes.</string>
+    <plurals name="sharing_num_scenes">
+        <item quantity="one">Sharing %d scene</item>
+        <item quantity="other">Sharing %d scenes</item>
+    </plurals>
     <string name="no_scenes_for_sharing">There are no scenes, which can be shared.</string>
     <string name="max_speed_larger_than_allowed">Given maximum speed (%s) must be smaller than %s.</string>
     <string name="delete_note">Delete note</string>

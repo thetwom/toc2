@@ -131,7 +131,7 @@ class SceneArchiving(private val scenesFragment: ScenesFragment) {
                 else -> {
         //            Log.v("Metronome", "SceneArchiving.loadScenes: filename = $filename")
                     val builder = AlertDialog.Builder(context).apply {
-                        setTitle(context.getString(R.string.load_scenes, scenes.size))
+                        setTitle(context.resources.getQuantityString(R.plurals.load_scenes, scenes.size, scenes.size))
                         setNegativeButton(R.string.abort) { dialog, _ -> dialog.dismiss() }
                         setItems(R.array.load_scenes_list) { _, which ->
                             val array = context.resources.getStringArray(R.array.load_scenes_list)

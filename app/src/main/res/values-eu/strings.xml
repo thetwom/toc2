@@ -63,8 +63,10 @@
     <string name="save">Gorde</string>
     <string name="dismiss">Utzi</string>
     <string name="max_allowed_characters">Gehienezko karaktere kopurua: %d</string>
-
-    <string name="load_scenes">Kargatu gordetako elementuak (%d)</string>
+    <plurals name="load_scenes">
+        <item quantity="one">Kargatu gordetako elementuak (%d)</item>
+        <item quantity="other">Kargatu gordetako elementuak (%d)</item>
+    </plurals>
     <string name="abort">Utzi</string>
     <string name="replace_current_list">Ordezkatu uneko zerrenda</string>
     <string name="prepend_current_list">Gehitu uneko zerrendaren hasieran</string>
@@ -108,5 +110,10 @@
     <string name="inconsistent_increment">Emandako abiadura (%s bpm) ezin da lortu uneko abiadura handitzearekin (%s bpm).</string>
     <string name="vibrate_delay">Bibrazioaren atzerapena</string>
     <string name="milliseconds">%d ms</string>
+    <string name="share">Share scenes</string>
+    <plurals name="sharing_num_scenes">
+        <item quantity="one">Sharing %d scene</item>
+        <item quantity="other">Sharing %d scenes</item>
+    </plurals>
 
 </resources>

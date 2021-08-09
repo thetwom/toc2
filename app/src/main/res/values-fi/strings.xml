@@ -62,8 +62,10 @@
     <string name="save">Tallenna</string>
     <string name="dismiss">Peruuta</string>
     <string name="max_allowed_characters">Merkkien enimmäismäärä: %d</string>
-
-    <string name="load_scenes">Ladataan %d skenet</string>
+    <plurals name="load_scenes">
+        <item quantity="one">Ladataan %d skenet</item>
+        <item quantity="other">Ladataan %d skenet</item>
+    </plurals>
     <string name="abort">Lopeta</string>
     <string name="replace_current_list">Korvaa nykyiset</string>
     <string name="prepend_current_list">Lisää nykyisten yläpuolelle</string>
@@ -115,7 +117,10 @@
     <string name="scene">Skene: %s</string>
     <string name="failed_to_archive_scenes">Skenejen tallentaminen tiedostoon epäonnistui.</string>
     <string name="share">Jaa skenejä</string>
-    <string name="sharing_num_scenes">Jaetaan %d skenejä.</string>
+    <plurals name="sharing_num_scenes">
+        <item quantity="one">Jaetaan %d skenejä.</item>
+        <item quantity="other">Jaetaan %d skenejä.</item>
+    </plurals>
     <string name="no_scenes_for_sharing">Ei ole scenejä, jotka voitaisiin jakaa.</string>
 
 </resources>
