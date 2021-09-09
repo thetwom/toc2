@@ -175,7 +175,7 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
                     val shift = amp  * sin(PI.toFloat() * fraction)
 
                     if (tickCount % 2L == 0L) {
-                        paint.alpha = 50
+                        paint.alpha = 120
                         canvas?.drawRect(center - blockWidth, 0f,
                             center, height.toFloat(), paint)
                         paint.alpha = 255
@@ -185,7 +185,7 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
                         paint.alpha = 255
                         canvas?.drawRect(center - shift - blockWidth, 0f,
                             center - shift, height.toFloat(), paint)
-                        paint.alpha = 50
+                        paint.alpha = 120
                         canvas?.drawRect(center, 0f,
                             center + blockWidth, height.toFloat(), paint)
                     }
