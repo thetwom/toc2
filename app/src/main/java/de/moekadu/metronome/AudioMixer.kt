@@ -67,7 +67,7 @@ class NoteStartedMessaging(delayInMillis: Float, val noteStartedListener: AudioM
     var delayInMillis = delayInMillis
         private set
         get() {
-            changeDelayChannel.poll()?.let {
+            changeDelayChannel.tryReceive().getOrNull()?.let {
                 if (field != it)
                     field = it
             }
@@ -97,7 +97,7 @@ class NoteStartedMessaging(delayInMillis: Float, val noteStartedListener: AudioM
      * @param count Note count of the started note, counting the notes played after starting plying.
      */
     fun offer(noteListItem: NoteListItem, startTimeUptimeMillis: Long, count: Long) {
-        channel?.offer(NoteStartedInfo(noteListItem, startTimeUptimeMillis, count))
+        channel?.trySend(NoteStartedInfo(noteListItem, startTimeUptimeMillis, count))
     }
 
     /// Call this to disconnect the channel, when this class is not needed anymore.
@@ -110,7 +110,7 @@ class NoteStartedMessaging(delayInMillis: Float, val noteStartedListener: AudioM
      * @param delayInMillis New delay.
      */
     fun setDelay(delayInMillis: Float) {
-        changeDelayChannel.offer(delayInMillis)
+        changeDelayChannel.trySend(delayInMillis)
     }
 }
 
@@ -428,7 +428,7 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
     fun getNewNoteStartedChannel(delayInMilliSeconds: Float = 0f, coroutineContext: CoroutineContext?,
                                  noteStartedListener: NoteStartedListener): NoteStartedMessaging {
         val noteStartedChannel = NoteStartedMessaging(delayInMilliSeconds, noteStartedListener, coroutineContext, scope)
-        addOrRemoveNoteStartedChannel.offer(NoteStartedChannelWithAddOrRemoveInfo(noteStartedChannel, false))
+        addOrRemoveNoteStartedChannel.trySend(NoteStartedChannelWithAddOrRemoveInfo(noteStartedChannel, false))
         return noteStartedChannel
     }
 
@@ -439,7 +439,7 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
     fun unregisterNoteStartedChannel(noteStartedMessaging: NoteStartedMessaging?) {
         noteStartedMessaging?.let {
             it.onDestroy()
-            addOrRemoveNoteStartedChannel.offer(
+            addOrRemoveNoteStartedChannel.trySend(
                 NoteStartedChannelWithAddOrRemoveInfo(it, true))
         }
     }
@@ -449,7 +449,7 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
      * @note This must be called within the player thread
      */
     private fun updateNoteStartedChannels() {
-        var addOrRemove = addOrRemoveNoteStartedChannel.poll()
+        var addOrRemove = addOrRemoveNoteStartedChannel.tryReceive().getOrNull()
         while (addOrRemove != null) {
             if (addOrRemove.unregisterChannel) {
 //                Log.v("Metronome", "AudioMixer.updateNoteStartedChannels: unregister channel")
@@ -460,16 +460,16 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                     noteStartedChannels.add(addOrRemove.noteStartedMessaging)
                 }
             }
-            addOrRemove = addOrRemoveNoteStartedChannel.poll()
+            addOrRemove = addOrRemoveNoteStartedChannel.tryReceive().getOrNull()
         }
     }
 
     fun setBpmQuarter(bpmQuarter: Float) {
-        bpmQuarterChannel.offer(bpmQuarter)
+        bpmQuarterChannel.trySend(bpmQuarter)
     }
 
     fun setMute(state: Boolean) {
-        isMuteChannel.offer(state)
+        isMuteChannel.trySend(state)
     }
 
     /// Start playing
@@ -519,16 +519,16 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                 //Log.v("Metronome", "AudioMixer noteList.size: ${noteList.size}")
 
                 // set new speed if available
-                bpmQuarterChannel.poll()?.let {
+                bpmQuarterChannel.tryReceive().getOrNull()?.let {
                     bpmQuarter = it
                 }
                 require(bpmQuarter > 0.0f)
 
-                isMuteChannel.poll()?.let {
+                isMuteChannel.tryReceive().getOrNull()?.let {
                     isMute = it
                 }
 
-                nextNoteIndexModificationChannel.poll()?.let { index ->
+                nextNoteIndexModificationChannel.tryReceive().getOrNull()?.let { index ->
                     nextNoteInfo = nextNoteInfo.copy(nextNoteIndex = index)
                 }
 
@@ -540,7 +540,7 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                     mixingBuffer.size, queuedNoteStartedChannels, noteStartedChannels,
                     player.sampleRate, queuedNotes, delayInFrames)
 
-                synchronizeTimeChannel.poll()?.let { synchronizeTimeInfo ->
+                synchronizeTimeChannel.tryReceive().getOrNull()?.let { synchronizeTimeInfo ->
                     nextNoteInfo = synchronizeTime(synchronizeTimeInfo, noteListCopy, bpmQuarter, nextNoteInfo, player, delayInFrames)
                 }
 
@@ -609,12 +609,12 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
      *   where n is a integer number.
      */
     fun synchronizeTime(referenceTime: Long, beatDuration: Float) {
-        synchronizeTimeChannel.offer(SynchronizeTimeInfo(referenceTime, beatDuration))
+        synchronizeTimeChannel.trySend(SynchronizeTimeInfo(referenceTime, beatDuration))
     }
 
     /// Modify the index of the next note to be played.
     fun setNextNoteIndex(index: Int) {
-        nextNoteIndexModificationChannel.offer(index)
+        nextNoteIndexModificationChannel.trySend(index)
     }
 }
 
