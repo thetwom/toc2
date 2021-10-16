@@ -1,5 +1,5 @@
-    Application simple de métronome, pour garder le tempo pendant le travail de la musique. Parmi ses fonctionnalités :
-    * Choisir le tempo en nombre de "pulsations par minute".
+    Application simple de métronome, pour garder le tempo pendant la pratique de la musique. Parmi ses fonctionnalités :
+    * Choisir le tempo en nombre de "battements par minute".
     * Choisir le tempo en "tapotant" vous-même les pulsations.
     * Changer de son.
     * Sauver et charger ses réglages.

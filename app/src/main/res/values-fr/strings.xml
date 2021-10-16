@@ -3,28 +3,23 @@
     <string name="app_name">Métronome</string>
     <string name="action_settings">Configuration</string>
 
-<!--    <string name="base" translatable="false">grosse caisse</string>-->
-<!--    <string name="hihat" translatable="false">charleston</string>-->
-<!--    <string name="snare" translatable="false">caisse claire</string>-->
-<!--    <string name="sticks" translatable="false">baguettes</string>-->
-<!--    <string name="claves" translatable="false">claves</string>-->
-<!--    <string name="woodblock" translatable="false">woodblock</string>-->
     <string name="mute">muet</string>
-<!--    <string name="bpm" translatable="false">%s bpm</string>-->
+    <string name="bpm">%s bpm</string>
+    <string name="eqbpm">= %s bpm</string>
 
     <string name="scenes">Charger un réglage</string>
     <string name="save_scene">Sauver le réglage</string>
     <string name="load_from_disc">Charger des réglages depuis un fichier</string>
     <string name="save_to_disc">Sauver les réglages dans un fichier</string>
     <string name="clear_all">Tout supprimer</string>
-    <string name="clear_all_question">Tout supprimer\u00A0?</string>
+    <string name="clear_all_question">Supprimer tous les réglages\u00A0?</string>
     <string name="title">Titre</string>
-    <string name="done">Fait</string>
+    <string name="done">Valider</string>
+
     <string name="appearance">Style</string>
     <string name="dark_appearance">Style sombre</string>
     <string name="light_appearance">Style clair</string>
     <string name="system_appearance">Le style suit celui du système</string>
-
     <string name="dark_appearance_short">Sombre</string>
     <string name="light_appearance_short">Clair</string>
     <string name="system_appearance_short">Auto</string>
@@ -46,13 +41,13 @@
 
     <string name="save_settings_dialog_title">Sauver le réglage actuel</string>
     <string name="save_name">Nom</string>
-    <string name="saved_scene_message">Réglage actuel sauvé\u00A0: %s</string>
+    <string name="saved_scene_message">Réglage sauvé\u00A0: %s</string>
     <string name="save">Sauver</string>
     <string name="dismiss">Annuler</string>
     <string name="max_allowed_characters">Nombre de caractères maximum\u00A0: %d</string>
     <plurals name="load_scenes">
-        <item quantity="one">Charger des réglages (%d)</item>
-        <item quantity="other">Charger des réglages (%d)</item>
+        <item quantity="one">Chargement de %d réglage</item>
+        <item quantity="other">Chargement de %d réglages</item>
     </plurals>
     <string name="abort">Annuler</string>
     <string name="replace_current_list">Remplacer la liste</string>
@@ -62,13 +57,13 @@
     <string name="file_invalid">Fichier invalide\u00A0: %s</string>
     <string name="database_empty">Il n\'y a pas de réglage à sauver.</string>
 
-    <string name="cannot_delete_last_note">Vous ne pouvez pas supprimer la dernière note.</string>
+    <string name="cannot_delete_last_note">La dernière note ne peut pas être retirée.</string>
 
-    <string name="no_scenes">Aucun réglage sauvé pour le moment</string>
+    <string name="no_scenes">Aucun réglage sauvé pour le moment.</string>
 
-    <!--    <string name="tap_in" translatable="false">TAP IN</string>-->
+    <string name="tap_in">TAP IN</string>
 
-    <string name="about_message">Metronome app\nVersion\u00A0: %s\nLicense\u00A0: GPLv3</string>
+    <string name="about_message">Metronome app\nVersion\u00A0: %s\nLicence\u00A0: GPLv3</string>
 
     <string name="yes">oui</string>
     <string name="no">non</string>
@@ -79,15 +74,45 @@
     <string name="min_speed_higher_maximum">Le tempo minimum indiqué (%s) est en dessous du tempo maximum (%s).</string>
     <string name="inconsistent_saved_increment">Le tempo du réglage %s bpm n\'est pas compatible avec l\'incrémentation configurée %s bpm.</string>
     <string name="inconsistent_load_title">Chargement incorrect</string>
-    <string name="inconsistent_summary">Modifiez votre configuration si vous voulez charger le réglage correctement.</string>
-    <string name="acknowledged">Vu</string>
-    <string name="share">Share scenes</string>
-    <plurals name="sharing_num_scenes">
-        <item quantity="one">Sharing %d scene</item>
-        <item quantity="other">Sharing %d scenes</item>
-    </plurals>
-    <string name="keep_screen_on">Garder l\'écran allumé</string>
-    <string name="bpm">%s bpm</string>
-    <string name="tap_in">TAP IN</string>
+    <string name="inconsistent_summary">\nModifiez votre configuration si vous voulez charger le réglage correctement.</string>
+    <string name="acknowledged">Ok</string>
 
+    <string name="keep_screen_on">Garder l\'écran allumé</string>
+    <string name="vibrate_notes">Vibrer avec les notes</string>
+    <string name="not_supported_by_hardware">Pas supporté sur cet appareil</string>
+    <string name="vibrate_strength">Force des vibrations</string>
+    <string name="low_strength">Vibrations légères (%.2f)</string>
+    <string name="medium_strength">Vibrations intermédiaires (%.2f)</string>
+    <string name="high_strength">Vibrations fortes (%.2f)</string>
+    <string name="all_notes_deleted">Toutes les notes ont été supprimées.</string>
+
+    <string name="set_new_speed">Choisir le nouveau tempo</string>
+    <string name="invalid_speed">"Tempo invalide\u00A0: "</string>
+    <string name="speed_too_small">Le tempo choisi (%s bpm) est en dessous du tempo minimum configuré (%s bpm).</string>
+    <string name="speed_too_large">Le tempo choisi (%s bpm) est au-dessus du tempo maximum configuré (%s bpm).</string>
+    <string name="inconsistent_increment">Le tempo choisi (%s bpm) n\'est pas compatible avec l\'incrémentation configurée (%s bpm).</string>
+    <string name="vibrate_delay">Délai des vibrations</string>
+    <string name="milliseconds">%d ms</string>
+
+    <string name="database_saved">Sauvegarde des réglages dans \"%s\".</string>
+    <string name="play_pause">démarrer et arrêter</string>
+    <string name="edit">Éditer</string>
+    <string name="editing_scene">Modification du réglage</string>
+    <string name="rename_scene">Renommer</string>
+    <string name="scene">Réglage\u00A0: %s</string>
+    <string name="failed_to_archive_scenes">Échec de la sauvegarde des réglages.</string>
+
+    <string name="share">Partager les réglages</string>
+    <plurals name="sharing_num_scenes">
+        <item quantity="one">Partager %d réglage</item>
+        <item quantity="other">Partager %d réglages</item>
+    </plurals>
+
+    <string name="no_scenes_for_sharing">Il n\'y a pas de réglage à partager.</string>
+    <string name="max_speed_larger_than_allowed">Le tempo maximum indiqué (%s) doit être en dessous de %s.</string>
+    <string name="delete_note">Retirer la note</string>
+    <string name="tickvisualization">Style de l\'animation</string>
+    <string name="tickvis_bounce">Pendule</string>
+    <string name="thickvis_fade">Fondu</string>
+    <string name="thickvis_leftright">Alternance</string>
 </resources>
