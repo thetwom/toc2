@@ -32,7 +32,7 @@ class SceneArchiving(private val scenesFragment: ScenesFragment) {
 
     private inner class FileWriterContract : ActivityResultContract<String, String?>() {
 
-        override fun createIntent(context: Context, input: String?): Intent {
+        override fun createIntent(context: Context, input: String): Intent {
             return Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE)
                 type = "text/plain"
@@ -49,7 +49,7 @@ class SceneArchiving(private val scenesFragment: ScenesFragment) {
     }
 
     private class FileReaderContract : ActivityResultContract<String, Uri?>() {
-        override fun createIntent(context: Context, input: String?): Intent {
+        override fun createIntent(context: Context, input: String): Intent {
             return Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE)
                 type = "text/plain"
