@@ -61,8 +61,6 @@ class PlayerNotification(val context: PlayerService) {
         setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
     }
 
-    private val notificationStateID = 3214
-    val id = 3252
     val notification: Notification
         get() = notificationBuilder.build()
 
@@ -140,4 +138,8 @@ class PlayerNotification(val context: PlayerService) {
         handler.sendEmptyMessageDelayed(messageWhat, 150)
     }
 
+    companion object {
+        private const val notificationStateID = 3214
+        const val id = 3252
+    }
 }

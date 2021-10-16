@@ -290,7 +290,7 @@ class PlayerService : LifecycleService() {
 
         notification?.state = state
         notification?.let {
-            startForeground(it.id, it.notification)
+            startForeground(PlayerNotification.id, it.notification)
         }
 
         audioMixer?.start()

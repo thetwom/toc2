@@ -28,6 +28,7 @@ import android.view.WindowManager
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.app.NotificationManagerCompat
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.commit
 import androidx.fragment.app.replace
@@ -116,13 +117,18 @@ class MainActivity : AppCompatActivity() {
 //        Log.v("Metronome", "MainActivity.onBackPressed():  backStackEntryCount = ${supportFragmentManager.backStackEntryCount}")
         when (supportFragmentManager.findFragmentById(R.id.fragment_container)) {
             is MetronomeAndScenesFragment -> {
-                setMetronomeAndScenesViewPagerId(ViewPagerAdapter.METRONOME)
-                return
+                val changed = setMetronomeAndScenesViewPagerId(ViewPagerAdapter.METRONOME)
+                if (!changed) {
+                    // this will only remove the notification if no foreground task is running
+                    NotificationManagerCompat.from(this).cancel(PlayerNotification.id)
+                    moveTaskToBack(true)
+                }
+            }
+            else -> {
+                supportFragmentManager.popBackStack()
+                supportActionBar?.setDisplayHomeAsUpEnabled(false)
             }
         }
-
-        supportFragmentManager.popBackStack()
-        supportActionBar?.setDisplayHomeAsUpEnabled(false)
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -143,13 +149,18 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setMetronomeAndScenesViewPagerId(id: Int) {
+    private fun setMetronomeAndScenesViewPagerId(id: Int): Boolean {
+        var changed = false
         when (val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)) {
             is MetronomeAndScenesFragment -> {
-                currentFragment.viewPager?.currentItem = id
+                if (currentFragment.viewPager?.currentItem != id) {
+                    currentFragment.viewPager?.currentItem = id
+                    changed = true
+                }
                 supportActionBar?.setDisplayHomeAsUpEnabled(id != ViewPagerAdapter.METRONOME)
             }
         }
+        return changed
     }
 
     fun setDisplayHomeButton() {
