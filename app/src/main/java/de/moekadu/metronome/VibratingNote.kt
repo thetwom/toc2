@@ -20,12 +20,24 @@
 package de.moekadu.metronome
 
 import android.content.Context
+import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.os.VibratorManager
 import kotlin.math.*
 
+private fun getVibrator(context: Context?): Vibrator? {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        val vibratorManager =  context?.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager?
+        vibratorManager?.defaultVibrator
+    } else {
+        context?.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator?
+    }
+}
+
 fun vibratingNoteHasHardwareSupport(context: Context?): Boolean {
-    val vibrator = context?.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator?
+    // val vibrator = context?.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator?
+    val vibrator = getVibrator(context)
     if (vibrator != null && vibrator.hasVibrator())
         return true
     return false
@@ -39,7 +51,8 @@ class VibratingNote(context: Context) {
 
     private val applicationContext = context.applicationContext
     private val vibrator by lazy {
-        applicationContext.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator?
+        getVibrator(applicationContext)
+        // applicationContext.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator?
     }
     private var earliestNextVibrationTime = 0L
     private var _strength = 1.0f
@@ -69,7 +82,7 @@ class VibratingNote(context: Context) {
             if (System.currentTimeMillis() < earliestNextVibrationTime)
                 return
 
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 val v = min(255, (volume * 255).toInt())
                 if (v > 0)
                     it.vibrate(VibrationEffect.createOneShot(duration, v))

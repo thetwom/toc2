@@ -19,10 +19,7 @@
 
 package de.moekadu.metronome
 
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.OnLifecycleEvent
+import androidx.lifecycle.*
 
 class LifecycleAwareEvent<T> {
 
@@ -30,13 +27,18 @@ class LifecycleAwareEvent<T> {
         fun onChanged(t: T)
     }
 
-    private inner class LifecycleOwnerInfo(val lifecycleOwner: LifecycleOwner): LifecycleObserver {
+    private inner class LifecycleOwnerInfo(val lifecycleOwner: LifecycleOwner): LifecycleEventObserver {
         val lifecycle get() = lifecycleOwner.lifecycle
 
         init {
             lifecycle.addObserver(this)
         }
-        @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+
+        override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+            if (event == Lifecycle.Event.ON_DESTROY)
+                removeObserver()
+        }
+
         fun removeObserver() {
             lifecycle.removeObserver(this)
             observers = observers.filterValues { !(it === lifecycleOwner) }.toMutableMap()

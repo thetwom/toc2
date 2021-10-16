@@ -89,7 +89,7 @@ class VolumeSliders(context: Context) {
                 foldingButtonHeight: Int, closeButtonHeight: Int) {
 //        Log.v("Metronome", "VolumeSliders.onMeasure")
 
-        val openButtonSpec = View.MeasureSpec.makeMeasureSpec(foldingButtonHeight, View.MeasureSpec.EXACTLY)
+//        val openButtonSpec = View.MeasureSpec.makeMeasureSpec(foldingButtonHeight, View.MeasureSpec.EXACTLY)
 //        openButton.measure(openButtonSpec, openButtonSpec)
 
         val closeButtonSpec = View.MeasureSpec.makeMeasureSpec(closeButtonHeight, View.MeasureSpec.EXACTLY)

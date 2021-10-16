@@ -23,12 +23,9 @@ import android.content.Context
 import android.media.AudioManager
 import android.media.AudioTrack
 import android.media.SoundPool
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.OnLifecycleEvent
+import androidx.lifecycle.*
 
-class SingleNotePlayer(context: Context, private val lifecycleOwner: LifecycleOwner): LifecycleObserver {
+class SingleNotePlayer(context: Context, private val lifecycleOwner: LifecycleOwner): LifecycleEventObserver {
     /// Sound pool which is used for playing sample sounds when selected in the sound chooser.
     private val soundPool = SoundPool.Builder().setMaxStreams(3).build().apply {
         setOnLoadCompleteListener { soundPool, sampleId, _ ->
@@ -46,6 +43,11 @@ class SingleNotePlayer(context: Context, private val lifecycleOwner: LifecycleOw
 
     init {
         lifecycleOwner.lifecycle.addObserver(this)
+    }
+
+    override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+        if (event == Lifecycle.Event.ON_DESTROY)
+            clear()
     }
 
     fun play(noteId: Int, volume:Float) {
@@ -77,7 +79,6 @@ class SingleNotePlayer(context: Context, private val lifecycleOwner: LifecycleOw
         }
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     fun clear() {
         lifecycleOwner.lifecycle.removeObserver(this)
         for (sH in soundHandles44)

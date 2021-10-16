@@ -241,15 +241,12 @@ class SettingsFragment: PreferenceFragmentCompat() {
     }
 
     private fun getTickVisualizationSummary(state: String): String {
-
-        if (state == null || state == "leftright") {
-            return getString(R.string.thickvis_leftright)
-        } else if (state == "bounce") {
-            return getString(R.string.tickvis_bounce)
-        } else if (state == "fade") {
-            return getString(R.string.thickvis_fade)
+        return when (state) {
+            "leftright" -> getString(R.string.thickvis_leftright)
+            "bounce" -> getString(R.string.tickvis_bounce)
+            "fade" -> getString(R.string.thickvis_fade)
+            else -> throw RuntimeException("No summary for given tickvisualization value")
         }
-        throw RuntimeException("No summary for given tickvisualization value")
     }
 
     private fun getVibrationStrengthSummary(value: Int): String {

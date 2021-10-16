@@ -30,7 +30,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-class SpeedLimiter(private val sharedPreferences: SharedPreferences, private val lifecycleOwner: LifecycleOwner) : LifecycleObserver{
+class SpeedLimiter(private val sharedPreferences: SharedPreferences, private val lifecycleOwner: LifecycleOwner) : LifecycleEventObserver {
 
     private val _minimumBpm = MutableLiveData(InitialValues.minimumBpm)
     private val _maximumBpm = MutableLiveData(InitialValues.maximumBpm)
@@ -65,7 +65,14 @@ class SpeedLimiter(private val sharedPreferences: SharedPreferences, private val
         sharedPreferences.registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener)
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_START)
+    override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+        if (event == Lifecycle.Event.ON_START) {
+            readPreferences()
+        } else if (event == Lifecycle.Event.ON_DESTROY) {
+            onDestroy()
+        }
+    }
+
     private fun readPreferences() {
         sharedPreferences.getString("minimumspeed", InitialValues.minimumBpm.toString())?.let {
 //            Log.v("Metronome", "SpeedLimiter.init: loading minimum bpm: $it")
@@ -156,7 +163,6 @@ class SpeedLimiter(private val sharedPreferences: SharedPreferences, private val
         return message == null
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     private fun onDestroy() {
 //        Log.v("Metronome", "SpeedLimiter.onDestroy")
         lifecycleOwner.lifecycle.removeObserver(this)
