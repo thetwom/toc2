@@ -28,6 +28,7 @@ import android.view.*
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.AppCompatImageButton
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -87,8 +88,11 @@ class ScenesFragment : Fragment() {
 
     private var noScenesMessage: TextView? = null
 
-    private var playFab: FloatingActionButton? = null
+    private var playFab: AppCompatImageButton? = null
     private var playFabStatus = PlayerStatus.Paused
+
+    private var previousSceneButton: AppCompatImageButton? = null
+    private var nextSceneButton: AppCompatImageButton? = null
 
     private val sceneArchiving = SceneArchiving(this)
 
@@ -166,13 +170,39 @@ class ScenesFragment : Fragment() {
 
         noScenesMessage = view.findViewById(R.id.noScenesMessage)
 
-        playFab = view.findViewById(R.id.play_fab)
+        playFab = view.findViewById(R.id.player_controls_play)
 
         playFab?.setOnClickListener {
             if (metronomeViewModel.playerStatus.value == PlayerStatus.Playing)
                 metronomeViewModel.pause()
             else
                 metronomeViewModel.play()
+        }
+
+        previousSceneButton = view.findViewById(R.id.player_controls_back)
+        previousSceneButton?.setOnClickListener {
+            viewModel.activeStableId.value?.let { currentStableId ->
+                getPreviousSceneStableId(currentStableId)?.let { previousStableId ->
+                    viewModel.setActiveStableId(previousStableId)
+//                    getDatabaseIndex(previousStableId)?.let { index ->
+//                        // TODO: this does not work reliably
+//                        scenesRecyclerView?.scrollToPosition(index)
+//                    }
+                }
+            }
+        }
+
+        nextSceneButton = view.findViewById(R.id.player_controls_forward)
+        nextSceneButton?.setOnClickListener {
+            viewModel.activeStableId.value?.let { currentStableId ->
+                getNextSceneStableId(currentStableId)?.let { nextStableId ->
+                    viewModel.setActiveStableId(nextStableId)
+//                    getDatabaseIndex(nextStableId)?.let { index ->
+//                        // TODO: this does not work reliably
+//                        scenesRecyclerView?.scrollToPosition(index)
+//                    }
+                }
+            }
         }
 
         scenesRecyclerView = view.findViewById(R.id.scenes)
@@ -331,6 +361,10 @@ class ScenesFragment : Fragment() {
             }
 
             scenesAdapter.setActiveStableId(stableId, scenesRecyclerView)
+            getDatabaseIndex(stableId)?.let { index ->
+                //scenesRecyclerView?.scrollToPosition(index)
+                scenesRecyclerView?.smoothScrollToPosition(index)//scrollToPosition(index)
+            }
         }
 
         viewModel.uri.observe(viewLifecycleOwner) { uri ->
@@ -439,5 +473,34 @@ class ScenesFragment : Fragment() {
 
     fun numScenes() : Int {
         return viewModel.scenes.value?.size ?: 0
+    }
+
+    private fun getDatabaseIndex(stableId: Long) : Int? {
+        viewModel.scenes.value?.scenes?.let { scenes ->
+            val index = scenes.indexOfFirst { it.stableId == stableId }
+            if (index >= 0)
+                return index
+        }
+        return null
+    }
+
+    private fun getNextSceneStableId(stableId: Long) : Long? {
+        viewModel.scenes.value?.scenes?.let { scenes ->
+            val index = scenes.indexOfFirst { it.stableId == stableId }
+            if (index >= 0 && index < scenes.size - 1) {
+                return scenes[index + 1].stableId
+            }
+        }
+        return null
+    }
+
+    private fun getPreviousSceneStableId(stableId: Long) : Long? {
+        viewModel.scenes.value?.scenes?.let { scenes ->
+            val index = scenes.indexOfFirst { it.stableId == stableId }
+            if (index > 0) {
+                return scenes[index - 1].stableId
+            }
+        }
+        return null
     }
 }

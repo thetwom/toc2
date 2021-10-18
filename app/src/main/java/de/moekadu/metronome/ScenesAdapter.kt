@@ -19,6 +19,7 @@
 
 package de.moekadu.metronome
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -80,15 +81,17 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
     }
 
     fun setActiveStableId(stableId: Long, recyclerView: RecyclerView?) {
-        activatedStableId = stableId
+//        Log.v("Metronome", "ScenesAdapter.setActiveStableId: activatedStableId=$activatedStableId, stableId=$stableId")
         if (recyclerView != null) {
             for (i in 0 until recyclerView.childCount) {
                 val child = recyclerView.getChildAt(i)
                 (recyclerView.getChildViewHolder(child) as ScenesAdapter.ViewHolder).let { viewHolder ->
                     viewHolder.isActivated = (stableId == viewHolder.itemId)
+//                    Log.v("Metronome", "ScenesAdapter.setStableId: stableId=$stableId, activatedStableId=$activatedStableId, itemId=${viewHolder.itemId}, isActivated=${viewHolder.isActivated}")
                 }
             }
         }
+        activatedStableId = stableId
     }
 
     fun setTickVisualizationType(style: TickVisualizerSync.VisualizationType, recyclerView: RecyclerView?) {
@@ -115,7 +118,7 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
             (recyclerView.getChildViewHolder(child) as ScenesAdapter.ViewHolder).let { viewHolder ->
                 if (viewHolder.isActivated) {
                     if (index >= 0) {
-                        // noteView is now nimated through the tickVisualizer since this has better time syncrhonization
+                        // noteView is now animated through the tickVisualizer since this has better time syncrhonization
                         //    viewHolder.noteView?.animateNote(index)
                         if (noteDurationInMillis != null)
                             viewHolder.tickVisualizer?.tick(index, noteStartUptimeMillis, noteCount)
@@ -164,7 +167,8 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val scene = getItem(position)
 
-        holder.isActivated = (scene.stableId == activatedStableId)
+//        holder.isActivated = (scene.stableId == activatedStableId) // this is called by onViewAttachedToWindow
+//        Log.v("Metronome", "ScenesAdapter.onBindViewHolder: position=$position, stableId=${scene.stableId}, activatedStableId=$activatedStableId, isActivated=${holder.isActivated}")
         holder.titleView?.text = scene.title
         //holder.dateView?.text = scene.date + "\n" + scene.time
         holder.bpmView?.text = holder.view.context.getString(R.string.eqbpm, Utilities.getBpmString(scene.bpm.bpm))
@@ -183,4 +187,14 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
         holder.tickVisualizer?.bpm = scene.bpm
         // Log.v("Metronome", "SceneDatabase:onBindViewHolder (position = " + position + ")")
     }
+
+    override fun onViewAttachedToWindow(holder: ViewHolder) {
+        holder.isActivated = (holder.itemId == activatedStableId)
+//        Log.v("Metronome", "ScenesAdapter.onViewAttachedToWindow: activatedStableId=$activatedStableId, isActivated=${holder.isActivated}")
+        super.onViewAttachedToWindow(holder)
+    }
+//    override fun onViewRecycled(holder: ViewHolder) {
+//        Log.v("Metronome", "ScenesAdapter.onViewRecycled: activatedStableId=$activatedStableId, isActivated=${holder.isActivated}")
+//        super.onViewRecycled(holder)
+//    }
 }
