@@ -482,7 +482,7 @@ class MetronomeFragment : Fragment() {
         }
 
         if (editingStableId != Scene.NO_STABLE_ID) {
-            sceneTitle?.translationZ = Utilities.dp2px(8f)
+            sceneTitle?.translationZ = Utilities.dp2px(4f)
             sceneTitle?.isClickable = true
             context?.let {
                 sceneTitle?.background = ContextCompat.getDrawable(it, R.drawable.edit_scene_background)

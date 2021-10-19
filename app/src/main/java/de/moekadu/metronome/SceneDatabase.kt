@@ -22,14 +22,35 @@ package de.moekadu.metronome
 import android.content.Context
 import android.widget.Toast
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.min
 
-data class Scene(var title: String = "", var date: String = "",
+class Scene(var title: String = "", var date: String = "",
                  var time: String = "", var bpm: Bpm = Bpm(0f, NoteDuration.Quarter),
                  var noteList: ArrayList<NoteListItem>,
                  val stableId: Long) {
     companion object {
         const val NO_STABLE_ID = 0L
+    }
+
+    fun clone(title: String = this.title, date: String = this.date, time: String = this.time,
+              bpm: Bpm = this.bpm, noteList: ArrayList<NoteListItem> = this.noteList,
+              stableId: Long = this.stableId): Scene {
+        val noteListCopy = ArrayList<NoteListItem>()
+        deepCopyNoteList(noteList, noteListCopy)
+        return Scene(title, date, time, bpm.copy(), noteListCopy, stableId)
+    }
+
+    fun isEqual(other: Scene?): Boolean {
+        if (this === other) return true
+        if (other == null) return false
+        if (title != other.title) return false
+        if (date != other.date) return false
+        if (time != other.time) return false
+        if (bpm != other.bpm) return false
+        if (stableId != other.stableId) return false
+        if (!areNoteListsEqual(noteList, other.noteList)) return false
+        return true
     }
 }
 
@@ -118,7 +139,7 @@ class SceneDatabase {
 
         // keep the scene stable id if possible else create a new one
         val stableId = if (scene.stableId == Scene.NO_STABLE_ID || stableIds.contains(scene.stableId)) {
-            val newScene = scene.copy(stableId = getNewStableId())
+            val newScene = scene.clone(stableId = getNewStableId())
             _scenes.add(positionCorrected, newScene)
             stableIds.add(newScene.stableId)
             newScene.stableId

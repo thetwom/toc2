@@ -36,7 +36,7 @@ class ScenesDiffCallback : DiffUtil.ItemCallback<Scene>() {
 
     override fun areContentsTheSame(oldScene: Scene, newScene: Scene): Boolean {
 //        Log.v("Metronome", "SavedItemDiffCallback.areContentsTheSame: $oldScene, $newScene, ${oldScene == newScene}")
-        return oldScene == newScene
+        return oldScene.isEqual(newScene)
     }
 }
 

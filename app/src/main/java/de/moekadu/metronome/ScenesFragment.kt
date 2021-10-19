@@ -334,7 +334,7 @@ class ScenesFragment : Fragment() {
         viewModel.scenes.observe(viewLifecycleOwner) { database ->
 //            Log.v("Metronome", "ScenesFragment: submitting new data base list to adapter: size: ${database.savedItems.size}")
             val databaseCopy = ArrayList<Scene>(database.scenes.size)
-            database.scenes.forEach { databaseCopy.add(it.copy()) }
+            database.scenes.forEach { databaseCopy.add(it.clone()) }
             scenesAdapter.submitList(databaseCopy)
             activity?.let{AppPreferences.writeScenesDatabase(viewModel.scenesAsString, it)}
 

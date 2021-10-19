@@ -70,10 +70,30 @@ class NoteListItem(var id : Int = 0, var volume : Float = 1.0f,
     fun clone() : NoteListItem {
         return NoteListItem(id, volume, duration, uid)
     }
+
+    fun isEqual(other: NoteListItem?): Boolean {
+        if (this === other) return true
+        if (other == null) return false
+
+        if (id != other.id) return false
+        if (volume != other.volume) return false
+        if (duration != other.duration) return false
+        if (uid != other.uid) return false
+        return true
+    }
 }
 
 data class NoteListItemStartTime(val note: NoteListItem, val uptimeMillis: Long, val noteCount: Long)
 
+fun areNoteListsEqual(a: ArrayList<NoteListItem>?, b: ArrayList<NoteListItem>?): Boolean {
+    if (a == null && b == null) return true
+    if (a == null) return false
+    if (b == null) return false
+    if (a.size != b.size) return false
+    for (i in a.indices)
+        if (!a[i].isEqual(b[i])) return false
+    return true
+}
 fun deepCopyNoteList(origin: ArrayList<NoteListItem>, target: ArrayList<NoteListItem>) {
     if (target.size > origin.size)
         target.subList(origin.size, target.size).clear()
