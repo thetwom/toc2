@@ -513,12 +513,12 @@ class ScenesFragment : Fragment() {
         val scenes = viewModel.scenes.value?.scenes
 //        Log.v("Metronome", "ScenesFragment.setVisibilityOfBackAndNextButton: activeStableId = $activeStableId")
         if (activeStableId == Scene.NO_STABLE_ID || scenes == null) {
-            previousSceneButton?.visibility = View.GONE
-            nextSceneButton?.visibility = View.GONE
+            previousSceneButton?.alpha = 0.1f
+            nextSceneButton?.alpha = 0.1f
         } else {
             val index = scenes.indexOfFirst { it.stableId == activeStableId }
-            previousSceneButton?.visibility = if (index == 0) View.GONE else View.VISIBLE
-            nextSceneButton?.visibility = if (index == scenes.size - 1) View.GONE else View.VISIBLE
+            previousSceneButton?.alpha = if (index == 0) 0.1f else 1f
+            nextSceneButton?.alpha = if (index == scenes.size - 1) 0.1f else 1f
         }
     }
 }
