@@ -609,7 +609,8 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         plusButton.setOnClickListener {
             val newNote = controlButtons.lastOrNull()?.note?.clone()?.apply { uid = UId.create() }
                 ?: NoteListItem(defaultNote, 1.0f, NoteDuration.Quarter)
-            nextActiveControlButtonUidOnNoteListChange = newNote.uid
+            if (status == Status.Static)
+                nextActiveControlButtonUidOnNoteListChange = newNote.uid
             stateChangedListener?.addNote(newNote)
         }
         deleteButton.setOnClickListener {
@@ -1203,8 +1204,8 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             controlButtons.find { it.uid == nextActiveControlButtonUidOnNoteListChange }?.let {
                 setActiveControlButton(it, 0L)
             }
-            nextActiveControlButtonUidOnNoteListChange = null
         }
+        nextActiveControlButtonUidOnNoteListChange = null
 
         activeControlButton?.noteDuration?.let { noteDuration ->
             if (noteDuration != noteDurationBefore)
@@ -1260,7 +1261,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     private fun deleteNote(uid: UId?) {
         if (uid == null)
             return
-        if (activeControlButton?.uid == uid) {
+        if (activeControlButton?.uid == uid && status == Status.Static) {
             val buttonIndex = controlButtons.indexOf(activeControlButton)
             nextActiveControlButtonUidOnNoteListChange =
                 if (buttonIndex < 0 || controlButtons.size <= 1) null
