@@ -24,11 +24,13 @@ import android.content.SharedPreferences
 import android.graphics.Canvas
 import android.graphics.drawable.Animatable
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.AppCompatImageButton
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -230,7 +232,7 @@ class ScenesFragment : Fragment() {
                 lastRemovedItemIndex = viewHolder.absoluteAdapterPosition
                 lastRemovedItem = viewModel.scenes.value?.remove(lastRemovedItemIndex)
 
-                (getView() as CoordinatorLayout?)?.let { coLayout ->
+                (getView() as ConstraintLayout?)?.let { coLayout ->
                     lastRemovedItem?.let { removedItem ->
                         Snackbar.make(coLayout, getString(R.string.scene_deleted), Snackbar.LENGTH_LONG)
                                 .setAction(R.string.undo) {
@@ -342,6 +344,7 @@ class ScenesFragment : Fragment() {
                 noScenesMessage?.visibility = View.VISIBLE
             else
                 noScenesMessage?.visibility = View.GONE
+            setVisibilityOfBackAndNextButton()
         }
 
         viewModel.activeStableId.observe(viewLifecycleOwner) { stableId ->
@@ -365,6 +368,7 @@ class ScenesFragment : Fragment() {
                 //scenesRecyclerView?.scrollToPosition(index)
                 scenesRecyclerView?.smoothScrollToPosition(index)//scrollToPosition(index)
             }
+            setVisibilityOfBackAndNextButton()
         }
 
         viewModel.uri.observe(viewLifecycleOwner) { uri ->
@@ -502,5 +506,19 @@ class ScenesFragment : Fragment() {
             }
         }
         return null
+    }
+
+    private fun setVisibilityOfBackAndNextButton() {
+        val activeStableId = viewModel.activeStableId.value ?: Scene.NO_STABLE_ID
+        val scenes = viewModel.scenes.value?.scenes
+//        Log.v("Metronome", "ScenesFragment.setVisibilityOfBackAndNextButton: activeStableId = $activeStableId")
+        if (activeStableId == Scene.NO_STABLE_ID || scenes == null) {
+            previousSceneButton?.visibility = View.GONE
+            nextSceneButton?.visibility = View.GONE
+        } else {
+            val index = scenes.indexOfFirst { it.stableId == activeStableId }
+            previousSceneButton?.visibility = if (index == 0) View.GONE else View.VISIBLE
+            nextSceneButton?.visibility = if (index == scenes.size - 1) View.GONE else View.VISIBLE
+        }
     }
 }

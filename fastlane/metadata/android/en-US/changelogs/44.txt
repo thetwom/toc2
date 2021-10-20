@@ -1,0 +1,8 @@
+v4.2.0:
+- Player controls in scenes view
+- Fix issue that after edit of a scene the notelist was not always updated
+- Fix issue, that when editing a note, sometimes the position jumps arbitrarily
+
+v4.2.1:
+- Fix crash when deleting a scene
+- Hide control buttons to go to previous/next scene if there is not such as scene
