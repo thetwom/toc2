@@ -636,6 +636,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             when (event.actionMasked) {
                 MotionEvent.ACTION_UP -> {
                     volumeSliders.fold(animateLong)
+                    AnimateView.emerge(openVolumeSlidersButton, animateLong)
                     hideBackground(animateLong)
                     hideSoundChooser(animateLong)
                     performClick()
