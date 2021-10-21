@@ -135,4 +135,5 @@
     <string name="tickvis_bounce">Bounce</string>
     <string name="thickvis_fade">Fade</string>
     <string name="thickvis_leftright">Alternate</string>
+    <string name="decorate_with_hash_number">#%d: %s</string>
 </resources>

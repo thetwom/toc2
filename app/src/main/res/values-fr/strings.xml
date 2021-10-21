@@ -115,4 +115,5 @@
     <string name="tickvis_bounce">Pendule</string>
     <string name="thickvis_fade">Fondu</string>
     <string name="thickvis_leftright">Alternance</string>
+    <string name="decorate_with_hash_number">#%d\u00A0: %s</string>
 </resources>

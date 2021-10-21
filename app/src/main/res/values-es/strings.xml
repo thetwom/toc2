@@ -77,4 +77,5 @@
     <string name="acknowledged">Agradecimientos</string>
 
     <string name="keep_screen_on">Pantalla encendida</string>
+    <string name="decorate_with_hash_number">#%d: %s</string>
 </resources>

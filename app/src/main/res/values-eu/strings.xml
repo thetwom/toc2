@@ -115,5 +115,6 @@
         <item quantity="one">Sharing %d scene</item>
         <item quantity="other">Sharing %d scenes</item>
     </plurals>
+    <string name="decorate_with_hash_number">#%d: %s</string>
 
 </resources>

@@ -75,12 +75,49 @@ class ScenesFragment : Fragment() {
 
         registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
             override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) {
+//                Log.v("Metronome", "ScenesFragment: onItemRangeRemoved")
                 val currentStableId = viewModel.activeStableId.value ?: Scene.NO_STABLE_ID
                 if (currentStableId != Scene.NO_STABLE_ID) {
                     if (viewModel.scenes.value?.getScene(currentStableId) == null)
                         viewModel.setActiveStableId(Scene.NO_STABLE_ID)
                 }
+                setPositionNumbers(scenesRecyclerView)
                 super.onItemRangeRemoved(positionStart, itemCount)
+            }
+
+            override fun onChanged() {
+//                Log.v("Metronome", "ScenesFragment: onChanged")
+                super.onChanged()
+            }
+
+            override fun onItemRangeChanged(positionStart: Int, itemCount: Int) {
+//                Log.v("Metronome", "ScenesFragment: onItemRangeChanged")
+                setPositionNumbers(scenesRecyclerView)
+                super.onItemRangeChanged(positionStart, itemCount)
+            }
+
+            override fun onItemRangeChanged(positionStart: Int, itemCount: Int, payload: Any?) {
+//                Log.v("Metronome", "ScenesFragment: onItemRangeChanged2")
+                setPositionNumbers(scenesRecyclerView)
+                super.onItemRangeChanged(positionStart, itemCount, payload)
+            }
+
+            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+//                Log.v("Metronome", "ScenesFragment: onItemRangeInserted")
+                setPositionNumbers(scenesRecyclerView)
+                super.onItemRangeInserted(positionStart, itemCount)
+            }
+
+            override fun onItemRangeMoved(fromPosition: Int, toPosition: Int, itemCount: Int) {
+//                Log.v("Metronome", "ScenesFragment: onItemRangeMoved")
+                setPositionNumbers(scenesRecyclerView)
+                super.onItemRangeMoved(fromPosition, toPosition, itemCount)
+            }
+
+            override fun onStateRestorationPolicyChanged() {
+//                Log.v("Metronome", "ScenesFragment: onStateRestorationPolicyChanged")
+                setPositionNumbers(scenesRecyclerView)
+                super.onStateRestorationPolicyChanged()
             }
         })
     }
@@ -334,7 +371,7 @@ class ScenesFragment : Fragment() {
         }
 
         viewModel.scenes.observe(viewLifecycleOwner) { database ->
-//            Log.v("Metronome", "ScenesFragment: submitting new data base list to adapter: size: ${database.savedItems.size}")
+//            Log.v("Metronome", "ScenesFragment: submitting new data base list to adapter: size: ${database.scenes.size}")
             val databaseCopy = ArrayList<Scene>(database.scenes.size)
             database.scenes.forEach { databaseCopy.add(it.clone()) }
             scenesAdapter.submitList(databaseCopy)

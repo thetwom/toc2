@@ -41,14 +41,14 @@ class Scene(var title: String = "", var date: String = "",
         return Scene(title, date, time, bpm.copy(), noteListCopy, stableId)
     }
 
-    fun isEqual(other: Scene?): Boolean {
+    fun isEqualApartFromStableId(other: Scene?): Boolean {
         if (this === other) return true
         if (other == null) return false
         if (title != other.title) return false
         if (date != other.date) return false
         if (time != other.time) return false
         if (bpm != other.bpm) return false
-        if (stableId != other.stableId) return false
+        // if (stableId != other.stableId) return false
         if (!areNoteListsEqual(noteList, other.noteList)) return false
         return true
     }
