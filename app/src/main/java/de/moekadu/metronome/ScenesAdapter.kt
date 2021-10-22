@@ -244,6 +244,8 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
         val titleViewText = holder.view.context.getString(R.string.decorate_with_hash_number, position+1, scene.title) //"#${position + 1}: ${scene.title}"
         holder.titleView?.text = titleViewText
         holder.titleViewSimple?.text = titleViewText
+        holder.useSimpleMode = useSimpleMode
+        holder.tickVisualizer?.visualizationType = tickVisualizationType
         //holder.titleView?.text = "#${position + 1}: ${scene.title}"
 //        Log.v("Metronome", "ScenesAdapter.onViewAttachedToWindow: activatedStableId=$activatedStableId, isActivated=${holder.isActivated}")
         super.onViewAttachedToWindow(holder)
