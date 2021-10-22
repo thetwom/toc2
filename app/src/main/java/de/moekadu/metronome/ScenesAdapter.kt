@@ -53,6 +53,7 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
     var onSceneClickedListener: OnSceneClickedListener? = null
     private var activatedStableId = Scene.NO_STABLE_ID
     private var tickVisualizationType = TickVisualizerSync.VisualizationType.LeftRight
+    private var useSimpleMode = false
 
     inner class ViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
         var isActivated = false
@@ -71,13 +72,56 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
                 }
             }
 
+        var useSimpleMode = false
+            set(value) {
+                if (field == value)
+                    return
+
+                titleView?.visibility = if (value) View.GONE else View.VISIBLE
+                bpmView?.visibility = if (value) View.GONE else View.VISIBLE
+                bpmDuration?.visibility = if (value) View.GONE else View.VISIBLE
+                noteView?.visibility = if (value) View.GONE else View.VISIBLE
+
+                titleViewSimple?.visibility = if (value) View.VISIBLE else View.GONE
+                bpmViewSimple?.visibility = if (value) View.VISIBLE else View.GONE
+                field = value
+            }
         var titleView: TextView? = null
+            set(value) {
+                field = value
+                field?.visibility = if (useSimpleMode) View.GONE else View.VISIBLE
+            }
         //var dateView: TextView? = null
         var bpmView: TextView? = null
+            set(value) {
+                field = value
+                field?.visibility = if (useSimpleMode) View.GONE else View.VISIBLE
+            }
         var bpmDuration: AppCompatImageButton? = null
+            set(value) {
+                field = value
+                field?.visibility = if (useSimpleMode) View.GONE else View.VISIBLE
+            }
+
         var noteView: NoteView? = null
+            set(value) {
+                field = value
+                field?.visibility = if (useSimpleMode) View.GONE else View.VISIBLE
+            }
+
         var tickVisualizer: TickVisualizerSync? = null
         var selectedView: View? = null
+
+        var titleViewSimple: TextView? = null
+            set(value) {
+                field = value
+                field?.visibility = if (useSimpleMode) View.VISIBLE else View.GONE
+            }
+        var bpmViewSimple: TextView? = null
+            set(value) {
+                field = value
+                field?.visibility = if (useSimpleMode) View.VISIBLE else View.GONE
+            }
     }
 
     fun interface OnSceneClickedListener {
@@ -100,6 +144,13 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
         tickVisualizationType = style
         recyclerView?.forEachViewHolder { viewHolder ->
             viewHolder.tickVisualizer?.visualizationType = style
+        }
+    }
+
+    fun setSimpleMode(useSimpleMode: Boolean, recyclerView: RecyclerView?) {
+        this.useSimpleMode = useSimpleMode
+        recyclerView?.forEachViewHolder { viewHolder ->
+            viewHolder.useSimpleMode = useSimpleMode
         }
     }
 
@@ -155,6 +206,10 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
                 activatedStableId = itemId
                 onSceneClickedListener?.onSceneClicked(itemId)
             }
+
+            titleViewSimple = view.findViewById(R.id.scene_title_simple)
+            bpmViewSimple = view.findViewById(R.id.scene_bpm_simple)
+            useSimpleMode = this@ScenesAdapter.useSimpleMode
         }
     }
 
@@ -166,14 +221,14 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
         //holder.titleView?.text = holder.view.context.getString(R.string.decorate_with_hash_number, position, scene.title) //"#${position + 1}: ${scene.title}"
         //holder.dateView?.text = scene.date + "\n" + scene.time
         holder.bpmView?.text = holder.view.context.getString(R.string.eqbpm, Utilities.getBpmString(scene.bpm.bpm))
-        holder.bpmDuration?.setImageResource(
-            when (scene.bpm.noteDuration) {
-                NoteDuration.Quarter -> R.drawable.ic_note_duration_quarter
-                NoteDuration.Eighth -> R.drawable.ic_note_duration_eighth
-                NoteDuration.Sixteenth -> R.drawable.ic_note_duration_sixteenth
-                else -> throw RuntimeException("Invalid bpm duration")
-            }
-        )
+        holder.bpmViewSimple?.text = holder.view.context.getString(R.string.bpm, Utilities.getBpmString(scene.bpm.bpm))
+        val bpmDurationResource = when (scene.bpm.noteDuration) {
+            NoteDuration.Quarter -> R.drawable.ic_note_duration_quarter
+            NoteDuration.Eighth -> R.drawable.ic_note_duration_eighth
+            NoteDuration.Sixteenth -> R.drawable.ic_note_duration_sixteenth
+            else -> throw RuntimeException("Invalid bpm duration")
+        }
+        holder.bpmDuration?.setImageResource(bpmDurationResource)
 //        Log.v("Metronome", "SceneDatabase.onBindViewHolder: scene.noteList = ${scene.noteList}, scene.bpm = ${scene.bpm}")
 
         holder.noteView?.setNoteList(scene.noteList, 0L)
@@ -186,7 +241,9 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
         holder.isActivated = (holder.itemId == activatedStableId)
         val position = holder.absoluteAdapterPosition
         val scene = getItem(position)
-        holder.titleView?.text = holder.view.context.getString(R.string.decorate_with_hash_number, position+1, scene.title) //"#${position + 1}: ${scene.title}"
+        val titleViewText = holder.view.context.getString(R.string.decorate_with_hash_number, position+1, scene.title) //"#${position + 1}: ${scene.title}"
+        holder.titleView?.text = titleViewText
+        holder.titleViewSimple?.text = titleViewText
         //holder.titleView?.text = "#${position + 1}: ${scene.title}"
 //        Log.v("Metronome", "ScenesAdapter.onViewAttachedToWindow: activatedStableId=$activatedStableId, isActivated=${holder.isActivated}")
         super.onViewAttachedToWindow(holder)
@@ -200,11 +257,9 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
             val position = holder.bindingAdapterPosition
             if (position >= 0) {
                 val scene = getItem(position)
-                holder.titleView?.text = holder.view.context.getString(
-                    R.string.decorate_with_hash_number,
-                    position + 1,
-                    scene.title
-                ) //"#${position + 1}: ${scene.title}"
+                val titleViewText =  holder.view.context.getString(R.string.decorate_with_hash_number, position + 1, scene.title)
+                holder.titleView?.text = titleViewText
+                holder.titleViewSimple?.text = titleViewText
                 //holder.titleView?.text = "#${position + 1}: ${scene.title}"
             }
         }

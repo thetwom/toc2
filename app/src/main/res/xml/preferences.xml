@@ -56,6 +56,13 @@
         app:icon="@drawable/ic_appearance"
     />
 
+    <SwitchPreferenceCompat
+        app:key="compact_scenes_layout"
+        app:title="@string/compact_scenes_layout"
+        app:defaultValue="false"
+        app:icon="@drawable/ic_baseline_short_text"
+        />
+
     <SeekBarPreference
         app:key="speedincrement"
         app:title="@string/speedincrement"

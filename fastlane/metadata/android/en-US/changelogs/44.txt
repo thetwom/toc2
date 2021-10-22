@@ -3,8 +3,9 @@ v4.2.0:
 - Fix issue that after edit of a scene the notelist was not always updated
 - Fix issue, that when editing a note, sometimes the position jumps arbitrarily
 
-v4.2.1:
+v4.3.0:
 - Show scene number in front of scene title
 - Hide control buttons to go to previous/next scene if there is not such as scene
+- Add option for compact scenes layout
 - Fix crash when deleting a scene
 - Fix: volume-slider button did not always reappear

@@ -86,6 +86,9 @@ class SettingsFragment: PreferenceFragmentCompat() {
             true
         }
 
+        val compactScenesLayout = findPreference("compact_scenes_layout") as SwitchPreferenceCompat?
+        require(compactScenesLayout != null)
+
         val bpmIncrement = findPreference("speedincrement") as SeekBarPreference?
         require(bpmIncrement != null)
         bpmIncrement.updatesContinuously = true

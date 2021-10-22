@@ -453,6 +453,10 @@ class ScenesFragment : Fragment() {
                         }
                         scenesAdapter.setTickVisualizationType(type, scenesRecyclerView)
                     }
+                    "compact_scenes_layout" -> {
+                        val useSimpleMode = sharedPreferences.getBoolean("compact_scenes_layout", false)
+                        scenesAdapter.setSimpleMode(useSimpleMode, scenesRecyclerView)
+                    }
                 }
             }
 
@@ -464,6 +468,9 @@ class ScenesFragment : Fragment() {
             else -> TickVisualizerSync.VisualizationType.LeftRight
         }
         scenesAdapter.setTickVisualizationType(type, scenesRecyclerView)
+
+        val useSimpleMode = sharedPreferences.getBoolean("compact_scenes_layout", false)
+        scenesAdapter.setSimpleMode(useSimpleMode, scenesRecyclerView)
 
         return view
     }
