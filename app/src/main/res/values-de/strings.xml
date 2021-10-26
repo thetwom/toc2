@@ -97,6 +97,6 @@
     <string name="thickvis_leftright">Wechselspiel</string>
     <string name="tickvis_bounce">Zusammenprallen</string>
     <string name="eqbpm">= %s bpm</string>
-    <string name="decorate_with_hash_number">#%d: %s</string>
+    <string name="decorate_with_hash_number">%d. %s</string>
     <string name="compact_scenes_layout">Kompakte Szenendarstellung</string>
 </resources>
