@@ -1,0 +1,8 @@
+PRIVACY POLICY
+
+Metronome uses the following permissions:
+
+* Vibration for vibration based metronome
+* Foreground service for playing beats while app is in the background
+
+Metronome will not collect or use your private data.
