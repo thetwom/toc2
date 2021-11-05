@@ -1,0 +1,10 @@
+v4.3.0:
+- Show scene number in front of scene title
+- Hide control buttons to go to previous/next scene if there is not such as scene
+- Add option for compact scenes layout
+- Fix crash when deleting a scene
+- Fix: volume-slider button did not always reappear
+
+v4.3.1:
+- Slighly increase scenes in compact view of scenes
+- Slighly increase player controls in scenes view
