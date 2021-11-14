@@ -24,14 +24,12 @@ import android.content.SharedPreferences
 import android.graphics.Canvas
 import android.graphics.drawable.Animatable
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
@@ -41,7 +39,6 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import java.io.File
 import kotlin.math.absoluteValue
@@ -85,10 +82,10 @@ class ScenesFragment : Fragment() {
                 super.onItemRangeRemoved(positionStart, itemCount)
             }
 
-            override fun onChanged() {
-//                Log.v("Metronome", "ScenesFragment: onChanged")
-                super.onChanged()
-            }
+//            override fun onChanged() {
+////                Log.v("Metronome", "ScenesFragment: onChanged")
+//                super.onChanged()
+//            }
 
             override fun onItemRangeChanged(positionStart: Int, itemCount: Int) {
 //                Log.v("Metronome", "ScenesFragment: onItemRangeChanged")

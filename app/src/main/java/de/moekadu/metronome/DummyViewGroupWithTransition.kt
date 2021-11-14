@@ -48,16 +48,16 @@ class DummyViewGroupWithTransition(context : Context, attrs : AttributeSet?, def
         dummyView.layout(0, 0, 1, 1)
     }
 
-    fun dummyTransition() {
-        // Log.v("Metronome", "DummyViewGroupWithTransition.dummyTransition")
-        TransitionManager.beginDelayedTransition(this,
-                AutoTransition().apply {
-                    duration = 1L
-                }
-        )
-        if (dummyView.visibility == View.VISIBLE)
-            dummyView.visibility = View.GONE
-        else
-            dummyView.visibility = View.VISIBLE
-    }
+//    fun dummyTransition() {
+//        // Log.v("Metronome", "DummyViewGroupWithTransition.dummyTransition")
+//        TransitionManager.beginDelayedTransition(this,
+//                AutoTransition().apply {
+//                    duration = 1L
+//                }
+//        )
+//        if (dummyView.visibility == View.VISIBLE)
+//            dummyView.visibility = View.GONE
+//        else
+//            dummyView.visibility = View.VISIBLE
+//    }
 }

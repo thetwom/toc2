@@ -6,5 +6,6 @@ v4.3.0:
 - Fix: volume-slider button did not always reappear
 
 v4.3.1:
-- Slighly increase scenes in compact view of scenes
-- Slighly increase player controls in scenes view
+- Slightly increase scenes in compact view of scenes
+- Slightly increase player controls in scenes view
+- Update French translations (thanks to brilnius)
