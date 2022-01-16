@@ -26,6 +26,7 @@ import android.graphics.Rect
 import android.os.Bundle
 import android.os.Parcelable
 import android.util.AttributeSet
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -1141,7 +1142,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 //        Log.v("Metronome", "SoundChooser.setNoteList: noteList[0] = ${noteList[0].duration}")
         noteView.setNoteList(noteList, animationDuration)
         volumeSliders.setNoteList(this, noteList, animationDuration)
-
+//        Log.v("Metronome", "SoundChooser.setNoteList: uid=${activeControlButton?.uid}, activeControlButton.visibility==VISIBLE=${activeControlButton?.visibility == VISIBLE}, activeControlButton.alpha=${activeControlButton?.alpha}, VISIBLE=$VISIBLE, GONE=$GONE, INVISIBLE=$INVISIBLE")
         val noteDurationBefore = activeControlButton?.noteDuration
 
         // update control buttons if uid did not change

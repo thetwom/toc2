@@ -22,6 +22,7 @@ package de.moekadu.metronome
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
+import android.util.Log
 
 @SuppressLint("ViewConstructor")
 class SoundChooserControlButton(
@@ -60,9 +61,12 @@ class SoundChooserControlButton(
     val noteId get() = note.id
     val noteDuration get() = note.duration
 
-    private var cachedVisibility: Int? = null
-    private var cachedAlpha: Float? = null
+    //private var cachedVisibility: Int? = null
+    //private var cachedAlpha: Float? = null
     private var cachedEndAction: (()->Unit)? = null
+
+    private var targetVisibility = GONE
+    private var targetAlpha = 1.0f
 
     init {
         setBackgroundResource(R.drawable.control_button_background)
@@ -165,52 +169,58 @@ class SoundChooserControlButton(
 ////        }
 //    }
 
-    private fun changeState(animationDuration: Long, alphaTarget: Float? = null,
+    private fun changeState(animationDuration: Long, alphaEnd: Float? = null,
                             visibilityStart: Int? = null, visibilityEnd: Int? = null,
                             endAction: (()->Unit)? = null) {
         val animationDurationCorrected = if (visibility == VISIBLE || visibilityStart == VISIBLE) animationDuration else 0L
-        val alphaEnd = alphaTarget ?: cachedAlpha ?: alpha
-        require(!(visibilityStart != null && visibilityEnd != null))
+        val alphaEndResolved = alphaEnd ?: targetAlpha
 
+        if (alphaEnd != null)
+            targetAlpha = alphaEnd
+
+        if (visibilityStart != null)
+            targetVisibility = visibilityStart
+        if (visibilityEnd != null)
+            targetVisibility = visibilityEnd
+
+        cachedEndAction?.let {it()}
+        cachedEndAction = endAction
+
+        require(!(visibilityStart != null && visibilityEnd != null))
+//        Log.v("Metronome", "SoundChooserControlButton: changeState: uid=$uid, visibilityStart=$visibilityStart, visibilityEnd=$visibilityEnd")
         animate()
             .setDuration(animationDurationCorrected)
             .translationX(translationXTarget)
             .translationY(translationYTarget)
-            .alpha(alphaEnd)
+            .alpha(alphaEndResolved)
             .withStartAction {
-                visibilityStart?.let {
-                    visibility = it
-                }
-                cachedEndAction?.let {it()}
-                cachedEndAction = endAction
-
-                cachedAlpha = alphaEnd
-                cachedVisibility = visibilityEnd ?: cachedVisibility
+                if (visibilityStart != null)
+                    visibility = visibilityStart
+                else if (visibilityEnd == null)
+                    visibility = targetVisibility
             }
             .withEndAction {
                 translationX = translationXTarget
                 translationY = translationYTarget
-                visibility = visibilityEnd ?: cachedVisibility ?: visibility
-                cachedAlpha = null
-                cachedVisibility = null
+                visibility = targetVisibility
                 cachedEndAction?.let {it()}
                 cachedEndAction = null
+//                Log.v("Metronome", "SoundChooserControlButton: uid=$uid, visibilityStart=$visibilityStart, visibilityEnd=$visibilityEnd")
             }
     }
 
     fun moveToTarget2(animationDuration: Long) {
-//        Log.v("Metronome", "SoundChooserControlButton.moveTotarget2")
+//        Log.v("Metronome", "SoundChooserControlButton.moveTotarget2, uid=$uid")
         changeState(animationDuration, null, null, null)
     }
 
     fun moveToTarget2AndDisappear(animationDuration: Long, endAction: (()->Unit)? = null) {
-//        Log.v("Metronome", "SoundChooserControlButton.moveTotarget2AndDisappear")
+//        Log.v("Metronome", "SoundChooserControlButton.moveTotarget2AndDisappear uid=$uid")
         changeState(animationDuration, 0f, null, GONE, endAction)
     }
 
     fun emerge(animationDuration: Long) {
-//        Log.v("Metronome", "SoundChooserControlButton.emerge")
-        //val animationDurationCorrected = if (visibility == VISIBLE && alpha == 1f) 0L else animationDuration
+//        Log.v("Metronome", "SoundChooserControlButton.emerge uid=$uid")
         changeState(animationDuration, 1f, VISIBLE, null)
     }
 }
