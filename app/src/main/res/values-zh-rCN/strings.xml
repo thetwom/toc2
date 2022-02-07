@@ -82,7 +82,7 @@
     <string name="saved_speed_too_large">已保存的速度（%s BPM）高于设置的最低速度（%s BPM）。\n</string>
     <string name="max_speed_lower_minimum">给定的最高速度 (%s) 低于当前设置的最低速度 (%s)。</string>
     <string name="min_speed_higher_maximum">给定的最低速度 (%s) 低于当前设置的最高速度 (%s)。</string>
-    <string name="thickvis_leftright">备选</string>
+    <string name="thickvis_leftright">交替</string>
     <string name="speedincrement">速度增减单位</string>
     <string name="speed_sensitivity_summary">每旋转 1 cm 令速度增减 %.1f 个单位</string>
 </resources>
