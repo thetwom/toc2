@@ -46,7 +46,7 @@ class SettingsFragment: PreferenceFragmentCompat() {
         menu.clear() // this should not be needed, but just a "setHasOptionsMenu(false)" in "onCreate" be enough, but this doesnt work
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
 
         val vibratePreference = findPreference("vibrate") as SwitchPreferenceCompat?
         require(vibratePreference != null)
@@ -126,7 +126,7 @@ class SettingsFragment: PreferenceFragmentCompat() {
         if(minimumBpm.text == null)
             minimumBpm.text = InitialValues.minimumBpm.toString()
 
-        minimumBpm.summary = getString(R.string.bpm, Utilities.getBpmString(minimumBpm.text.toFloat(), bpmIncrementValue))
+        minimumBpm.summary = getString(R.string.bpm, Utilities.getBpmString(minimumBpm.text!!.toFloat(), bpmIncrementValue))
         minimumBpm.setOnBindEditTextListener(EditTextPreference.OnBindEditTextListener { editText ->
             editText.inputType = InputType.TYPE_CLASS_NUMBER
         })
@@ -136,14 +136,14 @@ class SettingsFragment: PreferenceFragmentCompat() {
         if(maximumBpm.text == null)
             maximumBpm.text = InitialValues.maximumBpm.toString()
 
-        maximumBpm.summary = getString(R.string.bpm, Utilities.getBpmString(maximumBpm.text.toFloat(), bpmIncrementValue))
+        maximumBpm.summary = getString(R.string.bpm, Utilities.getBpmString(maximumBpm.text!!.toFloat(), bpmIncrementValue))
         maximumBpm.setOnBindEditTextListener(EditTextPreference.OnBindEditTextListener { editText ->
             editText.inputType = InputType.TYPE_CLASS_NUMBER
         })
 
         minimumBpm.setOnPreferenceChangeListener { _, newValue ->
             val bpm = (newValue as String).toFloat()
-            val maxBpm = maximumBpm.text.toFloat()
+            val maxBpm = maximumBpm.text!!.toFloat()
             if (bpm < maxBpm) {
                 minimumBpm.summary = getString(R.string.bpm, Utilities.getBpmString(bpm))
                 true
@@ -157,7 +157,7 @@ class SettingsFragment: PreferenceFragmentCompat() {
 
         maximumBpm.setOnPreferenceChangeListener { _, newValue ->
             val bpm = (newValue as String).toFloat()
-            val minBpm = minimumBpm.text.toFloat()
+            val minBpm = minimumBpm.text!!.toFloat()
             if (bpm > minBpm && bpm <= ABSOLUTE_MAXIMUM_SPEED) {
                 maximumBpm.summary = getString(R.string.bpm, Utilities.getBpmString(bpm))
                 true

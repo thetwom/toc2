@@ -1,0 +1,6 @@
+v4.3.2:
+- Fix issue that active editing note was sometime not shows
+- Update dependencies
+
+v4.4.0:
+- Add translation for Simplified Chinese (thanks to "HZ is not Chatty")

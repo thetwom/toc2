@@ -467,7 +467,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                 transition.duration = animationDuration
                 TransitionManager.beginDelayedTransition(this@NoteView, transition)
             }
-            val map = notes.map {it.uid to it}.toMap().toMutableMap()
+            val map = notes.associateBy { it.uid }.toMutableMap()
             notes.clear()
             for (note in noteList) {
                 val n = map.remove(note.uid)

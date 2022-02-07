@@ -26,7 +26,6 @@ import android.graphics.Rect
 import android.os.Bundle
 import android.os.Parcelable
 import android.util.AttributeSet
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -1151,7 +1150,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                 target.set(source)
             }
         } else { // reorder renew, ... control button list
-            val map = controlButtons.map { it.uid to it }.toMap().toMutableMap()
+            val map = controlButtons.associateBy { it.uid }.toMutableMap()
             controlButtons.clear()
             for (note in noteList) {
                 val n = map.remove(note.uid)

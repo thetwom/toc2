@@ -23,8 +23,6 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
-import androidx.transition.AutoTransition
-import androidx.transition.TransitionManager
 
 class DummyViewGroupWithTransition(context : Context, attrs : AttributeSet?, defStyleAttr : Int)
     : ViewGroup(context, attrs, defStyleAttr) {
