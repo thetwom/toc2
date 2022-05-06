@@ -19,7 +19,6 @@
 
 package de.moekadu.metronome
 
-import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Canvas
 import android.graphics.drawable.Animatable
@@ -31,7 +30,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -40,11 +38,9 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
-import java.io.File
 import kotlin.math.absoluteValue
 import kotlin.math.min
 import kotlin.math.roundToInt
-
 
 class ScenesFragment : Fragment() {
 
@@ -170,29 +166,12 @@ class ScenesFragment : Fragment() {
                 return true
             }
             R.id.action_share -> {
-                val numScenes = viewModel.scenes.value?.size ?: 0
-
-                if (viewModel.scenes.value?.size ?: 0 == 0) {
+                val scenes = viewModel.scenes.value
+                if (scenes?.size ?: 0 == 0) {
                     Toast.makeText(requireContext(), R.string.no_scenes_for_sharing, Toast.LENGTH_LONG).show()
-                } else {
-                    val content = viewModel.scenesAsString
-
-                    val sharePath = File(context?.cacheDir, "share").also { it.mkdir() }
-                    val sharedFile = File(sharePath.path, "metronome.txt")
-                    sharedFile.writeBytes(content.toByteArray())
-
-                    val uri = FileProvider.getUriForFile(requireContext(), requireContext().packageName, sharedFile)
-
-                    val shareIntent = Intent().apply {
-                        action = Intent.ACTION_SEND
-                        putExtra(Intent.EXTRA_STREAM, uri)
-                        putExtra(Intent.EXTRA_EMAIL, "")
-                        putExtra(Intent.EXTRA_CC, "")
-                        putExtra(Intent.EXTRA_TITLE, resources.getQuantityString(R.plurals.sharing_num_scenes, numScenes, numScenes))
-                        type = "text/plain"
-                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    }
-                    startActivity(Intent.createChooser(shareIntent, getString(R.string.share)))
+                } else if (scenes != null) {
+                    val dialogFragment = ScenesSharingDialogFragment(scenes.scenes)
+                    dialogFragment.show(requireActivity().supportFragmentManager, "tag")
                 }
             }
         }

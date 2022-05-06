@@ -156,15 +156,7 @@ class SceneDatabase {
     }
 
     fun getScenesString() : String {
-        val stringBuilder = StringBuilder()
-        stringBuilder.append(String.format(Locale.ENGLISH, "%50s", BuildConfig.VERSION_NAME))
-        for (si in scenes) {
-            stringBuilder.append(String.format(Locale.ENGLISH, "%200s%10s%5s%12.5f%30s%sEND",
-                si.title, si.date, si.time, si.bpm.bpm, si.bpm.noteDuration.toString(),
-                noteListToString(si.noteList)))
-        }
-//        Log.v("Metronome", "SceneDatabase.getSceneString: string= ${stringBuilder}")
-        return stringBuilder.toString()
+        return scenesToString(scenes)
     }
 
     fun loadScenes(newScenes: List<Scene>, mode: InsertMode = InsertMode.Replace): FileCheck {
@@ -200,6 +192,17 @@ class SceneDatabase {
     data class ScenesAndFileCheckResult(val fileCheck: FileCheck, val scenes: List<Scene>)
 
     companion object {
+        fun scenesToString(scenes: List<Scene>) : String {
+            val stringBuilder = StringBuilder()
+            stringBuilder.append(String.format(Locale.ENGLISH, "%50s", BuildConfig.VERSION_NAME))
+            for (si in scenes) {
+                stringBuilder.append(String.format(Locale.ENGLISH, "%200s%10s%5s%12.5f%30s%sEND",
+                    si.title, si.date, si.time, si.bpm.bpm, si.bpm.noteDuration.toString(),
+                    noteListToString(si.noteList)))
+            }
+//        Log.v("Metronome", "SceneDatabase.getSceneString: string= ${stringBuilder}")
+            return stringBuilder.toString()
+        }
 
         fun stringToScenes(sceneString: String): ScenesAndFileCheckResult {
             val scenes = mutableListOf<Scene>()

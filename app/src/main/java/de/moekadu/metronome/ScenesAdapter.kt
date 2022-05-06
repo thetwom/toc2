@@ -19,6 +19,7 @@
 
 package de.moekadu.metronome
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -205,7 +206,10 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
                 activatedStableId = itemId
                 onSceneClickedListener?.onSceneClicked(itemId)
             }
-
+//            view.setOnLongClickListener {
+//                Log.v("Metronome", "ScenesAdapter: onLongClick: $itemId")
+//                true
+//            }
             titleViewSimple = view.findViewById(R.id.scene_title_simple)
             bpmViewSimple = view.findViewById(R.id.scene_bpm_simple)
             useSimpleMode = this@ScenesAdapter.useSimpleMode

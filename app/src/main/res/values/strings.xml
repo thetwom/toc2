@@ -137,4 +137,8 @@
     <string name="thickvis_leftright">Alternate</string>
     <string name="decorate_with_hash_number">%d. %s</string>
     <string name="compact_scenes_layout">Compact scenes layout</string>
+    <string name="no_scenes_selected">No scenes selected.</string>
+    <string name="select_scenes">Select scenes</string>
+    <string name="share2">Share</string>
+    <string name="select_all">Select all</string>
 </resources>
