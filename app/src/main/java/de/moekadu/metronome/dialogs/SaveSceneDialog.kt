@@ -20,67 +20,58 @@
 package de.moekadu.metronome.dialogs
 
 import android.annotation.SuppressLint
-import android.app.AlertDialog
-import android.content.Context
-import android.text.InputType
+import android.app.Dialog
+import android.content.DialogInterface
+import android.os.Bundle
+import android.view.View
+import android.view.WindowManager
 import android.widget.EditText
 import android.widget.Toast
-import de.moekadu.metronome.*
-import de.moekadu.metronome.metronomeproperties.Bpm
-import de.moekadu.metronome.metronomeproperties.NoteListItem
-import de.moekadu.metronome.metronomeproperties.UId
-import de.moekadu.metronome.metronomeproperties.deepCopyNoteList
-import de.moekadu.metronome.scenes.Scene
-import java.text.SimpleDateFormat
-import java.util.*
-import kotlin.collections.ArrayList
+import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.setFragmentResult
+import de.moekadu.metronome.R
 
-// TODO: I guess this better becomes a dialogfragment
-class SaveSceneDialog {
-    companion object {
-        @SuppressLint("SimpleDateFormat")
-        fun save(context: Context, bpm: Bpm?, noteList: ArrayList<NoteListItem>?, saveItem: (Scene) -> Boolean) {
-            if (bpm == null || noteList == null)
-                return
+class SaveSceneDialog : DialogFragment() {
+    @SuppressLint("InflateParams")
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        val view = layoutInflater.inflate(R.layout.save_scene_dialog, null)
+        val editText = view.findViewById<EditText>(R.id.scene_title)
 
-            val editText = EditText(context).apply {
-                setHint(R.string.save_name)
-                inputType = InputType.TYPE_CLASS_TEXT
-            }
-
-            val dialogBuilder = AlertDialog.Builder(context).apply {
-                setTitle(R.string.save_settings_dialog_title)
-                setView(editText)
-                setNegativeButton(R.string.dismiss) { dialog, _ -> dialog.cancel() }
-                setPositiveButton(R.string.save) { _, _ ->
-                    var title = editText.text.toString()
-                    val dateFormat = SimpleDateFormat("dd.MM.yyyy")
-                    val timeFormat = SimpleDateFormat("HH:mm")
-                    val calendarDate = Calendar.getInstance().time
-                    val date = dateFormat.format(calendarDate)
-                    val time = timeFormat.format(calendarDate)
-
-                    //                    Log.v("Metronome", item.playList);
-                    if (title.length > 200) {
-                        title = title.substring(0, 200)
-                        Toast.makeText(context, context.getString(R.string.max_allowed_characters, 200), Toast.LENGTH_SHORT).show()
-                    }
-
-                    // create a copy of the note list with new uids
-                    val noteListCopy = ArrayList<NoteListItem>(noteList.size)
-                    deepCopyNoteList(noteList, noteListCopy)
-                    for (note in noteListCopy)
-                        note.uid = UId.create()
-
-                    val item = Scene(title, date, time, bpm, noteListCopy, Scene.NO_STABLE_ID)
-                    val success = saveItem(item)
-                    if (success) {
-                        Toast.makeText(context, context.getString(R.string.saved_scene_message, item.title),
-                                Toast.LENGTH_SHORT).show()
-                    }
+        val dialog = AlertDialog.Builder(requireContext()).apply {
+            setTitle(R.string.save_settings_dialog_title)
+            setView(view)
+            setNegativeButton(R.string.dismiss) { _, _ -> dismiss() }
+            setPositiveButton(R.string.save) { _, _ ->
+                var title = editText.text.toString()
+                if (title.length > 200) {
+                    title = title.substring(0, 200)
+                    Toast.makeText(context, context.getString(R.string.max_allowed_characters, 200), Toast.LENGTH_SHORT).show()
                 }
+                val bundle = Bundle(1)
+                bundle.putString(TITLE_KEY, title)
+                setFragmentResult(REQUEST_KEY, bundle)
             }
-            dialogBuilder.show()
-        }
+        }.create()
+        dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
+
+        return dialog
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        val editText = view.findViewById<EditText>(R.id.scene_title)
+        editText.requestFocus()
+    }
+
+    override fun onDismiss(dialog: DialogInterface) {
+        // this seems only necessary on some devices ...
+        (dialog as AlertDialog).window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
+        super.onDismiss(dialog)
+    }
+
+    companion object {
+        const val REQUEST_KEY = "dialogs.SaveSceneDialog: save scene"
+        const val TITLE_KEY = "title"
     }
 }

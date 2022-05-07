@@ -54,7 +54,6 @@ class BpmInputDialogFragment() : DialogFragment() {
         }.create()
 
         dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
-        editText.requestFocus()
         return dialog
     }
 
@@ -71,7 +70,7 @@ class BpmInputDialogFragment() : DialogFragment() {
     }
 
     companion object {
-        const val REQUEST_KEY = "bpm from input dialog fragment"
+        const val REQUEST_KEY = "dialogs.BpmInputDialogDragment: change bpm"
         const val BPM_KEY = "bpm"
     }
 }

@@ -60,6 +60,9 @@ import de.moekadu.metronome.views.PlayButton
 import de.moekadu.metronome.views.SoundChooser
 import de.moekadu.metronome.views.SpeedPanel
 import de.moekadu.metronome.views.TickVisualizerSync
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.roundToInt
 
 /**
@@ -125,6 +128,12 @@ class MetronomeFragment : Fragment() {
 //        Log.v("Metronome", "MetronomeFragment:onCreateView")
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_metronome, container, false)
+
+        parentFragmentManager.setFragmentResultListener(SaveSceneDialog.REQUEST_KEY, viewLifecycleOwner) {
+                _, bundle ->
+            val title = bundle.getString(SaveSceneDialog.TITLE_KEY, "no title")
+            saveCurrentSettingIntoScene(title)
+        }
 
         parentFragmentManager.setFragmentResultListener(BpmInputDialogFragment.REQUEST_KEY, viewLifecycleOwner) {
             _, bundle ->
@@ -458,16 +467,8 @@ class MetronomeFragment : Fragment() {
     override fun onOptionsItemSelected(item : MenuItem) : Boolean {
         when (item.itemId) {
             R.id.action_save -> {
-                SaveSceneDialog.save(requireContext(), viewModel.bpm.value, viewModel.noteList.value) { scene ->
-                    scenesViewModel.scenes.value?.add(scene)?.let { stableId ->
-                        scenesViewModel.setActiveStableId(stableId)
-                    }
-                    AppPreferences.writeScenesDatabase(
-                        scenesViewModel.scenesAsString,
-                        requireActivity()
-                    )
-                    true
-                }
+                val dialogFragment = SaveSceneDialog()
+                dialogFragment.show(parentFragmentManager, SaveSceneDialog.REQUEST_KEY)
                 return true
             }
         }
@@ -514,6 +515,37 @@ class MetronomeFragment : Fragment() {
             }
             else {
                 sceneTitle?.visibility = View.GONE
+            }
+        }
+    }
+
+    private fun saveCurrentSettingIntoScene(title: String) {
+        val bpm = viewModel.bpm.value
+        val noteList = viewModel.noteList.value
+
+        if (bpm != null && noteList != null) {
+            val dateFormat = SimpleDateFormat("dd.MM.yyyy")
+            val timeFormat = SimpleDateFormat("HH:mm")
+            val calendarDate = Calendar.getInstance().time
+            val date = dateFormat.format(calendarDate)
+            val time = timeFormat.format(calendarDate)
+            val noteListCopy = ArrayList<NoteListItem>(noteList.size)
+            deepCopyNoteList(noteList, noteListCopy)
+            for (note in noteListCopy)
+                note.uid = UId.create()
+            val scene = Scene(title, date, time, bpm, noteListCopy, Scene.NO_STABLE_ID)
+            scenesViewModel.scenes.value?.add(scene)?.let { stableId ->
+                scenesViewModel.setActiveStableId(stableId)
+            }
+            AppPreferences.writeScenesDatabase(
+                scenesViewModel.scenesAsString,
+                requireActivity()
+            )
+            context?.let {
+                Toast.makeText(
+                    it, it.getString(R.string.saved_scene_message, scene.title),
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }
