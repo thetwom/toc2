@@ -26,10 +26,10 @@
     android:layout_height="match_parent"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    tools:context=".MetronomeFragment">
+    tools:context=".fragments.MetronomeFragment">
 
     <!-- Dummy transition view group which helps to prevent ViewPager2 error, that first transition after page change is skipped -->
-<!--    <de.moekadu.metronome.DummyViewGroupWithTransition-->
+<!--    <de.moekadu.metronome.views.DummyViewGroupWithTransition-->
 <!--        android:id="@+id/dummy_view_group"-->
 <!--        android:layout_width="1px"-->
 <!--        android:layout_height="1px"-->
@@ -44,7 +44,7 @@
         android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.73"
         />
-    <de.moekadu.metronome.SpeedPanel
+    <de.moekadu.metronome.views.SpeedPanel
         android:id="@+id/speed_panel"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -107,7 +107,7 @@
         app:layout_constraintVertical_weight="0.22"
         android:visibility="invisible"
         />
-    <de.moekadu.metronome.PlayButton
+    <de.moekadu.metronome.views.PlayButton
         android:id="@+id/play_button"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -123,7 +123,7 @@
         app:layout_constraintVertical_weight="0.56"
         />
 
- <de.moekadu.metronome.TickVisualizerSync
+ <de.moekadu.metronome.views.TickVisualizerSync
      android:id="@+id/tick_visualizer"
      android:layout_width="match_parent"
      android:layout_height="0dp"
@@ -280,7 +280,7 @@
         />
     <!--    android:background="@drawable/scene_button_background"-->
 
-    <de.moekadu.metronome.SoundChooser
+    <de.moekadu.metronome.views.SoundChooser
         android:id="@+id/sound_chooser3"
         android:layout_width="match_parent"
         android:layout_height="0dp"

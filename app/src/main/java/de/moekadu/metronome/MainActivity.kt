@@ -33,6 +33,14 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.commit
 import androidx.fragment.app.replace
 import androidx.preference.PreferenceManager
+import de.moekadu.metronome.fragments.MetronomeAndScenesFragment
+import de.moekadu.metronome.fragments.SettingsFragment
+import de.moekadu.metronome.fragments.ViewPagerAdapter
+import de.moekadu.metronome.notification.PlayerNotification
+import de.moekadu.metronome.preferences.AppPreferences
+import de.moekadu.metronome.services.PlayerServiceConnection
+import de.moekadu.metronome.viewmodels.MetronomeViewModel
+import de.moekadu.metronome.viewmodels.ScenesViewModel
 
 class MainActivity : AppCompatActivity() {
 

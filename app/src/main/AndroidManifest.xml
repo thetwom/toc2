@@ -55,7 +55,7 @@
         </activity>
 
         <service
-            android:name="de.moekadu.metronome.PlayerService"
+            android:name="de.moekadu.metronome.services.PlayerService"
             android:enabled="true"
             android:exported="false" />
 <!--

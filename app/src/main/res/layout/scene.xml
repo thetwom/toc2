@@ -45,7 +45,7 @@
         android:visibility="invisible"
         />
 
-    <de.moekadu.metronome.TickVisualizerSync
+    <de.moekadu.metronome.views.TickVisualizerSync
         android:id="@+id/scene_ticks_visualizer"
         android:layout_width="match_parent"
         android:layout_height="8dp"
@@ -68,7 +68,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <de.moekadu.metronome.NoteView
+    <de.moekadu.metronome.views.NoteView
         android:id="@+id/scene_sounds"
         android:layout_width="0dp"
         android:layout_height="60dp"
