@@ -382,7 +382,7 @@ class ScenesFragment : Fragment() {
                 if (scene.noteList.size > 0)
                     metronomeViewModel.setNoteList(scene.noteList)
                 speedLimiter?.let {
-                    it.checkSavedItemBpmAndAlert(scene.bpm.bpm, requireContext())
+                    it.checkSavedItemBpmAndAlert(scene.bpm.bpm, requireContext(), parentFragmentManager)
                     metronomeViewModel.setBpm(it.limit(scene.bpm))
                 }
                 metronomeViewModel.setNextNoteIndex(0)

@@ -23,9 +23,11 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.*
 import de.moekadu.metronome.misc.InitialValues
 import de.moekadu.metronome.R
+import de.moekadu.metronome.dialogs.SpeedLimiterInfoDialog
 import de.moekadu.metronome.misc.Utilities
 import de.moekadu.metronome.metronomeproperties.Bpm
 import java.lang.NumberFormatException
@@ -123,7 +125,7 @@ class SpeedLimiter(private val sharedPreferences: SharedPreferences, private val
         return bpm.copy(bpm = limit(bpm.bpm))
     }
 
-    fun checkSavedItemBpmAndAlert(bpm: Float, contextForMessages: Context) {
+    fun checkSavedItemBpmAndAlert(bpm: Float, contextForMessages: Context, fragmentManager: FragmentManager) {
         var message = ""
 
         if(bpm < _minimumBpm.value!! - TOLERANCE) {
@@ -148,11 +150,8 @@ class SpeedLimiter(private val sharedPreferences: SharedPreferences, private val
         }
         if (message != "") {
             message += contextForMessages.getString(R.string.inconsistent_summary)
-            val builder = AlertDialog.Builder(contextForMessages)
-                    .setTitle(R.string.inconsistent_load_title)
-                    .setMessage(message)
-                    .setNegativeButton(R.string.acknowledged) { dialog, _ -> dialog.dismiss() }
-            builder.show()
+            val dialog = SpeedLimiterInfoDialog(message)
+            dialog.show(fragmentManager, "speed limiter info dialog")
         }
     }
 
