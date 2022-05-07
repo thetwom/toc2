@@ -19,6 +19,7 @@
 
 package de.moekadu.metronome
 
+import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
@@ -47,8 +48,10 @@ class ScenesSharingDialogFragment() : DialogFragment() {
     override fun onSaveInstanceState(outState: Bundle) {
         val state = SavedState(adapter?.getStateOfEachScene(), scenesString)
         outState.putParcelable("scenes sharing dialog fragment state", state)
+        super.onSaveInstanceState(outState)
     }
 
+    @SuppressLint("InflateParams")
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         savedInstanceState?.let {
             it.getParcelable<SavedState>("scenes sharing dialog fragment state")?.let { storedState ->
@@ -69,10 +72,8 @@ class ScenesSharingDialogFragment() : DialogFragment() {
             r?.adapter = adapter
             setTitle(R.string.select_scenes)
             setView(v)
-            setPositiveButton(R.string.share2) { dialog, which ->
-                //val numScenes = viewModel.scenes.value?.size ?: 0
+            setPositiveButton(R.string.share2) { _, _ ->
                 val scenesForSharing = adapter?.getScenesToBeShared()
-                //val numScenes = viewModel.scenes.value?.size ?: 0
                 val numScenes = scenesForSharing?.size ?: 0
                 if (numScenes == 0 || scenesForSharing == null) {
                     Toast.makeText(requireContext(), R.string.no_scenes_selected, Toast.LENGTH_LONG).show()
@@ -97,8 +98,7 @@ class ScenesSharingDialogFragment() : DialogFragment() {
                     startActivity(Intent.createChooser(shareIntent, getString(R.string.share)))
                 }
             }
-            setNegativeButton(R.string.abort) { dialog, which -> }
+            setNegativeButton(R.string.abort) { _, _ -> dismiss()}
         }.create()
-        //return super.onCreateDialog(savedInstanceState)
     }
 }

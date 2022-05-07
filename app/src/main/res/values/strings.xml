@@ -141,4 +141,5 @@
     <string name="select_scenes">Select scenes</string>
     <string name="share2">Share</string>
     <string name="select_all">Select all</string>
+    <string name="bpm_nonumber">bpm</string>
 </resources>

@@ -105,6 +105,15 @@ class MetronomeFragment : Fragment() {
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_metronome, container, false)
 
+        parentFragmentManager.setFragmentResultListener(BpmInputDialogFragment.REQUEST_KEY, viewLifecycleOwner) {
+            _, bundle ->
+            //Log.v("Metronome", "MetronomeFragment.fragmentResultListener: $requestKey")
+            val bpmValue = bundle.getFloat(BpmInputDialogFragment.BPM_KEY, Float.MAX_VALUE)
+            if (bpmValue != Float.MAX_VALUE && speedLimiter?.checkNewBpmAndShowToast(bpmValue, requireContext()) == true) {
+                viewModel.setBpm(bpmValue)
+            }
+        }
+
         constraintLayout = view.findViewById(R.id.metronome_layout)
         constraintLayout?.setOnTouchListener { _, event ->
             if (event.actionMasked == MotionEvent.ACTION_DOWN)
@@ -118,44 +127,9 @@ class MetronomeFragment : Fragment() {
 
         bpmText = view.findViewById(R.id.bpm_text)
         bpmText?.setOnClickListener {
-            activity?.let { ctx ->
-                val editText = EditText(ctx)
-                editText.inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
-                val pad = Utilities.dp2px(20f).roundToInt()
-                editText.setPadding(pad, pad, pad, pad)
-
-                viewModel.bpm.value?.let { bpm ->
-                    editText.setText(Utilities.getBpmString(bpm.bpm, false))
-                }
-
-                editText.hint = getString(R.string.bpm, "")
-                editText.setSelectAllOnFocus(true)
-
-                val builder = AlertDialog.Builder(ctx).apply {
-                    setTitle(R.string.set_new_speed)
-                    setPositiveButton(R.string.done) { _, _ ->
-                        val newBpmText = editText.text.toString()
-                        val newBpm = newBpmText.toFloatOrNull()
-                        if (newBpm == null) {
-                            Toast.makeText(ctx, "${getString(R.string.invalid_speed)}$newBpmText",
-                                    Toast.LENGTH_LONG).show()
-                        } else if (speedLimiter?.checkNewBpmAndShowToast(newBpm, ctx) == true) {
-                            viewModel.setBpm(newBpm)
-                        }
-                    }
-                    setNegativeButton(R.string.abort) { dialog, _ ->
-                        dialog?.cancel()
-                    }
-                    setView(editText)
-                }
-                val dialog = builder.create()
-                dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
-                // this seems only necessary on some devices ...
-                dialog.setOnDismissListener {
-                    dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
-                }
-                dialog.show()
-                editText.requestFocus()
+            viewModel.bpm.value?.let {
+                val dialogFragment = BpmInputDialogFragment(it)
+                dialogFragment.show(parentFragmentManager, BpmInputDialogFragment.REQUEST_KEY)
             }
         }
         bpmText?.setOnTouchListener { _, event ->
@@ -163,7 +137,6 @@ class MetronomeFragment : Fragment() {
                 view.parent.requestDisallowInterceptTouchEvent(false)
             false
         }
-
 
         val speedPanel = view.findViewById(R.id.speed_panel) as SpeedPanel?
         speedPanel?.speedChangedListener = object : SpeedPanel.SpeedChangedListener {
