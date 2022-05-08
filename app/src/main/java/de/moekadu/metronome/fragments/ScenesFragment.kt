@@ -39,7 +39,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import de.moekadu.metronome.*
 import de.moekadu.metronome.dialogs.ClearAllSavedScenesDialog
-import de.moekadu.metronome.dialogs.ScenesSharingDialogFragment
+import de.moekadu.metronome.dialogs.ScenesSharingDialog
 import de.moekadu.metronome.metronomeproperties.durationInMillis
 import de.moekadu.metronome.players.PlayerStatus
 import de.moekadu.metronome.preferences.AppPreferences
@@ -184,7 +184,7 @@ class ScenesFragment : Fragment() {
                 if (scenes?.size ?: 0 == 0) {
                     Toast.makeText(requireContext(), R.string.no_scenes_for_sharing, Toast.LENGTH_LONG).show()
                 } else if (scenes != null) {
-                    val dialogFragment = ScenesSharingDialogFragment(scenes.scenes)
+                    val dialogFragment = ScenesSharingDialog(scenes.scenes)
                     dialogFragment.show(requireActivity().supportFragmentManager, "tag")
                 }
             }

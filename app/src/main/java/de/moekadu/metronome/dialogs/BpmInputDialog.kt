@@ -15,7 +15,7 @@ import de.moekadu.metronome.metronomeproperties.Bpm
 import de.moekadu.metronome.R
 import de.moekadu.metronome.misc.Utilities
 
-class BpmInputDialogFragment() : DialogFragment() {
+class BpmInputDialog() : DialogFragment() {
     private var bpmText = ""
 
     constructor(bpm: Bpm) : this() {

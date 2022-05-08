@@ -36,7 +36,7 @@ import de.moekadu.metronome.scenes.SceneDatabase
 import kotlinx.parcelize.Parcelize
 import java.io.File
 
-class ScenesSharingDialogFragment() : DialogFragment() {
+class ScenesSharingDialog() : DialogFragment() {
     private var adapter: ScenesSharingDialogAdapter? = null
     private var scenesString: String? = null
 

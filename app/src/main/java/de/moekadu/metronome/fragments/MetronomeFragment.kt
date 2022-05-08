@@ -37,7 +37,7 @@ import androidx.transition.AutoTransition
 import androidx.transition.TransitionManager
 import com.google.android.material.snackbar.Snackbar
 import de.moekadu.metronome.*
-import de.moekadu.metronome.dialogs.BpmInputDialogFragment
+import de.moekadu.metronome.dialogs.BpmInputDialog
 import de.moekadu.metronome.dialogs.RenameSceneDialog
 import de.moekadu.metronome.dialogs.SaveSceneDialog
 import de.moekadu.metronome.metronomeproperties.*
@@ -140,10 +140,10 @@ class MetronomeFragment : Fragment() {
             updateSceneTitleTextAndSwipeView()
         }
 
-        parentFragmentManager.setFragmentResultListener(BpmInputDialogFragment.REQUEST_KEY, viewLifecycleOwner) {
+        parentFragmentManager.setFragmentResultListener(BpmInputDialog.REQUEST_KEY, viewLifecycleOwner) {
             _, bundle ->
             //Log.v("Metronome", "MetronomeFragment.fragmentResultListener: $requestKey")
-            val bpmValue = bundle.getFloat(BpmInputDialogFragment.BPM_KEY, Float.MAX_VALUE)
+            val bpmValue = bundle.getFloat(BpmInputDialog.BPM_KEY, Float.MAX_VALUE)
             if (bpmValue != Float.MAX_VALUE && speedLimiter?.checkNewBpmAndShowToast(bpmValue, requireContext()) == true) {
                 viewModel.setBpm(bpmValue)
             }
@@ -163,8 +163,8 @@ class MetronomeFragment : Fragment() {
         bpmText = view.findViewById(R.id.bpm_text)
         bpmText?.setOnClickListener {
             viewModel.bpm.value?.let {
-                val dialogFragment = BpmInputDialogFragment(it)
-                dialogFragment.show(parentFragmentManager, BpmInputDialogFragment.REQUEST_KEY)
+                val dialogFragment = BpmInputDialog(it)
+                dialogFragment.show(parentFragmentManager, BpmInputDialog.REQUEST_KEY)
             }
         }
         bpmText?.setOnTouchListener { _, event ->

@@ -88,7 +88,7 @@ class ScenesSharingDialogAdapter(scenes: List<Scene>?) : RecyclerView.Adapter<Sc
 
     @SuppressLint("NotifyDataSetChanged")
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.check_scene, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.checkbox_scene, parent, false)
         return ViewHolder(view).apply {
             //Log.v("Metronome", "ScenesSharingDialogAdapter.onCreateViewHolder")
             view.setOnClickListener {

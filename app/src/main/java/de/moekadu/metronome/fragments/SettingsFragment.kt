@@ -22,18 +22,16 @@ package de.moekadu.metronome.fragments
 import android.os.Bundle
 import android.text.InputType
 import android.view.*
-import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.preference.*
 import de.moekadu.metronome.*
 import de.moekadu.metronome.R
+import de.moekadu.metronome.dialogs.AboutDialog
 import de.moekadu.metronome.dialogs.ResetSettingsDialog
 import de.moekadu.metronome.misc.InitialValues
 import de.moekadu.metronome.misc.Utilities
 import de.moekadu.metronome.players.vibratingNote100ToLog
 import de.moekadu.metronome.players.vibratingNoteHasHardwareSupport
-import kotlin.math.roundToInt
 
 /**
  * A simple {@link Fragment} subclass.
@@ -229,17 +227,8 @@ class SettingsFragment: PreferenceFragmentCompat() {
         val aboutPreference = findPreference("about") as Preference?
         require(aboutPreference != null)
         aboutPreference.onPreferenceClickListener = Preference.OnPreferenceClickListener {
-            val textView = TextView(context)
-            //textView.text = getString(R.string.about_message, getString(R.string.version))
-            textView.text = getString(R.string.about_message, BuildConfig.VERSION_NAME)
-            val pad = Utilities.dp2px(20f).roundToInt()
-            textView.setPadding(pad, pad, pad, pad)
-            context?.let { ctx ->
-                val builder = AlertDialog.Builder(ctx)
-                        .setTitle(R.string.about)
-                        .setView(textView)
-                builder.show()
-            }
+            val dialog = AboutDialog()
+            dialog.show(parentFragmentManager, "tag")
             false
         }
         return super.onCreateView(inflater, container, savedInstanceState)

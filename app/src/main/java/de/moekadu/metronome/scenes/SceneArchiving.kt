@@ -131,6 +131,7 @@ class SceneArchiving(private val scenesFragment: ScenesFragment) {
                     scenesFragment.loadScenes(scenes, SceneDatabase.InsertMode.Replace)
                 }
                 else -> {
+                    // TODO: make this an DialogFragment
         //            Log.v("Metronome", "SceneArchiving.loadScenes: filename = $filename")
                     val builder = AlertDialog.Builder(context).apply {
                         setTitle(context.resources.getQuantityString(R.plurals.load_scenes, scenes.size, scenes.size))
