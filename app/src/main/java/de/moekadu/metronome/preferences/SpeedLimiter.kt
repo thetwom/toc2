@@ -22,7 +22,6 @@ package de.moekadu.metronome.preferences
 import android.content.Context
 import android.content.SharedPreferences
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.*
 import de.moekadu.metronome.misc.InitialValues
@@ -150,7 +149,7 @@ class SpeedLimiter(private val sharedPreferences: SharedPreferences, private val
         }
         if (message != "") {
             message += contextForMessages.getString(R.string.inconsistent_summary)
-            val dialog = SpeedLimiterInfoDialog(message)
+            val dialog = SpeedLimiterInfoDialog.createInstance(message)
             dialog.show(fragmentManager, "speed limiter info dialog")
         }
     }

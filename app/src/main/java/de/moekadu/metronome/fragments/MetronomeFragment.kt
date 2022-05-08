@@ -41,6 +41,7 @@ import androidx.transition.TransitionManager
 import com.google.android.material.snackbar.Snackbar
 import de.moekadu.metronome.*
 import de.moekadu.metronome.dialogs.BpmInputDialogFragment
+import de.moekadu.metronome.dialogs.RenameSceneDialog
 import de.moekadu.metronome.dialogs.SaveSceneDialog
 import de.moekadu.metronome.metronomeproperties.*
 import de.moekadu.metronome.misc.InitialValues
@@ -133,6 +134,13 @@ class MetronomeFragment : Fragment() {
                 _, bundle ->
             val title = bundle.getString(SaveSceneDialog.TITLE_KEY, "no title")
             saveCurrentSettingIntoScene(title)
+        }
+
+        parentFragmentManager.setFragmentResultListener(RenameSceneDialog.REQUEST_KEY, viewLifecycleOwner) {
+                _, bundle ->
+            val newName = bundle.getString(RenameSceneDialog.TITLE_KEY, "")
+            viewModel.setEditedSceneTitle(newName)
+            updateSceneTitleTextAndSwipeView()
         }
 
         parentFragmentManager.setFragmentResultListener(BpmInputDialogFragment.REQUEST_KEY, viewLifecycleOwner) {
@@ -287,26 +295,8 @@ class MetronomeFragment : Fragment() {
         sceneTitle = view.findViewById(R.id.scene_title_active)
         sceneTitle?.setOnClickListener {
             if (scenesViewModel.editingStableId.value != Scene.NO_STABLE_ID) {
-                val editText = EditText(requireContext()).apply {
-                    setHint(R.string.save_name)
-                    inputType = InputType.TYPE_CLASS_TEXT
-                    setText(viewModel.editedSceneTitle.value)
-                }
-                val dialogBuilder = AlertDialog.Builder(requireContext()).apply {
-                    setTitle(R.string.rename_scene)
-                    setView(editText)
-                    setNegativeButton(R.string.dismiss) { dialog, _ -> dialog.cancel() }
-                    setPositiveButton(R.string.done) { _, _ ->
-                        var newName = editText.text.toString()
-                        if (newName.length > 200) {
-                            newName = newName.substring(0, 200)
-                            Toast.makeText(requireContext(), getString(R.string.max_allowed_characters, 200), Toast.LENGTH_SHORT).show()
-                        }
-                        viewModel.setEditedSceneTitle(newName)
-                        updateSceneTitleTextAndSwipeView()
-                    }
-                }
-                dialogBuilder.show()
+                val dialog = RenameSceneDialog.createInstance(viewModel.editedSceneTitle.value ?: "")
+                dialog.show(parentFragmentManager, RenameSceneDialog.REQUEST_KEY)
             }
         }
 
