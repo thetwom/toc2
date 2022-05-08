@@ -39,6 +39,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import de.moekadu.metronome.*
+import de.moekadu.metronome.dialogs.ClearAllSavedScenesDialog
 import de.moekadu.metronome.dialogs.ScenesSharingDialogFragment
 import de.moekadu.metronome.metronomeproperties.durationInMillis
 import de.moekadu.metronome.players.PlayerStatus
@@ -176,7 +177,7 @@ class ScenesFragment : Fragment() {
                 return true
             }
             R.id.action_clear_all -> {
-                clearAllSavedItems()
+                clearAllSavedScenes()
                 return true
             }
             R.id.action_share -> {
@@ -196,6 +197,15 @@ class ScenesFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 //        Log.v("Metronome", "ScenesFragment:onCreateView")
         val view = inflater.inflate(R.layout.fragment_scenes, container, false)
+
+        parentFragmentManager.setFragmentResultListener(ClearAllSavedScenesDialog.REQUEST_KEY, viewLifecycleOwner) {
+                _, bundle ->
+            val clearScenes = bundle.getBoolean(ClearAllSavedScenesDialog.CLEAR_ALL_KEY, false)
+            if (clearScenes) {
+                viewModel.scenes.value?.clear()
+                AppPreferences.writeScenesDatabase(viewModel.scenesAsString, requireActivity())
+            }
+        }
 
         noScenesMessage = view.findViewById(R.id.noScenesMessage)
 
@@ -488,16 +498,10 @@ class ScenesFragment : Fragment() {
             playFab?.setImageResource(R.drawable.ic_pause_to_play)
 
     }
-    private fun clearAllSavedItems() {
-        val builder = AlertDialog.Builder(requireContext()).apply {
-            setTitle(R.string.clear_all_question)
-            setNegativeButton(R.string.no) { dialog, _ -> dialog.dismiss() }
-            setPositiveButton(R.string.yes) { _, _ ->
-                viewModel.scenes.value?.clear()
-                AppPreferences.writeScenesDatabase(viewModel.scenesAsString, requireActivity())
-            }
-        }
-        builder.show()
+
+    private fun clearAllSavedScenes() {
+        val dialog = ClearAllSavedScenesDialog()
+        dialog.show(parentFragmentManager, ClearAllSavedScenesDialog.REQUEST_KEY)
     }
 
     fun getDatabaseString() : String {
