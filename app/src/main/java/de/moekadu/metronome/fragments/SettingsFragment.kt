@@ -28,6 +28,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.preference.*
 import de.moekadu.metronome.*
 import de.moekadu.metronome.R
+import de.moekadu.metronome.dialogs.ResetSettingsDialog
 import de.moekadu.metronome.misc.InitialValues
 import de.moekadu.metronome.misc.Utilities
 import de.moekadu.metronome.players.vibratingNote100ToLog
@@ -220,19 +221,8 @@ class SettingsFragment: PreferenceFragmentCompat() {
         val resetSettings = findPreference("setdefault") as Preference?
         require(resetSettings != null)
         resetSettings.onPreferenceClickListener = Preference.OnPreferenceClickListener {
-            activity?.let { act ->
-                val builder = AlertDialog.Builder(act)
-                        .setTitle(R.string.reset_settings_prompt)
-                        .setPositiveButton(R.string.yes) { _, _ ->
-                            val preferenceEditor = PreferenceManager.getDefaultSharedPreferences(act).edit()
-                            preferenceEditor.clear()
-                            PreferenceManager.setDefaultValues(act, R.xml.preferences, true)
-                            preferenceEditor.apply()
-                            act.recreate()
-                        }
-                        .setNegativeButton(R.string.no) { dialog, _ -> dialog?.cancel() }
-                builder.show()
-            }
+            val dialog = ResetSettingsDialog()
+            dialog.show(parentFragmentManager, "tag")
             false
         }
 
