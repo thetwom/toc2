@@ -44,6 +44,7 @@ class ScenesSharingDialogAdapter(scenes: List<Scene>?) : RecyclerView.Adapter<Sc
             val titleViewText = view.context.getString(R.string.decorate_with_hash_number, position+1, sceneToBeShared.scene.title)
             titleView?.text = titleViewText
             checkBox?.isChecked = sceneToBeShared.isShared
+            titleView?.typeface = Typeface.DEFAULT
         }
         fun setCheckAll(resourceId: Int, isChecked: Boolean) {
             titleView?.setText(resourceId)

@@ -3,3 +3,4 @@ v4.4.0:
 
 v4.5.0:
 - Allow sharing only selected scenes
+- Dialogs don't disappear on screen rotation
