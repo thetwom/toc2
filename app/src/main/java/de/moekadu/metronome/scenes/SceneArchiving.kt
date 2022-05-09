@@ -25,9 +25,9 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContract
-import androidx.appcompat.app.AlertDialog
 import androidx.core.database.getStringOrNull
 import de.moekadu.metronome.R
+import de.moekadu.metronome.fragments.ImportScenesDialog
 import de.moekadu.metronome.fragments.ScenesFragment
 
 class SceneArchiving(private val scenesFragment: ScenesFragment) {
@@ -131,22 +131,8 @@ class SceneArchiving(private val scenesFragment: ScenesFragment) {
                     scenesFragment.loadScenes(scenes, SceneDatabase.InsertMode.Replace)
                 }
                 else -> {
-                    // TODO: make this an DialogFragment
-        //            Log.v("Metronome", "SceneArchiving.loadScenes: filename = $filename")
-                    val builder = AlertDialog.Builder(context).apply {
-                        setTitle(context.resources.getQuantityString(R.plurals.load_scenes, scenes.size, scenes.size))
-                        setNegativeButton(R.string.abort) { dialog, _ -> dialog.dismiss() }
-                        setItems(R.array.load_scenes_list) { _, which ->
-                            val array = context.resources.getStringArray(R.array.load_scenes_list)
-                            val task = when (array[which]) {
-                                context.getString(R.string.prepend_current_list) -> SceneDatabase.InsertMode.Prepend
-                                context.getString(R.string.append_current_list) -> SceneDatabase.InsertMode.Append
-                                else -> SceneDatabase.InsertMode.Replace
-                            }
-                            scenesFragment.loadScenes(scenes, task)
-                        }
-                    }
-                    builder.show()
+                    val dialog = ImportScenesDialog.createInstance(databaseString)
+                    dialog.show(scenesFragment.parentFragmentManager, ImportScenesDialog.REQUEST_KEY)
                 }
             }
         }

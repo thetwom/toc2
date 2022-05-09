@@ -206,6 +206,15 @@ class ScenesFragment : Fragment() {
             }
         }
 
+        parentFragmentManager.setFragmentResultListener(ImportScenesDialog.REQUEST_KEY, viewLifecycleOwner) {
+            _, bundle ->
+            val scenesString = bundle.getString(ImportScenesDialog.SCENES_KEY, "")
+            val scenes = SceneDatabase.stringToScenes(scenesString).scenes
+            val taskString = bundle.getString(ImportScenesDialog.INSERT_MODE_KEY, SceneDatabase.InsertMode.Append.toString())
+            val task = SceneDatabase.InsertMode.valueOf(taskString)
+            loadScenes(scenes, task)
+        }
+
         noScenesMessage = view.findViewById(R.id.noScenesMessage)
 
         playFab = view.findViewById(R.id.player_controls_play)
