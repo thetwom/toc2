@@ -11,6 +11,7 @@
         <entry key="app/src/main/res/drawable/scene_delete.xml" value="0.3155" />
         <entry key="app/src/main/res/drawable/scene_player_control_background.xml" value="0.18518518518518517" />
         <entry key="app/src/main/res/layout/about_dialog.xml" value="0.2105978260869565" />
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.2105978260869565" />
         <entry key="app/src/main/res/layout/bpm_input_dialog.xml" value="0.25972222222222224" />
         <entry key="app/src/main/res/layout/check_scene.xml" value="0.2625" />
         <entry key="app/src/main/res/layout/fragment_metronome_and_scenes.xml" value="0.12731481481481483" />

@@ -1,4 +1,4 @@
-package de.moekadu.metronome.fragments
+package de.moekadu.metronome.dialogs
 
 import android.app.Dialog
 import android.os.Bundle

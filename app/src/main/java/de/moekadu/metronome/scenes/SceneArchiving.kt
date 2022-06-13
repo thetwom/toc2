@@ -27,7 +27,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.core.database.getStringOrNull
 import de.moekadu.metronome.R
-import de.moekadu.metronome.fragments.ImportScenesDialog
+import de.moekadu.metronome.dialogs.ImportScenesDialog
 import de.moekadu.metronome.fragments.ScenesFragment
 
 class SceneArchiving(private val scenesFragment: ScenesFragment) {
