@@ -1,0 +1,6 @@
+v4.5.0:
+- Allow sharing only selected scenes
+- Dialogs don't disappear on screen rotation
+
+v4.5.1:
+- Fix loading scenes files, which sometimes did not work.

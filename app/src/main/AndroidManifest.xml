@@ -18,8 +18,7 @@
   - along with Metronome.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="de.moekadu.metronome">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.VIBRATE"/>
@@ -35,7 +34,7 @@
         android:fullBackupContent="@xml/backup_descriptor">
         <activity
             android:name="de.moekadu.metronome.MainActivity"
-            android:launchMode="singleInstance"
+            android:launchMode="singleTask"
             android:windowSoftInputMode="adjustPan"
             android:theme="@style/AppTheme"
             android:exported="true">
