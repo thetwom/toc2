@@ -28,6 +28,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.util.Log
 import de.moekadu.metronome.metronomeproperties.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -367,6 +368,17 @@ private fun computeNoteDelayInMillis(noteStartedMessages: ArrayList<NoteStartedM
  */
 class AudioMixer (val context: Context, private val scope: CoroutineScope) {
 
+    private val noteSamplesForDifferentSampleRates = mapOf (
+        44100 to lazy {
+//            Log.v("Metronome", "AudioMixer: load samples for 44100Hz")
+            createNoteSamples(context, 44100)
+        },
+        48000 to lazy {
+//            Log.v("Metronome", "AudioMixer: load samples for 48000Hz")
+            createNoteSamples(context, 48000)
+        }
+    )
+
     ///  Note list with tracks which are played in a loop
     var noteList = ArrayList<NoteListItem>()
         set(value) {
@@ -417,6 +429,18 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
 
     private val isMuteChannel = Channel<Boolean>(Channel.CONFLATED)
     private var isMute: Boolean = false
+
+    init {
+        // preload all samples for quicker player start
+        scope.launch(Dispatchers.Main) {
+            // first load with known native sample rate, then load for all sample rates
+            val nativeSampleRate = AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC)
+            noteSamplesForDifferentSampleRates[nativeSampleRate]?.value
+
+            for (n in noteSamplesForDifferentSampleRates)
+                n.value.value
+        }
+    }
 
     /// Create a new NoteStartedChannel.
     /**
@@ -479,7 +503,7 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
         job = scope.launch(Dispatchers.Default) {
 
             val player = createPlayer()
-            val noteSamples = createNoteSamples(context, player.sampleRate)
+            val noteSamples = noteSamplesForDifferentSampleRates[player.sampleRate]!!.value //createNoteSamples(context, player.sampleRate)
 
             val queuedNotes = ArrayList<QueuedNote>(32)
             val queuedNoteStartedChannels = ArrayList<NoteStartedMessagingAndFrame>()

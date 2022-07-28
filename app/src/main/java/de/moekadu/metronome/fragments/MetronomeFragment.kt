@@ -22,6 +22,7 @@ package de.moekadu.metronome.fragments
 import android.annotation.SuppressLint
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.widget.ImageButton
 import android.widget.TextView
@@ -203,7 +204,7 @@ class MetronomeFragment : Fragment() {
             }
 
             override fun onPlay() {
-                // Log.v("Metronome", "playButton:onPause()")
+                Log.v("Metronome", "MetronomeFragment: playButton:onPlay()")
                 viewModel.play()
             }
 

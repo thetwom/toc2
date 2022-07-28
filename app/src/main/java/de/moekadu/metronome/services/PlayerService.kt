@@ -26,6 +26,7 @@ import android.os.Binder
 import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Log
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
@@ -291,7 +292,7 @@ class PlayerService : LifecycleService() {
     }
 
     fun startPlay() {
-        // Log.v("Metronome", "PlayerService:startPlay")
+//        Log.v("Metronome", "PlayerService:startPlay : setting playbackState")
         playbackState = playbackStateBuilder.setState(
             PlaybackStateCompat.STATE_PLAYING,
             PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN,
@@ -299,12 +300,15 @@ class PlayerService : LifecycleService() {
         ).build()
         mediaSession?.setPlaybackState(playbackState)
 
+//        Log.v("Metronome", "PlayerService:startPlay : setting notification")
         notification?.state = state
         notification?.let {
             startForeground(PlayerNotification.id, it.notification)
         }
 
+//        Log.v("Metronome", "PlayerService:startPlay : starting mixer")
         audioMixer?.start()
+//        Log.v("Metronome", "PlayerService:startPlay : run statusChangedListeners")
         statusChangedListeners.forEach { s -> s.onPlay() }
     }
 
