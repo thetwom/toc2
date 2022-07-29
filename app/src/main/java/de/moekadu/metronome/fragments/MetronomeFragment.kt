@@ -30,6 +30,7 @@ import android.widget.Toast
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -117,9 +118,21 @@ class MetronomeFragment : Fragment() {
     private var sharedPreferenceChangeListener: OnSharedPreferenceChangeListener? = null
     private var bpmIncrement = Utilities.bpmIncrements[InitialValues.bpmIncrementIndex]
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
+    private val menuProvider = object : MenuProvider {
+        override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+            menuInflater.inflate(R.menu.metronome, menu)
+        }
+
+        override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+            when (menuItem.itemId) {
+                R.id.action_save -> {
+                    val dialogFragment = SaveSceneDialog()
+                    dialogFragment.show(parentFragmentManager, SaveSceneDialog.REQUEST_KEY)
+                    return true
+                }
+            }
+            return false
+        }
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -127,6 +140,8 @@ class MetronomeFragment : Fragment() {
 //        Log.v("Metronome", "MetronomeFragment:onCreateView")
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_metronome, container, false)
+
+        activity?.addMenuProvider(menuProvider, viewLifecycleOwner, Lifecycle.State.RESUMED)
 
         parentFragmentManager.setFragmentResultListener(SaveSceneDialog.REQUEST_KEY, viewLifecycleOwner) {
                 _, bundle ->
@@ -204,7 +219,7 @@ class MetronomeFragment : Fragment() {
             }
 
             override fun onPlay() {
-                Log.v("Metronome", "MetronomeFragment: playButton:onPlay()")
+//                Log.v("Metronome", "MetronomeFragment: playButton:onPlay()")
                 viewModel.play()
             }
 
@@ -257,7 +272,7 @@ class MetronomeFragment : Fragment() {
             }
 
             override fun removeNote(uid: UId) {
-                if (viewModel.noteList.value?.size ?: 0 <= 1)
+                if ((viewModel.noteList.value?.size ?: 0) <= 1)
                     Toast.makeText(context, context?.getString(R.string.cannot_delete_last_note), Toast.LENGTH_LONG).show()
                 else
                     viewModel.removeNote(uid)
@@ -445,22 +460,6 @@ class MetronomeFragment : Fragment() {
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener)
         tickVisualizer?.stop()
         super.onStop()
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.metronome, menu)
-        // super.onCreateOptionsMenu(menu, inflater)
-    }
-
-    override fun onOptionsItemSelected(item : MenuItem) : Boolean {
-        when (item.itemId) {
-            R.id.action_save -> {
-                val dialogFragment = SaveSceneDialog()
-                dialogFragment.show(parentFragmentManager, SaveSceneDialog.REQUEST_KEY)
-                return true
-            }
-        }
-        return false
     }
 
     private fun updateSceneTitleTextAndSwipeView() {

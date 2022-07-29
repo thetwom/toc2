@@ -29,6 +29,7 @@ import android.widget.Toast
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -144,60 +145,58 @@ class ScenesFragment : Fragment() {
 
     private val sceneArchiving = SceneArchiving(this)
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.scenes, menu)
-        // super.onCreateOptionsMenu(menu, inflater)
-    }
-
-    override fun onPrepareOptionsMenu(menu: Menu) {
-
-        val loadDataItem = menu.findItem(R.id.action_load)
-        loadDataItem?.isVisible = false
-
-        val editItem = menu.findItem(R.id.action_edit)
-        editItem?.isVisible = viewModel.activeStableId.value != Scene.NO_STABLE_ID
-    }
-
-    override fun onOptionsItemSelected(item : MenuItem) : Boolean {
-        when (item.itemId) {
-            R.id.action_archive -> {
-                if (viewModel.scenes.value?.size ?: 0 == 0) {
-                    Toast.makeText(requireContext(), R.string.database_empty, Toast.LENGTH_LONG).show()
-                } else {
-                    sceneArchiving.archiveScenes(viewModel.scenes.value)
-                }
-                return true
-            }
-            R.id.action_unarchive -> {
-                sceneArchiving.unarchiveScenes()
-                return true
-            }
-            R.id.action_clear_all -> {
-                clearAllSavedScenes()
-                return true
-            }
-            R.id.action_share -> {
-                val scenes = viewModel.scenes.value
-                if (scenes?.size ?: 0 == 0) {
-                    Toast.makeText(requireContext(), R.string.no_scenes_for_sharing, Toast.LENGTH_LONG).show()
-                } else if (scenes != null) {
-                    val dialogFragment = ScenesSharingDialog(scenes.scenes)
-                    dialogFragment.show(parentFragmentManager, "tag")
-                }
-            }
+    private val menuProvider = object : MenuProvider {
+        override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+            menuInflater.inflate(R.menu.scenes, menu)
         }
 
-        return super.onOptionsItemSelected(item)
+        override fun onPrepareMenu(menu: Menu) {
+            super.onPrepareMenu(menu)
+            val loadDataItem = menu.findItem(R.id.action_load)
+            loadDataItem?.isVisible = false
+
+            val editItem = menu.findItem(R.id.action_edit)
+            editItem?.isVisible = viewModel.activeStableId.value != Scene.NO_STABLE_ID
+        }
+
+        override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+            when (menuItem.itemId) {
+                R.id.action_archive -> {
+                    if ((viewModel.scenes.value?.size ?: 0) == 0) {
+                        Toast.makeText(requireContext(), R.string.database_empty, Toast.LENGTH_LONG).show()
+                    } else {
+                        sceneArchiving.archiveScenes(viewModel.scenes.value)
+                    }
+                    return true
+                }
+                R.id.action_unarchive -> {
+                    sceneArchiving.unarchiveScenes()
+                    return true
+                }
+                R.id.action_clear_all -> {
+                    clearAllSavedScenes()
+                    return true
+                }
+                R.id.action_share -> {
+                    val scenes = viewModel.scenes.value
+                    if ((scenes?.size ?: 0) == 0) {
+                        Toast.makeText(requireContext(), R.string.no_scenes_for_sharing, Toast.LENGTH_LONG).show()
+                    } else if (scenes != null) {
+                        val dialogFragment = ScenesSharingDialog(scenes.scenes)
+                        dialogFragment.show(parentFragmentManager, "tag")
+                    }
+                    return true
+                }
+            }
+            return false
+        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 //        Log.v("Metronome", "ScenesFragment:onCreateView")
         val view = inflater.inflate(R.layout.fragment_scenes, container, false)
+
+        activity?.addMenuProvider(menuProvider, viewLifecycleOwner, Lifecycle.State.RESUMED)
 
         parentFragmentManager.setFragmentResultListener(ClearAllSavedScenesDialog.REQUEST_KEY, viewLifecycleOwner) {
                 _, bundle ->

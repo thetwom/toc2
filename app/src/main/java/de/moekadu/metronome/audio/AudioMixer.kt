@@ -522,12 +522,13 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
 
             // Total number of frames for which we queued track for playing.
             var numMixedFrames = 0
-            var nextNoteInfo = NextNoteInfo(0, player.bufferSizeInFrames / 2, 0)
+            //var nextNoteInfo = NextNoteInfo(0, player.bufferSizeInFrames / 2, 0)
+            var nextNoteInfo = NextNoteInfo(0, 1, 0)
 
             val noteListCopy = ArrayList<NoteListItem>()
 
             player.play()
-
+//            Log.v("Metronome", "AudioMixer start player loop")
             while(true) {
                 if (!isActive)
                     break

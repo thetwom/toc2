@@ -23,6 +23,8 @@ import android.os.Bundle
 import android.text.InputType
 import android.view.*
 import android.widget.Toast
+import androidx.core.view.MenuProvider
+import androidx.lifecycle.Lifecycle
 import androidx.preference.*
 import de.moekadu.metronome.*
 import de.moekadu.metronome.R
@@ -38,20 +40,22 @@ import de.moekadu.metronome.players.vibratingNoteHasHardwareSupport
  */
 class SettingsFragment: PreferenceFragmentCompat() {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
+    private val menuProvider = object : MenuProvider {
+        override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+            menu.clear() // this should not be needed, but not setting a menuProvider doesn't work
+        }
+
+        override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+            return false
+        }
     }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences, rootKey)
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        menu.clear() // this should not be needed, but just a "setHasOptionsMenu(false)" in "onCreate" be enough, but this doesnt work
-    }
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        activity?.addMenuProvider(menuProvider, viewLifecycleOwner, Lifecycle.State.RESUMED)
 
         val vibratePreference = findPreference("vibrate") as SwitchPreferenceCompat?
         require(vibratePreference != null)

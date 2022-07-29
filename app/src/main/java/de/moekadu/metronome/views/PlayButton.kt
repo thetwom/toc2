@@ -24,6 +24,7 @@ import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.RippleDrawable
 import android.util.AttributeSet
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import androidx.appcompat.content.res.AppCompatResources
@@ -164,7 +165,7 @@ class PlayButton(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     }
 
     override fun onTouchEvent(event : MotionEvent) : Boolean {
-
+//        Log.v("Metronome", "Playbutton.onTouchEvent: start")
         val action = event.actionMasked
         val x = event.x - centerX
         val y = event.y - centerY
@@ -176,6 +177,7 @@ class PlayButton(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 
         when(action) {
             MotionEvent.ACTION_DOWN -> {
+//                Log.v("Metronome", "Playbutton: action_down")
                 return if (radiusXY <= radius) {
                     isPressed = true
                     buttonClickedListener?.onDown()
@@ -195,6 +197,7 @@ class PlayButton(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                 }
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+//                Log.v("Metronome", "Playbutton: action_up/cancel")
                 if (radiusXY <= radius && isPressed) {
                     isPressed = false
                     buttonClickedListener?.onUp()

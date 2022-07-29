@@ -1,0 +1,5 @@
+v4.5.1:
+- Fix loading scenes files, which sometimes did not work.
+
+v4.5.2:
+- Reduce latency between pressing play and playing the first note

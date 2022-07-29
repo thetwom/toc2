@@ -82,7 +82,7 @@ class SceneArchiving(private val scenesFragment: ScenesFragment) {
     }
 
     fun archiveScenes(sceneDatabase: SceneDatabase?) {
-        if (sceneDatabase?.size ?: 0 == 0) {
+        if ((sceneDatabase?.size ?: 0) == 0) {
             Toast.makeText(scenesFragment.requireContext(), R.string.database_empty, Toast.LENGTH_LONG).show()
         } else {
             _archiveScenes.launch("")

@@ -89,7 +89,7 @@ class ScenesViewModel(initialDatabaseString: String) : ViewModel() {
     }
     class Factory(private val initialDatabaseString: String) : ViewModelProvider.Factory {
         @Suppress("unchecked_cast")
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
 //            Log.v("Metronome", "ScenesViewModel.factory.create")
             return ScenesViewModel(initialDatabaseString) as T
         }

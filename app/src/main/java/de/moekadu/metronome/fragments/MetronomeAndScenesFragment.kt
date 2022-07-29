@@ -22,8 +22,10 @@ package de.moekadu.metronome.fragments
 import android.os.Bundle
 import android.view.*
 import androidx.appcompat.view.ActionMode
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.widget.ViewPager2
 import de.moekadu.metronome.*
 import de.moekadu.metronome.preferences.AppPreferences
@@ -73,47 +75,45 @@ class MetronomeAndScenesFragment : Fragment() {
         }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.metronome_and_scenes, menu)
-        // super.onCreateOptionsMenu(menu, inflater)
-    }
-
-    override fun onPrepareOptionsMenu(menu: Menu) {
-        val muteIcon = menu.findItem(R.id.action_mute)
-        muteIcon.setIcon(if (metronomeViewModel.mute.value == true) R.drawable.ic_action_mute_active else R.drawable.ic_action_mute)
-        super.onPrepareOptionsMenu(menu)
-    }
-
-    override fun onOptionsItemSelected(item : MenuItem) : Boolean {
-        when (item.itemId) {
-            R.id.action_load -> {
-                viewPager?.currentItem = ViewPagerAdapter.SCENES
-                return true
-            }
-            R.id.action_edit -> {
-                metronomeViewModel.setEditedSceneTitle(null)
-                val activeStableId = scenesViewModel.activeStableId.value ?: Scene.NO_STABLE_ID
-                val sceneTitle = scenesViewModel.scenes.value?.getScene(activeStableId)?.title
-                metronomeViewModel.setEditedSceneTitle(sceneTitle)
-                startEditingMode()
-                return true
-            }
-            R.id.action_mute -> {
-                val isMute = metronomeViewModel.mute.value ?: false
-                metronomeViewModel.setMute(!isMute)
-            }
+    private val menuProvider = object : MenuProvider {
+        override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+            menuInflater.inflate(R.menu.metronome_and_scenes, menu)
         }
-        return false
+
+        override fun onPrepareMenu(menu: Menu) {
+            super.onPrepareMenu(menu)
+            val muteIcon = menu.findItem(R.id.action_mute)
+            muteIcon.setIcon(if (metronomeViewModel.mute.value == true) R.drawable.ic_action_mute_active else R.drawable.ic_action_mute)
+        }
+
+        override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+            when (menuItem.itemId) {
+                R.id.action_load -> {
+                    viewPager?.currentItem = ViewPagerAdapter.SCENES
+                    return true
+                }
+                R.id.action_edit -> {
+                    metronomeViewModel.setEditedSceneTitle(null)
+                    val activeStableId = scenesViewModel.activeStableId.value ?: Scene.NO_STABLE_ID
+                    val sceneTitle = scenesViewModel.scenes.value?.getScene(activeStableId)?.title
+                    metronomeViewModel.setEditedSceneTitle(sceneTitle)
+                    startEditingMode()
+                    return true
+                }
+                R.id.action_mute -> {
+                    val isMute = metronomeViewModel.mute.value ?: false
+                    metronomeViewModel.setMute(!isMute)
+                }
+            }
+            return false
+        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         // Log.v("Metronome", "MetronomeAndScenesFragment:onCreateView")
         val view = inflater.inflate(R.layout.fragment_metronome_and_scenes, container, false)
+
+        activity?.addMenuProvider(menuProvider, viewLifecycleOwner, Lifecycle.State.RESUMED)
 
         viewPager = view.findViewById(R.id.viewpager)
         viewPager?.adapter = ViewPagerAdapter(requireActivity())

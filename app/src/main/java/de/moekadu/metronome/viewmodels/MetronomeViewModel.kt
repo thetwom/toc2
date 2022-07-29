@@ -190,7 +190,7 @@ class MetronomeViewModel(private val playerConnection: PlayerServiceConnection):
 
     class Factory(private val playerConnection: PlayerServiceConnection) : ViewModelProvider.Factory {
         @Suppress("unchecked_cast")
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
 //            Log.v("Metronome", "MetronomeViewModel.factory.create")
             return MetronomeViewModel(playerConnection) as T
         }
