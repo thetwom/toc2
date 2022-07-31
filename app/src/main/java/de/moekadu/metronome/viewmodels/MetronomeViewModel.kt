@@ -182,6 +182,10 @@ class MetronomeViewModel(private val playerConnection: PlayerServiceConnection):
         playerConnection.setNextNoteIndex(index)
     }
 
+    fun restartPlayingNoteList() {
+        playerConnection.restartPlayingNoteList()
+    }
+
     override fun onCleared() {
 //        Log.v("Metronome", "MetronomeViewModel.onCleared")
         PlayerServiceConnection.onDestroy()

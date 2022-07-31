@@ -404,7 +404,8 @@ class ScenesFragment : Fragment() {
                     it.checkSavedItemBpmAndAlert(scene.bpm.bpm, requireContext(), parentFragmentManager)
                     metronomeViewModel.setBpm(it.limit(scene.bpm))
                 }
-                metronomeViewModel.setNextNoteIndex(0)
+                //metronomeViewModel.setNextNoteIndex(0)
+                metronomeViewModel.restartPlayingNoteList()
 
                 // we don't show this since it is rather obvious and it would also be shown when fragment is loaded
                 //Toast.makeText(requireContext(), getString(R.string.loaded_message, item.title), Toast.LENGTH_SHORT).show()

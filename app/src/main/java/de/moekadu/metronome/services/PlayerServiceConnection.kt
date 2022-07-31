@@ -199,6 +199,15 @@ class PlayerServiceConnection(
         }
     }
 
+    fun restartPlayingNoteList() {
+        try {
+            serviceBinder?.service?.restartPlayingNoteList()
+        }
+        catch (_: DeadObjectException) {
+            serviceBinder = null
+        }
+    }
+
     private fun bindToService() {
 //        Log.v("Metronome", "ServiceConnection.bindToService")
         val serviceIntent = Intent(applicationContext, PlayerService::class.java)

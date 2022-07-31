@@ -26,13 +26,12 @@ import android.os.Binder
 import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.util.Log
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import de.moekadu.metronome.*
 import de.moekadu.metronome.audio.AudioMixer
-import de.moekadu.metronome.audio.NoteStartedMessaging
+import de.moekadu.metronome.audio.NoteStartedChannel
 import de.moekadu.metronome.metronomeproperties.Bpm
 import de.moekadu.metronome.metronomeproperties.NoteListItem
 import de.moekadu.metronome.metronomeproperties.deepCopyNoteList
@@ -113,8 +112,8 @@ class PlayerService : LifecycleService() {
 
     private var sharedPreferenceChangeListener: OnSharedPreferenceChangeListener? = null
 
-    private var noteStartedMessaging4Visualization: NoteStartedMessaging? = null
-    private var noteStartedMessaging4Vibration: NoteStartedMessaging? = null
+    private var noteStartedChannel4Visualization: NoteStartedChannel? = null
+    private var noteStartedChannel4Vibration: NoteStartedChannel? = null
 
     inner class PlayerBinder : Binder() {
         val service
@@ -176,7 +175,7 @@ class PlayerService : LifecycleService() {
         audioMixer?.setMute(isMute)
 
         // callback for ui stuff
-        noteStartedMessaging4Visualization = audioMixer?.getNewNoteStartedChannel(
+        noteStartedChannel4Visualization = audioMixer?.getNewNoteStartedChannel(
             0f,
             Dispatchers.Main
         ) { noteListItem, uptimeMillis, noteCount ->
@@ -249,7 +248,7 @@ class PlayerService : LifecycleService() {
                     }
                     "vibratedelay" -> {
                         val delay = sharedPreferences.getInt("vibratedelay", 0).toFloat()
-                        noteStartedMessaging4Vibration?.setDelay(delay)
+                        noteStartedChannel4Vibration?.setDelay(delay)
                     }
                 }
             }
@@ -341,6 +340,10 @@ class PlayerService : LifecycleService() {
         audioMixer?.setNextNoteIndex(index)
     }
 
+    fun restartPlayingNoteList() {
+        audioMixer?.restartPlayingNoteList()
+    }
+
     fun registerStatusChangedListener(statusChangedListener: StatusChangedListener) {
         statusChangedListeners.add(statusChangedListener)
     }
@@ -360,13 +363,13 @@ class PlayerService : LifecycleService() {
     }
 
     private fun enableVibration(delayInMillis: Float, strength: Int) {
-        if (noteStartedMessaging4Vibration != null)
+        if (noteStartedChannel4Vibration != null)
             return
 
         vibrator = VibratingNote(this@PlayerService)
         vibrator?.strength = strength
 
-        noteStartedMessaging4Vibration = audioMixer?.getNewNoteStartedChannel(
+        noteStartedChannel4Vibration = audioMixer?.getNewNoteStartedChannel(
             delayInMillis, null
         ) { noteListItem, _, _ ->
             if (noteListItem != null) {
@@ -377,9 +380,9 @@ class PlayerService : LifecycleService() {
     }
 
     private fun disableVibration() {
-        audioMixer?.unregisterNoteStartedChannel(noteStartedMessaging4Vibration)
+        audioMixer?.unregisterNoteStartedChannel(noteStartedChannel4Vibration)
         vibrator = null
-        noteStartedMessaging4Vibration = null
+        noteStartedChannel4Vibration = null
     }
 
     companion object {
