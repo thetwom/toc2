@@ -23,6 +23,7 @@ import android.content.SharedPreferences
 import android.graphics.Canvas
 import android.graphics.drawable.Animatable
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.widget.TextView
 import android.widget.Toast
@@ -221,10 +222,12 @@ class ScenesFragment : Fragment() {
         playFab = view.findViewById(R.id.player_controls_play)
 
         playFab?.setOnClickListener {
-            if (metronomeViewModel.playerStatus.value == PlayerStatus.Playing)
+            if (metronomeViewModel.playerStatus.value == PlayerStatus.Playing) {
                 metronomeViewModel.pause()
-            else
+            } else {
+                Log.v("Metronome", "TIMECHECK: ScenesFragment.playButton: play pressed")
                 metronomeViewModel.play()
+            }
         }
 
         previousSceneButton = view.findViewById(R.id.player_controls_back)
