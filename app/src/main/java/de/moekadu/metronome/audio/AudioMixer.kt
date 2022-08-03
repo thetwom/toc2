@@ -28,6 +28,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.util.Log
 import de.moekadu.metronome.metronomeproperties.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -493,8 +494,9 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
     fun start() {
 
         job = scope.launch(Dispatchers.Default) {
-
+            Log.v("Metronome", "TIMECHECK: AudioMixer creating player")
             val player = createPlayer()
+            Log.v("Metronome", "TIMECHECK: AudioMixer creating player, done")
             val noteSamples = noteSamplesForDifferentSampleRates[player.sampleRate]!!.value //createNoteSamples(context, player.sampleRate)
 
             val queuedNotes = ArrayList<QueuedNote>(32)
@@ -520,6 +522,8 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
             val noteListCopy = ArrayList<NoteListItem>()
 
             player.play()
+
+            var loopCounter = 0L
 //            Log.v("Metronome", "AudioMixer start player loop")
             while(true) {
                 if (!isActive)
@@ -604,10 +608,13 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                     mixingBuffer.fill(0f)
 
                 //Log.v("Metronome", "AudioMixer mixingBuffer:max: ${mixingBuffer[0]}")
+                if (loopCounter == 0L)
+                    Log.v("Metronome", "TIMECHECK: AudioMixer writing first samples to player")
                 player.write(mixingBuffer, 0, mixingBuffer.size, AudioTrack.WRITE_BLOCKING)
 
 //                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
 //                    Log.v("Metronome", "AudioMixer underrun count: ${player.underrunCount}")
+                ++loopCounter
             }
 
             player.stop()

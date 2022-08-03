@@ -220,6 +220,7 @@ class MetronomeFragment : Fragment() {
 
             override fun onPlay() {
 //                Log.v("Metronome", "MetronomeFragment: playButton:onPlay()")
+                Log.v("Metronome", "TIMECHECK: MetronomeFragment.playButton: play pressed")
                 viewModel.play()
             }
 
