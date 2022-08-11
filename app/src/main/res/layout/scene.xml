@@ -51,7 +51,7 @@
         android:layout_height="8dp"
         app:color="@color/colorPrimary"
         app:layout_constraintBottom_toTopOf="@id/bottom_line"
-        android:visibility="gone"
+        android:visibility="visible"
         android:layout_marginBottom="4dp"
         />
 

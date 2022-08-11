@@ -257,7 +257,7 @@ class ScenesFragment : Fragment() {
         }
 
         scenesRecyclerView = view.findViewById(R.id.scenes)
-        scenesRecyclerView?.setHasFixedSize(false)
+        scenesRecyclerView?.setHasFixedSize(true)
         scenesRecyclerView?.layoutManager = LinearLayoutManager(requireContext())
         scenesRecyclerView?.adapter = scenesAdapter
 
@@ -408,7 +408,7 @@ class ScenesFragment : Fragment() {
                     metronomeViewModel.setBpm(it.limit(scene.bpm))
                 }
                 //metronomeViewModel.setNextNoteIndex(0)
-                metronomeViewModel.restartPlayingNoteList()
+                metronomeViewModel.restartPlayingNoteList() // this will only restart if it is playing
 
                 // we don't show this since it is rather obvious and it would also be shown when fragment is loaded
                 //Toast.makeText(requireContext(), getString(R.string.loaded_message, item.title), Toast.LENGTH_SHORT).show()

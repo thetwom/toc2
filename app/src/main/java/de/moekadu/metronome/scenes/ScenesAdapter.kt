@@ -66,12 +66,12 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
                 if (value) {
                     //view.setBackgroundResource(R.drawable.scene_background_active)
                     selectedView?.visibility = View.VISIBLE
-                    tickVisualizer?.visibility = View.VISIBLE
+                    //tickVisualizer?.visibility = View.VISIBLE
                 }
                 else {
                     //view.setBackgroundResource(R.drawable.scene_background)
                     selectedView?.visibility = View.INVISIBLE
-                    tickVisualizer?.visibility = View.GONE
+                    //tickVisualizer?.visibility = View.GONE
                     tickVisualizer?.stop()
                 }
             }

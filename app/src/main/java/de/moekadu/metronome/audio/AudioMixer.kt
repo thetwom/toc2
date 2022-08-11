@@ -492,7 +492,7 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
 
     /** Start playing. */
     fun start() {
-
+        Log.v("Metronome", "TIMECHECK: AudioMixer launching job")
         job = scope.launch(Dispatchers.Default) {
             Log.v("Metronome", "TIMECHECK: AudioMixer creating player")
             val player = createPlayer()
