@@ -44,6 +44,7 @@ import de.moekadu.metronome.dialogs.RenameSceneDialog
 import de.moekadu.metronome.dialogs.SaveSceneDialog
 import de.moekadu.metronome.metronomeproperties.*
 import de.moekadu.metronome.misc.InitialValues
+import de.moekadu.metronome.misc.TapInEvaluator
 import de.moekadu.metronome.misc.Utilities
 import de.moekadu.metronome.players.PlayerStatus
 import de.moekadu.metronome.players.SingleNotePlayer
@@ -98,6 +99,9 @@ class MetronomeFragment : Fragment() {
     private var vibrate = false
 
     private var speedLimiter: SpeedLimiter? = null
+
+    // TODO: we must correlcty set the maxiumAllowedDt...
+    private var tapInEvaluator = TapInEvaluator(5, 10000L)
 
     private var constraintLayout: ConstraintLayout? = null
     private var bpmText: AppCompatTextView? = null
@@ -198,10 +202,19 @@ class MetronomeFragment : Fragment() {
                 }
             }
 
-            override fun onAbsoluteSpeedChanged(newBpm: Float, nextClickTimeInMillis: Long) {
-                viewModel.setBpm(newBpm)
-                viewModel.syncClickWithUptimeMillis(nextClickTimeInMillis)
+            override fun onTapInPressed(systemMsAtTap: Long) {
+                tapInEvaluator.tap(systemMsAtTap)
+                val newSpeedMs = tapInEvaluator.dtInMs()
+                if (newSpeedMs != TapInEvaluator.NOT_AVAILABLE)
+                    viewModel.setBpm(Utilities.millis2bpm(newSpeedMs))
+                val nextPredictedClickTimeMs = tapInEvaluator.predictNextTap()
+                if (nextPredictedClickTimeMs != TapInEvaluator.NOT_AVAILABLE)
+                    viewModel.syncClickWithUptimeMillis(nextPredictedClickTimeMs)
             }
+//            override fun onAbsoluteSpeedChanged(newBpm: Float, nextClickTimeInMillis: Long) {
+//                viewModel.setBpm(newBpm)
+//                viewModel.syncClickWithUptimeMillis(nextClickTimeInMillis)
+//            }
         }
 
         tickVisualizer = view.findViewById(R.id.tick_visualizer)

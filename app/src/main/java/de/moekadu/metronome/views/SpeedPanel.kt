@@ -89,7 +89,8 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 
     interface SpeedChangedListener {
         fun onSpeedChanged(bpmDiff: Float)
-        fun onAbsoluteSpeedChanged(newBpm: Float, nextClickTimeInMillis: Long)
+        //fun onAbsoluteSpeedChanged(newBpm: Float, nextClickTimeInMillis: Long)
+        fun onTapInPressed(systemMsAtTap: Long)
     }
 
     var speedChangedListener: SpeedChangedListener? = null
@@ -252,7 +253,8 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                 minusStepInitiated = false
 
                 if (angle > tapInAngleStart && angle < tapInAngleEnd) {
-                    evaluateTapInTimes()
+                    speedChangedListener?.onTapInPressed(SystemClock.uptimeMillis())
+                    //evaluateTapInTimes()
                     tapInAnimation.start()
                 }
                 else if (angle > plusStepAngleStart && angle < plusStepAngleEnd) {
@@ -321,33 +323,33 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         return true
     }
 
-    private fun evaluateTapInTimes() {
-
-        val currentTap = SystemClock.uptimeMillis()
-        nTapSamples += 1
-
-        val currentDt = currentTap - lastTap
-        lastTap = currentTap
-
-        if(nTapSamples == 1) {
-            dt = currentDt.toFloat()
-            return
-        }
-
-//        Log.v("Metronome", "SpeedPanel:computeSpeedFromTapIn:  err=" + ((currentDt - dt) / dt));
-        if(abs(currentDt - dt) / dt > maxTapErr) {
-            nTapSamples = 2
-        }
-
-        val fac = facTapInfty + (1.0f - facTapInfty) / (nTapSamples - 1)
-        dt = fac * currentDt + (1.0f - fac) * dt
-
-        predictNextTap = (fac * (currentTap - predictNextTap) + predictNextTap + dt).roundToLong()
-//        Log.v("Metronome", "Speedpanel:computeSpeedFromTapIn:  fac=" + fac + "  dt=" + dt);
-
-        if(nTapSamples >= 3) {
-            speedChangedListener?.onAbsoluteSpeedChanged(
-                Utilities.millis2bpm(dt.roundToLong()), (predictNextTap + tapDelay))
-        }
-    }
+//    private fun evaluateTapInTimes() {
+//
+//        val currentTap = SystemClock.uptimeMillis()
+//        nTapSamples += 1
+//
+//        val currentDt = currentTap - lastTap
+//        lastTap = currentTap
+//
+//        if(nTapSamples == 1) {
+//            dt = currentDt.toFloat()
+//            return
+//        }
+//
+////        Log.v("Metronome", "SpeedPanel:computeSpeedFromTapIn:  err=" + ((currentDt - dt) / dt));
+//        if(abs(currentDt - dt) / dt > maxTapErr) {
+//            nTapSamples = 2
+//        }
+//
+//        val fac = facTapInfty + (1.0f - facTapInfty) / (nTapSamples - 1)
+//        dt = fac * currentDt + (1.0f - fac) * dt
+//
+//        predictNextTap = (fac * (currentTap - predictNextTap) + predictNextTap + dt).roundToLong()
+////        Log.v("Metronome", "Speedpanel:computeSpeedFromTapIn:  fac=" + fac + "  dt=" + dt);
+//
+//        if(nTapSamples >= 3) {
+//            speedChangedListener?.onAbsoluteSpeedChanged(
+//                Utilities.millis2bpm(dt.roundToLong()), (predictNextTap + tapDelay))
+//        }
+//    }
 }
