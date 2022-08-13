@@ -100,8 +100,11 @@ class MetronomeFragment : Fragment() {
 
     private var speedLimiter: SpeedLimiter? = null
 
-    // TODO: we must correlcty set the maxiumAllowedDt...
-    private var tapInEvaluator = TapInEvaluator(5, 10000L)
+    private var tapInEvaluator = TapInEvaluator(
+        5,
+        Utilities.bpm2millis(InitialValues.maximumBpm),
+        Utilities.bpm2millis(InitialValues.minimumBpm)
+    )
 
     private var constraintLayout: ConstraintLayout? = null
     private var bpmText: AppCompatTextView? = null
@@ -204,12 +207,10 @@ class MetronomeFragment : Fragment() {
 
             override fun onTapInPressed(systemMsAtTap: Long) {
                 tapInEvaluator.tap(systemMsAtTap)
-                val newSpeedMs = tapInEvaluator.dtInMs()
-                if (newSpeedMs != TapInEvaluator.NOT_AVAILABLE)
-                    viewModel.setBpm(Utilities.millis2bpm(newSpeedMs))
-                val nextPredictedClickTimeMs = tapInEvaluator.predictNextTap()
-                if (nextPredictedClickTimeMs != TapInEvaluator.NOT_AVAILABLE)
-                    viewModel.syncClickWithUptimeMillis(nextPredictedClickTimeMs)
+                if (tapInEvaluator.dt != TapInEvaluator.NOT_AVAILABLE)
+                    viewModel.setBpm(Utilities.millis2bpm(tapInEvaluator.dt))
+                if (tapInEvaluator.predictedNextTap != TapInEvaluator.NOT_AVAILABLE)
+                    viewModel.syncClickWithUptimeMillis(tapInEvaluator.predictedNextTap)
             }
 //            override fun onAbsoluteSpeedChanged(newBpm: Float, nextClickTimeInMillis: Long) {
 //                viewModel.setBpm(newBpm)
@@ -233,7 +234,7 @@ class MetronomeFragment : Fragment() {
 
             override fun onPlay() {
 //                Log.v("Metronome", "MetronomeFragment: playButton:onPlay()")
-                Log.v("Metronome", "TIMECHECK: MetronomeFragment.playButton: play pressed")
+//                Log.v("Metronome", "TIMECHECK: MetronomeFragment.playButton: play pressed")
                 viewModel.play()
             }
 
@@ -344,6 +345,23 @@ class MetronomeFragment : Fragment() {
                     bpmIncrement = Utilities.bpmIncrements[newBpmIncrementIndex]
                     speedPanel?.bpmIncrement = bpmIncrement
                 }
+                "minimumspeed" -> {
+                    sharedPreferences.getString("minimumspeed", InitialValues.minimumBpm.toString())?.toFloatOrNull()?.let {
+                        tapInEvaluator = TapInEvaluator(
+                            tapInEvaluator.numHistoryValues,
+                            tapInEvaluator.minimumAllowedDtInMs,
+                            Utilities.bpm2millis(it))
+                    }
+                }
+                "maximumspeed" -> {
+                    sharedPreferences.getString("maximumspeed", InitialValues.maximumBpm.toString())?.toFloatOrNull()?.let {
+                        tapInEvaluator = TapInEvaluator(
+                            tapInEvaluator.numHistoryValues,
+                            Utilities.bpm2millis(it),
+                            tapInEvaluator.maximumAllowedDtInMs,
+                        )
+                    }
+                }
                 "speedsensitivity" -> {
                     val newBpmSensitivity = sharedPreferences!!.getInt("speedsensitivity", (Utilities.sensitivity2percentage(
                         InitialValues.bpmPerCm
@@ -372,6 +390,11 @@ class MetronomeFragment : Fragment() {
         )
         bpmIncrement = Utilities.bpmIncrements[bpmIncrementIndex]
         speedPanel?.bpmIncrement = bpmIncrement
+
+        val minimumSpeed = sharedPreferences.getString("minimumspeed", InitialValues.minimumBpm.toString())?.toFloatOrNull()
+        val maximumSpeed = sharedPreferences.getString("maximumspeed", InitialValues.maximumBpm.toString())?.toFloatOrNull()
+        if (minimumSpeed != null && maximumSpeed != null)
+            tapInEvaluator = TapInEvaluator(tapInEvaluator.numHistoryValues, Utilities.bpm2millis(maximumSpeed), Utilities.bpm2millis(minimumSpeed))
 
         val bpmSensitivity = sharedPreferences.getInt("speedsensitivity", (Utilities.sensitivity2percentage(
             InitialValues.bpmPerCm

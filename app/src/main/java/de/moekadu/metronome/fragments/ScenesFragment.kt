@@ -225,7 +225,7 @@ class ScenesFragment : Fragment() {
             if (metronomeViewModel.playerStatus.value == PlayerStatus.Playing) {
                 metronomeViewModel.pause()
             } else {
-                Log.v("Metronome", "TIMECHECK: ScenesFragment.playButton: play pressed")
+//                Log.v("Metronome", "TIMECHECK: ScenesFragment.playButton: play pressed")
                 metronomeViewModel.play()
             }
         }
