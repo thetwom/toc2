@@ -1,0 +1,4 @@
+v4.6.0:
+- Reduce latency between pressing play and playing the first note
+- Faster scene switch while playing
+- Refactored tap-in logic
