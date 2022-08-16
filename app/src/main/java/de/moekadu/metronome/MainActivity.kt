@@ -51,9 +51,6 @@ class MainActivity : AppCompatActivity() {
 
     // TODO??: Allow "odd" speeds e.g. during load or when typing
 
-    // TODO: alpha animation and more for tick viz
-    // TODO: mute button
-
     private val metronomeViewModel by viewModels<MetronomeViewModel> {
         val playerConnection = PlayerServiceConnection.getInstance(this,
             AppPreferences.readMetronomeBpm(this),

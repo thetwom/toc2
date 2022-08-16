@@ -36,6 +36,7 @@ import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.coroutines.CoroutineContext
+import kotlin.math.absoluteValue
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -194,6 +195,39 @@ private fun createPlayer(): AudioTrack {
             .build()
 }
 
+/** Add a single note to our note queue and listeners.
+ * @param noteListItem Note list item to be queued
+ * @param noteFrame Frame at which the note should be queued.
+ * @param noteCount Count to be used for messaging the number of played notes since start of playing.
+ * @param noteStartedChannelsAndFrames ArrayList where we will append all new noteStartedChannels
+ * @param noteStartedChannels Array with all registered NoteStartedChannels together with the delay.
+ * @param sampleRate Currently used sample rate
+ * @param queuedNotes This is the queue where we add our notes.
+ * @param delayInFrames Note delay in frames.
+ */
+private fun queueSingleNote(noteListItem: NoteListItem,
+                            noteFrame: Int,
+                            noteCount: Long,
+                            noteStartedChannelsAndFrames: ArrayList<NoteStartedChannelAndFrame>,
+                            noteStartedChannels: ArrayList<NoteStartedChannel>,
+                            sampleRate: Int,
+                            queuedNotes: ArrayList<QueuedNote>,
+                            delayInFrames: Int
+) {
+
+    val queuedNote = QueuedNote(noteListItem.id, noteFrame + delayInFrames, noteListItem.volume)
+    queuedNotes.add(queuedNote)
+
+    for (noteStartedChannel in noteStartedChannels) {
+        noteStartedChannelsAndFrames.add(
+            NoteStartedChannelAndFrame(noteListItem,
+                noteStartedChannel,
+                noteFrame + delayInFrames + (noteStartedChannel.delayInMillis / 1000f * sampleRate).roundToInt(),
+                noteCount)
+        )
+    }
+}
+
 /** Put notes in to queue, which will be played.
  * @param nextNoteInfo Info about the next note, that will be put into the queue.
  * @param noteList Contains all notes to be played.
@@ -232,18 +266,8 @@ private fun queueNextNotes(nextNoteInfo: NextNoteInfo,
             nextNoteIndex = 0
 
         val noteListItem = noteList[nextNoteIndex]
-
-        val queuedNote = QueuedNote(noteListItem.id, nextNoteFrame + delayInFrames, noteListItem.volume)
-        queuedNotes.add(queuedNote)
-
-        for (noteStartedChannel in noteStartedChannels) {
-            noteStartedChannelsAndFrames.add(
-                NoteStartedChannelAndFrame(noteListItem,
-                    noteStartedChannel,
-                    nextNoteFrame + delayInFrames + (noteStartedChannel.delayInMillis / 1000f * sampleRate).roundToInt(),
-                    noteCount)
-            )
-        }
+        // this will add the note list item to the queuedNotes and noteStartedChannelsAndFrames
+        queueSingleNote(noteListItem, nextNoteFrame, noteCount, noteStartedChannelsAndFrames, noteStartedChannels, sampleRate, queuedNotes, delayInFrames)
 
         // notes can have a duration of -1 if it is not yet set ... in this case we directly play the next note
         nextNoteFrame += (max(0f, noteListItem.duration.durationInSeconds(bpmQuarter)) * sampleRate).roundToInt()
@@ -292,20 +316,31 @@ private fun mixQueuedNotes(mixingBuffer: FloatArray,
  * @param nextNoteInfo Info about the next note which is about to be queued
  * @param player The audio track which does the playing.
  * @param delayInFrames Delay which is used for playing notes.
+ * @param alreadyQueuedFrames Frame number up to which we did already queued the notes.
  * @return Info about next note to be played.
  */
-private fun synchronizeTime(synchronizeTimeInfo: SynchronizeTimeInfo, noteList: ArrayList<NoteListItem>,
-                            bpmQuarter: Float,
-                            nextNoteInfo: NextNoteInfo, player: AudioTrack, delayInFrames: Int): NextNoteInfo {
+private fun synchronizeTime(
+    synchronizeTimeInfo: SynchronizeTimeInfo,
+    noteList: ArrayList<NoteListItem>,
+    bpmQuarter: Float,
+    nextNoteInfo: NextNoteInfo,
+    player: AudioTrack,
+    delayInFrames: Int,
+    alreadyQueuedFrames: Int
+): Array<NextNoteInfo> {
     if (noteList.isEmpty())
-        return nextNoteInfo
+        return arrayOf(nextNoteInfo)
 
     var nextNoteIndex = nextNoteInfo.nextNoteIndex
-    var nextNoteFrame = nextNoteInfo.nextNoteFrame
+    val nextNoteFrame = nextNoteInfo.nextNoteFrame
+    var noteCount = nextNoteInfo.noteCount
 
     val sampleRate = player.sampleRate
     val currentTimeMillis = SystemClock.uptimeMillis()
     val currentTimeInFrames = player.playbackHeadPosition
+    // reference time, for the first note of the play list to be played. Actually the time of the
+    // first note would be timeOfFirstNoteInFrames = referenceTimeInFrames + i * beatDurationInFrames
+    // where i is an integer number.
     val referenceTimeInFrames = (currentTimeInFrames - delayInFrames
             + (synchronizeTimeInfo.referenceTime - currentTimeMillis).toInt() * sampleRate / 1000)
     val beatDurationInFrames = (synchronizeTimeInfo.beatDurationInSeconds * sampleRate).roundToInt()
@@ -313,22 +348,59 @@ private fun synchronizeTime(synchronizeTimeInfo: SynchronizeTimeInfo, noteList: 
     if (nextNoteInfo.nextNoteIndex >= noteList.size)
         nextNoteIndex = 0
 
+    // determine reference time for the next note to be played. Actually the time of this note must be
+    // timeOfNextNote = referenceTimeForNextNoteListItem + i * beatDurationInFrames
+    // where i is a integer number.
     var referenceTimeForNextNoteListItem = referenceTimeInFrames
 
     for (i in 0 until nextNoteIndex)
         referenceTimeForNextNoteListItem += (max(0f, noteList[i].duration.durationInSeconds(bpmQuarter)) * sampleRate).roundToInt()
 
-    // remove multiples of beat duration from our reference, so that it is negative (and thus, smaller than the nextTrackFrame)
-    if (referenceTimeForNextNoteListItem > 0)
-        referenceTimeForNextNoteListItem -= ((referenceTimeForNextNoteListItem / beatDurationInFrames) + 1) * beatDurationInFrames
-    require(referenceTimeForNextNoteListItem <= nextNoteFrame)
+    // find the closest possible time in frames for our next note to be played, relative to the
+    // previously used frame.
+    // The three different values in the following must be considered, since integer divisions
+    // of positive/negative numbers can occur and depending on this we get different behaviors.
+    // So we we first remove multiples of beatDurations and then check if we remove one beatDuration
+    // less ore more ist closer.
+    val closeTimeForNextNoteListItemInit = referenceTimeForNextNoteListItem - beatDurationInFrames * ((referenceTimeForNextNoteListItem - nextNoteFrame) / beatDurationInFrames)
+    val closeTimeDistanceInit = (closeTimeForNextNoteListItemInit - nextNoteFrame).absoluteValue
+    val closeTimeForNextNoteListItemUpper = closeTimeForNextNoteListItemInit + beatDurationInFrames
+    val closeTimeDistanceUpper = (closeTimeForNextNoteListItemUpper - nextNoteFrame).absoluteValue
+    val closeTimeForNextNoteListItemLower = closeTimeForNextNoteListItemInit - beatDurationInFrames
+    val closeTimeDistanceLower = (closeTimeForNextNoteListItemLower - nextNoteFrame).absoluteValue
 
-    val correctedNextFrameIndex = (referenceTimeForNextNoteListItem +
-            ((nextNoteFrame - referenceTimeForNextNoteListItem).toFloat() / beatDurationInFrames).roundToInt()
-            * beatDurationInFrames)
-    // Log.v("AudioMixer", "AudioMixer.synchronizeTime : correctedNextFrame=$correctedNextFrameIndex, nextTrackFrame=$nextTrackFrame")
-    nextNoteFrame = correctedNextFrameIndex
-    return NextNoteInfo(nextNoteIndex, nextNoteFrame, nextNoteInfo.noteCount)
+    var correctedTimeForNextNote = if (closeTimeDistanceUpper < closeTimeDistanceInit)
+        closeTimeForNextNoteListItemUpper
+    else if (closeTimeDistanceLower < closeTimeDistanceInit)
+        closeTimeForNextNoteListItemLower
+    else
+        closeTimeForNextNoteListItemInit
+
+    var noteToBeQueuedImmediately: NextNoteInfo? = null
+    // we now have the time, when the nextNoteListItem should actually be played
+    // however, it is possible, that this should be played earlier than expected. In this case
+    // we play it directly, and directly queue the next note.
+    // But, it is possible that we are very late, such that even the note after the next note would
+    // be played late, so we skip so many notes, until the next note takes place later than the
+    // already queued frames.
+    while (correctedTimeForNextNote < alreadyQueuedFrames) {
+        val timeInFramesForNoteAfterNextNote = correctedTimeForNextNote + (max(0f, noteList[nextNoteIndex].duration.durationInSeconds(bpmQuarter)) * sampleRate).roundToInt()
+
+        if (timeInFramesForNoteAfterNextNote > alreadyQueuedFrames) {
+            noteToBeQueuedImmediately = NextNoteInfo(nextNoteIndex, alreadyQueuedFrames, noteCount)
+            correctedTimeForNextNote = timeInFramesForNoteAfterNextNote
+            ++nextNoteIndex
+            if (nextNoteIndex >= noteList.size)
+                nextNoteIndex -= noteList.size
+        }
+        ++noteCount
+    }
+    
+    val updatedNextNoteInfo = NextNoteInfo(nextNoteIndex, correctedTimeForNextNote, noteCount)
+    return if (noteToBeQueuedImmediately == null)
+        arrayOf(updatedNextNoteInfo)
+    else
+        arrayOf(noteToBeQueuedImmediately, updatedNextNoteInfo)
 }
 
 /** Read note tracks and store them in an array.
@@ -566,6 +638,18 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                 val noteDelayInMillis = computeNoteDelayInMillis(noteStartedChannels)
                 val delayInFrames = (noteDelayInMillis / 1000f * player.sampleRate).roundToInt()
 
+                synchronizeTimeChannel.tryReceive().getOrNull()?.let { synchronizeTimeInfo ->
+                    // at synchronizing there possible must be played a note immediately,
+                    // if this is the case, it will be stored in nextNoteInfos[0] and an additional entry will be in the list.
+                    val nextNoteInfos = synchronizeTime(synchronizeTimeInfo, noteListCopy, bpmQuarter, nextNoteInfo, player, delayInFrames,
+                        numMixedFrames)
+                    if (nextNoteInfos.size > 1 && nextNoteInfos[0].nextNoteFrame == numMixedFrames) {
+                        val noteListItem = noteList[nextNoteInfos[0].nextNoteIndex]
+                        queueSingleNote(noteListItem, nextNoteInfos[0].nextNoteFrame, nextNoteInfos[0].noteCount, queuedNoteStartedChannels, noteStartedChannels, player.sampleRate, queuedNotes, delayInFrames)
+                    }
+                    nextNoteInfo = nextNoteInfos.last()
+                }
+
                 // side effects of following function:
                 // - to "queuedNoteStartedChannels" we append the infos about when we to sent info to the
                 //   different channels that a note has started.
@@ -573,10 +657,6 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                 nextNoteInfo = queueNextNotes(nextNoteInfo, noteListCopy, bpmQuarter, numMixedFrames,
                     mixingBuffer.size, queuedNoteStartedChannels, noteStartedChannels,
                     player.sampleRate, queuedNotes, delayInFrames)
-
-                synchronizeTimeChannel.tryReceive().getOrNull()?.let { synchronizeTimeInfo ->
-                    nextNoteInfo = synchronizeTime(synchronizeTimeInfo, noteListCopy, bpmQuarter, nextNoteInfo, player, delayInFrames)
-                }
 
                 // fill the mixing buffer with our mixed sound samples.
                 // - side effects: when a queued note fully added to the mixing buffer, it

@@ -133,6 +133,16 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
         tick(index, startTime, noteCount)
     }
 
+    /** Don't tick the next tick on it's own but wait for "tick()" being called.
+     * This should e.g. be used if the speed is getting slower, since is this
+     * case it is expected, that the next tick will come earlier and the
+     * visualizer will tick on its own. By calling this, the visualizer won't
+     * tick but only go on with ticking then tick is called.
+     */
+    fun waitForInputToTick() {
+        currentTickEndTime = Long.MAX_VALUE
+    }
+
     fun stop() {
         animator.end()
         invalidate()

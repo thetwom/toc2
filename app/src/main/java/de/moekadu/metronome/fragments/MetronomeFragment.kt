@@ -413,6 +413,7 @@ class MetronomeFragment : Fragment() {
         // register all observers
         viewModel.bpm.observe(viewLifecycleOwner) { bpm ->
 //            Log.v("Metronome", "MetronomeFragment: viewModel.bpm: $it")
+            tickVisualizer?.waitForInputToTick()
             bpmText?.text = getString(R.string.eqbpm, Utilities.getBpmString(bpm.bpm, bpmIncrement))
             beatDurationManager?.setBeatDuration(bpm.noteDuration)
         }
