@@ -79,6 +79,7 @@
     <string name="append_current_list">Append to current list</string>
     <string name="file_empty">File is empty: %s</string>
     <string name="file_invalid">Invalid file: %s</string>
+    <string name="file_incomplete">File \"%s\" ends unexpectedly but %d scenes successfully read.</string>
     <string name="database_empty">There are no scenes which can be saved.</string>
 
     <string name="cannot_delete_last_note">You cannot delete the last note.</string>

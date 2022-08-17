@@ -395,7 +395,7 @@ private fun synchronizeTime(
         }
         ++noteCount
     }
-    
+
     val updatedNextNoteInfo = NextNoteInfo(nextNoteIndex, correctedTimeForNextNote, noteCount)
     return if (noteToBeQueuedImmediately == null)
         arrayOf(updatedNextNoteInfo)

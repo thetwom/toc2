@@ -267,16 +267,18 @@ class SceneDatabase {
             return ScenesAndFileCheckResult(FileCheck.Ok, scenes)
         }
 
-        fun toastFileCheckString(context: Context, filename: String?, fileCheck: FileCheck) {
+        fun toastFileCheckString(context: Context, filename: String?, fileCheck: FileCheck, numAvailableScenes: Int) {
             when (fileCheck) {
                 FileCheck.Empty -> {
                     Toast.makeText(context, context.getString(R.string.file_empty, filename), Toast.LENGTH_LONG).show()
                 }
-                FileCheck.Invalid -> {
-                    Toast.makeText(context, context.getString(R.string.file_invalid, filename), Toast.LENGTH_LONG).show()
+                FileCheck.Invalid-> {
+                    if (numAvailableScenes > 0)
+                        Toast.makeText(context, context.getString(R.string.file_incomplete, filename, numAvailableScenes), Toast.LENGTH_LONG).show()
+                    else
+                        Toast.makeText(context, context.getString(R.string.file_invalid, filename), Toast.LENGTH_LONG).show()
                 }
-                else -> {
-                }
+                FileCheck.Ok -> { }
             }
         }
     }

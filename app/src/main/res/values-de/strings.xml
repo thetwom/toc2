@@ -103,4 +103,5 @@
     <string name="select_all">Alle auswählen</string>
     <string name="select_scenes">Szenen auswählen</string>
     <string name="no_scenes_selected">Keine Szenen ausgewählt.</string>
+    <string name="file_incomplete">Datei \"%s\" endet unerwartet, aber %d Szenen konnten gelesen werden.</string>
 </resources>

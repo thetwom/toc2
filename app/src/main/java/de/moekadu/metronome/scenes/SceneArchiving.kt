@@ -101,7 +101,7 @@ class SceneArchiving(private val scenesFragment: ScenesFragment) {
 
         val fileData = scenesFragment.getDatabaseString()
 
-        context.contentResolver?.openOutputStream(uri)?.use { stream ->
+        context.contentResolver?.openOutputStream(uri, "wt")?.use { stream ->
             stream.write(fileData.toByteArray())
         }
         return getFilenameFromUri(context, uri)
@@ -121,10 +121,10 @@ class SceneArchiving(private val scenesFragment: ScenesFragment) {
             } ?: return
 
             val (check, scenes) = SceneDatabase.stringToScenes(databaseString)
-            SceneDatabase.toastFileCheckString(context, filename, check)
+            SceneDatabase.toastFileCheckString(context, filename, check, scenes.size)
 
             when {
-                check != SceneDatabase.FileCheck.Ok -> {
+                check != SceneDatabase.FileCheck.Ok && scenes.isEmpty() -> {
                     return
                 }
                 scenesFragment.numScenes() == 0 -> {
