@@ -33,10 +33,10 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.appcompat:appcompat:1.4.2'
+    implementation 'androidx.appcompat:appcompat:1.5.0'
     implementation 'androidx.activity:activity-ktx:1.5.1'
-    implementation 'androidx.fragment:fragment-ktx:1.5.1'
-    implementation 'com.google.android.material:material:1.7.0-alpha03'
+    implementation 'androidx.fragment:fragment-ktx:1.5.2'
+    implementation 'com.google.android.material:material:1.7.0-beta01'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.media:media:1.6.0'
