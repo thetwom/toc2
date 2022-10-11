@@ -228,13 +228,13 @@ class PlayerServiceConnection(
 
     private fun unbindFromService() {
 //        Log.v("Metronome", "ServiceConnection.unbindFromService")
-        applicationContext.unbindService(connection)
         try {
             serviceBinder?.service?.unregisterStatusChangedListener(serviceStateListener)
         }
         catch (_: DeadObjectException) {
             serviceBinder = null
         }
+        applicationContext.unbindService(connection)
     }
 
     companion object {

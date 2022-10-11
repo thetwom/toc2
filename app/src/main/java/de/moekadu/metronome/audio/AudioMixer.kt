@@ -36,10 +36,7 @@ import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.coroutines.CoroutineContext
-import kotlin.math.absoluteValue
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.roundToInt
+import kotlin.math.*
 
 /** Structure for notifying that a note started playing.
  * @param delayInMillis Initial delay in milliseconds when the NoteStartedListener should be called after
@@ -564,6 +561,8 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
 
     /** Start playing. */
     fun start() {
+        stop() // stop a job, if one is running
+
 //        Log.v("Metronome", "TIMECHECK: AudioMixer launching job")
         job = scope.launch(Dispatchers.Default) {
 //            Log.v("Metronome", "TIMECHECK: AudioMixer creating player")
@@ -598,8 +597,10 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
             var loopCounter = 0L
 //            Log.v("Metronome", "AudioMixer start player loop")
             while(true) {
-                if (!isActive)
+                if (!isActive) {
                     break
+                }
+
 
                 // update our local noteList copy
                 if (noteListLock.tryLock()) {
@@ -688,8 +689,6 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                     mixingBuffer.fill(0f)
 
                 //Log.v("Metronome", "AudioMixer mixingBuffer:max: ${mixingBuffer[0]}")
-                if (loopCounter == 0L)
-                    Log.v("Metronome", "TIMECHECK: AudioMixer writing first samples to player")
                 player.write(mixingBuffer, 0, mixingBuffer.size, AudioTrack.WRITE_BLOCKING)
 
 //                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
@@ -700,16 +699,18 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
             player.stop()
             player.flush()
             player.release()
-        }
+        }//.also { it.invokeOnCompletion { Log.v("Metronome", "AudioMixer player thread done!") } }
     }
 
     /** Stop playing. */
     fun stop() {
         val j = job
-        scope.launch {
-            j?.cancel()
-            j?.join()
+        if (j != null) {
+            scope.launch {
+                j.cancelAndJoin()
+            }//.invokeOnCompletion { Log.v("Metronome", "AudioMixer.stop : stop job canceled") }
         }
+        // Log.v("Metronome", "AudioMixer.stop : setting old job to null")
         job = null
     }
 
