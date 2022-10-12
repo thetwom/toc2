@@ -19,6 +19,7 @@
 
 package de.moekadu.metronome.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -167,10 +168,12 @@ class MetronomeViewModel(private val playerConnection: PlayerServiceConnection):
     }
 
     fun play() {
+        Log.v("Metronome", "MetronomeViewModel.play() : starting play on viewmodel $this")
         playerConnection.play()
     }
 
     fun pause() {
+        Log.v("Metronome", "MetronomeViewModel.play() : pausing play on viewmodel $this")
         playerConnection.pause()
     }
 

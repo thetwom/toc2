@@ -700,15 +700,18 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
             player.flush()
             player.release()
         }//.also { it.invokeOnCompletion { Log.v("Metronome", "AudioMixer player thread done!") } }
+        Log.v("Metronome", "AudioMixer.start : job ${job} created")
+
     }
 
     /** Stop playing. */
     fun stop() {
         val j = job
         if (j != null) {
+            val completionMessage = "AudioMixer.stop : job $j canceled"
             scope.launch {
                 j.cancelAndJoin()
-            }//.invokeOnCompletion { Log.v("Metronome", "AudioMixer.stop : stop job canceled") }
+            }.invokeOnCompletion { Log.v("Metronome", completionMessage) }
         }
         // Log.v("Metronome", "AudioMixer.stop : setting old job to null")
         job = null

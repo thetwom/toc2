@@ -26,6 +26,7 @@ import android.os.Binder
 import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Log
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
@@ -150,9 +151,8 @@ class PlayerService : LifecycleService() {
     }
 
     override fun onCreate() {
-        // Log.v("Metronome", "PlayerService::onCreate()")
         super.onCreate()
-
+        Log.v("Metronome", "PlayerService.onCreate() : Creating service $this")
         val filter = IntentFilter(BROADCAST_PLAYERACTION)
         registerReceiver(actionReceiver, filter)
 
@@ -270,18 +270,20 @@ class PlayerService : LifecycleService() {
 
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener)
+        Log.v("Metronome", "PlayerService.onDestroy() : Destroying service $this")
         super.onDestroy()
     }
 
 
     override fun onBind(intent: Intent): IBinder {
         super.onBind(intent)
-        // Log.v("Metronome", "PlayerService:onBind")
+        Log.v("Metronome", "PlayerService.onBind() : Binding service $this")
         return playerBinder
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
 //        Log.v("Metronome", "PlayerService:onUnbind");
+        Log.v("Metronome", "PlayerService.onUnbind() : Unbinding service $this")
         stopPlay()
         return super.onUnbind(intent)
     }
@@ -345,11 +347,17 @@ class PlayerService : LifecycleService() {
     }
 
     fun registerStatusChangedListener(statusChangedListener: StatusChangedListener) {
+        val numBefore = statusChangedListeners.size
         statusChangedListeners.add(statusChangedListener)
+        val numAfter = statusChangedListeners.size
+        Log.v("Metronome", "PlayerService.registerStatusChangedListener: service: ${this}, number of listeners before: $numBefore, after: $numAfter")
     }
 
     fun unregisterStatusChangedListener(statusChangedListener: StatusChangedListener) {
+        val numBefore = statusChangedListeners.size
         statusChangedListeners.remove(statusChangedListener)
+        val numAfter = statusChangedListeners.size
+        Log.v("Metronome", "PlayerService.unregisterStatusChangedListener: service: ${this}, number of listeners before: $numBefore, after: $numAfter")
     }
 
     fun modifyNoteList(op: (ArrayList<NoteListItem>) -> Boolean) {

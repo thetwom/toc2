@@ -26,6 +26,7 @@ import android.content.ServiceConnection
 import android.os.DeadObjectException
 import android.os.IBinder
 import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import de.moekadu.metronome.misc.LifecycleAwareEvent
@@ -99,11 +100,11 @@ class PlayerServiceConnection(
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
-//            Log.v("Metronome", "ServiceConnection.onServiceConnected")
             serviceBinder = binder as PlayerService.PlayerBinder?
-
+            Log.v("Metronome", "ServiceConnection.onServiceConnected : ${serviceBinder?.service}")
             try {
                 serviceBinder?.service?.let { service ->
+                    Log.v("Metronome", "PlayerServiceConnection.onServiceConnected : register serviceStateListener to ${service}")
                     service.registerStatusChangedListener(serviceStateListener)
 
                     if (service.state == PlaybackStateCompat.STATE_PLAYING && _playerStatus.value != PlayerStatus.Playing)
@@ -127,7 +128,7 @@ class PlayerServiceConnection(
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
-//            Log.v("Metronome", "ServiceConnection.onServiceDisconnected")
+            Log.v("Metronome", "ServiceConnection.onServiceDisconnected : ${serviceBinder?.service}")
             serviceBinder = null
         }
     }
@@ -138,6 +139,7 @@ class PlayerServiceConnection(
 
     fun play() {
         try {
+            Log.v("Metronome", "PlayerServiceConnection.play() : start playing on service ${serviceBinder?.service}")
             serviceBinder?.service?.startPlay()
         }
         catch (_: DeadObjectException) {
@@ -147,6 +149,7 @@ class PlayerServiceConnection(
 
     fun pause() {
         try {
+            Log.v("Metronome", "PlayerServiceConnection.pause() : pause on service ${serviceBinder?.service}")
             serviceBinder?.service?.stopPlay()
         }
         catch (_: DeadObjectException) {
@@ -209,7 +212,7 @@ class PlayerServiceConnection(
     }
 
     private fun bindToService() {
-//        Log.v("Metronome", "ServiceConnection.bindToService")
+        //Log.v("Metronome", "ServiceConnection.bindToService")
         val serviceIntent = Intent(applicationContext, PlayerService::class.java)
         val success = applicationContext.bindService(serviceIntent, connection, Context.BIND_AUTO_CREATE)
 
@@ -219,6 +222,7 @@ class PlayerServiceConnection(
         // the registering is either done in onServiceConnected or directly done here if it is already available
         // doing it also here is necessary since onServiceConnected is only called on the first bind.
         try {
+            Log.v("Metronome", "PlayerServiceConnection.bindToService : register serviceStateListener to ${serviceBinder?.service}")
             serviceBinder?.service?.registerStatusChangedListener(serviceStateListener)
         }
         catch (_: DeadObjectException){
@@ -227,7 +231,7 @@ class PlayerServiceConnection(
     }
 
     private fun unbindFromService() {
-//        Log.v("Metronome", "ServiceConnection.unbindFromService")
+        Log.v("Metronome", "ServiceConnection.unbindFromService : ${serviceBinder?.service}")
         try {
             serviceBinder?.service?.unregisterStatusChangedListener(serviceStateListener)
         }

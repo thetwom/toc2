@@ -228,12 +228,12 @@ class MetronomeFragment : Fragment() {
         playButton = view.findViewById(R.id.play_button)
         playButton?.buttonClickedListener = object : PlayButton.ButtonClickedListener {
             override fun onPause() {
-                // Log.v("Metronome", "playButton:onPause()")
+                Log.v("Metronome", "MetronomeFragment playButton:onPause(), activity=$activity")
                 viewModel.pause()
             }
 
             override fun onPlay() {
-//                Log.v("Metronome", "MetronomeFragment: playButton:onPlay()")
+                Log.v("Metronome", "MetronomeFragment: playButton:onPlay(), activity=$activity")
 //                Log.v("Metronome", "TIMECHECK: MetronomeFragment.playButton: play pressed")
                 viewModel.play()
             }
