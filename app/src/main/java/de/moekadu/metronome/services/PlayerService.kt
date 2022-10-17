@@ -141,10 +141,10 @@ class PlayerService : LifecycleService() {
                 bpm = bpm.copy(bpm = bpm.bpm - speedLimiter.bpmIncrement.value!!)
 
             if (myAction == PlaybackStateCompat.ACTION_PLAY) {
-                // Log.v("Metronome", "ActionReceiver:onReceive : set state to playing");
+                Log.v("Metronome", "ActionReceiver:onReceive : set state to playing on service ${this}")
                 startPlay()
             } else if (myAction == PlaybackStateCompat.ACTION_PAUSE) {
-                // Log.v("Metronome", "ActionReceiver:onReceive : set state to pause");
+                Log.v("Metronome", "ActionReceiver:onReceive : set state to pause on service ${this}");
                 stopPlay()
             }
         }
@@ -196,18 +196,14 @@ class PlayerService : LifecycleService() {
 
         mediaSession?.setCallback(object : MediaSessionCompat.Callback() {
             override fun onPlay() {
-                // Log.v("Metronome", "mediaSession:onPlay()");
-                if (state != PlaybackStateCompat.STATE_PLAYING) {
-                    startPlay()
-                }
+                Log.v("Metronome", "mediaSession:onPlay() on service ${this}");
+                startPlay()
                 super.onPlay()
             }
 
             override fun onPause() {
-                // Log.v("Metronome", "mediaSession:onPause()");
-                if (state == PlaybackStateCompat.STATE_PLAYING) {
-                    stopPlay()
-                }
+                Log.v("Metronome", "mediaSession:onPause() on service ${this}");
+                stopPlay()
                 super.onPause()
             }
         })
@@ -293,6 +289,10 @@ class PlayerService : LifecycleService() {
     }
 
     fun startPlay() {
+        Log.v("Metronome", "PlayerService:startPlay : on service ${this}, playbackState before call=$state")
+        if (state == PlaybackStateCompat.STATE_PLAYING)
+            return
+
 //        Log.v("Metronome", "PlayerService:startPlay : setting playbackState")
         playbackState = playbackStateBuilder.setState(
             PlaybackStateCompat.STATE_PLAYING,
@@ -314,7 +314,9 @@ class PlayerService : LifecycleService() {
     }
 
     fun stopPlay() {
-        // Log.v("Metronome", "PlayerService:stopPlay")
+        Log.v("Metronome", "PlayerService:stopPlay : on service ${this}, playbackState before call=$state")
+        if (state == PlaybackStateCompat.STATE_PAUSED)
+            return
 
         playbackState = playbackStateBuilder.setState(
             PlaybackStateCompat.STATE_PAUSED,
