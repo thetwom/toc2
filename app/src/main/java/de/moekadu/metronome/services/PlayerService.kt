@@ -52,6 +52,8 @@ class PlayerService : LifecycleService() {
     interface StatusChangedListener {
         fun onPlay()
         fun onPause()
+        fun onSkipToNextReceived()
+        fun onSkipToPreviousReceived()
         fun onNoteStarted(noteListItem: NoteListItem, uptimeMillis: Long, noteCount: Long)
         fun onSpeedChanged(bpm: Bpm)
         fun onNoteListChanged(noteList: ArrayList<NoteListItem>)
@@ -206,6 +208,25 @@ class PlayerService : LifecycleService() {
                 stopPlay()
                 super.onPause()
             }
+
+            override fun onStop() {
+                Log.v("Metronome", "mediaSession:onStop() on service ${this}");
+                stopPlay()
+                super.onStop()
+            }
+
+            override fun onSkipToNext() {
+                for(s in statusChangedListeners)
+                    s.onSkipToNextReceived()
+                super.onSkipToNext()
+            }
+
+            override fun onSkipToPrevious() {
+                for(s in statusChangedListeners)
+                    s.onSkipToPreviousReceived()
+                super.onSkipToNext()
+            }
+
         })
 
         playbackStateBuilder.setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE or PlaybackStateCompat.ACTION_PLAY_PAUSE)

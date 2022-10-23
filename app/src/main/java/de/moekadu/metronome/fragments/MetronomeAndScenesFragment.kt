@@ -83,7 +83,7 @@ class MetronomeAndScenesFragment : Fragment() {
         override fun onPrepareMenu(menu: Menu) {
             super.onPrepareMenu(menu)
             val muteIcon = menu.findItem(R.id.action_mute)
-            muteIcon.setIcon(if (metronomeViewModel.mute.value == true) R.drawable.ic_action_mute_active else R.drawable.ic_action_mute)
+            muteIcon.setIcon(if (metronomeViewModel.mute.value == true) R.drawable.ic_action_mute_active3 else R.drawable.ic_action_mute)
         }
 
         override fun onMenuItemSelected(menuItem: MenuItem): Boolean {

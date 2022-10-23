@@ -6,7 +6,7 @@
         android:id="@+id/action_mute"
         android:orderInCategory="1"
         android:title="@string/mute"
-        android:icon="@drawable/ic_action_mute_active"
+        android:icon="@drawable/ic_action_mute_active3"
         app:showAsAction="always"
         />
 

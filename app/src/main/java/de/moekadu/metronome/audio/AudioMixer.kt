@@ -163,7 +163,7 @@ private const val minBufferSizeFactor = 2
 private fun audioRoutingChangeRequiresNewPlayer(sampleRate: Int, bufferSizeInFrames:Int) : Boolean {
     val nativeSampleRate = AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC)
     val bufferSizeInBytes = minBufferSizeFactor * AudioTrack.getMinBufferSize(nativeSampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_FLOAT)
-//    Log.v("Metronome", "audioRoutingChangesRequiresNewPlayer: nativeSampleRate=$nativeSampleRate, currentSampleRate=${sampleRate}, bufferSize=$bufferSizeInBytes, currentBufferSize=${4*bufferSizeInFrames}")
+    Log.v("Metronome", "audioRoutingChangesRequiresNewPlayer: nativeSampleRate=$nativeSampleRate, currentSampleRate=${sampleRate}, bufferSize=$bufferSizeInBytes, currentBufferSize=${4*bufferSizeInFrames}")
     return (sampleRate != nativeSampleRate || bufferSizeInBytes != 4 * bufferSizeInFrames)
 }
 
@@ -561,6 +561,7 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
 
     /** Start playing. */
     fun start() {
+        Log.v("Metronome", "AudioMixer.start : called")
         stop() // stop a job, if one is running
 
 //        Log.v("Metronome", "TIMECHECK: AudioMixer launching job")
@@ -577,8 +578,12 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                 val sampleRate = player.sampleRate
                 val bufferSize = player.bufferSizeInFrames
                 player.addOnRoutingChangedListener ({
-                    if(audioRoutingChangeRequiresNewPlayer(sampleRate, bufferSize))
-                        restart()
+                    if(audioRoutingChangeRequiresNewPlayer(sampleRate, bufferSize)) {
+                        scope.launch(Dispatchers.Main) {
+                            Log.v("Metronome", "AudioMixer: triggering restart due to audio parameter changes ($player)")
+                            restart()
+                        }
+                    }
                 }, Handler(Looper.getMainLooper()))
             }
 
@@ -591,9 +596,9 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
             var nextNoteInfo = NextNoteInfo(0, 1, 0)
 
             val noteListCopy = ArrayList<NoteListItem>()
-
+            Log.v("Metronome", "AudioMixer: about to call player.play() on $player")
             player.play()
-
+            Log.v("Metronome", "AudioMixer: player.play() called on $player")
             var loopCounter = 0L
 //            Log.v("Metronome", "AudioMixer start player loop")
             while(true) {
@@ -708,17 +713,19 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
     fun stop() {
         val j = job
         if (j != null) {
+            Log.v("Metronome", "AudioMixer.stop : will stop $j now")
             val completionMessage = "AudioMixer.stop : job $j canceled"
             scope.launch {
                 j.cancelAndJoin()
             }.invokeOnCompletion { Log.v("Metronome", completionMessage) }
         }
-        // Log.v("Metronome", "AudioMixer.stop : setting old job to null")
+        //Log.v("Metronome", "AudioMixer.stop : setting old job to null")
         job = null
     }
 
     /** Restart player. */
     private fun restart() {
+        Log.v("Metronome", "AudioMixer.restart : called")
         stop()
         start()
     }

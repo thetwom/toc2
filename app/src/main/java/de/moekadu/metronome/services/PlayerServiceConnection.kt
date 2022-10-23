@@ -67,6 +67,11 @@ class PlayerServiceConnection(
 
     val noteStartedEvent = LifecycleAwareEvent<NoteListItemStartTime>()
 
+    interface SkipSceneListener {
+        fun skipToNext()
+        fun skipToPrevious()
+    }
+    var skipSceneListener: SkipSceneListener? = null
     private val applicationContext = context.applicationContext
     private var serviceBinder: PlayerService.PlayerBinder? = null
 
@@ -79,6 +84,14 @@ class PlayerServiceConnection(
         override fun onPause() {
             if (_playerStatus.value != PlayerStatus.Paused)
                 _playerStatus.value = PlayerStatus.Paused
+        }
+
+        override fun onSkipToNextReceived() {
+            skipSceneListener?.skipToNext()
+        }
+
+        override fun onSkipToPreviousReceived() {
+            skipSceneListener?.skipToPrevious()
         }
 
         override fun onNoteStarted(noteListItem: NoteListItem, uptimeMillis: Long, noteCount: Long) {
