@@ -174,7 +174,7 @@ private fun createPlayer(): AudioTrack {
     val nativeSampleRate = AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC)
     val bufferSize = minBufferSizeFactor * AudioTrack.getMinBufferSize(nativeSampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_FLOAT)
 
-    return AudioTrack.Builder()
+    val track =  AudioTrack.Builder()
             .setAudioAttributes(
                     AudioAttributes.Builder()
                             .setUsage(AudioAttributes.USAGE_MEDIA)
@@ -190,6 +190,8 @@ private fun createPlayer(): AudioTrack {
             )
             .setBufferSizeInBytes(bufferSize)
             .build()
+    Log.v("Metronome", "createPlayer: requested buffer size = $bufferSize, actual buffer size = ${4 * track.bufferSizeInFrames}")
+    return track
 }
 
 /** Add a single note to our note queue and listeners.
