@@ -23,6 +23,7 @@ import android.app.PendingIntent
 import android.content.*
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Binder
+import android.os.Build
 import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
@@ -210,6 +211,14 @@ class PlayerService : LifecycleService() {
                 }
                 super.onPause()
             }
+
+            override fun onStop() {
+                if (state == PlaybackStateCompat.STATE_PLAYING) {
+                    stopPlay()
+                }
+                super.onStop()
+            }
+
         })
 
         playbackStateBuilder.setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE or PlaybackStateCompat.ACTION_PLAY_PAUSE)
@@ -321,7 +330,11 @@ class PlayerService : LifecycleService() {
         ).build()
         mediaSession?.setPlaybackState(playbackState)
 
-        stopForeground(false)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            stopForeground(STOP_FOREGROUND_DETACH)
+        } else {
+            stopForeground(false)
+        }
 
         audioMixer?.stop()
 

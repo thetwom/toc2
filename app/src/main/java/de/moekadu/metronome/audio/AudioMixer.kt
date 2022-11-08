@@ -164,7 +164,7 @@ private fun audioRoutingChangeRequiresNewPlayer(sampleRate: Int, bufferSizeInFra
     val nativeSampleRate = AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC)
     val bufferSizeInBytes = minBufferSizeFactor * AudioTrack.getMinBufferSize(nativeSampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_FLOAT)
 //    Log.v("Metronome", "audioRoutingChangesRequiresNewPlayer: nativeSampleRate=$nativeSampleRate, currentSampleRate=${sampleRate}, bufferSize=$bufferSizeInBytes, currentBufferSize=${4*bufferSizeInFrames}")
-    return (sampleRate != nativeSampleRate || bufferSizeInBytes != 4 * bufferSizeInFrames)
+    return (sampleRate != nativeSampleRate || bufferSizeInBytes > 4 * bufferSizeInFrames)
 }
 
 /** Create a new audio track instance.
@@ -600,7 +600,6 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                 if (!isActive) {
                     break
                 }
-
 
                 // update our local noteList copy
                 if (noteListLock.tryLock()) {
