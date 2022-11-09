@@ -580,6 +580,8 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                 val sampleRate = player.sampleRate
                 val bufferSize = player.bufferSizeInFrames
                 player.addOnRoutingChangedListener ({
+                    val deviceInfo = it.routedDevice
+                    Log.v("Metronome", "AudioMixer: audio routing changed: productName=${deviceInfo.productName}, type=${deviceInfo.type}, id=${deviceInfo.id}, hash=${deviceInfo.hashCode()}")
                     if(audioRoutingChangeRequiresNewPlayer(sampleRate, bufferSize)) {
                         scope.launch(Dispatchers.Main) {
                             Log.v("Metronome", "AudioMixer: triggering restart due to audio parameter changes ($player)")
