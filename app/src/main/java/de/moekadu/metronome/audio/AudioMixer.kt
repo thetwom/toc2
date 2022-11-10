@@ -162,7 +162,7 @@ private const val minBufferSizeFactor = 2
  */
 private fun audioRoutingChangeRequiresNewPlayer(sampleRate: Int, bufferSizeInFrames:Int) : Boolean {
     val nativeSampleRate = AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC)
-    val bufferSizeInBytes = minBufferSizeFactor * AudioTrack.getMinBufferSize(nativeSampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_FLOAT)
+    val bufferSizeInBytes = AudioTrack.getMinBufferSize(nativeSampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_FLOAT)
     Log.v("Metronome", "audioRoutingChangesRequiresNewPlayer: nativeSampleRate=$nativeSampleRate, currentSampleRate=${sampleRate}, bufferSize=$bufferSizeInBytes, currentBufferSize=${4*bufferSizeInFrames}")
     return (sampleRate != nativeSampleRate || bufferSizeInBytes > 4 * bufferSizeInFrames)
 }
@@ -603,6 +603,7 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
             Log.v("Metronome", "AudioMixer: about to call player.play() on $player")
             player.play()
             Log.v("Metronome", "AudioMixer: player.play() called on $player")
+            Log.v("Metronome", "AudioMixer: device info after play: name=${player.routedDevice?.productName}, hashCode=${player.routedDevice.hashCode()}")
             var loopCounter = 0L
 //            Log.v("Metronome", "AudioMixer start player loop")
             while(true) {
