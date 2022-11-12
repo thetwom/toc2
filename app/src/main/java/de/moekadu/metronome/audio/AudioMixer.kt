@@ -576,21 +576,6 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
             val queuedNotes = ArrayList<QueuedNote>(32)
             val queuedNoteStartedChannels = ArrayList<NoteStartedChannelAndFrame>()
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                val sampleRate = player.sampleRate
-                val bufferSize = player.bufferSizeInFrames
-                player.addOnRoutingChangedListener ({
-                    val deviceInfo = it.routedDevice
-                    Log.v("Metronome", "AudioMixer: audio routing changed: productName=${deviceInfo.productName}, type=${deviceInfo.type}, id=${deviceInfo.id}, hash=${deviceInfo.hashCode()}")
-                    if(audioRoutingChangeRequiresNewPlayer(sampleRate, bufferSize)) {
-                        scope.launch(Dispatchers.Main) {
-                            Log.v("Metronome", "AudioMixer: triggering restart due to audio parameter changes ($player)")
-                            restart()
-                        }
-                    }
-                }, Handler(Looper.getMainLooper()))
-            }
-
             val mixingBufferSize = min(player.bufferSizeInFrames / 2, 128)
             val mixingBuffer = FloatArray(mixingBufferSize)
 
@@ -602,6 +587,25 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
             val noteListCopy = ArrayList<NoteListItem>()
             Log.v("Metronome", "AudioMixer: about to call player.play() on $player")
             player.play()
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                val sampleRate = player.sampleRate
+                val bufferSize = player.bufferSizeInFrames
+                val deviceHash = player.routedDevice?.hashCode() ?: 0
+                val deviceId = player.routedDevice?.id ?: 0
+                player.addOnRoutingChangedListener ({
+                    val deviceInfo = it.routedDevice
+                    Log.v("Metronome", "AudioMixer: audio routing changed: productName=${deviceInfo.productName}, type=${deviceInfo.type}, id=${deviceInfo.id}, hash=${deviceInfo.hashCode()}, previousHash=$deviceHash, previousId=$deviceId")
+                    // don't restart if the device is the same
+                    if(deviceInfo?.id != deviceId && audioRoutingChangeRequiresNewPlayer(sampleRate, bufferSize)) {
+                        scope.launch(Dispatchers.Main) {
+                            Log.v("Metronome", "AudioMixer: triggering restart due to audio parameter changes ($player)")
+                            restart()
+                        }
+                    }
+                }, Handler(Looper.getMainLooper()))
+            }
+
             Log.v("Metronome", "AudioMixer: player.play() called on $player")
             Log.v("Metronome", "AudioMixer: device info after play: name=${player.routedDevice?.productName}, hashCode=${player.routedDevice.hashCode()}")
             var loopCounter = 0L
