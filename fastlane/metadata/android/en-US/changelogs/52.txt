@@ -1,6 +1,8 @@
 v4.6.1:
 - Fix crash after pressing play on some systems
   (thanks to jorfus for the support to find the issue)
+- Fix playing first note twice after pressing play on some systems
+  (thanks to jorfus for the support to find the issue)
 - Modified mute icon
 - Updated to latest dependencies
 

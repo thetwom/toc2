@@ -574,15 +574,6 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
             val queuedNotes = ArrayList<QueuedNote>(32)
             val queuedNoteStartedChannels = ArrayList<NoteStartedChannelAndFrame>()
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                val sampleRate = player.sampleRate
-                val bufferSize = player.bufferSizeInFrames
-                player.addOnRoutingChangedListener ({
-                    if(audioRoutingChangeRequiresNewPlayer(sampleRate, bufferSize))
-                        restart()
-                }, Handler(Looper.getMainLooper()))
-            }
-
             val mixingBufferSize = min(player.bufferSizeInFrames / 2, 128)
             val mixingBuffer = FloatArray(mixingBufferSize)
 
@@ -594,6 +585,21 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
             val noteListCopy = ArrayList<NoteListItem>()
 
             player.play()
+
+            // add the routing change listener somewhere AFTER .play() since we don't have the device info before
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                val sampleRate = player.sampleRate
+                val bufferSize = player.bufferSizeInFrames
+                val deviceId = player.routedDevice?.id ?: 0
+                player.addOnRoutingChangedListener ({
+                    val deviceInfo = it.routedDevice
+                    // don't restart if the device is the same -> we assume that for the same device the buffer sizes don't need change
+                    // and if the system still tells differently, we want to avoid this noise
+                    if(deviceInfo?.id != deviceId && audioRoutingChangeRequiresNewPlayer(sampleRate, bufferSize))
+                            restart()
+                }, Handler(Looper.getMainLooper()))
+            }
+
 
             var loopCounter = 0L
 //            Log.v("Metronome", "AudioMixer start player loop")
