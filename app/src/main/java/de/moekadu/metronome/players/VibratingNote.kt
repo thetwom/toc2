@@ -24,6 +24,8 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import android.util.Log
+import androidx.annotation.RequiresApi
 import de.moekadu.metronome.metronomeproperties.NoteListItem
 import de.moekadu.metronome.metronomeproperties.durationInMillis
 import de.moekadu.metronome.metronomeproperties.getNoteVibrationDuration
@@ -70,8 +72,40 @@ class VibratingNote(context: Context) {
             return vibratingNoteLogTo100(_strength)
         }
 
+    private data class DurationAndVolume(val duration: Long, val volume: Int)
 
-    fun vibrate(volume: Float, note: NoteListItem, bpmQuarter: Float) {
+    private val effectMap = hashMapOf<DurationAndVolume, VibrationEffect>()
+    private val cacheSize = 100
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun getVibrationEffect(duration: Long, volume: Int): VibrationEffect {
+        if (effectMap.size >= cacheSize)
+            effectMap.clear()
+
+        val key = DurationAndVolume(duration, volume)
+        val possibleEffect = effectMap[key]
+        val effect = if (possibleEffect == null) {
+//            Log.v("Metronome", "VibratingNote.getVibrationEffect: creating new effect with volume=$volume, duration=$duration")
+            val newEffect = VibrationEffect.createOneShot(duration, volume)
+            effectMap[key] = newEffect
+            newEffect
+        } else {
+//            Log.v("Metronome", "VibratingNote.getVibrationEffect: reusing effect with volume=$volume, duration=$duration")
+            possibleEffect
+        }
+        return effect
+    }
+
+    /** Vibrate.
+     * @param volume Note volume (between 0f and 1f).
+     * @param note Note.
+     * @param bpmQuarter Bpm for a quarter note. This is needed to predict the time of the next
+     *   note, and when the next note comes very early, reducing the vibration duration.
+     * @param numNotesInNoteList Notes in note list. This is needed since we cache vibration effects
+     *   and we don't want to cache too many effects. In theory, this can be 0, but this would
+     *   effectively turn off the caching of effects.
+     */
+    fun vibrate(volume: Float, note: NoteListItem, bpmQuarter: Float, numNotesInNoteList: Int = 100) {
         val halfNoteDurationInMillis = (0.5f * note.duration.durationInMillis(bpmQuarter)).toLong()
         val duration = min(halfNoteDurationInMillis, (_strength * getNoteVibrationDuration(note.id)).toLong())
 
@@ -87,8 +121,10 @@ class VibratingNote(context: Context) {
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 val v = min(255, (volume * 255).toInt())
-                if (v > 0)
-                    it.vibrate(VibrationEffect.createOneShot(duration, v))
+                if (v > 0) {
+                    //    it.vibrate(VibrationEffect.createOneShot(duration, v))
+                    it.vibrate(getVibrationEffect(duration, v))
+                }
             } else {
                 it.vibrate(duration)
             }
