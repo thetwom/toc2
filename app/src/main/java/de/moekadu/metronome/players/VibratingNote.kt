@@ -20,10 +20,7 @@
 package de.moekadu.metronome.players
 
 import android.content.Context
-import android.os.Build
-import android.os.VibrationEffect
-import android.os.Vibrator
-import android.os.VibratorManager
+import android.os.*
 import android.util.Log
 import androidx.annotation.RequiresApi
 import de.moekadu.metronome.metronomeproperties.NoteListItem
@@ -72,6 +69,7 @@ class VibratingNote(context: Context) {
             return vibratingNoteLogTo100(_strength)
         }
 
+    private var lastVibrationUpdateMillies = 0L
     private data class DurationAndVolume(val duration: Long, val volume: Int)
 
     private val effectMap = hashMapOf<DurationAndVolume, VibrationEffect>()
@@ -123,6 +121,10 @@ class VibratingNote(context: Context) {
                 val v = min(255, (volume * 255).toInt())
                 if (v > 0) {
                     //    it.vibrate(VibrationEffect.createOneShot(duration, v))
+                    val newUptimeMillis = SystemClock.uptimeMillis()
+                    val diff = newUptimeMillis - lastVibrationUpdateMillies
+                    lastVibrationUpdateMillies = newUptimeMillis
+//                    Log.v("Metronome", "VibratingNote: time since last vibration = ${diff}")
                     it.vibrate(getVibrationEffect(duration, v))
                 }
             } else {

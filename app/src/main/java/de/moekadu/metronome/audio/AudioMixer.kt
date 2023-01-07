@@ -31,7 +31,9 @@ import android.os.SystemClock
 import android.util.Log
 import de.moekadu.metronome.metronomeproperties.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ChannelResult
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -122,11 +124,15 @@ private class NoteStartedChannelWithAddOrRemoveInfo(val noteStartedChannel: Note
  *  @param noteStartedChannel NoteStartedChannel where the info is sent.
  *  @param frameNumber Frame number when the noteStartedListener should be called.
  *  @param noteCount Counter for played notes since player start
+ *  @param uptimeMillis Time (as given by SystemClock.uptimeMillis) when the note starts playing.
  */
-private class NoteStartedChannelAndFrame(val noteListItem: NoteListItem,
-                                         val noteStartedChannel: NoteStartedChannel,
-                                         val frameNumber: Int,
-                                         val noteCount: Long)
+private class NoteStartedChannelAndFrame(
+    val noteListItem: NoteListItem,
+    val noteStartedChannel: NoteStartedChannel,
+    val frameNumber: Int,
+    val noteCount: Long,
+    val uptimeMillis: Long
+)
 
 /** Class which stores tracks which are queued for the playing.
  * @param noteId Note index in #availableNotes.
@@ -153,7 +159,7 @@ private data class NextNoteInfo(val nextNoteIndex: Int, val nextNoteFrame: Int, 
 private data class SynchronizeTimeInfo(val referenceTime: Long, val beatDurationInSeconds: Float)
 
 /** We use not the minimum buffer size but scale it with this integer value. */
-private const val minBufferSizeFactor = 2
+private const val minBufferSizeFactor = 4
 
 /** Check if we need to recreate a player since the audio sink properties changed.
  * @param sampleRate Currently used sample rate
@@ -206,22 +212,28 @@ private fun createPlayer(): AudioTrack {
 private fun queueSingleNote(noteListItem: NoteListItem,
                             noteFrame: Int,
                             noteCount: Long,
-                            noteStartedChannelsAndFrames: ArrayList<NoteStartedChannelAndFrame>,
+                            queuedNoteStartedChannel: Channel<NoteStartedChannelAndFrame>,
+                            //noteStartedChannelsAndFrames: ArrayList<NoteStartedChannelAndFrame>,
                             noteStartedChannels: ArrayList<NoteStartedChannel>,
                             sampleRate: Int,
                             queuedNotes: ArrayList<QueuedNote>,
-                            delayInFrames: Int
+                            delayInFrames: Int,
+                            frameNumberToMillis: FrameNumberToMillis
 ) {
 
     val queuedNote = QueuedNote(noteListItem.id, noteFrame + delayInFrames, noteListItem.volume)
     queuedNotes.add(queuedNote)
 
     for (noteStartedChannel in noteStartedChannels) {
-        noteStartedChannelsAndFrames.add(
+        //noteStartedChannelsAndFrames.add(
+        val frameNumber = noteFrame + delayInFrames + (noteStartedChannel.delayInMillis / 1000f * sampleRate).roundToInt()
+        queuedNoteStartedChannel.trySend(
             NoteStartedChannelAndFrame(noteListItem,
                 noteStartedChannel,
-                noteFrame + delayInFrames + (noteStartedChannel.delayInMillis / 1000f * sampleRate).roundToInt(),
-                noteCount)
+                frameNumber,
+                noteCount,
+                frameNumberToMillis.frameToMillis(frameNumber)
+            )
         )
     }
 }
@@ -244,11 +256,13 @@ private fun queueNextNotes(nextNoteInfo: NextNoteInfo,
                            bpmQuarter: Float,
                            alreadyQueuedFrames: Int,
                            numFramesToQueue: Int,
-                           noteStartedChannelsAndFrames: ArrayList<NoteStartedChannelAndFrame>,
+//                           noteStartedChannelsAndFrames: ArrayList<NoteStartedChannelAndFrame>,
+                           queuedNoteStartedChannel: Channel<NoteStartedChannelAndFrame>,
                            noteStartedChannels: ArrayList<NoteStartedChannel>,
                            sampleRate: Int,
                            queuedNotes: ArrayList<QueuedNote>,
-                           delayInFrames: Int) : NextNoteInfo{
+                           delayInFrames: Int,
+                           frameNumberToMillis: FrameNumberToMillis) : NextNoteInfo{
     require(noteList.isNotEmpty())
     var maxDuration = -1f
     for (n in noteList)
@@ -265,7 +279,8 @@ private fun queueNextNotes(nextNoteInfo: NextNoteInfo,
 
         val noteListItem = noteList[nextNoteIndex]
         // this will add the note list item to the queuedNotes and noteStartedChannelsAndFrames
-        queueSingleNote(noteListItem, nextNoteFrame, noteCount, noteStartedChannelsAndFrames, noteStartedChannels, sampleRate, queuedNotes, delayInFrames)
+//        queueSingleNote(noteListItem, nextNoteFrame, noteCount, noteStartedChannelsAndFrames, noteStartedChannels, sampleRate, queuedNotes, delayInFrames)
+        queueSingleNote(noteListItem, nextNoteFrame, noteCount, queuedNoteStartedChannel, noteStartedChannels, sampleRate, queuedNotes, delayInFrames, frameNumberToMillis)
 
         // notes can have a duration of -1 if it is not yet set ... in this case we directly play the next note
         nextNoteFrame += (max(0f, noteListItem.duration.durationInSeconds(bpmQuarter)) * sampleRate).roundToInt()
@@ -423,6 +438,18 @@ private fun computeNoteDelayInMillis(noteStartedChannels: ArrayList<NoteStartedC
     return max(-minimumDelay, 0f)
 }
 
+private class FrameNumberToMillis(val sampleRate: Int) {
+    private var frameNumberRef = 0
+    private var millisRef = 0L
+
+    fun sync(frameNumber: Int) {
+        frameNumberRef = frameNumber
+        millisRef = SystemClock.uptimeMillis()
+    }
+    fun frameToMillis(frameNumber: Int): Long {
+        return ((1000L * (frameNumber - frameNumberRef)) / sampleRate) + millisRef
+    }
+}
 /** Audio mixer class which mixes and plays a note list.
  * @param context Context needed for obtaining the note samples
  * @param scope Coroutine scope inside which we will start the player.
@@ -466,11 +493,15 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
     /** Callback channels when a note starts together with a delay. */
     private val noteStartedChannels = ArrayList<NoteStartedChannel>()
 
+    private val queuedNotesChannel = Channel<NoteStartedChannelAndFrame>(1000, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+
     /** Channel for registering or unregistering NoteStartedChannels. */
     private val addOrRemoveNoteStartedChannel = Channel<NoteStartedChannelWithAddOrRemoveInfo>(Channel.UNLIMITED)
 
     /** Job which does the playing. */
     private var job: Job? = null
+
+    private var noteStartedJob: Job? = null
 
     /** Channel for transferring our synchronising information to the playing coroutine. */
     private val synchronizeTimeChannel = Channel<SynchronizeTimeInfo>(Channel.CONFLATED)
@@ -564,6 +595,56 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
     fun start() {
         stop() // stop a job, if one is running
 
+        while(queuedNotesChannel.tryReceive().isSuccess) { }
+
+        noteStartedJob = scope.launch(Dispatchers.Default) {
+            var lastTime = 0L
+            var lastNoteFrame = 0
+            var lastNoteMillis = 0L
+            val queuedNoteStartedChannels = ArrayList<NoteStartedChannelAndFrame>()
+
+            while (isActive) {
+                delay(1)
+
+                while(true) {
+                    val value = queuedNotesChannel.tryReceive()
+                    if (value.isSuccess) {
+                        value.getOrNull()?.let {
+                            queuedNoteStartedChannels.add(it)
+                        }
+                    } else {
+                        break
+                    }
+                }
+
+                val time = SystemClock.uptimeMillis()
+                val diff = time - lastTime
+                lastTime = time
+//                if (diff > 30L)
+//                    Log.v("Metronome", "AudioMixer: noteStartedJob, time diff: $diff ")
+//
+//                Log.v("Metronome", "AudioMixer: noteStartedJob, time = $time, registered = ${queuedNoteStartedChannels.size} ")
+                queuedNoteStartedChannels.filter {
+                    it.uptimeMillis <= time
+                }.reversed().forEach {
+                    val frameDiff = it.frameNumber - lastNoteFrame
+                    lastNoteFrame = it.frameNumber
+                    val milliDiff = it.uptimeMillis - lastNoteMillis
+                    lastNoteMillis = it.uptimeMillis
+//                    Log.v("Metronome", "AudioMixer: queued note started, frameDiff = $frameDiff, milliDiff = $milliDiff, registered millis=${it.uptimeMillis}")
+
+                    val noteListItemCopy = it.noteListItem.clone()
+
+                    if (it.noteStartedChannel.coroutineContext == null) {
+                        it.noteStartedChannel.noteStartedListener.onNoteStarted(noteListItemCopy, it.uptimeMillis, it.noteCount)
+                    } else {
+                        it.noteStartedChannel.offer(noteListItemCopy, it.uptimeMillis, it.noteCount)
+                    }
+                }
+                queuedNoteStartedChannels.removeAll { it.uptimeMillis <= time }
+            }
+        }
+
 //        Log.v("Metronome", "TIMECHECK: AudioMixer launching job")
         job = scope.launch(Dispatchers.Default) {
 //            Log.v("Metronome", "TIMECHECK: AudioMixer creating player")
@@ -572,7 +653,7 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
             val noteSamples = noteSamplesForDifferentSampleRates[player.sampleRate]!!.value //createNoteSamples(context, player.sampleRate)
 
             val queuedNotes = ArrayList<QueuedNote>(32)
-            val queuedNoteStartedChannels = ArrayList<NoteStartedChannelAndFrame>()
+//            val queuedNoteStartedChannels = ArrayList<NoteStartedChannelAndFrame>()
 
             val mixingBufferSize = min(player.bufferSizeInFrames / 2, 128)
             val mixingBuffer = FloatArray(mixingBufferSize)
@@ -583,6 +664,23 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
             var nextNoteInfo = NextNoteInfo(0, 1, 0)
 
             val noteListCopy = ArrayList<NoteListItem>()
+
+            val framesToMillis = FrameNumberToMillis(player.sampleRate).apply { sync(0) }
+            player.positionNotificationPeriod = player.bufferSizeInFrames
+
+            player.setPlaybackPositionUpdateListener(object : AudioTrack.OnPlaybackPositionUpdateListener {
+                override fun onMarkerReached(track: AudioTrack?) {}
+                override fun onPeriodicNotification(track: AudioTrack?) {
+                    try {
+                        track?.playbackHeadPosition?.let { framesToMillis.sync(it) }
+                    } catch (_: java.lang.Exception) {
+
+                    }
+//                    if (player.playState != AudioTrack.PLAYSTATE_PLAYING) {
+//                        framesToMillis.sync(player.playbackHeadPosition)
+//                    }
+                }
+            })
 
             player.play()
 
@@ -600,6 +698,8 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                 }, Handler(Looper.getMainLooper()))
             }
 
+            var lastLoopTime = 0L
+            var lastPosition = 0
 
             var loopCounter = 0L
 //            Log.v("Metronome", "AudioMixer start player loop")
@@ -636,7 +736,7 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                 restartPlayingNoteListChannel.tryReceive().getOrNull()?.let {
                     nextNoteInfo = nextNoteInfo.copy(nextNoteFrame = numMixedFrames, nextNoteIndex = 0)
                     queuedNotes.clear()
-                    queuedNoteStartedChannels.clear()
+//                    queuedNoteStartedChannels.clear() // TODO: we might have to notify the noteStartedJob that we must clear cached notes!
                 }
 
                 // check if there were request to add or remove channels for the noteStartedListeners
@@ -652,7 +752,7 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                         numMixedFrames)
                     if (nextNoteInfos.size > 1 && nextNoteInfos[0].nextNoteFrame == numMixedFrames) {
                         val noteListItem = noteList[nextNoteInfos[0].nextNoteIndex]
-                        queueSingleNote(noteListItem, nextNoteInfos[0].nextNoteFrame, nextNoteInfos[0].noteCount, queuedNoteStartedChannels, noteStartedChannels, player.sampleRate, queuedNotes, delayInFrames)
+                        queueSingleNote(noteListItem, nextNoteInfos[0].nextNoteFrame, nextNoteInfos[0].noteCount, queuedNotesChannel, noteStartedChannels, player.sampleRate, queuedNotes, delayInFrames, framesToMillis)
                     }
                     nextNoteInfo = nextNoteInfos.last()
                 }
@@ -662,8 +762,8 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                 //   different channels that a note has started.
                 // - to "queuedNotes", we add the notes which are queued.
                 nextNoteInfo = queueNextNotes(nextNoteInfo, noteListCopy, bpmQuarter, numMixedFrames,
-                    mixingBuffer.size, queuedNoteStartedChannels, noteStartedChannels,
-                    player.sampleRate, queuedNotes, delayInFrames)
+                    mixingBuffer.size, queuedNotesChannel, noteStartedChannels,
+                    player.sampleRate, queuedNotes, delayInFrames, framesToMillis)
 
                 // fill the mixing buffer with our mixed sound samples.
                 // - side effects: when a queued note fully added to the mixing buffer, it
@@ -675,21 +775,27 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
 //                Log.v("Metronome", "AudioMixer notificationMarkerPosition: ${player.notificationMarkerPosition}")
 
                 val position = player.playbackHeadPosition
-
+                val positionDiff = position - lastPosition
+                lastPosition = position
+                val loopTime = SystemClock.uptimeMillis()
+                val diff = loopTime - lastLoopTime
+                lastLoopTime = loopTime
+//                Log.v("Metronome", "AudioMixer: mixing loop, duration since last cycle = ${diff}, posdiff = $positionDiff")
                 // call registered callbacks
 //                Log.v("Metronome", "AudioMixer: numqueuedChannels = ${queuedNoteStartedChannels.size}")
-                queuedNoteStartedChannels.filter {
-                    it.frameNumber <= position
-                }.forEach {
-                    val noteListItemCopy = it.noteListItem.clone()
-                    val uptimeMillis = SystemClock.uptimeMillis() - ((position - it.frameNumber) * 1000L) / player.sampleRate
-                    if (it.noteStartedChannel.coroutineContext == null) {
-                        it.noteStartedChannel.noteStartedListener.onNoteStarted(noteListItemCopy, uptimeMillis, it.noteCount)
-                    } else {
-                        it.noteStartedChannel.offer(noteListItemCopy, uptimeMillis, it.noteCount)
-                    }
-                }
-                queuedNoteStartedChannels.removeAll { it.frameNumber <= position }
+
+//                queuedNoteStartedChannels.filter {
+//                    it.frameNumber <= position
+//                }.forEach {
+//                    val noteListItemCopy = it.noteListItem.clone()
+//                    val uptimeMillis = SystemClock.uptimeMillis() - ((position - it.frameNumber) * 1000L) / player.sampleRate
+//                    if (it.noteStartedChannel.coroutineContext == null) {
+//                        it.noteStartedChannel.noteStartedListener.onNoteStarted(noteListItemCopy, uptimeMillis, it.noteCount)
+//                    } else {
+//                        it.noteStartedChannel.offer(noteListItemCopy, uptimeMillis, it.noteCount)
+//                    }
+//                }
+//                queuedNoteStartedChannels.removeAll { it.frameNumber <= position }
 
                 if (isMute)
                     mixingBuffer.fill(0f)
@@ -710,6 +816,9 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
 
     /** Stop playing. */
     fun stop() {
+        noteStartedJob?.cancel()
+        noteStartedJob = null
+
         val j = job
         if (j != null) {
             scope.launch {
