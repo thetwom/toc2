@@ -276,6 +276,7 @@ class PlayerService : LifecycleService() {
         unregisterReceiver(actionReceiver)
         mediaSession?.release()
         mediaSession = null
+        audioMixer?.destroy()
 
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener)

@@ -43,7 +43,7 @@
         android:max="200"
         android:defaultValue="0"
         android:dependency="vibrate"
-        app:isPreferenceVisible="false"
+        app:isPreferenceVisible="true"
         />
 
     <ListPreference
