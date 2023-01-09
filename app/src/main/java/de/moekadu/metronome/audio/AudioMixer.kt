@@ -711,19 +711,19 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
             val framesToMillis = FrameNumberToMillis(player.sampleRate).apply { sync(0) }
             player.positionNotificationPeriod = player.bufferSizeInFrames
 
-            player.setPlaybackPositionUpdateListener(object : AudioTrack.OnPlaybackPositionUpdateListener {
-                override fun onMarkerReached(track: AudioTrack?) {}
-                override fun onPeriodicNotification(track: AudioTrack?) {
-                    try {
-                        track?.playbackHeadPosition?.let { framesToMillis.sync(it) }
-                    } catch (_: java.lang.Exception) {
-
-                    }
-//                    if (player.playState != AudioTrack.PLAYSTATE_PLAYING) {
-//                        framesToMillis.sync(player.playbackHeadPosition)
+//            player.setPlaybackPositionUpdateListener(object : AudioTrack.OnPlaybackPositionUpdateListener {
+//                override fun onMarkerReached(track: AudioTrack?) {}
+//                override fun onPeriodicNotification(track: AudioTrack?) {
+//                    try {
+//                        track?.playbackHeadPosition?.let { framesToMillis.sync(it) }
+//                    } catch (_: java.lang.Exception) {
+//
 //                    }
-                }
-            })
+////                    if (player.playState != AudioTrack.PLAYSTATE_PLAYING) {
+////                        framesToMillis.sync(player.playbackHeadPosition)
+////                    }
+//                }
+//            })
 
             player.play()
 
