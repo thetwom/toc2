@@ -24,7 +24,6 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.View
 import de.moekadu.metronome.*
@@ -64,7 +63,7 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
     val fraction: Float
         get() {
             var result = (
-                    (SystemClock.uptimeMillis() - currentTickStartTime).toFloat()
+                    (System.nanoTime() / 1000_000L - currentTickStartTime).toFloat()
                             / (currentTickEndTime - currentTickStartTime)
                     )
             result = max(0f, result)
@@ -74,7 +73,8 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
 
     private val animator = TimeAnimator().apply {
         setTimeListener { _, _ ,_ ->
-            val time = SystemClock.uptimeMillis()
+            //val time = SystemClock.uptimeMillis()
+            val time = System.nanoTime() / 1000_000L
 //            Log.v("Metronome", "TickVisualizerSync.timeAnimationListener: time=$time, currentTickEndTime=$currentTickEndTime")
             if (time > currentTickEndTime) {
                 currentTickStartTime = currentTickEndTime
@@ -112,7 +112,8 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
         if (index in noteDurations.indices) {
             val endTime = startTime + noteDurations[index].duration.durationInMillis(bpm.bpmQuarter)
             // if "play" was called with too much delay, we rely on the automatic ticking of this class
-            if (SystemClock.uptimeMillis() <= endTime) {
+            //if (SystemClock.uptimeMillis() <= endTime) {
+            if (System.nanoTime() / 1000_000L <= endTime) {
                 currentTickStartTime = startTime
                 currentTickEndTime = endTime
                 if (tickCount != noteCount)
@@ -166,7 +167,7 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
         super.onDraw(canvas)
 
         if (animator.isRunning) {
-            //val uptimeMillis = SystemClock.uptimeMillis()
+            //val uptimeMillis = SystemClock.uptimeMillis() // use System.nanoTime() if you enable this again
             //val fraction = (uptimeMillis - currentTickStartTime).toFloat() / ( currentTickEndTime - currentTickStartTime)
             //paint.alpha = (255 * (1 - fraction)).toInt()
             //Log.v("Metronome", "TickVisualizerSync.onDraw: fraction=$fraction")

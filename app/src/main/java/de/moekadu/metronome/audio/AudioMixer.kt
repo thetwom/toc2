@@ -20,14 +20,11 @@
 package de.moekadu.metronome.audio
 
 import android.content.Context
-import android.media.AudioAttributes
-import android.media.AudioFormat
-import android.media.AudioManager
-import android.media.AudioTrack
+import android.media.*
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import android.os.SystemClock
+import android.util.Log
 import de.moekadu.metronome.metronomeproperties.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
@@ -36,7 +33,6 @@ import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.Executors
-import java.util.concurrent.ThreadFactory
 import kotlin.coroutines.CoroutineContext
 import kotlin.math.*
 
@@ -55,7 +51,7 @@ class NoteStartedChannel(delayInMillis: Float, val noteStartedListener: AudioMix
 
     /** Info about a started note.
      * @param noteListItem Copy of noteListItem which is started
-     * @param startTimeUptimeMillis Time in SystemClock.uptimeMillis, when the note started.
+     * @param startTimeUptimeMillis Time in System.nanoTime() / 1000_000L, when the note started.
      * @param count Counter of started note starting with 0 when the AudioMixer starts playing.
      */
     private data class NoteStartedInfo(val noteListItem: NoteListItem, val startTimeUptimeMillis: Long, val count: Long)
@@ -92,11 +88,11 @@ class NoteStartedChannel(delayInMillis: Float, val noteStartedListener: AudioMix
     /** Offer a new message of a started notes to trigger a call to the note started listener.
      * @note This only has an effect if the coroutineContext of the lass is not null.
      * @param noteListItem NoteListItem which starts playing.
-     * @param startTimeUptimeMillis SystemClock.uptimeMillis when the note started playing
+     * @param startTimeMillis System.nanoTime() / 1000_000L when the note started playing
      * @param count Note count of the started note, counting the notes played after starting plying.
      */
-    fun offer(noteListItem: NoteListItem, startTimeUptimeMillis: Long, count: Long) {
-        channel?.trySend(NoteStartedInfo(noteListItem, startTimeUptimeMillis, count))
+    fun offer(noteListItem: NoteListItem, startTimeMillis: Long, count: Long) {
+        channel?.trySend(NoteStartedInfo(noteListItem, startTimeMillis, count))
     }
 
     /** Call this to disconnect the channel, when this class is not needed anymore. */
@@ -124,14 +120,14 @@ private class NoteStartedChannelWithAddOrRemoveInfo(val noteStartedChannel: Note
  *  @param noteStartedChannel NoteStartedChannel where the info is sent.
  *  @param frameNumber Frame number when the noteStartedListener should be called.
  *  @param noteCount Counter for played notes since player start
- *  @param uptimeMillis Time (as given by SystemClock.uptimeMillis) when the note starts playing.
+ *  @param timeMillis Time (as given by System.nanoTime() / 1000_000L) when the note starts playing.
  */
 private class NoteStartedChannelAndFrame(
     val noteListItem: NoteListItem,
     val noteStartedChannel: NoteStartedChannel,
     val frameNumber: Int,
     val noteCount: Long,
-    val uptimeMillis: Long
+    val timeMillis: Long
 )
 
 /** Class which stores tracks which are queued for the playing.
@@ -149,7 +145,7 @@ private data class QueuedNote(val noteId: Int, val startFrame: Int, val volume: 
 private data class NextNoteInfo(val nextNoteIndex: Int, val nextNoteFrame: Int, val noteCount: Long)
 
 /** Class containing info for synchronize click time to a given reference.
- * @param referenceTime Time in uptime millis (from call to SystemClock.uptimeMillis()
+ * @param referenceTime Time in uptime millis (from call to System.nanoTime() / 1000_000L
  *   to which the first beat should be synchronized
  * @param beatDurationInSeconds Duration in seconds for a beat. The playing is then synchronized such,
  *   that the first beat of the playlist is played at
@@ -355,7 +351,7 @@ private fun synchronizeTime(
     var noteCount = nextNoteInfo.noteCount
 
 //    val sampleRate = player.sampleRate
-//    val currentTimeMillis = SystemClock.uptimeMillis()
+//    val currentTimeMillis = System.nanoTime() / 1000_000L //SystemClock.uptimeMillis()
 //    val currentTimeInFrames = player.playbackHeadPosition
     // reference time, for the first note of the play list to be played. Actually the time of the
     // first note would be timeOfFirstNoteInFrames = referenceTimeInFrames + i * beatDurationInFrames
@@ -445,37 +441,82 @@ private fun computeNoteDelayInMillis(noteStartedChannels: ArrayList<NoteStartedC
     return max(-minimumDelay, 0f)
 }
 
+private val getLatencyMethod = try {
+    AudioTrack::class.java.getMethod("getLatency")
+} catch (e: NoSuchMethodException) {
+    null
+}
+
 /** Converter between frame number since player start and uptime millis.
  * @param sampleRate Player sample rate in Hz.
  */
 private class FrameNumberToMillis(val sampleRate: Int) {
-    /** Reference frame number which corresponds to the millisRef. */
-    private var frameNumberRef = 0
-    /** Reference time in millis (SystemClock.uptimeMillis), corresonding to frameNumberRef. */
-    private var millisRef = 0L
+//    /** Reference frame number which corresponds to the millisRef. */
+//    private var frameNumberRef = 0
+//    /** Reference time in millis (SystemClock.uptimeMillis), corresonding to frameNumberRef. */
+//    private var millisRef = 0L
 
-    /** Synchronize the frame number with the current SystemClock.uptimeMillis.
-     * @param frameNumber Current frame number of player.
-     */
-    fun sync(frameNumber: Int) {
-        frameNumberRef = frameNumber
-        millisRef = SystemClock.uptimeMillis()
+    private val audioTimeStamp = AudioTimestamp()
+
+    fun sync(player: AudioTrack) {
+        val success = player.getTimestamp(audioTimeStamp)
+
+        if (!success) {
+            if (getLatencyMethod != null) {
+                val latencyNanos =
+                    (getLatencyMethod.invoke(player) as Int) * 1000_000L // latency is in millis
+                val bufferSizeNanos = (player.bufferSizeInFrames * 1000_000_000L) / sampleRate
+                val latencyWithoutBufferSizeNanos = latencyNanos - bufferSizeNanos
+                audioTimeStamp.nanoTime = System.nanoTime() - latencyWithoutBufferSizeNanos
+                audioTimeStamp.framePosition = player.playbackHeadPosition.toLong()
+//                Log.v("Metronome", "AudioMixer.FrameNumberToMillis : got latency: latency=$latencyWithoutBufferSizeNanos frame=${audioTimeStamp.framePosition}, time[ns]=${audioTimeStamp.nanoTime}")
+            } else {
+                audioTimeStamp.nanoTime = System.nanoTime()
+                audioTimeStamp.framePosition = player.playbackHeadPosition.toLong()
+            }
+        } else {
+//            Log.v("Metronome", "AudioMixer.FrameNumberToMillis : got timestamp: frame=${audioTimeStamp.framePosition}, time[ns]=${audioTimeStamp.nanoTime}")
+        }
     }
+
+//    /** Synchronize the frame number with the current SystemClock.uptimeMillis.
+//     * @param frameNumber Current frame number of player.
+//     */
+//    fun sync(frameNumber: Int) {
+//        frameNumberRef = frameNumber
+//        millisRef = SystemClock.uptimeMillis()
+//    }
+
+//    /** Convert frame number to uptimeMillis.
+//     * @param frameNumber Frame number to be converted.
+//     * @return uptime millis which corresponds to the given frame number.
+//     */
+//    fun frameToMillis(frameNumber: Int): Long {
+//        return ((1000L * (frameNumber - frameNumberRef)) / sampleRate) + millisRef
+//    }
+//    /** Convert frame uptimeMillis to frame number.
+//     * @param millis Time in milliseconds should be converted.
+//     * @return frame number which corresponds to the given time.
+//     */
+//    fun millisToFrames(millis: Long): Int {
+//        return (((millis - millisRef) * sampleRate) / 1000L + frameNumberRef).toInt()
+//    }
 
     /** Convert frame number to uptimeMillis.
      * @param frameNumber Frame number to be converted.
      * @return uptime millis which corresponds to the given frame number.
      */
     fun frameToMillis(frameNumber: Int): Long {
-        return ((1000L * (frameNumber - frameNumberRef)) / sampleRate) + millisRef
+        return ((1000L * (frameNumber - audioTimeStamp.framePosition)) / sampleRate) + audioTimeStamp.nanoTime / 1000_000L
     }
     /** Convert frame uptimeMillis to frame number.
      * @param millis Time in milliseconds should be converted.
      * @return frame number which corresponds to the given time.
      */
     fun millisToFrames(millis: Long): Int {
-        return (((millis - millisRef) * sampleRate) / 1000L + frameNumberRef).toInt()
+        return (((1000_000L * millis - audioTimeStamp.nanoTime) * sampleRate) / 1000_000_000L + audioTimeStamp.framePosition).toInt()
     }
+
 }
 /** Audio mixer class which mixes and plays a note list.
  * @param context Context needed for obtaining the note samples
@@ -511,10 +552,10 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
     fun interface NoteStartedListener {
         /** Callback function which is called when a playlist item starts
          * @param noteListItem Note list item which is started.
-         * @param uptimeMillis Result of SystemClock.uptimeMillis when the note is started.
+         * @param timeMillis Result of System.nanoTime() / 1000_000L when the note is started.
          * @param noteCount Counter for notes since start of playing
          */
-        fun onNoteStarted(noteListItem: NoteListItem?, uptimeMillis: Long, noteCount: Long)
+        fun onNoteStarted(noteListItem: NoteListItem?, timeMillis: Long, noteCount: Long)
     }
 
     /** Callback channels when a note starts together with a delay. */
@@ -660,7 +701,8 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                     }
                 }
 
-                val time = SystemClock.uptimeMillis()
+                //val time = SystemClock.uptimeMillis()
+                val time = System.nanoTime() / 1000_000L
 //                val diff = time - lastTime
 //                lastTime = time
 //                if (diff > 30L)
@@ -668,7 +710,7 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
 //
 //                Log.v("Metronome", "AudioMixer: noteStartedJob, time = $time, registered = ${queuedNoteStartedChannels.size} ")
                 queuedNoteStartedChannels.filter {
-                    it.uptimeMillis <= time
+                    it.timeMillis <= time
                 }.forEach {
 //                    val frameDiff = it.frameNumber - lastNoteFrame
 //                    lastNoteFrame = it.frameNumber
@@ -679,12 +721,12 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
                     val noteListItemCopy = it.noteListItem.clone()
 
                     if (it.noteStartedChannel.coroutineContext == null) {
-                        it.noteStartedChannel.noteStartedListener.onNoteStarted(noteListItemCopy, it.uptimeMillis, it.noteCount)
+                        it.noteStartedChannel.noteStartedListener.onNoteStarted(noteListItemCopy, it.timeMillis, it.noteCount)
                     } else {
-                        it.noteStartedChannel.offer(noteListItemCopy, it.uptimeMillis, it.noteCount)
+                        it.noteStartedChannel.offer(noteListItemCopy, it.timeMillis, it.noteCount)
                     }
                 }
-                queuedNoteStartedChannels.removeAll { it.uptimeMillis <= time }
+                queuedNoteStartedChannels.removeAll { it.timeMillis <= time }
             }
         }
 
@@ -708,22 +750,25 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
 
             val noteListCopy = ArrayList<NoteListItem>()
 
-            val framesToMillis = FrameNumberToMillis(player.sampleRate).apply { sync(0) }
-            player.positionNotificationPeriod = player.bufferSizeInFrames
+            //val framesToMillis = FrameNumberToMillis(player.sampleRate).apply { sync(0) }
+            val framesToMillis = FrameNumberToMillis(player.sampleRate).apply { sync(player) }
+            //player.positionNotificationPeriod = player.bufferSizeInFrames
+            player.positionNotificationPeriod = 30 * player.sampleRate // sync frames and time each 30 seconds ..
+            // TODO: check if the framesToMillis-sync works on route changes
+            player.setPlaybackPositionUpdateListener(object : AudioTrack.OnPlaybackPositionUpdateListener {
+                override fun onMarkerReached(track: AudioTrack?) {}
+                override fun onPeriodicNotification(track: AudioTrack?) {
+                    try {
+                        //track?.playbackHeadPosition?.let { framesToMillis.sync(it) }
+                        track?.let {framesToMillis.sync(it)}
+                    } catch (_: java.lang.Exception) {
 
-//            player.setPlaybackPositionUpdateListener(object : AudioTrack.OnPlaybackPositionUpdateListener {
-//                override fun onMarkerReached(track: AudioTrack?) {}
-//                override fun onPeriodicNotification(track: AudioTrack?) {
-//                    try {
-//                        track?.playbackHeadPosition?.let { framesToMillis.sync(it) }
-//                    } catch (_: java.lang.Exception) {
-//
+                    }
+//                    if (player.playState != AudioTrack.PLAYSTATE_PLAYING) {
+//                        framesToMillis.sync(player.playbackHeadPosition)
 //                    }
-////                    if (player.playState != AudioTrack.PLAYSTATE_PLAYING) {
-////                        framesToMillis.sync(player.playbackHeadPosition)
-////                    }
-//                }
-//            })
+                }
+            })
 
             player.play()
 
@@ -745,10 +790,18 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
 //            var lastPosition = 0
 
             var loopCounter = 0L
+            var initialSyncDone = false
 //            Log.v("Metronome", "AudioMixer start player loop")
             while(true) {
                 if (!isActive) {
                     break
+                }
+
+                // synchronize our timer very early but not too early, afterward we do a periodic
+                // sync in large time periods
+                if (!initialSyncDone && numMixedFrames >= 2 * player.bufferSizeInFrames ) {
+                    framesToMillis.sync(player)
+                    initialSyncDone = true
                 }
 
                 // update our local noteList copy
@@ -822,7 +875,7 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
 //                val position = player.playbackHeadPosition
 //                val positionDiff = position - lastPosition
 //                lastPosition = position
-//                val loopTime = SystemClock.uptimeMillis()
+//                val loopTime = System.nanoTime() / 1000_000L
 //                val diff = loopTime - lastLoopTime
 //                lastLoopTime = loopTime
 //                Log.v("Metronome", "AudioMixer: mixing loop, duration since last cycle = ${diff}, posdiff = $positionDiff")
@@ -833,7 +886,7 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
 //                    it.frameNumber <= position
 //                }.forEach {
 //                    val noteListItemCopy = it.noteListItem.clone()
-//                    val uptimeMillis = SystemClock.uptimeMillis() - ((position - it.frameNumber) * 1000L) / player.sampleRate
+//                    val uptimeMillis = System.nanoTime() / 1000_000L - ((position - it.frameNumber) * 1000L) / player.sampleRate
 //                    if (it.noteStartedChannel.coroutineContext == null) {
 //                        it.noteStartedChannel.noteStartedListener.onNoteStarted(noteListItemCopy, uptimeMillis, it.noteCount)
 //                    } else {
@@ -881,8 +934,8 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
     }
 
     /** Synchronize first beat to note list to given time and beat duration.
-     * @param referenceTime Time in uptime millis (from call to SystemClock.uptimeMillis()
-     *   to which the first beat should be synchronized
+     * @param referenceTime Time in millis (from call to System.nanoTime() / 1000_000L)
+     *   to which the first beat should be synchronized.
      * @param beatDuration Duration in seconds for a beat. The playing is then synchronized such,
      *   that the first beat of the playlist is played at
      *      referenceTime + n * beatDuration

@@ -23,7 +23,6 @@ package de.moekadu.metronome.views
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
-import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
@@ -253,7 +252,7 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                 minusStepInitiated = false
 
                 if (angle > tapInAngleStart && angle < tapInAngleEnd) {
-                    speedChangedListener?.onTapInPressed(SystemClock.uptimeMillis())
+                    speedChangedListener?.onTapInPressed(System.nanoTime() / 1000_000L)
                     //evaluateTapInTimes()
                     tapInAnimation.start()
                 }
