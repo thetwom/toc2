@@ -49,6 +49,9 @@ class MainActivity : AppCompatActivity() {
     // TODO: test different device formats
     // TODO: translations
 
+    // TODO: Check why notification is not closed, when the app is destroyed
+    // TODO: make sure to reset the vibration sync to 0, when it is disabled
+
     // TODO??: Allow "odd" speeds e.g. during load or when typing
 
     private val metronomeViewModel by viewModels<MetronomeViewModel> {
