@@ -111,6 +111,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onStop() {
+//        Log.v("Metronome", "MainActivity.onStop");
         AppPreferences.writeMetronomeState(
             metronomeViewModel.bpm.value, metronomeViewModel.noteList.value,
             metronomeViewModel.mute.value, this)
@@ -128,7 +129,7 @@ class MainActivity : AppCompatActivity() {
                 val changed = setMetronomeAndScenesViewPagerId(ViewPagerAdapter.METRONOME)
                 if (!changed) {
                     // this will only remove the notification if no foreground task is running
-                    NotificationManagerCompat.from(this).cancel(PlayerNotification.id)
+                    PlayerNotification.destroyNotification(this)
                     moveTaskToBack(true)
                 }
             }

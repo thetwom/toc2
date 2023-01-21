@@ -212,6 +212,8 @@ class PlayerServiceConnection(
 //        Log.v("Metronome", "ServiceConnection.bindToService")
         val serviceIntent = Intent(applicationContext, PlayerService::class.java)
         val success = applicationContext.bindService(serviceIntent, connection, Context.BIND_AUTO_CREATE)
+        // we also start the service, since otherwise notifications sometimes are not killed
+        applicationContext.startService(serviceIntent)
 
         if (!success) {
             throw RuntimeException("ServiceConnection.bindToService: Can't start bind to service")
@@ -229,6 +231,8 @@ class PlayerServiceConnection(
     private fun unbindFromService() {
 //        Log.v("Metronome", "ServiceConnection.unbindFromService")
         try {
+            // the service was also strated, since otherwise notifications sometimes are not killed
+            serviceBinder?.service?.stopSelf()
             serviceBinder?.service?.unregisterStatusChangedListener(serviceStateListener)
         }
         catch (_: DeadObjectException) {

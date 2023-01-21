@@ -19,7 +19,6 @@
 
 package de.moekadu.metronome.notification
 
-import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
@@ -67,32 +66,33 @@ class PlayerNotification(val context: PlayerService) {
         setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
     }
 
-    val notification: Notification
-        get() = notificationBuilder.build()
+//    val notification: Notification
+//        get() = notificationBuilder.build()
 
     private val handler = object: Handler(Looper.myLooper() ?: Looper.getMainLooper()) {
         override fun handleMessage(msg: Message) {
             super.handleMessage(msg)
-            if (msg.what == messageWhat) {
-                // we only want to update notification, not create ones. (creating is done by startForeground in the service)
-                var haveActiveNotification = false
-                (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager?)?.let { notificationManager ->
-                    val notifications = notificationManager.activeNotifications
-                    for (n in notifications) {
-                        if (n.id == id) {
-                            haveActiveNotification = true
-                            break
+            when(msg.what) {
+                MESSAGE_UPDATE_NOTIFICATION -> {
+                    // we only want to update notification, not create ones. (creating is done by startForeground in the service)
+                    var haveActiveNotification = false
+                    (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager?)?.let { notificationManager ->
+                        val notifications = notificationManager.activeNotifications
+                        for (n in notifications) {
+                            if (n.id == NOTIFICATION_ID) {
+                                haveActiveNotification = true
+                                break
+                            }
                         }
                     }
-                }
 
-                if (haveActiveNotification)
-                    NotificationManagerCompat.from(context).notify(id, notificationBuilder.build())
+                    if (haveActiveNotification)
+                        NotificationManagerCompat.from(context)
+                            .notify(NOTIFICATION_ID, notificationBuilder.build())
+                }
             }
         }
     }
-
-    private val messageWhat = 3282
 
     var bpm = Bpm(-1.0f, NoteDuration.Quarter)
         set(value) {
@@ -127,7 +127,7 @@ class PlayerNotification(val context: PlayerService) {
                         R.drawable.ic_pause2
                     )
                     intent.putExtra(PlayerService.PLAYER_STATE, PlaybackStateCompat.ACTION_PAUSE)
-                    val pIntent = PendingIntent.getBroadcast(context, notificationStateID, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+                    val pIntent = PendingIntent.getBroadcast(context, NOTIFICATION_STATE_ID, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
                     notificationView.setOnClickPendingIntent(R.id.notification_button, pIntent)
                 }
                 else { // if(getState() == PlaybackStateCompat.STATE_PAUSED){
@@ -137,7 +137,7 @@ class PlayerNotification(val context: PlayerService) {
                         R.drawable.ic_play2
                     )
                     intent.putExtra(PlayerService.PLAYER_STATE, PlaybackStateCompat.ACTION_PLAY)
-                    val pIntent = PendingIntent.getBroadcast(context, notificationStateID, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+                    val pIntent = PendingIntent.getBroadcast(context, NOTIFICATION_STATE_ID, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
                     notificationView.setOnClickPendingIntent(R.id.notification_button, pIntent)
                 }
             }
@@ -149,13 +149,20 @@ class PlayerNotification(val context: PlayerService) {
         state = PlaybackStateCompat.STATE_PAUSED
     }
 
+    fun buildNotification() = notificationBuilder.build()
+
     fun postNotificationUpdate() {
-        handler.removeMessages(messageWhat)
-        handler.sendEmptyMessageDelayed(messageWhat, 150)
+        handler.removeMessages(MESSAGE_UPDATE_NOTIFICATION)
+        handler.sendEmptyMessageDelayed(MESSAGE_UPDATE_NOTIFICATION, 150)
     }
 
     companion object {
-        private const val notificationStateID = 3214
-        const val id = 3252
+        fun destroyNotification(context: Context) {
+            (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager?)?.cancel(NOTIFICATION_ID)
+//            Log.v("Metronome", "PlayerNotification.destroy()")
+        }
+        private const val MESSAGE_UPDATE_NOTIFICATION = 3282
+        private const val NOTIFICATION_STATE_ID = 3214
+        const val NOTIFICATION_ID = 3252
     }
 }

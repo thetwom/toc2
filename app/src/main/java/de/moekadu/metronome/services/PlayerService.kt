@@ -273,10 +273,12 @@ class PlayerService : LifecycleService() {
     }
 
     override fun onDestroy() {
+//        Log.v("Metronome", "PlayerService:onDestroy")
         unregisterReceiver(actionReceiver)
         mediaSession?.release()
         mediaSession = null
         audioMixer?.destroy()
+        PlayerNotification.destroyNotification(this)
 
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener)
@@ -286,16 +288,22 @@ class PlayerService : LifecycleService() {
 
     override fun onBind(intent: Intent): IBinder {
         super.onBind(intent)
-        // Log.v("Metronome", "PlayerService:onBind")
+//        Log.v("Metronome", "PlayerService:onBind")
         return playerBinder
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
-//        Log.v("Metronome", "PlayerService:onUnbind");
+//        Log.v("Metronome", "PlayerService:onUnbind")
         stopPlay()
+        PlayerNotification.destroyNotification(this)
         return super.onUnbind(intent)
     }
 
+    override fun onTaskRemoved(rootIntent: Intent?) {
+//        Log.v("Metronome", "PlayerService:onTaskRemoved")
+        PlayerNotification.destroyNotification(this)
+        super.onTaskRemoved(rootIntent)
+    }
     fun addValueToBpm(bpmDiff: Float) {
         bpm = bpm.copy(bpm = bpm.bpm + bpmDiff)
     }
@@ -312,7 +320,7 @@ class PlayerService : LifecycleService() {
 //        Log.v("Metronome", "PlayerService:startPlay : setting notification")
         notification?.state = state
         notification?.let {
-            startForeground(PlayerNotification.id, it.notification)
+            startForeground(PlayerNotification.NOTIFICATION_ID, it.buildNotification())
         }
 
 //        Log.v("Metronome", "PlayerService:startPlay : starting mixer")
