@@ -32,7 +32,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import de.moekadu.metronome.*
 import de.moekadu.metronome.audio.AudioMixer
-import de.moekadu.metronome.audio.NoteStartedChannel
+import de.moekadu.metronome.audio.NoteStartedHandler
 import de.moekadu.metronome.metronomeproperties.Bpm
 import de.moekadu.metronome.metronomeproperties.NoteListItem
 import de.moekadu.metronome.metronomeproperties.deepCopyNoteList
@@ -106,15 +106,15 @@ class PlayerService : LifecycleService() {
     var noteList = ArrayList<NoteListItem>()
         set(value) {
             deepCopyNoteList(value, field)
-            audioMixer?.noteList = field
+            audioMixer?.setNoteList(field)
             for (s in statusChangedListeners)
                 s.onNoteListChanged(field)
         }
 
     private var sharedPreferenceChangeListener: OnSharedPreferenceChangeListener? = null
 
-    private var noteStartedChannel4Visualization: NoteStartedChannel? = null
-    private var noteStartedChannel4Vibration: NoteStartedChannel? = null
+    private var noteStartedHandler4Visualization: NoteStartedHandler? = null
+    private var noteStartedHandler4Vibration: NoteStartedHandler? = null
 
     inner class PlayerBinder : Binder() {
         val service
@@ -171,13 +171,13 @@ class PlayerService : LifecycleService() {
 
         audioMixer = AudioMixer(applicationContext, lifecycleScope)
         audioMixer?.setBpmQuarter(bpm.bpmQuarter)
-        audioMixer?.noteList = noteList
+        audioMixer?.setNoteList(noteList)
 
         audioMixer?.setMute(isMute)
 
         // callback for ui stuff
-        noteStartedChannel4Visualization = audioMixer?.getNewNoteStartedChannel(
-            0f,
+        noteStartedHandler4Visualization = audioMixer?.createAndRegisterNoteStartedHandler(
+            0,
             Dispatchers.Main
         ) { noteListItem, uptimeMillis, noteCount ->
             noteListItem?.let {
@@ -246,7 +246,7 @@ class PlayerService : LifecycleService() {
                         val vibrate = sharedPreferences.getBoolean("vibrate", false)
                         if (vibrate && vibrator == null) {
                             val strength = sharedPreferences.getInt("vibratestrength", 50)
-                            val delay = sharedPreferences.getInt("vibratedelay", 0).toFloat()
+                            val delay = sharedPreferences.getInt("vibratedelay", 0)
                             enableVibration(delay, strength)
                         } else if (!vibrate) {
                             disableVibration()
@@ -256,8 +256,8 @@ class PlayerService : LifecycleService() {
                         vibrator?.strength = sharedPreferences.getInt("vibratestrength", 50)
                     }
                     "vibratedelay" -> {
-                        val delay = sharedPreferences.getInt("vibratedelay", 0).toFloat()
-                        noteStartedChannel4Vibration?.setDelay(delay)
+                        val delay = sharedPreferences.getInt("vibratedelay", 0)
+                        noteStartedHandler4Vibration?.delayInMillis = delay
                     }
                 }
             }
@@ -267,7 +267,7 @@ class PlayerService : LifecycleService() {
 
         if (sharedPreferences.getBoolean("vibrate", false)) {
             val strength = sharedPreferences.getInt("vibratestrength", 50)
-            val delay = sharedPreferences.getInt("vibratedelay", 0).toFloat()
+            val delay = sharedPreferences.getInt("vibratedelay", 0)
             enableVibration(delay, strength)
         }
     }
@@ -370,20 +370,20 @@ class PlayerService : LifecycleService() {
         val modified = op(noteList)
 //        Log.v("Metronome", "PlayerService.modifyNoteList: modified=$modified")
         if (modified) {
-            audioMixer?.noteList = noteList
+            audioMixer?.setNoteList(noteList)
             for (s in statusChangedListeners)
                 s.onNoteListChanged(noteList)
         }
     }
 
-    private fun enableVibration(delayInMillis: Float, strength: Int) {
-        if (noteStartedChannel4Vibration != null)
+    private fun enableVibration(delayInMillis: Int, strength: Int) {
+        if (noteStartedHandler4Vibration != null)
             return
 
         vibrator = VibratingNote(this@PlayerService)
         vibrator?.strength = strength
 
-        noteStartedChannel4Vibration = audioMixer?.getNewNoteStartedChannel(
+        noteStartedHandler4Vibration = audioMixer?.createAndRegisterNoteStartedHandler(
             delayInMillis, null
         ) { noteListItem, _, _ ->
             if (noteListItem != null) {
@@ -394,9 +394,9 @@ class PlayerService : LifecycleService() {
     }
 
     private fun disableVibration() {
-        audioMixer?.unregisterNoteStartedChannel(noteStartedChannel4Vibration)
+        audioMixer?.unregisterNoteStartedChannel(noteStartedHandler4Vibration)
         vibrator = null
-        noteStartedChannel4Vibration = null
+        noteStartedHandler4Vibration = null
     }
 
     companion object {
