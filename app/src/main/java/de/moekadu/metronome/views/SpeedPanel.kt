@@ -89,7 +89,7 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     interface SpeedChangedListener {
         fun onSpeedChanged(bpmDiff: Float)
         //fun onAbsoluteSpeedChanged(newBpm: Float, nextClickTimeInMillis: Long)
-        fun onTapInPressed(systemMsAtTap: Long)
+        fun onTapInPressed(systemNanosAtTap: Long)
     }
 
     var speedChangedListener: SpeedChangedListener? = null
@@ -252,7 +252,7 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
                 minusStepInitiated = false
 
                 if (angle > tapInAngleStart && angle < tapInAngleEnd) {
-                    speedChangedListener?.onTapInPressed(System.nanoTime() / 1000_000L)
+                    speedChangedListener?.onTapInPressed(System.nanoTime())
                     //evaluateTapInTimes()
                     tapInAnimation.start()
                 }

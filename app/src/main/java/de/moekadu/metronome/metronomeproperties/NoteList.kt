@@ -84,7 +84,7 @@ class NoteListItem(var id : Int = 0, var volume : Float = 1.0f,
     }
 }
 
-data class NoteListItemStartTime(val note: NoteListItem, val uptimeMillis: Long, val noteCount: Long)
+data class NoteListItemStartTime(val note: NoteListItem, val nanoTime: Long, val noteCount: Long)
 
 fun areNoteListsEqual(a: ArrayList<NoteListItem>?, b: ArrayList<NoteListItem>?): Boolean {
     if (a == null && b == null) return true
@@ -232,4 +232,5 @@ fun getNoteDrawableResourceID(index: Int, duration: NoteDuration) =
             availableNotes[index].drawableSixteenthResourceID
     }
 
-fun getNoteVibrationDuration(index : Int) = availableNotes[index].vibrationDuration
+/** Return note vibration duration in milliseconds. */
+fun getNoteVibrationDurationMillis(index : Int) = availableNotes[index].vibrationDuration

@@ -49,6 +49,7 @@ fun NoteDuration.durationInSeconds(bpmQuarter: Float) =
     }
 
 fun NoteDuration.durationInMillis(bpmQuarter: Float) = (1000f * durationInSeconds(bpmQuarter)).roundToLong()
+fun NoteDuration.durationInNanos(bpmQuarter: Float) = (1e9f * durationInSeconds(bpmQuarter)).roundToLong()
 
 /// Given beats per minute for specific NoteDuration, convert the values into quarters notes per minute.
 /**

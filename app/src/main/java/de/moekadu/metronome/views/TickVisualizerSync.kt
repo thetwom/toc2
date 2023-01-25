@@ -25,6 +25,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
 import de.moekadu.metronome.*
 import de.moekadu.metronome.metronomeproperties.*
@@ -37,52 +38,77 @@ import kotlin.math.sin
 class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     : View(context, attrs, defStyleAttr) {
 
+    /** Callback interface when a note visualization starts. */
     fun interface NoteStartedListener {
+        /** Called when the note visualization starts.
+         * @þaram uid Uid of note, which is started.
+         */
         fun onNoteStarted(uid: UId)
     }
 
+    /** Available tick visualization types. */
+    enum class VisualizationType {LeftRight, Fade, Bounce}
+
+    /** Info about note which is in the que for being started.
+     * @param noteListItem Note to be started
+     * @param startTimeNanos Time as given by System.nanoTime(), when the note starts playing.
+     * @param noteCount A counter of notes which were played since the last player start.
+     */
+    private data class QueuedNote(val noteListItem: NoteListItem, val startTimeNanos: Long, val noteCount: Long)
+
+    /** Callback when a note ist started. */
     var noteStartedListener: NoteStartedListener? = null
 
-    private data class UidDuration(var uid: UId, var duration: NoteDuration)
-
+    /** Paint of the visualization. */
     private val paint = Paint().apply {
         color = Color.RED
     }
 
+    /** Current metronome speed. */
     var bpm = Bpm(120f, NoteDuration.Quarter)
-    private val noteDurations = ArrayList<UidDuration>()
 
-    private var currentNoteIndex = 0
-    private var currentNoteUid: UId? = null
-    private var currentTickStartTime = -1L
-    private var currentTickEndTime = -1L
+    /** List of notes in the queue for being started. */
+    private val queuedNotes = ArrayList<QueuedNote>()
+    /** Start time of visualization of the currently played note. */
+    private var currentTickStartTimeNanos = -1L
+    /** End time of visualization of the currently played note. */
+    private var currentTickEndTimeNanos = -1L
+    /** Note counter since player start of the currenlty played note. */
     private var tickCount = 0L
-
+    /** Currently used tick visualization strategy. */
     var visualizationType = VisualizationType.Bounce
 
+    /** Compute current position of the played visualization. (0 -- 1) */
     val fraction: Float
         get() {
             var result = (
-                    (System.nanoTime() / 1000_000L - currentTickStartTime).toFloat()
-                            / (currentTickEndTime - currentTickStartTime)
+                    (System.nanoTime() - currentTickStartTimeNanos).toFloat()
+                            / (currentTickEndTimeNanos - currentTickStartTimeNanos)
                     )
             result = max(0f, result)
             result = min(1f, result)
             return result
         }
 
+    /** Time animator which is responsible for the regular visualization update. */
     private val animator = TimeAnimator().apply {
         setTimeListener { _, _ ,_ ->
-            //val time = SystemClock.uptimeMillis()
-            val time = System.nanoTime() / 1000_000L
-//            Log.v("Metronome", "TickVisualizerSync.timeAnimationListener: time=$time, currentTickEndTime=$currentTickEndTime")
-            if (time > currentTickEndTime) {
-                currentTickStartTime = currentTickEndTime
-                currentNoteIndex = if (currentNoteIndex + 1 >= noteDurations.size) 0 else currentNoteIndex + 1
-                currentNoteUid = noteDurations[currentNoteIndex].uid
-                currentNoteUid?.let {uid -> noteStartedListener?.onNoteStarted(uid)}
-                currentTickEndTime = currentTickStartTime + noteDurations[currentNoteIndex].duration.durationInMillis(bpm.bpmQuarter)
-                ++tickCount
+            val nanoTime = System.nanoTime()
+            var index = -1
+            for (q in queuedNotes) {
+                if (q.startTimeNanos > nanoTime)
+                    break
+                else
+                    ++index
+            }
+            val note = if (index in queuedNotes.indices) queuedNotes[index] else null
+
+            if (note != null) {
+                currentTickStartTimeNanos = note.startTimeNanos
+                currentTickEndTimeNanos = currentTickStartTimeNanos + note.noteListItem.duration.durationInNanos(bpm.bpmQuarter)
+                tickCount = note.noteCount
+                noteStartedListener?.onNoteStarted(note.noteListItem.uid)
+                queuedNotes.subList(0, index + 1).clear()
             }
             invalidate()
         }
@@ -103,64 +129,23 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
         }
     }
 
-    fun tick(index: Int, startTime: Long, noteCount: Long) {
-        if (!animator.isRunning) {
-            tickCount = -1L
-            currentNoteIndex = 0
-        }
-
-        if (index in noteDurations.indices) {
-            val endTime = startTime + noteDurations[index].duration.durationInMillis(bpm.bpmQuarter)
-            // if "play" was called with too much delay, we rely on the automatic ticking of this class
-            //if (SystemClock.uptimeMillis() <= endTime) {
-            if (System.nanoTime() / 1000_000L <= endTime) {
-                currentTickStartTime = startTime
-                currentTickEndTime = endTime
-                if (tickCount != noteCount)
-                    noteStartedListener?.onNoteStarted(noteDurations[index].uid)
-                tickCount = noteCount
-//                Log.v("Metronome", "TickVisualizer.tick: index=$index, currentNoteIndex=$currentNoteIndex")
-                currentNoteIndex = index
-                currentNoteUid = noteDurations[index].uid
-            }
-        }
-
+    /** Register new note which will be played.
+     * This will also start the visualization animator, if it is not started.
+     * @param noteListItem Note to be played.
+     * @param startTimeNanos Time as given by System.nanoTime(), when the note starts playing.
+     * @param noteCount Total counter of notes since pressing play.
+     */
+    fun tick(noteListItem: NoteListItem, startTimeNanos: Long, noteCount: Long) {
+        queuedNotes.add(QueuedNote(noteListItem, startTimeNanos, noteCount))
         if (!animator.isRunning)
             animator.start()
     }
 
-    fun tick(uid: UId, startTime: Long, noteCount: Long) {
-        val index = noteDurations.indexOfFirst { it.uid == uid }
-        tick(index, startTime, noteCount)
-    }
-
-    /** Don't tick the next tick on it's own but wait for "tick()" being called.
-     * This should e.g. be used if the speed is getting slower, since is this
-     * case it is expected, that the next tick will come earlier and the
-     * visualizer will tick on its own. By calling this, the visualizer won't
-     * tick but only go on with ticking then tick is called.
-     */
-    fun waitForInputToTick() {
-        currentTickEndTime = Long.MAX_VALUE
-    }
-
+    /** The player stopped, so stop playing animations. */
     fun stop() {
+        queuedNotes.clear()
         animator.end()
         invalidate()
-    }
-
-    fun setNoteList(noteList: ArrayList<NoteListItem>) {
-        // delete excess entries
-        if (noteDurations.size > noteList.size)
-            noteDurations.subList(noteList.size, noteDurations.size).clear()
-        // set values in available entries
-        for (i in noteDurations.indices) {
-            noteDurations[i].uid = noteList[i].uid
-            noteDurations[i].duration = noteList[i].duration
-        }
-        // add missing entries
-        for (i in noteDurations.size until noteList.size)
-            noteDurations.add(UidDuration(noteList[i].uid, noteList[i].duration))
     }
 
     override fun onDraw(canvas: Canvas?) {
@@ -185,14 +170,15 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
                     canvas?.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
                 }
                 VisualizationType.Bounce -> {
-                    val duration250 = Utilities.bpm2millis(200f)
-                    var amp = Utilities.dp2px(20f) * max(currentTickEndTime - currentTickStartTime, duration250) / duration250
+                    val duration250Nanos = Utilities.bpm2nanos(200f)
+                    var amp = Utilities.dp2px(20f) * max(currentTickEndTimeNanos - currentTickStartTimeNanos, duration250Nanos) / duration250Nanos
+//                    Log.v("Metronome", "TickVisualizerSync.onDraw: amp=$amp, delta=${currentTickEndTimeNanos - currentTickStartTimeNanos}, duration250Nanos=$duration250Nanos")
                     val ampMax = 0.5f * width * (1 - 0.2f)
                     amp = min(amp, ampMax)
                     val center = 0.5f * width
                     val blockWidth = 0.5f * width - amp
                     val shift = amp  * sin(PI.toFloat() * fraction)
-
+                    //Log.v("Metronome", "TickVisualizerSync.onDraw: amp=$amp, ampMax=$ampMax, blockWidth = $blockWidth, shift=$shift")
                     if (tickCount % 2L == 0L) {
                         paint.alpha = 120
                         canvas?.drawRect(center - blockWidth, 0f,
@@ -212,6 +198,4 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
             }
         }
     }
-
-    enum class VisualizationType {LeftRight, Fade, Bounce}
 }

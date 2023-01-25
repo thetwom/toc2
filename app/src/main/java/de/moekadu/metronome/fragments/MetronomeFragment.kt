@@ -22,7 +22,6 @@ package de.moekadu.metronome.fragments
 import android.annotation.SuppressLint
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import android.widget.ImageButton
 import android.widget.TextView
@@ -205,12 +204,12 @@ class MetronomeFragment : Fragment() {
                 }
             }
 
-            override fun onTapInPressed(systemMsAtTap: Long) {
-                tapInEvaluator.tap(systemMsAtTap)
-                if (tapInEvaluator.dt != TapInEvaluator.NOT_AVAILABLE)
-                    viewModel.setBpm(Utilities.millis2bpm(tapInEvaluator.dt))
-                if (tapInEvaluator.predictedNextTap != TapInEvaluator.NOT_AVAILABLE)
-                    viewModel.syncClickWithUptimeMillis(tapInEvaluator.predictedNextTap)
+            override fun onTapInPressed(systemNanosAtTap: Long) {
+                tapInEvaluator.tap(systemNanosAtTap)
+                if (tapInEvaluator.dtNanos != TapInEvaluator.NOT_AVAILABLE)
+                    viewModel.setBpm(Utilities.nanos2bpm(tapInEvaluator.dtNanos))
+                if (tapInEvaluator.predictedNextTapNanos != TapInEvaluator.NOT_AVAILABLE)
+                    viewModel.syncClickWithSystemNanos(tapInEvaluator.predictedNextTapNanos)
             }
 //            override fun onAbsoluteSpeedChanged(newBpm: Float, nextClickTimeInMillis: Long) {
 //                viewModel.setBpm(newBpm)
@@ -349,7 +348,7 @@ class MetronomeFragment : Fragment() {
                     sharedPreferences.getString("minimumspeed", InitialValues.minimumBpm.toString())?.toFloatOrNull()?.let {
                         tapInEvaluator = TapInEvaluator(
                             tapInEvaluator.numHistoryValues,
-                            tapInEvaluator.minimumAllowedDtInMs,
+                            tapInEvaluator.minimumAllowedDtInMillis,
                             Utilities.bpm2millis(it))
                     }
                 }
@@ -358,7 +357,7 @@ class MetronomeFragment : Fragment() {
                         tapInEvaluator = TapInEvaluator(
                             tapInEvaluator.numHistoryValues,
                             Utilities.bpm2millis(it),
-                            tapInEvaluator.maximumAllowedDtInMs,
+                            tapInEvaluator.maximumAllowedDtInMillis,
                         )
                     }
                 }
@@ -413,7 +412,8 @@ class MetronomeFragment : Fragment() {
         // register all observers
         viewModel.bpm.observe(viewLifecycleOwner) { bpm ->
 //            Log.v("Metronome", "MetronomeFragment: viewModel.bpm: $it")
-            tickVisualizer?.waitForInputToTick()
+            tickVisualizer?.bpm = bpm
+//            tickVisualizer?.waitForInputToTick()
             bpmText?.text = getString(R.string.eqbpm, Utilities.getBpmString(bpm.bpm, bpmIncrement))
             beatDurationManager?.setBeatDuration(bpm.noteDuration)
         }
@@ -446,20 +446,17 @@ class MetronomeFragment : Fragment() {
         viewModel.noteStartedEvent.observe(viewLifecycleOwner) { noteStartTime ->
             // only tick when it is explicitly playing otherwise the ticker could play forever
             if (viewModel.isVisible && viewModel.playerStatus.value == PlayerStatus.Playing && lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED))
-                tickVisualizer?.tick(noteStartTime.note.uid, noteStartTime.uptimeMillis, noteStartTime.noteCount)
+                //tickVisualizer?.tick(noteStartTime.note.uid, noteStartTime.nanoTime, noteStartTime.noteCount)
+                tickVisualizer?.tick(noteStartTime.note, noteStartTime.nanoTime, noteStartTime.noteCount)
             // don't animate note here, since this is controlled by the tickVisualizer.noteStartedListener defined above
             // this is done, since the tickvisualizer contains an extra time synchronazation mechanism
             //soundChooser?.animateNote(noteStartTime.note.uid)
         }
 
-        viewModel.bpm.observe(viewLifecycleOwner) {
-            tickVisualizer?.bpm = it
-        }
-
         viewModel.noteList.observe(viewLifecycleOwner) {
             viewModel.noteList.value?.let {
 //                Log.v("Metronome", "MetronomeFragment: observing noteList, viewModel.isVisible=${viewModel.isVisible}")
-                tickVisualizer?.setNoteList(it)
+//                tickVisualizer?.setNoteList(it)
                 soundChooser.setNoteList(it, if (viewModel.isVisible) 200L else 0L)
             }
         }

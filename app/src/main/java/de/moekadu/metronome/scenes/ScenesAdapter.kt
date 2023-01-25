@@ -30,6 +30,7 @@ import androidx.recyclerview.widget.RecyclerView
 import de.moekadu.metronome.R
 import de.moekadu.metronome.misc.Utilities
 import de.moekadu.metronome.metronomeproperties.NoteDuration
+import de.moekadu.metronome.metronomeproperties.NoteListItem
 import de.moekadu.metronome.views.NoteView
 import de.moekadu.metronome.views.TickVisualizerSync
 
@@ -158,21 +159,18 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
         }
     }
 
-    fun animateNoteAndTickVisualizer(index: Int, noteDurationInMillis: Long?,
-                                     noteStartUptimeMillis: Long, noteCount: Long, recyclerView: RecyclerView?) {
+    fun animateNoteAndTickVisualizer(
+        noteListItem: NoteListItem, noteStartNanos: Long, noteCount: Long,
+        recyclerView: RecyclerView?
+    ) {
         if (recyclerView == null)
-            return
-        if (index < 0 && noteDurationInMillis != null)
             return
 
         recyclerView.forEachViewHolder { viewHolder ->
             if (viewHolder.isActivated) {
-                if (index >= 0) {
-                    // noteView is now animated through the tickVisualizer since this has better time syncrhonization
-                    //    viewHolder.noteView?.animateNote(index)
-                    if (noteDurationInMillis != null)
-                        viewHolder.tickVisualizer?.tick(index, noteStartUptimeMillis, noteCount)
-                }
+                // noteView is now animated through the tickVisualizer since this has better time synchronization
+                //    viewHolder.noteView?.animateNote(index)
+                viewHolder.tickVisualizer?.tick(noteListItem, noteStartNanos, noteCount)
             }
         }
     }
@@ -245,7 +243,7 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
 //        Log.v("Metronome", "SceneDatabase.onBindViewHolder: scene.noteList = ${scene.noteList}, scene.bpm = ${scene.bpm}")
 
         holder.noteView?.setNoteList(scene.noteList, 0L)
-        holder.tickVisualizer?.setNoteList(scene.noteList)
+//        holder.tickVisualizer?.setNoteList(scene.noteList)
         holder.tickVisualizer?.bpm = scene.bpm
         // Log.v("Metronome", "SceneDatabase:onBindViewHolder (position = " + position + ")")
     }

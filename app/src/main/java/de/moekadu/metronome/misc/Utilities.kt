@@ -64,8 +64,11 @@ class Utilities {
         fun bpm2seconds(bpm: Float) = 60.0 / bpm
 
         fun bpm2millis(bpm: Float) = (1000.0 * 60.0 / bpm).roundToLong()
+        fun bpm2nanos(bpm: Float) = ((1.0e9 * 60.0) / bpm).roundToLong()
 
         fun millis2bpm(dt: Long) = 60.0f * 1000.0f / dt
+
+        fun nanos2bpm(dtNanos: Long) = (60.0f * 1e9f) / dtNanos
 
         fun getBpmString(bpm: Float, useGrouping: Boolean = true): String {
             val tolerance = 1e-6f

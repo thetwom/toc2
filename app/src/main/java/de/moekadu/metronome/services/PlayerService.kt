@@ -27,6 +27,7 @@ import android.os.Build
 import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Log
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
@@ -36,7 +37,6 @@ import de.moekadu.metronome.audio.NoteStartedHandler
 import de.moekadu.metronome.metronomeproperties.Bpm
 import de.moekadu.metronome.metronomeproperties.NoteListItem
 import de.moekadu.metronome.metronomeproperties.deepCopyNoteList
-import de.moekadu.metronome.metronomeproperties.getNoteVibrationDuration
 import de.moekadu.metronome.misc.InitialValues
 import de.moekadu.metronome.notification.PlayerNotification
 import de.moekadu.metronome.players.VibratingNote
@@ -47,21 +47,46 @@ import kotlin.math.abs
 
 class PlayerService : LifecycleService() {
 
+    /** Class which gives access to our own object. */
     private val playerBinder = PlayerBinder()
 
+    /** Interface for callbacks that something changed regarding the player. */
     interface StatusChangedListener {
+        /** Called when the metronome starts playing. */
         fun onPlay()
+        /** Called when the metronome stops playing. */
         fun onPause()
-        fun onNoteStarted(noteListItem: NoteListItem, uptimeMillis: Long, noteCount: Long)
+
+        /** Called when a note is registered for being played.
+         * This will be called when the note is queued for playing, not when the note actually
+         * starts playing.
+         * @param noteListItem Note which will be played
+         * @param nanoTime Time as given by System.nanoTime(), when the note acutally will start
+         *   playing.
+         * @param noteCount Total count of notes since the play was pressed.
+         */
+        fun onNoteStarted(noteListItem: NoteListItem, nanoTime: Long, noteCount: Long)
+
+        /** Called when metronome speed changed.
+         * @param bpm New speed.
+         */
         fun onSpeedChanged(bpm: Bpm)
+
+        /** Called when the list of notes changed.
+         * @param noteList New note list.
+         */
         fun onNoteListChanged(noteList: ArrayList<NoteListItem>)
     }
 
+    /** Callback for status changes of the metronome. */
     private val statusChangedListeners = mutableSetOf<StatusChangedListener>()
+
+    /** Limit lower and upper bound. */
     private val speedLimiter by lazy {
         SpeedLimiter(PreferenceManager.getDefaultSharedPreferences(this), this)
     }
 
+    /** Metronome speed. */
     var bpm = InitialValues.bpm
         set(value) {
 //            Log.v("Metronome", "PlayerService.bpm: value=$value")
@@ -79,6 +104,7 @@ class PlayerService : LifecycleService() {
             notification?.postNotificationUpdate()
         }
 
+    /** (Un)mute the player. */
     var isMute = false
         set(value) {
             if (field != value) {
@@ -87,22 +113,30 @@ class PlayerService : LifecycleService() {
             }
         }
 
+    /** Notification handling. */
+    private var notification: PlayerNotification? = null
+
+    /** Allows to handle external button play-control buttons. */
+    private var mediaSession: MediaSessionCompat? = null
+
+    /** Builder for changing the playback state. */
+    private val playbackStateBuilder = PlaybackStateCompat.Builder()
+
+    /** The current playback state. */
     val state
         get() = playbackState.state
 
-    private var notification: PlayerNotification? = null
-
-    private var mediaSession: MediaSessionCompat? = null
-    private val playbackStateBuilder = PlaybackStateCompat.Builder()
+    /** The current playback state with extra info (compared to state). */
     var playbackState: PlaybackStateCompat = playbackStateBuilder.build()
         private set
 
-    /// The audio mixer plays is the instance which does plays the metronome.
+    /** The audio mixer is the instance which actually creates sound. */
     private var audioMixer: AudioMixer? = null
 
+    /** Vibrate when the note starts playing. */
     private var vibrator: VibratingNote? = null
 
-    /// The current note list played by the metronome.
+    /** The currently played note list. */
     var noteList = ArrayList<NoteListItem>()
         set(value) {
             deepCopyNoteList(value, field)
@@ -111,17 +145,22 @@ class PlayerService : LifecycleService() {
                 s.onNoteListChanged(field)
         }
 
+    /** Listener to changes of shared preferences. */
     private var sharedPreferenceChangeListener: OnSharedPreferenceChangeListener? = null
 
+    /** Callback for triggering visual effects when a note is started. */
     private var noteStartedHandler4Visualization: NoteStartedHandler? = null
+
+    /** Callback for triggering vibration when a note is started. */
     private var noteStartedHandler4Vibration: NoteStartedHandler? = null
 
+    /** Class which gives access to the PlayerBinder service object. */
     inner class PlayerBinder : Binder() {
         val service
             get() = this@PlayerService
     }
 
-    /// Receiver, which allows to control the metronome via sending intents
+    /** Receiver, which allows to control the metronome via sending intents. */
     private val actionReceiver = object : BroadcastReceiver() {
 
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -178,11 +217,12 @@ class PlayerService : LifecycleService() {
         // callback for ui stuff
         noteStartedHandler4Visualization = audioMixer?.createAndRegisterNoteStartedHandler(
             0,
+            NoteStartedHandler.CallbackWhen.NoteQueued,
             Dispatchers.Main
-        ) { noteListItem, uptimeMillis, noteCount ->
+        ) { noteListItem, nanoTime, noteCount ->
             noteListItem?.let {
                 statusChangedListeners.forEach { s ->
-                    s.onNoteStarted(it, uptimeMillis, noteCount)
+                    s.onNoteStarted(it, nanoTime, noteCount)
                 }
             }
         }
@@ -295,19 +335,30 @@ class PlayerService : LifecycleService() {
     override fun onUnbind(intent: Intent?): Boolean {
 //        Log.v("Metronome", "PlayerService:onUnbind")
         stopPlay()
-        PlayerNotification.destroyNotification(this)
+        // we are bound only once, so as soon, as we unbind we stop being a started service
+        // this makes sure, that "onTaskRemoved" will be called, when the app is killed and
+        // so we can also reliably kill the notification.
+        stopSelf()
         return super.onUnbind(intent)
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
 //        Log.v("Metronome", "PlayerService:onTaskRemoved")
+        // we must do this explicitly here, since onDestroy will sometimes not be called
+        // and since the notification lives on another process, it won't be kill, when the
+        // app process is killed.
         PlayerNotification.destroyNotification(this)
         super.onTaskRemoved(rootIntent)
     }
+
+    /** Change metronome speed.
+     * @param bpmDiff Value by which the current speed should be changed.
+     */
     fun addValueToBpm(bpmDiff: Float) {
         bpm = bpm.copy(bpm = bpm.bpm + bpmDiff)
     }
 
+    /** Start playing. */
     fun startPlay() {
 //        Log.v("Metronome", "PlayerService:startPlay : setting playbackState")
         playbackState = playbackStateBuilder.setState(
@@ -329,6 +380,7 @@ class PlayerService : LifecycleService() {
         statusChangedListeners.forEach { s -> s.onPlay() }
     }
 
+    /** Stop playing. */
     fun stopPlay() {
         // Log.v("Metronome", "PlayerService:stopPlay")
 
@@ -353,28 +405,48 @@ class PlayerService : LifecycleService() {
         notification?.postNotificationUpdate()
     }
 
-    fun syncClickWithUptimeMillis(uptimeMillis: Long) {
+    /** Synchronize the currently playing notes with a given time.
+     * @param timeNanos Time as given by System.nanoTime(), which serves as reference time
+     *   when the note list starts.
+     */
+    fun syncClickWithSystemNanos(timeNanos: Long) {
         if (state == PlaybackStateCompat.STATE_PLAYING)
-            audioMixer?.synchronizeTime(uptimeMillis, bpm.beatDurationInSeconds)
+            audioMixer?.synchronizeWithSystemNanos(timeNanos, bpm.beatDurationInSeconds)
     }
 
+    /** Change the next note index to be played.
+     * @param index Index of note in the note list, which should be played next.
+     */
     fun setNextNoteIndex(index: Int) {
         audioMixer?.setNextNoteIndex(index)
     }
 
+    /** Start playing the currently being placed note list from the beginning. */
     fun restartPlayingNoteList() {
         audioMixer?.restartPlayingNoteList()
     }
 
+    /** Register a callback that the metronome status changed.
+     * @param statusChangedListener Callback to be registered.
+     */
     fun registerStatusChangedListener(statusChangedListener: StatusChangedListener) {
         statusChangedListeners.add(statusChangedListener)
     }
 
+    /** Unregister a callback that the metronome status changed.
+     * @param statusChangedListener Callback to be unregistered.
+     */
     fun unregisterStatusChangedListener(statusChangedListener: StatusChangedListener) {
         statusChangedListeners.remove(statusChangedListener)
     }
 
-    fun modifyNoteList(op: (ArrayList<NoteListItem>) -> Boolean) {
+    /** Change the currently played note list.
+     * @param op Function which modifies a given note list.
+     *   Input of function will be a note list, which will be modified, and the function must
+     *   return true, if the input note list was changed or false, if the input note list was
+     *   not changed.
+     */
+    fun modifyNoteList(op: (noteList: ArrayList<NoteListItem>) -> Boolean) {
         val modified = op(noteList)
 //        Log.v("Metronome", "PlayerService.modifyNoteList: modified=$modified")
         if (modified) {
@@ -384,6 +456,10 @@ class PlayerService : LifecycleService() {
         }
     }
 
+    /** Enable vibration.
+     * @param delayInMillis Initial delay in millis of a vibration in comparison to the sound.
+     * @param strength Vibration strength.
+     */
     private fun enableVibration(delayInMillis: Int, strength: Int) {
         if (noteStartedHandler4Vibration != null)
             return
@@ -392,15 +468,15 @@ class PlayerService : LifecycleService() {
         vibrator?.strength = strength
 
         noteStartedHandler4Vibration = audioMixer?.createAndRegisterNoteStartedHandler(
-            delayInMillis, null
+            delayInMillis, NoteStartedHandler.CallbackWhen.NoteStarted, null
         ) { noteListItem, _, _ ->
             if (noteListItem != null) {
-                if (getNoteVibrationDuration(noteListItem.id) > 0L)
-                    vibrator?.vibrate(noteListItem.volume, noteListItem, bpm.bpmQuarter)
+                vibrator?.vibrate(noteListItem.volume, noteListItem, bpm.bpmQuarter)
             }
         }
     }
 
+    /** Disable vibration. */
     private fun disableVibration() {
         audioMixer?.unregisterNoteStartedChannel(noteStartedHandler4Vibration)
         vibrator = null

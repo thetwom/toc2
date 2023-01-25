@@ -26,6 +26,7 @@ import android.content.ServiceConnection
 import android.os.DeadObjectException
 import android.os.IBinder
 import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import de.moekadu.metronome.misc.LifecycleAwareEvent
@@ -80,9 +81,9 @@ class PlayerServiceConnection(
                 _playerStatus.value = PlayerStatus.Paused
         }
 
-        override fun onNoteStarted(noteListItem: NoteListItem, uptimeMillis: Long, noteCount: Long) {
+        override fun onNoteStarted(noteListItem: NoteListItem, nanoTime: Long, noteCount: Long) {
 
-            val noteStartedTime = NoteListItemStartTime(noteListItem, uptimeMillis, noteCount)
+            val noteStartedTime = NoteListItemStartTime(noteListItem, nanoTime, noteCount)
             noteStartedEvent.triggerEvent(noteStartedTime)
         }
 
@@ -181,9 +182,9 @@ class PlayerServiceConnection(
         }
     }
 
-    fun syncClickWithUptimeMillis(uptimeMillis: Long) {
+    fun syncClickWithSystemNanos(timeNanos: Long) {
         try {
-            serviceBinder?.service?.syncClickWithUptimeMillis(uptimeMillis)
+            serviceBinder?.service?.syncClickWithSystemNanos(timeNanos)
         }
         catch (_: DeadObjectException) {
             serviceBinder = null
@@ -231,8 +232,7 @@ class PlayerServiceConnection(
     private fun unbindFromService() {
 //        Log.v("Metronome", "ServiceConnection.unbindFromService")
         try {
-            // the service was also strated, since otherwise notifications sometimes are not killed
-            serviceBinder?.service?.stopSelf()
+            // the service was also started, since otherwise notifications sometimes are not killed
             serviceBinder?.service?.unregisterStatusChangedListener(serviceStateListener)
         }
         catch (_: DeadObjectException) {

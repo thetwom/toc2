@@ -23,7 +23,6 @@ import android.content.SharedPreferences
 import android.graphics.Canvas
 import android.graphics.drawable.Animatable
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import android.widget.TextView
 import android.widget.Toast
@@ -43,7 +42,7 @@ import de.moekadu.metronome.*
 import de.moekadu.metronome.dialogs.ClearAllSavedScenesDialog
 import de.moekadu.metronome.dialogs.ImportScenesDialog
 import de.moekadu.metronome.dialogs.ScenesSharingDialog
-import de.moekadu.metronome.metronomeproperties.durationInMillis
+import de.moekadu.metronome.metronomeproperties.durationInNanos
 import de.moekadu.metronome.players.PlayerStatus
 import de.moekadu.metronome.preferences.AppPreferences
 import de.moekadu.metronome.preferences.SpeedLimiter
@@ -365,22 +364,13 @@ class ScenesFragment : Fragment() {
         }
 
         metronomeViewModel.noteStartedEvent.observe(viewLifecycleOwner) { noteStart ->
-            metronomeViewModel.noteList.value?.let { noteList ->
-                if (viewModel.isVisible && metronomeViewModel.playerStatus.value == PlayerStatus.Playing && lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
-                    val index = noteList.indexOfFirst { it.uid == noteStart.note.uid }
-                    val bpmQuarter = metronomeViewModel.bpm.value?.bpmQuarter
-                    val noteDurationInMillis =
-                        if (bpmQuarter == null) null else noteStart.note.duration.durationInMillis(
-                            bpmQuarter
-                        )
-                    scenesAdapter.animateNoteAndTickVisualizer(
-                        index,
-                        noteDurationInMillis,
-                        noteStart.uptimeMillis,
-                        noteStart.noteCount,
-                        scenesRecyclerView
-                    )
-                }
+            if (viewModel.isVisible && metronomeViewModel.playerStatus.value == PlayerStatus.Playing && lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                scenesAdapter.animateNoteAndTickVisualizer(
+                    noteStart.note,
+                    noteStart.nanoTime,
+                    noteStart.noteCount,
+                    scenesRecyclerView
+                )
             }
         }
 
