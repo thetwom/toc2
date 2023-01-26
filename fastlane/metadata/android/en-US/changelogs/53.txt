@@ -1,0 +1,12 @@
+v4.7.0:
+- Improve synchronization between sound and visual feedback and vibration
+  (thanks to TBWarrington and jorfus for all the testing)
+- Remove notification more reliably, when app is killed.
+
+v4.6.1:
+- Fix crash after pressing play on some systems
+  (thanks to jorfus for the support to find the issue)
+- Fix playing first note twice after pressing play on some systems
+  (thanks to jorfus for the support to find the issue)
+- Modified mute icon
+- Updated to latest dependencies
