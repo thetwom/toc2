@@ -25,10 +25,10 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.WindowManager
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.app.NotificationManagerCompat
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.commit
 import androidx.fragment.app.replace
@@ -96,6 +96,12 @@ class MainActivity : AppCompatActivity() {
 
         volumeControlStream = AudioManager.STREAM_MUSIC
 
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                handleGoBackCommand()
+            }
+        })
+
         if (savedInstanceState == null) {
             supportFragmentManager.commit {
                 setReorderingAllowed(true)
@@ -121,7 +127,7 @@ class MainActivity : AppCompatActivity() {
 //        return true
 //    }
 
-    override fun onBackPressed() {
+    fun handleGoBackCommand() {
 //        Log.v("Metronome", "MainActivity.onBackPressed():  backStackEntryCount = ${supportFragmentManager.backStackEntryCount}")
         when (supportFragmentManager.findFragmentById(R.id.fragment_container)) {
             is MetronomeAndScenesFragment -> {
@@ -201,7 +207,7 @@ class MainActivity : AppCompatActivity() {
 
         when (item.itemId) {
             android.R.id.home -> {
-                onBackPressed()
+                handleGoBackCommand()
             }
             R.id.action_properties -> {
                 supportFragmentManager.commit {

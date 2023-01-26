@@ -339,6 +339,8 @@ class PlayerService : LifecycleService() {
         // this makes sure, that "onTaskRemoved" will be called, when the app is killed and
         // so we can also reliably kill the notification.
         stopSelf()
+        // destroying notifications seems not very reliable, so we do it also here
+        PlayerNotification.destroyNotification(this)
         return super.onUnbind(intent)
     }
 
