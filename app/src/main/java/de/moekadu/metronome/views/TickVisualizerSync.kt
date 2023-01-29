@@ -43,7 +43,7 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
         /** Called when the note visualization starts.
          * @þaram uid Uid of note, which is started.
          */
-        fun onNoteStarted(uid: UId)
+        fun onNoteStarted(uid: UId, noteStartTimeNanos: Long, noteEndTimeNanos: Long, noteCount: Long)
     }
 
     /** Available tick visualization types. */
@@ -107,7 +107,7 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
                 currentTickStartTimeNanos = note.startTimeNanos
                 currentTickEndTimeNanos = currentTickStartTimeNanos + note.noteListItem.duration.durationInNanos(bpm.bpmQuarter)
                 tickCount = note.noteCount
-                noteStartedListener?.onNoteStarted(note.noteListItem.uid)
+                noteStartedListener?.onNoteStarted(note.noteListItem.uid, currentTickStartTimeNanos, currentTickEndTimeNanos, tickCount)
                 queuedNotes.subList(0, index + 1).clear()
             }
             invalidate()

@@ -104,4 +104,10 @@
     <string name="select_scenes">Szenen auswählen</string>
     <string name="no_scenes_selected">Keine Szenen ausgewählt.</string>
     <string name="file_incomplete">Datei \"%s\" endet unerwartet, aber %d Szenen konnten gelesen werden.</string>
+    <string name="ticking_circle">Animierte Kreisfläche</string>
+    <string name="vibration">Vibration</string>
+    <string name="visualization">Visualisierung</string>
+    <string name="basic">Allgemein</string>
+    <string name="speed_selection">Geschwindigkeitsauswahl</string>
+    <string name="others">Andere</string>
 </resources>

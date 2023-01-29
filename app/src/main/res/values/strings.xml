@@ -143,4 +143,10 @@
     <string name="share2">Share</string>
     <string name="select_all">Select all</string>
     <string name="bpm_nonumber">bpm</string>
+    <string name="ticking_circle">Animated circle area</string>
+    <string name="vibration">Vibration</string>
+    <string name="speed_selection">Speed selection</string>
+    <string name="visualization">Visualization</string>
+    <string name="basic">Basic</string>
+    <string name="others">Others</string>
 </resources>

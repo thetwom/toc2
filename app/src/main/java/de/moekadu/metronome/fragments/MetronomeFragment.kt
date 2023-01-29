@@ -117,6 +117,8 @@ class MetronomeFragment : Fragment() {
 
     private var tickVisualizer: TickVisualizerSync? = null
 
+    private var tickingCircle = false
+
     private lateinit var soundChooser: SoundChooser
 
     private var beatDurationManager: BeatDurationManager? = null
@@ -219,8 +221,10 @@ class MetronomeFragment : Fragment() {
 
         tickVisualizer = view.findViewById(R.id.tick_visualizer)
         // tick visualizer controls the note animation since it contains better time synchronization than the soundChooser
-        tickVisualizer?.noteStartedListener = TickVisualizerSync.NoteStartedListener {
-            soundChooser.animateNote(it)
+        tickVisualizer?.noteStartedListener = TickVisualizerSync.NoteStartedListener { uid, startNanos, endNanos, count ->
+            soundChooser.animateNote(uid)
+            if (tickingCircle)
+                speedPanel?.tick(startNanos, endNanos, count)
         }
 
 
@@ -380,6 +384,11 @@ class MetronomeFragment : Fragment() {
                         "fade" -> tickVisualizer?.visualizationType = TickVisualizerSync.VisualizationType.Fade
                     }
                 }
+                "tickingcircle" -> {
+                    tickingCircle = sharedPreferences.getBoolean("tickingcircle", false)
+                    if (!tickingCircle)
+                        speedPanel?.stopTicking()
+                }
             }
         }
 
@@ -408,6 +417,7 @@ class MetronomeFragment : Fragment() {
             "bounce" -> tickVisualizer?.visualizationType = TickVisualizerSync.VisualizationType.Bounce
             "fade" -> tickVisualizer?.visualizationType = TickVisualizerSync.VisualizationType.Fade
         }
+        tickingCircle = sharedPreferences.getBoolean("tickingcircle", false)
 
         // register all observers
         viewModel.bpm.observe(viewLifecycleOwner) { bpm ->
@@ -433,6 +443,7 @@ class MetronomeFragment : Fragment() {
                 }
                 PlayerStatus.Paused, null -> {
                     tickVisualizer?.stop()
+                    speedPanel?.stopTicking()
                     playButton?.changeStatus(PlayButton.STATUS_PAUSED, viewModel.isVisible) // animate if visible
                 }
             }

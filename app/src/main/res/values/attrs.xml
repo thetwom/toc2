@@ -36,6 +36,7 @@
     <attr name="onDeleteColor" format="color"/>
     <attr name="separatorColor" format="color"/>
     <attr name="actionButtonTintList" format="color|reference"/>
+    <attr name="tickColor" format="color"/>
 
     <attr name="minimumDeleteButtonHeight" format="dimension"/>
     <attr name="elementElevation" format="dimension"/>

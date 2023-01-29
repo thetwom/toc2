@@ -8,8 +8,8 @@ android {
         applicationId "de.moekadu.metronome"
         minSdkVersion 23
         targetSdkVersion 33
-        versionCode 53
-        versionName "4.7.0"
+        versionCode 54
+        versionName "4.8.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -37,7 +37,7 @@ dependencies {
     implementation 'androidx.activity:activity-ktx:1.6.1'
     implementation 'androidx.fragment:fragment-ktx:1.5.5'
     implementation 'com.google.android.material:material:1.9.0-alpha01'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.media:media:1.6.0'
     implementation 'androidx.dynamicanimation:dynamicanimation:1.1.0-alpha03'

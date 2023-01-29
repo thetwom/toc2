@@ -21,6 +21,52 @@
 <androidx.preference.PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <PreferenceCategory android:title="@string/basic">
+    <ListPreference
+        app:key="appearance"
+        app:title="@string/appearance"
+        android:entries="@array/appearanceValues"
+        android:entryValues="@array/appearanceList"
+        android:dialogTitle="@string/appearance"
+        android:defaultValue="auto"
+        app:icon="@drawable/ic_appearance"
+    />
+
+    <SwitchPreferenceCompat
+        app:key="screenon"
+        app:title="@string/keep_screen_on"
+        app:defaultValue="false"
+        app:icon="@drawable/ic_screen_on"
+        />
+
+    <SwitchPreferenceCompat
+        app:key="compact_scenes_layout"
+        app:title="@string/compact_scenes_layout"
+        app:defaultValue="false"
+        app:icon="@drawable/ic_baseline_short_text"
+        />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/visualization">
+        <ListPreference
+            app:key="tickvisualization"
+            app:title="@string/tickvisualization"
+            android:entries="@array/tickVisualizationValues"
+            android:entryValues="@array/tickVisualizationList"
+            android:dialogTitle="@string/tickvisualization"
+            android:defaultValue="leftright"
+            app:icon="@drawable/ic_flash"
+            />
+
+        <SwitchPreferenceCompat
+            app:key="tickingcircle"
+            app:title="@string/ticking_circle"
+            app:defaultValue="false"
+            app:icon="@drawable/ic_flash_circle"
+            />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/vibration">
     <SwitchPreferenceCompat
         app:key="vibrate"
         app:title="@string/vibrate_notes"
@@ -35,7 +81,7 @@
         app:icon="@drawable/ic_vibrating_note_strength"
         />
 
-<!--    This seems currently not to be necessary-->
+    <!--    This seems currently not to be necessary-->
     <SeekBarPreference
         app:key="vibratedelay"
         app:title="@string/vibrate_delay"
@@ -44,69 +90,44 @@
         android:defaultValue="0"
         android:dependency="vibrate"
         app:isPreferenceVisible="true"
+        app:icon="@drawable/ic_vibrating_note_delay"
         />
+    </PreferenceCategory>
 
-    <ListPreference
-        app:key="appearance"
-        app:title="@string/appearance"
-        android:entries="@array/appearanceValues"
-        android:entryValues="@array/appearanceList"
-        android:dialogTitle="@string/appearance"
-        android:defaultValue="auto"
-        app:icon="@drawable/ic_appearance"
-    />
-
-    <SwitchPreferenceCompat
-        app:key="compact_scenes_layout"
-        app:title="@string/compact_scenes_layout"
-        app:defaultValue="false"
-        app:icon="@drawable/ic_baseline_short_text"
+    <PreferenceCategory android:title="@string/speed_selection">
+    <SeekBarPreference
+        app:key="speedsensitivity"
+        app:title="@string/speed_sensitivity"
+        android:defaultValue="30"
+        app:icon="@drawable/ic_sensitivity"
         />
 
     <SeekBarPreference
         app:key="speedincrement"
         app:title="@string/speedincrement"
         android:defaultValue="3"
+        app:icon="@drawable/ic_step"
         />
 
-    <SeekBarPreference
-        app:key="speedsensitivity"
-        app:title="@string/speed_sensitivity"
-        android:defaultValue="30"
-        />
     <!--app:isPreferenceVisible="false"-->
 
     <EditTextPreference
         app:key="minimumspeed"
         app:title="@string/minimum_bpm"
+        android:icon="@drawable/ic_minimum"
         />
 
 
     <EditTextPreference
         app:key="maximumspeed"
         app:title="@string/maximum_bpm"
+        app:icon="@drawable/ic_maximum"
         />
-
+    </PreferenceCategory>
     <!--<CheckBoxPreference-->
         <!--app:title="test"-->
         <!--/>-->
-
-    <ListPreference
-        app:key="tickvisualization"
-        app:title="@string/tickvisualization"
-        android:entries="@array/tickVisualizationValues"
-        android:entryValues="@array/tickVisualizationList"
-        android:dialogTitle="@string/tickvisualization"
-        android:defaultValue="leftright"
-        />
-
-    <SwitchPreferenceCompat
-        app:key="screenon"
-        app:title="@string/keep_screen_on"
-        app:defaultValue="false"
-        app:icon="@drawable/ic_screen_on"
-        />
-
+    <PreferenceCategory android:title="@string/others">
     <Preference
         app:key="setdefault"
         app:title="@string/reset_all_settings"
@@ -118,5 +139,5 @@
         app:title="@string/about"
         app:icon="@drawable/ic_info"
         />
-
+    </PreferenceCategory>
 </androidx.preference.PreferenceScreen>

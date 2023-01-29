@@ -20,6 +20,7 @@
 
 package de.moekadu.metronome.views
 
+import android.animation.TimeAnimator
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
@@ -94,6 +95,20 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 
     var speedChangedListener: SpeedChangedListener? = null
 
+    /** Tick visualization driver. */
+    private val animator = TimeAnimator().apply {
+        setTimeListener { _, _, _ ->
+            invalidate()
+        }
+    }
+    private var currentNoteStartNanos = -1L
+    private var currentNoteEndNanos = -1L
+    private var currentNoteCount = -1L
+    private var tickPaint = Paint().apply {
+        style = Paint.Style.FILL
+        color = Color.RED
+    }
+
     constructor(context: Context, attrs: AttributeSet? = null) : this(context, attrs,
         R.attr.controlPanelStyle
     )
@@ -121,6 +136,8 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             backToZeroAnimationValue = animation.animatedValue as Float
             invalidate()
         }
+
+        tickPaint.color = tickColor
     }
 
     override fun onDraw(canvas : Canvas) {
@@ -140,6 +157,9 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 
         canvas.drawPath(pathOuterCircle, circlePaint)
         pathOuterCircle.rewind()
+
+        if (currentNoteStartNanos >= 0L)
+            drawTickVisualization(canvas)
 
         if(changingSpeed) {
             circlePaint.color = highlightColor
@@ -322,33 +342,25 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         return true
     }
 
-//    private fun evaluateTapInTimes() {
-//
-//        val currentTap = SystemClock.uptimeMillis()
-//        nTapSamples += 1
-//
-//        val currentDt = currentTap - lastTap
-//        lastTap = currentTap
-//
-//        if(nTapSamples == 1) {
-//            dt = currentDt.toFloat()
-//            return
-//        }
-//
-////        Log.v("Metronome", "SpeedPanel:computeSpeedFromTapIn:  err=" + ((currentDt - dt) / dt));
-//        if(abs(currentDt - dt) / dt > maxTapErr) {
-//            nTapSamples = 2
-//        }
-//
-//        val fac = facTapInfty + (1.0f - facTapInfty) / (nTapSamples - 1)
-//        dt = fac * currentDt + (1.0f - fac) * dt
-//
-//        predictNextTap = (fac * (currentTap - predictNextTap) + predictNextTap + dt).roundToLong()
-////        Log.v("Metronome", "Speedpanel:computeSpeedFromTapIn:  fac=" + fac + "  dt=" + dt);
-//
-//        if(nTapSamples >= 3) {
-//            speedChangedListener?.onAbsoluteSpeedChanged(
-//                Utilities.millis2bpm(dt.roundToLong()), (predictNextTap + tapDelay))
-//        }
-//    }
+    fun tick(startTimeNanosBegin: Long, startTimeNanosEnd: Long, noteCount: Long) {
+        if (!animator.isRunning)
+            animator.start()
+        currentNoteStartNanos = startTimeNanosBegin
+        currentNoteEndNanos = startTimeNanosEnd
+        currentNoteCount = noteCount
+    }
+
+    fun stopTicking() {
+        currentNoteStartNanos = -1
+        animator.cancel()
+        invalidate()
+    }
+
+    private fun drawTickVisualization(canvas: Canvas) {
+        val fraction = ((System.nanoTime() - currentNoteStartNanos).toFloat()
+                / (currentNoteEndNanos - currentNoteStartNanos))
+        tickPaint.alpha = (255 * (1 - fraction)).toInt()
+
+        canvas.drawCircle(centerX.toFloat(), centerY.toFloat(), radius.toFloat(), tickPaint)
+    }
 }

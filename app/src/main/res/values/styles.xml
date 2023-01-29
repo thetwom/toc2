@@ -60,6 +60,7 @@
         <attr name="labelColor" />
         <attr name="highlightColor" />
         <attr name="textColor"/>
+        <attr name="tickColor"/>
     </declare-styleable>
 
     <!--    <item name="android:background">?attr/colorBackgroundFloating</item>-->
@@ -68,6 +69,7 @@
         <item name="labelColor">?attr/colorPrimary</item>
         <item name="highlightColor">?attr/colorSecondary</item>
         <item name="textColor">?attr/colorPrimary</item>
+        <item name="tickColor">?attr/colorSecondary</item>
     </style>
 
     <declare-styleable name="NoteView">

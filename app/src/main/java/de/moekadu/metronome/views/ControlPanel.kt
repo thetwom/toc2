@@ -57,6 +57,7 @@ open class ControlPanel(context : Context, attrs : AttributeSet?, defStyleAttr: 
     var textColor = Color.BLACK
     var labelColor = Color.BLACK
     var highlightColor = Color.RED
+    var tickColor = Color.RED
 
     constructor(context: Context, attrs: AttributeSet? = null) : this(context, attrs,
         R.attr.controlPanelStyle
@@ -71,6 +72,7 @@ open class ControlPanel(context : Context, attrs : AttributeSet?, defStyleAttr: 
             textColor = ta.getColor(R.styleable.ControlPanel_textColor, textColor)
             labelColor = ta.getColor(R.styleable.ControlPanel_labelColor, labelColor)
             highlightColor = ta.getColor(R.styleable.ControlPanel_highlightColor, highlightColor)
+            tickColor = ta.getColor(R.styleable.ControlPanel_tickColor, tickColor)
 
             ta.recycle()
         }

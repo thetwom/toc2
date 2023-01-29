@@ -200,8 +200,8 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
             noteView = view.findViewById(R.id.scene_sounds)
             tickVisualizer = view.findViewById(R.id.scene_ticks_visualizer)
             tickVisualizer?.visualizationType = tickVisualizationType
-            tickVisualizer?.noteStartedListener = TickVisualizerSync.NoteStartedListener {
-                noteView?.animateNote(it)
+            tickVisualizer?.noteStartedListener = TickVisualizerSync.NoteStartedListener { uid, _, _, _ ->
+                noteView?.animateNote(uid)
             }
             selectedView = view.findViewById(R.id.scene_active)
             view.setOnClickListener {
