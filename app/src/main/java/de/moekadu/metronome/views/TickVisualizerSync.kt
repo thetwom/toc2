@@ -41,9 +41,12 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
     /** Callback interface when a note visualization starts. */
     fun interface NoteStartedListener {
         /** Called when the note visualization starts.
-         * @þaram uid Uid of note, which is started.
+         * @param note Note, which is started.
+         * @param noteStartTimeNanos Time, when note is started.
+         * @param noteEndTimeNanos End time, i.e. the time, when follow-up note will start.
+         * @param noteCount Note counter of played notes since pressing play.
          */
-        fun onNoteStarted(uid: UId, noteStartTimeNanos: Long, noteEndTimeNanos: Long, noteCount: Long)
+        fun onNoteStarted(note: NoteListItem, noteStartTimeNanos: Long, noteEndTimeNanos: Long, noteCount: Long)
     }
 
     /** Available tick visualization types. */
@@ -107,7 +110,7 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
                 currentTickStartTimeNanos = note.startTimeNanos
                 currentTickEndTimeNanos = currentTickStartTimeNanos + note.noteListItem.duration.durationInNanos(bpm.bpmQuarter)
                 tickCount = note.noteCount
-                noteStartedListener?.onNoteStarted(note.noteListItem.uid, currentTickStartTimeNanos, currentTickEndTimeNanos, tickCount)
+                noteStartedListener?.onNoteStarted(note.noteListItem, currentTickStartTimeNanos, currentTickEndTimeNanos, tickCount)
                 queuedNotes.subList(0, index + 1).clear()
             }
             invalidate()

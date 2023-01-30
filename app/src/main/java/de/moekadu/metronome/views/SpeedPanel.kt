@@ -30,6 +30,7 @@ import android.view.View
 import android.view.ViewOutlineProvider
 import de.moekadu.metronome.misc.InitialValues
 import de.moekadu.metronome.R
+import de.moekadu.metronome.metronomeproperties.NoteListItem
 import de.moekadu.metronome.misc.Utilities
 import kotlin.math.*
 
@@ -104,6 +105,8 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     private var currentNoteStartNanos = -1L
     private var currentNoteEndNanos = -1L
     private var currentNoteCount = -1L
+    private var currentVolume = 0f
+
     private var tickPaint = Paint().apply {
         style = Paint.Style.FILL
         color = Color.RED
@@ -342,12 +345,13 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         return true
     }
 
-    fun tick(startTimeNanosBegin: Long, startTimeNanosEnd: Long, noteCount: Long) {
+    fun tick(note: NoteListItem, startTimeNanosBegin: Long, startTimeNanosEnd: Long, noteCount: Long) {
         if (!animator.isRunning)
             animator.start()
         currentNoteStartNanos = startTimeNanosBegin
         currentNoteEndNanos = startTimeNanosEnd
         currentNoteCount = noteCount
+        currentVolume = note.volume
     }
 
     fun stopTicking() {
@@ -357,9 +361,13 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     }
 
     private fun drawTickVisualization(canvas: Canvas) {
-        val fraction = ((System.nanoTime() - currentNoteStartNanos).toFloat()
-                / (currentNoteEndNanos - currentNoteStartNanos))
-        tickPaint.alpha = (255 * (1 - fraction)).toInt()
+        val amplitude = currentVolume
+        val fadeDurationNanos = min(currentNoteEndNanos - currentNoteStartNanos, 150 * 1000_000L)
+        val positionSinceStartNanos = System.nanoTime() - currentNoteStartNanos
+        val fraction = (positionSinceStartNanos.coerceIn(0L, fadeDurationNanos).toFloat()
+                / fadeDurationNanos)
+
+        tickPaint.alpha = (255 * amplitude * (1 - fraction)).toInt()
 
         canvas.drawCircle(centerX.toFloat(), centerY.toFloat(), radius.toFloat(), tickPaint)
     }

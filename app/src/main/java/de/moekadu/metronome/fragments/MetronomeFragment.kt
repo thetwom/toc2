@@ -221,10 +221,10 @@ class MetronomeFragment : Fragment() {
 
         tickVisualizer = view.findViewById(R.id.tick_visualizer)
         // tick visualizer controls the note animation since it contains better time synchronization than the soundChooser
-        tickVisualizer?.noteStartedListener = TickVisualizerSync.NoteStartedListener { uid, startNanos, endNanos, count ->
-            soundChooser.animateNote(uid)
+        tickVisualizer?.noteStartedListener = TickVisualizerSync.NoteStartedListener { note, startNanos, endNanos, count ->
+            soundChooser.animateNote(note.uid)
             if (tickingCircle)
-                speedPanel?.tick(startNanos, endNanos, count)
+                speedPanel?.tick(note, startNanos, endNanos, count)
         }
 
 
