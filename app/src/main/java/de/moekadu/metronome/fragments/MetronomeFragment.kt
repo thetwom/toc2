@@ -100,7 +100,7 @@ class MetronomeFragment : Fragment() {
     private var speedLimiter: SpeedLimiter? = null
 
     private var tapInEvaluator = TapInEvaluator(
-        5,
+        50,
         Utilities.bpm2millis(InitialValues.maximumBpm),
         Utilities.bpm2millis(InitialValues.minimumBpm)
     )
@@ -351,7 +351,7 @@ class MetronomeFragment : Fragment() {
                 "minimumspeed" -> {
                     sharedPreferences.getString("minimumspeed", InitialValues.minimumBpm.toString())?.toFloatOrNull()?.let {
                         tapInEvaluator = TapInEvaluator(
-                            tapInEvaluator.numHistoryValues,
+                            tapInEvaluator.maxNumHistoryValues,
                             tapInEvaluator.minimumAllowedDtInMillis,
                             Utilities.bpm2millis(it))
                     }
@@ -359,7 +359,7 @@ class MetronomeFragment : Fragment() {
                 "maximumspeed" -> {
                     sharedPreferences.getString("maximumspeed", InitialValues.maximumBpm.toString())?.toFloatOrNull()?.let {
                         tapInEvaluator = TapInEvaluator(
-                            tapInEvaluator.numHistoryValues,
+                            tapInEvaluator.maxNumHistoryValues,
                             Utilities.bpm2millis(it),
                             tapInEvaluator.maximumAllowedDtInMillis,
                         )
@@ -378,16 +378,20 @@ class MetronomeFragment : Fragment() {
                     vibratingNote?.strength = sharedPreferences.getInt("vibratestrength", 50)
                 }
                 "tickvisualization" -> {
-                    when (sharedPreferences.getString("tickvisualization", "leftright")) {
-                        "leftright" -> tickVisualizer?.visualizationType = TickVisualizerSync.VisualizationType.LeftRight
-                        "bounce" -> tickVisualizer?.visualizationType = TickVisualizerSync.VisualizationType.Bounce
-                        "fade" -> tickVisualizer?.visualizationType = TickVisualizerSync.VisualizationType.Fade
+                    val type = when (sharedPreferences.getString("tickvisualization", "leftright")) {
+                        "leftright" -> TickVisualizerSync.VisualizationType.LeftRight
+                        "bounce" -> TickVisualizerSync.VisualizationType.Bounce
+                        "fade" -> TickVisualizerSync.VisualizationType.Fade
+                        else ->  TickVisualizerSync.VisualizationType.Fade
                     }
+                    tickVisualizer?.visualizationType = type
+                    speedPanel?.visualizationType = type
                 }
                 "tickingcircle" -> {
                     tickingCircle = sharedPreferences.getBoolean("tickingcircle", false)
                     if (!tickingCircle)
                         speedPanel?.stopTicking()
+                    tickVisualizer?.visibility = if (tickingCircle) View.INVISIBLE else View.VISIBLE
                 }
             }
         }
@@ -402,7 +406,7 @@ class MetronomeFragment : Fragment() {
         val minimumSpeed = sharedPreferences.getString("minimumspeed", InitialValues.minimumBpm.toString())?.toFloatOrNull()
         val maximumSpeed = sharedPreferences.getString("maximumspeed", InitialValues.maximumBpm.toString())?.toFloatOrNull()
         if (minimumSpeed != null && maximumSpeed != null)
-            tapInEvaluator = TapInEvaluator(tapInEvaluator.numHistoryValues, Utilities.bpm2millis(maximumSpeed), Utilities.bpm2millis(minimumSpeed))
+            tapInEvaluator = TapInEvaluator(tapInEvaluator.maxNumHistoryValues, Utilities.bpm2millis(maximumSpeed), Utilities.bpm2millis(minimumSpeed))
 
         val bpmSensitivity = sharedPreferences.getInt("speedsensitivity", (Utilities.sensitivity2percentage(
             InitialValues.bpmPerCm
@@ -412,12 +416,17 @@ class MetronomeFragment : Fragment() {
         vibrate = sharedPreferences.getBoolean("vibrate", false)
         vibratingNote?.strength = sharedPreferences.getInt("vibratestrength", 50)
 
-        when (sharedPreferences.getString("tickvisualization", "leftright")) {
-            "leftright" -> tickVisualizer?.visualizationType = TickVisualizerSync.VisualizationType.LeftRight
-            "bounce" -> tickVisualizer?.visualizationType = TickVisualizerSync.VisualizationType.Bounce
-            "fade" -> tickVisualizer?.visualizationType = TickVisualizerSync.VisualizationType.Fade
+        val type = when (sharedPreferences.getString("tickvisualization", "leftright")) {
+            "leftright" -> TickVisualizerSync.VisualizationType.LeftRight
+            "bounce" -> TickVisualizerSync.VisualizationType.Bounce
+            "fade" -> TickVisualizerSync.VisualizationType.Fade
+            else -> TickVisualizerSync.VisualizationType.Fade
         }
+        tickVisualizer?.visualizationType = type
+        speedPanel?.visualizationType = type
+
         tickingCircle = sharedPreferences.getBoolean("tickingcircle", false)
+        tickVisualizer?.visibility = if (tickingCircle) View.INVISIBLE else View.VISIBLE
 
         // register all observers
         viewModel.bpm.observe(viewLifecycleOwner) { bpm ->

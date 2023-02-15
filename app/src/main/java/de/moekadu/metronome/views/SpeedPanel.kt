@@ -112,6 +112,8 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         color = Color.RED
     }
 
+    var visualizationType = TickVisualizerSync.VisualizationType.Fade
+
     constructor(context: Context, attrs: AttributeSet? = null) : this(context, attrs,
         R.attr.controlPanelStyle
     )
@@ -161,8 +163,13 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         canvas.drawPath(pathOuterCircle, circlePaint)
         pathOuterCircle.rewind()
 
-        if (currentNoteStartNanos >= 0L)
-            drawTickVisualization(canvas)
+        if (currentNoteStartNanos >= 0L) {
+            when (visualizationType) {
+                TickVisualizerSync.VisualizationType.Fade -> drawTickVisualizationFade(canvas)
+                TickVisualizerSync.VisualizationType.Bounce -> drawTickVisualizationBounce(canvas)
+                TickVisualizerSync.VisualizationType.LeftRight -> drawTickVisualizationLeftRight(canvas)
+            }
+        }
 
         if(changingSpeed) {
             circlePaint.color = highlightColor
@@ -360,7 +367,7 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         invalidate()
     }
 
-    private fun drawTickVisualization(canvas: Canvas) {
+    private fun drawTickVisualizationFade(canvas: Canvas) {
         val amplitude = currentVolume
         val fadeDurationNanos = min(currentNoteEndNanos - currentNoteStartNanos, 150 * 1000_000L)
         val positionSinceStartNanos = System.nanoTime() - currentNoteStartNanos
@@ -370,5 +377,73 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         tickPaint.alpha = (255 * amplitude * (1 - fraction)).toInt()
 
         canvas.drawCircle(centerX.toFloat(), centerY.toFloat(), radius.toFloat(), tickPaint)
+    }
+
+    private fun drawTickVisualizationBounce(canvas: Canvas) {
+        val sweepMin = 35f
+        val sweepMax = 110f
+        val durationRef = Utilities.bpm2nanos(70f)
+        val sizeFraction = min(currentNoteEndNanos - currentNoteStartNanos, durationRef) / durationRef.toFloat()
+        val amp = 140 * sizeFraction
+        val sweep = sweepMin * sizeFraction + sweepMax * (1-sizeFraction)
+        val alpha = (255 * max(0.3f, currentVolume)).toInt()
+
+//        Log.v("Metronome", "SpeedPanel.drawTickVisualizationBounce: amp=$amp, durationRef=$durationRef")
+        val positionSinceStartNanos = System.nanoTime() - currentNoteStartNanos
+        val fraction = positionSinceStartNanos / (currentNoteEndNanos - currentNoteStartNanos).toFloat()
+
+        val shift = amp  * sin(PI.toFloat() * fraction)
+        //Log.v("Metronome", "TickVisualizerSync.onDraw: amp=$amp, ampMax=$ampMax, blockWidth = $blockWidth, shift=$shift")
+        if (currentNoteCount % 2L == 0L) {
+            tickPaint.alpha = 120
+            canvas.drawArc(
+                centerX-radius.toFloat(), centerY-radius.toFloat(),
+                centerX+radius.toFloat(), centerY+radius.toFloat(),
+                90f, sweep, true, tickPaint
+            )
+
+            tickPaint.alpha = alpha
+            canvas.drawArc(
+                centerX-radius.toFloat(), centerY-radius.toFloat(),
+                centerX+radius.toFloat(), centerY+radius.toFloat(),
+                90f-shift-sweep, sweep, true, tickPaint
+            )
+        } else {
+            tickPaint.alpha = 120
+            canvas.drawArc(
+                centerX-radius.toFloat(), centerY-radius.toFloat(),
+                centerX+radius.toFloat(), centerY+radius.toFloat(),
+                90f-sweep, sweep, true, tickPaint
+            )
+
+            tickPaint.alpha = alpha
+            canvas.drawArc(
+                centerX-radius.toFloat(), centerY-radius.toFloat(),
+                centerX+radius.toFloat(), centerY+radius.toFloat(),
+                90f+shift, sweep, true, tickPaint
+            )
+        }
+    }
+
+    private fun drawTickVisualizationLeftRight(canvas: Canvas) {
+        val sweep = 180f
+        val sweepHalf = 0.5f * sweep
+        val alpha = (255 * max(0.1f, currentVolume)).toInt()
+        //Log.v("Metronome", "TickVisualizerSync.onDraw: amp=$amp, ampMax=$ampMax, blockWidth = $blockWidth, shift=$shift")
+        if (currentNoteCount % 2L == 0L) {
+            tickPaint.alpha = alpha
+            canvas.drawArc(
+                centerX-radius.toFloat(), centerY-radius.toFloat(),
+                centerX+radius.toFloat(), centerY+radius.toFloat(),
+                180f-sweepHalf, sweep, true, tickPaint
+            )
+        } else {
+            tickPaint.alpha = alpha
+            canvas.drawArc(
+                centerX-radius.toFloat(), centerY-radius.toFloat(),
+                centerX+radius.toFloat(), centerY+radius.toFloat(),
+                -sweepHalf, sweep, true, tickPaint
+            )
+        }
     }
 }

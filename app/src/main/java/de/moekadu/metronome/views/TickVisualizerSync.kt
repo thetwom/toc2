@@ -25,7 +25,6 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
 import de.moekadu.metronome.*
 import de.moekadu.metronome.metronomeproperties.*
@@ -169,12 +168,16 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
                         canvas?.drawRect(0.5f * width, 0f, width.toFloat(), height.toFloat(), paint)
                 }
                 VisualizationType.Fade -> {
-                    paint.alpha = (255 * (1 - fraction)).toInt()
+                    val fadeDurationNanos = min(currentTickEndTimeNanos - currentTickStartTimeNanos, 150 * 1000_000L)
+                    val positionSinceStartNanos = System.nanoTime() - currentTickStartTimeNanos
+                    val reducedFraction = (positionSinceStartNanos.coerceIn(0L, fadeDurationNanos).toFloat()
+                            / fadeDurationNanos)
+                    paint.alpha = (255 * (1 - reducedFraction)).toInt()
                     canvas?.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
                 }
                 VisualizationType.Bounce -> {
-                    val duration250Nanos = Utilities.bpm2nanos(200f)
-                    var amp = Utilities.dp2px(20f) * max(currentTickEndTimeNanos - currentTickStartTimeNanos, duration250Nanos) / duration250Nanos
+                    val durationRef = Utilities.bpm2nanos(200f)
+                    var amp = Utilities.dp2px(20f) * max(currentTickEndTimeNanos - currentTickStartTimeNanos, durationRef) / durationRef
 //                    Log.v("Metronome", "TickVisualizerSync.onDraw: amp=$amp, delta=${currentTickEndTimeNanos - currentTickStartTimeNanos}, duration250Nanos=$duration250Nanos")
                     val ampMax = 0.5f * width * (1 - 0.2f)
                     amp = min(amp, ampMax)
