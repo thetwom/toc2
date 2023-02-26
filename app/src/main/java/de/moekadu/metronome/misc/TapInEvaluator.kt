@@ -2,9 +2,63 @@ package de.moekadu.metronome.misc
 
 import android.util.Log
 import kotlin.math.absoluteValue
-import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.pow
 import kotlin.math.roundToLong
+
+/** Class for computing online mean and variance.
+ * This uses the incremental algorithm of Welford, see
+ *  https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+ * Usage:
+ *   1. Create class, and call "update()" with all values which should contribute to
+ *      mean and variance.
+ *   2. Obtain mean, variance, standard_deviation at any time you need the values, by
+ *      the attributes "mean", "variance", "standardDeviation", "standardError".
+ */
+class UpdatableStatistics {
+    /** Current sum of weights. */
+    private var count = 0
+    /** Intermediate value needed for variance. */
+    @Suppress("PrivatePropertyName")
+    private var S = 0L
+
+    /** Current mean value. */
+    var mean = 0L
+        private set
+
+    /** Current variance. */
+    val variance
+        get() = if (count < 2) 0L else S / (count - 1)
+
+    /** Current standard deviation. */
+    val standardDeviation
+        get() = variance.toDouble().pow(0.5)
+
+    /** Standard error. */
+    val standardError
+        get() = standardDeviation / count.toDouble().pow(0.5)
+
+    /** Relative standard error based on mean value. */
+    val relativeStandardError
+        get() = standardError / mean
+
+    /** Reset to zero. */
+    fun clear() {
+        count = 0
+        S = 0L
+        mean = 0L
+    }
+
+    /** Update the class with an additional value.
+     * @param value Value which should be considered in mean and variance.
+     */
+    fun update(value: Long) {
+        count += 1
+        val meanOld = mean
+        mean = meanOld + (value - meanOld) / count
+        S += (value - meanOld) * (value - mean)
+    }
+}
 
 class TapInEvaluator(val maxNumHistoryValues: Int, val minimumAllowedDtInMillis: Long, val maximumAllowedDtInMillis: Long) {
     /** List of tap-in values obtained withe System.nanoTime(), the first one is the oldest, the
@@ -15,6 +69,17 @@ class TapInEvaluator(val maxNumHistoryValues: Int, val minimumAllowedDtInMillis:
 
     /** Number of valid values within the values-array. */
     private var numValues = 0
+
+    /** Temporary array where we can store standard errors. */
+    private val standardErrors = DoubleArray(maxNumHistoryValues)
+
+    /** Temporary class for computing updatable statistics. */
+    private val updatableStatistics = UpdatableStatistics()
+
+    private val minimumNumValuesForAveraging = 5
+    private val errorReductionSpan = 5
+
+    private val maxRelativeStandardError = 0.2
 
     /** Max relative deviation between two succeeding values, to include them in the averaging. */
     private val maxDeviation = 0.5f
@@ -37,7 +102,7 @@ class TapInEvaluator(val maxNumHistoryValues: Int, val minimumAllowedDtInMillis:
      * @param timeInNanos Time from System.nanoTime() of tap.
      */
     fun tap(timeInNanos: Long) {
-        // If the new value is extremely quick after the last registered value, ignore it
+        // If the new value is extremely quick after the last registered value, ignore it.
         // we use 700_000L instead of 1000_000L to make the limit a bit smaller otherwise it would be hard
         // to actually reach the minimum value.
         if (numValues > 0 && timeInNanos - values[numValues - 1] < minimumAllowedDtInMillis * 700_000L) { // 700_000L = 0.7f * 1000_000L
@@ -51,147 +116,82 @@ class TapInEvaluator(val maxNumHistoryValues: Int, val minimumAllowedDtInMillis:
             ++numValues
         }
 
-        // make sure, that if numValues > 1 we never have dtNanos == NOT_AVAILABLE
-        // to avoid such checks lateron
-        if (numValues == 2) {
-            val dt = values[1] - values[0]
-            if (dt > maximumAllowedDtInMillis * 1000_000L) {
-                values[0] = values[1]
-                numValues = 1
-                dtNanos = NOT_AVAILABLE
-            } else {
-                dtNanos = dt
+        var numErrors = 0
+        var timesStart = 0
+        updatableStatistics.clear()
+        for (i in numValues - 1  downTo  1) {
+            val dt = values[i] - values[i - 1]
+            // use a slightly bigger maximum value (1500_000L than 1000_000L such than one
+            // can actually reach the maximum)
+            if (dt > maximumAllowedDtInMillis * 1500_000L) {
+                Log.v("Metronome", "TapInEvaluator.tap : maximum dt exceeded at index $i, (numValues=$numValues)")
+                timesStart = i
+                break
             }
+
+            updatableStatistics.update(dt)
+            // stop searching for series begin, if the standard error is too big
+            if (updatableStatistics.relativeStandardError > maxRelativeStandardError) {
+                Log.v("Metronome", "TapInEvaluator.tap : relative error exceeded at index $i, (numValues=$numValues)")
+                timesStart = i
+                break
+            }
+
+            standardErrors[numErrors] = updatableStatistics.standardError
+            val secondErrorIndex = numErrors
+            val firstErrorIndex = secondErrorIndex - errorReductionSpan + 1
+
+            if (firstErrorIndex >= 0)
+                Log.v("Metronome", "TapInEvaluator.tap : numErrors=$numErrors i1 = $firstErrorIndex, i2=$secondErrorIndex, e1 = ${standardErrors[firstErrorIndex]}, e2 = ${standardErrors[secondErrorIndex]}")
+            else
+                Log.v("Metronome", "TapInEvaluator.tap : numErrors=$numErrors i1 = $firstErrorIndex, i2=$secondErrorIndex")
+
+            if (numErrors >= minimumNumValuesForAveraging + errorReductionSpan
+                && standardErrors[secondErrorIndex] > standardErrors[firstErrorIndex]) {
+                var minValue = Double.MAX_VALUE
+                var minJ = -1
+                for (j in firstErrorIndex.. secondErrorIndex) {
+                    if (standardErrors[j] < minValue) {
+                        minValue = standardErrors[j]
+                        minJ = j
+                    }
+                }
+
+                timesStart = numValues - minJ
+                Log.v("Metronome", "TapInEvaluator.tap : minimum error found, numValues=$numValues, numErrors=$numErrors, minJ=$minJ, timeStart=$timesStart")
+                break
+            }
+            numErrors++
         }
 
-        // delete all values but the last one, if the last dt is very big
-        if (numValues > 1) {
-            val lastDt = values[numValues-1] - values[numValues-2]
-            if (lastDt > 2.5f * dtNanos || lastDt > maximumAllowedDtInMillis * 1000_000L) {
-                dtNanos = NOT_AVAILABLE
-                values[0] = values[numValues - 1]
-                numValues = 1
-            }
+        if (timesStart > 0) {
+            Log.v("Metronome", "TapInEvaluator.tap : start taking values at index $timesStart")
+            values.copyInto(values, 0, timesStart, numValues)
+            numValues -= timesStart
         }
 
-        if (numValues > 2) {
-            val lastDt = values[numValues-1] - values[numValues-2]
-            val dtBeforeLastDt = values[numValues-2] - values[numValues-3]
-            val dtDifference = (lastDt - dtBeforeLastDt).absoluteValue
-            val dtAverage = (lastDt + dtBeforeLastDt) / 2
-
-            // last to dts are similar to each other, but very different to the dt, which
-            // is currently used -> reset and keep just the three values
-            if (dtDifference.toDouble() / dtAverage < maxRelativeRatioToBeSimilar &&
-                ((dtAverage - dtNanos).absoluteValue / dtNanos.toDouble() > maxRelativeRatioToBeSimilar)) {
-                values.copyInto(values, 0, numValues - 3, numValues)
-                numValues = 3
-                dtNanos = dtAverage
-            }
-            // the last to dts are not similar and both different the current dt -> keep only the last two values
-            else if ((lastDt - dtNanos).absoluteValue / dtNanos.toDouble() > maxRelativeRatioToBeSimilar &&
-                (dtBeforeLastDt - dtNanos).absoluteValue / dtNanos.toDouble() > maxRelativeRatioToBeSimilar) {
-                values.copyInto(values, 0, numValues - 2, numValues)
-                numValues = 2
-                dtNanos = lastDt
-            }
-            // we have now treated:
-            // - last two dts similar but different to current dt
-            // - last two dts different and also different to current dt
-            // -> remaining case is that one of the last two dts is similar to current dt, which
-            //    is fine for us -> no else needed.
-        }
-
-        if (dtNanos == NOT_AVAILABLE) {
+        if (numValues <= 2) {
+            dtNanos = NOT_AVAILABLE
             predictedNextTapNanos = NOT_AVAILABLE
             return
         }
+
 //        Log.v("Metronome", "TapInEvaluator.tap: numValues = $numValues")
         var indexLower = 0
         var indexUpper = numValues - 1
-
+        Log.v("Metronome", "TapInEvaluator.tap: numUsedValues = ${indexUpper - indexLower + 1}")
         var weightSum = 0L
         var dtSum = 0L
         // now compute a nice dt ...
         while (indexLower < indexUpper) {
-            val numTicks = ((values[indexUpper] - values[indexLower]) / dtNanos.toDouble()).roundToLong()
-            weightSum += numTicks
+            weightSum += indexUpper - indexLower
             dtSum += (values[indexUpper] - values[indexLower])
             indexLower += 1
             indexUpper -= 1
         }
         dtNanos = dtSum / weightSum
 
-//        // "delete" all values if the last two taps are too far apart
-//        // increase the maximumAllowedDt a bit (use 1500_000L instead of 1000_000L as millis to nanos
-//        // conversion), such that we can safely reach this value.
-//        // (otherwise it would be hard to reach the maximum value since either we are below or
-//        //  or the values will be killed due to exceeding it.)
-//        if (numValues >= 2 && values[numValues - 1] - values[numValues - 2] > 1500_000L * maximumAllowedDtInMillis) {
-//            values[0] = timeInNanos
-//            numValues = 1
-//        }
-//
-//        val iBegin = determineFirstValidValue()
-//        val iEnd = numValues
-//        val numDts = max(0, iEnd - iBegin - 1)
-//        dtNanos = if (numDts == 0)
-//            NOT_AVAILABLE
-//        else
-//            (values[iEnd - 1] - values[iBegin]) / numDts
-
-        predictedNextTapNanos = if (dtNanos == NOT_AVAILABLE) {
-            NOT_AVAILABLE
-        } else {
-//            // for the predicted tap we use a weighted average with a linear weight drop
-//            // The predicted tap based on the last tap gets the maxWeight
-//            val maxWeight = 100L
-//            val minWeight = 1L
-//            var sum = 0L
-//            var weightSum = 0L
-//            val numValid = iEnd - iBegin
-//            for (i in iBegin until iEnd) {
-//                val relativeDistToFirstValue = (i - iBegin).toFloat() / (numValid - 1)
-//                // the weight and sum must be with Integer/Long types to avoid errors for the large absolute sum values.
-//                val w = (minWeight * relativeDistToFirstValue + maxWeight * (1 - relativeDistToFirstValue)).roundToLong()
-//                weightSum += w
-//                sum += w * (values[i] + (iEnd - i) * dtNanos)
-//            }
-//            // values[numValues - 1] + dt + predictionDelayInMillis
-//            sum / weightSum + 1000_000L * predictionDelayInMillis
-            values[numValues - 1] + dtNanos
-        }
-    }
-
-    private fun determineFirstValidValue(): Int {
-        if (numValues < 2)
-            return numValues - 1
-
-        val lastDt = (values[numValues - 1] - values[numValues - 2])
-
-        // if we have 3 values or more (i.e. 2 dts or more), and the last recent two
-        // deviate, we are uncertain, if this is an accident or not and tell that the
-        // there is only one valid value (so no dt available).
-        // This helps, that we don't accidentally get speeds close to the minimum, where the
-        // user actually just wants to start a new row ...
-        if (numValues >= 3) {
-            val dtBeforeLastDt = (values[numValues - 2] - values[numValues - 3])
-            if ((dtBeforeLastDt - lastDt).absoluteValue / min(lastDt, dtBeforeLastDt).toFloat() > maxDeviation)
-                return numValues - 1
-        }
-
-        // accept so many dts in a row as long a the deviation of a dt does not deviate from
-        // the most recent dt too much.
-        var iBegin = numValues - 2
-        for (i in numValues - 2 downTo 1) {
-            val dt = values[i] - values[i - 1]
-            if (((lastDt - dt) / lastDt.toFloat()).absoluteValue < maxDeviation)
-                iBegin = i - 1
-            else
-                break
-        }
-
-        return iBegin
+        predictedNextTapNanos = values[numValues - 1] + dtNanos
     }
 
     companion object {
