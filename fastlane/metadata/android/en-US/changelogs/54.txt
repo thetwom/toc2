@@ -1,0 +1,8 @@
+v4.8.0:
+- Add option for larger tick animations on the adjustment circle
+- More accurate tap in (averaging over up to 100 values)
+
+v4.7.0:
+- Improve synchronization between sound and visual feedback and vibration
+  (thanks to TBWarrington and jorfus for all the testing)
+- Remove notification more reliably, when app is killed.
