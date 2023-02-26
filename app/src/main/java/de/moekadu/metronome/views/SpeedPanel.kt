@@ -60,14 +60,6 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     private val backToZeroAnimation = ValueAnimator.ofFloat(1.0f, 0.0f)
     private var backToZeroAnimationValue = 1.0f
 
-    private var lastTap = 0L
-    private var predictNextTap = 0L
-    private var nTapSamples = 0
-    private val facTapInfty = 0.15f
-    private val maxTapErr = 0.3f
-    private val tapDelay = 10L
-    private var dt = 0f
-
     private val tapInAngleStart = 60f
     private val tapInAngleEnd = 120f
 
@@ -81,6 +73,8 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 
     private var stepCounter = 0f
     private val stepCounterMax = 5f
+
+    var numTaps = 0
 
     var bpmIncrement = Utilities.bpmIncrements[InitialValues.bpmIncrementIndex]
         set(value) {
@@ -254,10 +248,20 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             circlePaint.textAlign = Paint.Align.CENTER
             circlePaint.color = highlightColor
             circlePaint.alpha = (255*(1-tapInAnimationValue)).roundToInt()
-            val highlightTextSize = strokeWidth * (1 + 10 * tapInAnimationValue)
+            //val highlightTextSize = strokeWidth * (1 + 3 * tapInAnimationValue)
+            var highlightTextSize = strokeWidth * (1 + 1f * tapInAnimationValue)
             circlePaint.textSize = highlightTextSize
             canvas.drawTextOnPath(context.getString(R.string.tap_in), tapInPath,
-                    0f, strokeWidth / 2.0f, circlePaint)
+                0f, strokeWidth / 2.0f, circlePaint)
+            highlightTextSize = strokeWidth * (1 + 2 * tapInAnimationValue)
+            circlePaint.textSize = highlightTextSize
+            canvas.drawText(numTaps.toString(),
+                centerX + speedRad * cos(30f * PI.toFloat() / 180.0f),
+                centerY + speedRad * sin(30f * PI.toFloat() / 180.0f),
+                circlePaint
+            )
+            //canvas.drawTextOnPath(numTaps.toString(), tapInPath,
+            //    0f, strokeWidth / 2.0f, circlePaint)
         }
     }
 

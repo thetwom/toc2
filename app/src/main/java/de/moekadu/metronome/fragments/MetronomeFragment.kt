@@ -100,7 +100,7 @@ class MetronomeFragment : Fragment() {
     private var speedLimiter: SpeedLimiter? = null
 
     private var tapInEvaluator = TapInEvaluator(
-        50,
+        100,
         Utilities.bpm2millis(InitialValues.maximumBpm),
         Utilities.bpm2millis(InitialValues.minimumBpm)
     )
@@ -208,6 +208,7 @@ class MetronomeFragment : Fragment() {
 
             override fun onTapInPressed(systemNanosAtTap: Long) {
                 tapInEvaluator.tap(systemNanosAtTap)
+                speedPanel?.numTaps = tapInEvaluator.numValues
                 if (tapInEvaluator.dtNanos != TapInEvaluator.NOT_AVAILABLE)
                     viewModel.setBpm(Utilities.nanos2bpm(tapInEvaluator.dtNanos))
                 if (tapInEvaluator.predictedNextTapNanos != TapInEvaluator.NOT_AVAILABLE)
