@@ -27,9 +27,8 @@
     <application
         android:name="de.moekadu.metronome.App"
         android:allowBackup="true"
-        android:icon="@mipmap/ic_toc2"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_toc2_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:fullBackupContent="@xml/backup_descriptor">

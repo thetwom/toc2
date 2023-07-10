@@ -59,7 +59,7 @@ class PlayerNotification(val context: PlayerService) {
         val actIntent = Intent(context, MainActivity::class.java)
         val launchAct = PendingIntent.getActivity(context, 0, actIntent, PendingIntent.FLAG_IMMUTABLE)
         setContentTitle(context.getString(R.string.app_name))
-                .setSmallIcon(R.drawable.ic_toc_swb4)
+                .setSmallIcon(R.drawable.ic_notification)
                 .setContentIntent(launchAct)
                 .setStyle(NotificationCompat.DecoratedCustomViewStyle())
                 .setCustomContentView(notificationView)
