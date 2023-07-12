@@ -80,6 +80,9 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
     /** Currently used tick visualization strategy. */
     var visualizationType = VisualizationType.Bounce
 
+    /** Visualization delay in nano seconds (can also be negative to visualize "before" */
+    var delayNanos = 0L
+
     /** Compute current position of the played visualization. (0 -- 1) */
     val fraction: Float
         get() {
@@ -98,7 +101,7 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
             val nanoTime = System.nanoTime()
             var index = -1
             for (q in queuedNotes) {
-                if (q.startTimeNanos > nanoTime)
+                if (q.startTimeNanos + delayNanos > nanoTime)
                     break
                 else
                     ++index
@@ -106,7 +109,7 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
             val note = if (index in queuedNotes.indices) queuedNotes[index] else null
 
             if (note != null) {
-                currentTickStartTimeNanos = note.startTimeNanos
+                currentTickStartTimeNanos = note.startTimeNanos + delayNanos
                 currentTickEndTimeNanos = currentTickStartTimeNanos + note.noteListItem.duration.durationInNanos(bpm.bpmQuarter)
                 tickCount = note.noteCount
                 noteStartedListener?.onNoteStarted(note.noteListItem, currentTickStartTimeNanos, currentTickEndTimeNanos, tickCount)
@@ -150,7 +153,7 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
         invalidate()
     }
 
-    override fun onDraw(canvas: Canvas?) {
+    override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
         if (animator.isRunning) {
@@ -163,9 +166,9 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
                 VisualizationType.LeftRight -> {
                     paint.alpha = 255
                     if (tickCount % 2L == 0L)
-                        canvas?.drawRect(0f, 0f, 0.5f * width, height.toFloat(), paint)
+                        canvas.drawRect(0f, 0f, 0.5f * width, height.toFloat(), paint)
                     else
-                        canvas?.drawRect(0.5f * width, 0f, width.toFloat(), height.toFloat(), paint)
+                        canvas.drawRect(0.5f * width, 0f, width.toFloat(), height.toFloat(), paint)
                 }
                 VisualizationType.Fade -> {
                     val fadeDurationNanos = min(currentTickEndTimeNanos - currentTickStartTimeNanos, 150 * 1000_000L)
@@ -173,7 +176,7 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
                     val reducedFraction = (positionSinceStartNanos.coerceIn(0L, fadeDurationNanos).toFloat()
                             / fadeDurationNanos)
                     paint.alpha = (255 * (1 - reducedFraction)).toInt()
-                    canvas?.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
+                    canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
                 }
                 VisualizationType.Bounce -> {
                     val durationRef = Utilities.bpm2nanos(200f)
@@ -187,17 +190,17 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
                     //Log.v("Metronome", "TickVisualizerSync.onDraw: amp=$amp, ampMax=$ampMax, blockWidth = $blockWidth, shift=$shift")
                     if (tickCount % 2L == 0L) {
                         paint.alpha = 120
-                        canvas?.drawRect(center - blockWidth, 0f,
+                        canvas.drawRect(center - blockWidth, 0f,
                             center, height.toFloat(), paint)
                         paint.alpha = 255
-                        canvas?.drawRect(center + shift, 0f,
+                        canvas.drawRect(center + shift, 0f,
                             center + shift + blockWidth, height.toFloat(), paint)
                     } else {
                         paint.alpha = 255
-                        canvas?.drawRect(center - shift - blockWidth, 0f,
+                        canvas.drawRect(center - shift - blockWidth, 0f,
                             center - shift, height.toFloat(), paint)
                         paint.alpha = 120
-                        canvas?.drawRect(center, 0f,
+                        canvas.drawRect(center, 0f,
                             center + blockWidth, height.toFloat(), paint)
                     }
                 }

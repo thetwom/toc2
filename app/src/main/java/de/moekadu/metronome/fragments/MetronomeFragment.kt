@@ -394,6 +394,9 @@ class MetronomeFragment : Fragment() {
                         speedPanel?.stopTicking()
                     tickVisualizer?.visibility = if (tickingCircle) View.INVISIBLE else View.VISIBLE
                 }
+                "visualdelay" -> {
+                    tickVisualizer?.delayNanos = sharedPreferences.getInt("visualdelay", 0) * 1000_000L
+                }
             }
         }
 
@@ -425,6 +428,7 @@ class MetronomeFragment : Fragment() {
         }
         tickVisualizer?.visualizationType = type
         speedPanel?.visualizationType = type
+        tickVisualizer?.delayNanos = sharedPreferences.getInt("visualdelay", 0) * 1000_000L
 
         tickingCircle = sharedPreferences.getBoolean("tickingcircle", false)
         tickVisualizer?.visibility = if (tickingCircle) View.INVISIBLE else View.VISIBLE

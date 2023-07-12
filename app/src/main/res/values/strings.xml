@@ -149,4 +149,5 @@
     <string name="visualization">Visualization</string>
     <string name="basic">Basic</string>
     <string name="others">Others</string>
+    <string name="visual_delay">Delay visual effects</string>
 </resources>

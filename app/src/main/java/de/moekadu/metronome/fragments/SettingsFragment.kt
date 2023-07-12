@@ -85,6 +85,14 @@ class SettingsFragment: PreferenceFragmentCompat() {
             true
         }
 
+        val visualDelay = findPreference<SeekBarPreference>("visualdelay") ?: throw RuntimeException("no visual delay setting")
+        visualDelay.updatesContinuously = true
+        visualDelay.summary =  getString(R.string.milliseconds, visualDelay.value)
+        visualDelay.setOnPreferenceChangeListener { _, newValue ->
+            visualDelay.summary = getString(R.string.milliseconds, newValue as Int)
+            true
+        }
+
         val appearance = findPreference("appearance") as ListPreference?
         require(appearance != null)
         appearance.summary = getAppearanceSummary()

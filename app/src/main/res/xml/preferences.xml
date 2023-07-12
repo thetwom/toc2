@@ -64,6 +64,15 @@
             app:defaultValue="false"
             app:icon="@drawable/ic_flash_circle"
             />
+
+        <SeekBarPreference
+            app:key="visualdelay"
+            app:title="@string/visual_delay"
+            app:min="-200"
+            android:max="200"
+            android:defaultValue="0"
+            app:icon="@drawable/ic_flash_delay"
+            />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/vibration">

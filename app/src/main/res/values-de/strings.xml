@@ -110,4 +110,5 @@
     <string name="basic">Allgemein</string>
     <string name="speed_selection">Geschwindigkeitsauswahl</string>
     <string name="others">Andere</string>
+    <string name="visual_delay">Visualisierung verzögern</string>
 </resources>

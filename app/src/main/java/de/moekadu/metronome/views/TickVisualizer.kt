@@ -90,7 +90,7 @@ class TickVisualizer(context : Context, attrs : AttributeSet?, defStyleAttr: Int
         }
     }
 
-    override fun onDraw(canvas: Canvas?) {
+    override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
         val markerThickness: Float
@@ -120,12 +120,12 @@ class TickVisualizer(context : Context, attrs : AttributeSet?, defStyleAttr: Int
         val a2 = amp2 * sin(animator2.animatedValue as Float)
 
         if (vertical) {
-            canvas?.drawRect(paddingLeft.toFloat(), pos0 + a2, paddingLeft + markerThickness, pos0 + a2 + markerLength, paint)
-            canvas?.drawRect(paddingLeft.toFloat(), pos0 - a1 - markerLength, paddingLeft + markerThickness, pos0 - a1, paint)
+            canvas.drawRect(paddingLeft.toFloat(), pos0 + a2, paddingLeft + markerThickness, pos0 + a2 + markerLength, paint)
+            canvas.drawRect(paddingLeft.toFloat(), pos0 - a1 - markerLength, paddingLeft + markerThickness, pos0 - a1, paint)
         }
         else {
-            canvas?.drawRect(pos0 + a2, paddingTop.toFloat(), pos0 + a2 + markerLength, paddingTop + markerThickness, paint)
-            canvas?.drawRect(pos0 - a1 - markerLength, paddingTop.toFloat(), pos0 - a1, paddingTop + markerThickness, paint)
+            canvas.drawRect(pos0 + a2, paddingTop.toFloat(), pos0 + a2 + markerLength, paddingTop + markerThickness, paint)
+            canvas.drawRect(pos0 - a1 - markerLength, paddingTop.toFloat(), pos0 - a1, paddingTop + markerThickness, paint)
         }
 
         val maxActiveWidth = 0.5f * length
@@ -141,15 +141,15 @@ class TickVisualizer(context : Context, attrs : AttributeSet?, defStyleAttr: Int
 //        Log.v("Metronome", "TickVisualizer2:onDraw: explodeWidth=$explodeLength, alpha=${paintExplode.alpha}")
         if (vertical) {
             if (nextPoint == 1)
-                canvas?.drawRect(paddingLeft.toFloat(), pos0, paddingLeft + markerThickness, pos0 + explodeLength, paintExplode)
+                canvas.drawRect(paddingLeft.toFloat(), pos0, paddingLeft + markerThickness, pos0 + explodeLength, paintExplode)
             else
-                canvas?.drawRect(paddingLeft.toFloat(), pos0 - explodeLength, paddingLeft + markerThickness, pos0, paintExplode)
+                canvas.drawRect(paddingLeft.toFloat(), pos0 - explodeLength, paddingLeft + markerThickness, pos0, paintExplode)
         }
         else {
             if (nextPoint == 1)
-                canvas?.drawRect(pos0, paddingTop.toFloat(), pos0 + explodeLength, paddingTop + markerThickness, paintExplode)
+                canvas.drawRect(pos0, paddingTop.toFloat(), pos0 + explodeLength, paddingTop + markerThickness, paintExplode)
             else
-                canvas?.drawRect(pos0 - explodeLength, paddingTop.toFloat(), pos0, paddingTop + markerThickness, paintExplode)
+                canvas.drawRect(pos0 - explodeLength, paddingTop.toFloat(), pos0, paddingTop + markerThickness, paintExplode)
         }
     }
 

@@ -214,9 +214,10 @@ class PlayerService : LifecycleService() {
 
         audioMixer?.setMute(isMute)
 
+        val visualDelay = sharedPreferences.getInt("visualdelay", 0)
         // callback for ui stuff
         noteStartedHandler4Visualization = audioMixer?.createAndRegisterNoteStartedHandler(
-            0,
+            visualDelay,
             NoteStartedHandler.CallbackWhen.NoteQueued,
             Dispatchers.Main
         ) { noteListItem, nanoTime, noteCount ->
@@ -298,6 +299,10 @@ class PlayerService : LifecycleService() {
                     "vibratedelay" -> {
                         val delay = sharedPreferences.getInt("vibratedelay", 0)
                         noteStartedHandler4Vibration?.delayInMillis = delay
+                    }
+                    "visualdelay" -> {
+                        val delay = sharedPreferences.getInt("visualdelay", 0)
+                        noteStartedHandler4Visualization?.delayInMillis = delay
                     }
                 }
             }

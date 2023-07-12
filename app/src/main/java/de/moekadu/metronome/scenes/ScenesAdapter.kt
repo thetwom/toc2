@@ -58,6 +58,7 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
     var onSceneClickedListener: OnSceneClickedListener? = null
     private var activatedStableId = Scene.NO_STABLE_ID
     private var tickVisualizationType = TickVisualizerSync.VisualizationType.LeftRight
+    private var visualDelayNanos = 0L
     private var useSimpleMode = false
 
     inner class ViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
@@ -152,6 +153,13 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
         }
     }
 
+    fun setVisualDelay(delayNanos: Long, recyclerView: RecyclerView?) {
+        visualDelayNanos = delayNanos
+        recyclerView?.forEachViewHolder { viewHolder ->
+            viewHolder.tickVisualizer?.delayNanos = delayNanos
+        }
+    }
+
     fun setSimpleMode(useSimpleMode: Boolean, recyclerView: RecyclerView?) {
         this.useSimpleMode = useSimpleMode
         recyclerView?.forEachViewHolder { viewHolder ->
@@ -200,6 +208,7 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
             noteView = view.findViewById(R.id.scene_sounds)
             tickVisualizer = view.findViewById(R.id.scene_ticks_visualizer)
             tickVisualizer?.visualizationType = tickVisualizationType
+            tickVisualizer?.delayNanos = visualDelayNanos
             tickVisualizer?.noteStartedListener = TickVisualizerSync.NoteStartedListener { note, _, _, _ ->
                 noteView?.animateNote(note.uid)
             }
@@ -257,6 +266,7 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
         holder.titleViewSimple?.text = titleViewText
         holder.useSimpleMode = useSimpleMode
         holder.tickVisualizer?.visualizationType = tickVisualizationType
+        holder.tickVisualizer?.delayNanos = visualDelayNanos
         //holder.titleView?.text = "#${position + 1}: ${scene.title}"
 //        Log.v("Metronome", "ScenesAdapter.onViewAttachedToWindow: activatedStableId=$activatedStableId, isActivated=${holder.isActivated}")
         super.onViewAttachedToWindow(holder)

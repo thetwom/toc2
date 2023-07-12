@@ -69,7 +69,7 @@ class NoteViewVolume(context : Context) : View(context) {
             invalidate()
     }
 
-    override fun onDraw(canvas: Canvas?) {
+    override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         if(volumes.size == 0)
             return

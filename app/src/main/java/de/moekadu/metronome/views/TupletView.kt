@@ -77,7 +77,7 @@ class TupletView(context: Context) : androidx.appcompat.widget.AppCompatImageVie
         requestLayout()
     }
 
-    override fun onDraw(canvas: Canvas?) {
+    override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         val strokeWidth = 0.15f * measuredHeight
         paint.strokeWidth = strokeWidth
@@ -87,13 +87,13 @@ class TupletView(context: Context) : androidx.appcompat.widget.AppCompatImageVie
         val space = 0.5f * measuredHeight
 
         // lines right of drawable
-        canvas?.drawLine(
+        canvas.drawLine(
             centerX + space, centerY,
             measuredWidth - 0.5f * strokeWidth, centerY,
             paint
         )
         if (tupletComplete) {
-            canvas?.drawLine(
+            canvas.drawLine(
                 measuredWidth - 0.5f * strokeWidth, centerY - 0.5f * strokeWidth,
                 measuredWidth - 0.5f * strokeWidth, 0.9f * measuredHeight,
                 paint
@@ -101,13 +101,13 @@ class TupletView(context: Context) : androidx.appcompat.widget.AppCompatImageVie
         }
 
         // lines left of drawable
-        canvas?.drawLine(
+        canvas.drawLine(
             centerX - space, centerY,
             0.5f * strokeWidth, centerY,
             paint
         )
         if (tupletComplete) {
-            canvas?.drawLine(
+            canvas.drawLine(
                 0.5f * strokeWidth, centerY - 0.5f * strokeWidth,
                 0.5f * strokeWidth, 0.9f * measuredHeight,
                 paint

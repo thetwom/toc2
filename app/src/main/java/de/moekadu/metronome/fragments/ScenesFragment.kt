@@ -458,6 +458,10 @@ class ScenesFragment : Fragment() {
                         }
                         scenesAdapter.setTickVisualizationType(type, scenesRecyclerView)
                     }
+                    "visualdelay" -> {
+                        val delay = sharedPreferences.getInt("visualdelay", 0)
+                        scenesAdapter.setVisualDelay(delay * 1000_000L, scenesRecyclerView)
+                    }
                     "compact_scenes_layout" -> {
                         val useSimpleMode = sharedPreferences.getBoolean("compact_scenes_layout", false)
                         scenesAdapter.setSimpleMode(useSimpleMode, scenesRecyclerView)
@@ -473,6 +477,8 @@ class ScenesFragment : Fragment() {
             else -> TickVisualizerSync.VisualizationType.LeftRight
         }
         scenesAdapter.setTickVisualizationType(type, scenesRecyclerView)
+        val delay = sharedPreferences.getInt("visualdelay", 0)
+        scenesAdapter.setVisualDelay(delay * 1000_000L, scenesRecyclerView)
 
         val useSimpleMode = sharedPreferences.getBoolean("compact_scenes_layout", false)
         scenesAdapter.setSimpleMode(useSimpleMode, scenesRecyclerView)
