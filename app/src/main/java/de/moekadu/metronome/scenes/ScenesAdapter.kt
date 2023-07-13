@@ -210,7 +210,7 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
             tickVisualizer?.visualizationType = tickVisualizationType
             tickVisualizer?.delayNanos = visualDelayNanos
             tickVisualizer?.noteStartedListener = TickVisualizerSync.NoteStartedListener { note, _, _, _ ->
-                noteView?.animateNote(note.uid)
+                //noteView?.animateNote(note.uid)
             }
             selectedView = view.findViewById(R.id.scene_active)
             view.setOnClickListener {
