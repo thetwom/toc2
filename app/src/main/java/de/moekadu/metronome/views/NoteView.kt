@@ -26,6 +26,7 @@ import android.graphics.Rect
 import android.graphics.drawable.Animatable
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
+import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.MotionEvent
@@ -211,6 +212,9 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
     private val numbering = ArrayList<AppCompatTextView>()
 
+    private val advanceMarkers = ArrayList<ImageView>()
+    private var activeAdvanceMarkerIndex = -1
+
     private fun computeLargestAspectRatio() : Float {
         var largestAspectRatio = 0.0f
         for(duration in NoteDuration.values()) {
@@ -304,11 +308,22 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             n.noteImage.measure(noteWidthSpec, heightSpec)
 
         val textHeightSpec = MeasureSpec.makeMeasureSpec((0.2f * totalHeightExcludingTuplet).toInt(), MeasureSpec.EXACTLY)
-        for(n in numbering)
-            n.measure(textHeightSpec, textHeightSpec)
+        numbering.forEach {
+            it.measure(textHeightSpec, textHeightSpec)
+        }
 
-        for (tuplet in tuplets)
-            tuplet.measureOnNoteView(totalWidth, totalHeight, notes.size)
+        tuplets.forEach {
+            it.measureOnNoteView(totalWidth, totalHeight, notes.size)
+        }
+
+        val advanceMarkerHeight = (0.1f * totalHeightExcludingTuplet).roundToInt()
+        val advanceMarkerAspect = 2f
+        val advanceMarkerWidth = (advanceMarkerAspect * advanceMarkerHeight).roundToInt()
+        val advanceMarkerWidthSpec = MeasureSpec.makeMeasureSpec(advanceMarkerWidth, MeasureSpec.EXACTLY)
+        val advanceMarkerHeightSpec = MeasureSpec.makeMeasureSpec(advanceMarkerWidth, MeasureSpec.EXACTLY)
+        advanceMarkers.forEach {
+            it.measure(advanceMarkerWidthSpec, advanceMarkerHeightSpec)
+        }
 
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }
@@ -352,12 +367,21 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
             if (i < numbering.size) {
                 val textView = numbering[i]
-                val textViewLeft = (noteCenter - 0.5f * textView.measuredWidth).toInt()
+                val textViewLeft = (noteCenter - 0.5f * textView.measuredWidth).roundToInt()
                 val textViewRight = textViewLeft + textView.measuredWidth
                 val textViewBottom = b - t - paddingBottom
                 val textViewTop = textViewBottom - textView.measuredHeight
 //                Log.v("Metronome", "NoteView.onLayout, $textViewLeft, $textViewTop, $textViewRight, $textViewBottom")
                 textView.layout(textViewLeft, textViewTop, textViewRight, textViewBottom)
+            }
+
+            if (i < advanceMarkers.size) {
+                val marker = advanceMarkers[i]
+                val markerLeft = (noteCenter - 0.5f * marker.measuredWidth).roundToInt()
+                val markerRight = markerLeft + marker.measuredWidth
+                val markerBottom = b - t - paddingBottom
+                val markerTop = markerBottom - marker.measuredHeight
+                marker.layout(markerLeft, markerTop, markerRight, markerBottom)
             }
         }
 
@@ -484,6 +508,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             map.forEach { removeView(it.value.noteImage)}
 
             makeSureWeHaveCorrectNumberOfNumberingViews()
+            makeSureWeHaveCorrectNumberOfAdvanceMarkers()
 
             notes.forEachIndexed { index, note ->
                 if (note.highlight)
@@ -525,6 +550,19 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             }
     }
 
+    fun setAdvanceMarker(uid: UId?) {
+        val index = notes.indexOfFirst { it.uid == uid }
+        activeAdvanceMarkerIndex = index
+        advanceMarkers.forEachIndexed { i, marker ->
+            marker.visibility = if (i == index) View.VISIBLE else View.INVISIBLE
+        }
+        if (showNumbers) {
+            numbering.forEachIndexed { i, number ->
+                number.visibility = if (i == index) View.INVISIBLE else View.VISIBLE
+            }
+        }
+    }
+
     @SuppressLint("SetTextI18n")
     private fun makeSureWeHaveCorrectNumberOfNumberingViews() {
         val numNumbers = if (showNumbers) notes.size else 0
@@ -549,6 +587,31 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         while (numbering.size > numNumbers) {
             removeView(numbering.last())
             numbering.removeLast()
+        }
+
+        numbering.forEachIndexed { index, number ->
+            number.visibility = if (index == activeAdvanceMarkerIndex) View.INVISIBLE else View.VISIBLE
+        }
+    }
+
+    private fun makeSureWeHaveCorrectNumberOfAdvanceMarkers() {
+        while (advanceMarkers.size < notes.size) {
+            advanceMarkers.add(
+                ImageView(context).apply {
+                    setImageResource(R.drawable.ic_advance_marker)
+                    setPadding(0, 0, 0, 0)
+                    //background = null
+                    //setBackgroundColor(Color.GREEN)
+                    scaleType = ImageView.ScaleType.FIT_CENTER
+                    visibility = View.INVISIBLE
+                }
+            )
+            addView(advanceMarkers.last())
+        }
+
+        while (advanceMarkers.size > notes.size) {
+            removeView(advanceMarkers.last())
+            advanceMarkers.removeLast()
         }
     }
 

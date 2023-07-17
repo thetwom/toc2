@@ -24,7 +24,6 @@ import android.media.*
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import de.moekadu.metronome.metronomeproperties.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
@@ -53,13 +52,18 @@ class NoteStartedHandler(delayInMillis: Int, val noteStartedListener: AudioMixer
 
     /** Define when the callback should be called. Either as early as possible (NoteQueued) or
      * when the note actually starts playing (NoteStarted).*/
-    enum class CallbackWhen { NoteQueued, NoteStarted}
+    enum class CallbackWhen { NoteQueued, NoteStarted }
     /** Info about a started note.
      * @param noteListItem Copy of noteListItem which is started
      * @param startTimeNanos Time in System.nanoTime(), when the note started.
+     * @param noteDurationNanos Total note duration in nano seconds (as derived from the bpm).
      * @param count Counter of started note starting with 0 when the AudioMixer starts playing.
+     * @param handlerDelayNanos Delay of how long after the note start, the handler is called, in
+     *   nanoseconds. If negative, the handler is called before the note starts.
      */
-    private data class NoteStartedInfo(val noteListItem: NoteListItem, val startTimeNanos: Long, val count: Long)
+    private data class NoteStartedInfo(
+        val noteListItem: NoteListItem, val startTimeNanos: Long, val noteDurationNanos: Long,
+        val count: Long, val handlerDelayNanos: Long)
 
     /** Channel which transfers signals from the audio mixer to the noteStartedListener context. */
     private val channel = if (coroutineContext == null) null else Channel<NoteStartedInfo>(Channel.UNLIMITED)
@@ -79,7 +83,10 @@ class NoteStartedHandler(delayInMillis: Int, val noteStartedListener: AudioMixer
             coroutineScope.launch(context) {
                 channel?.consumeEach {
 //                    Log.v("Metronome", "NoteStartedChannel consumeEah: noteListItem.uid = ${it.noteListItem.uid}")
-                    noteStartedListener.onNoteStarted(it.noteListItem, it.startTimeNanos, it.count)
+                    noteStartedListener.onNoteStarted(
+                        it.noteListItem, it.startTimeNanos, it.noteDurationNanos, it.count,
+                        it.handlerDelayNanos
+                    )
                 }
             }
         }
@@ -89,10 +96,18 @@ class NoteStartedHandler(delayInMillis: Int, val noteStartedListener: AudioMixer
      * @note This only has an effect if the coroutineContext of the lass is not null.
      * @param noteListItem NoteListItem which starts playing.
      * @param startTimeNanos System.nanoTime() when the note started playing.
+     * @param noteDurationNanos Total note duration in nano seconds (as derived from the bpm).
      * @param count Note count of the started note, counting the notes played after starting plying.
+     * @param handlerDelayNanos Delay of how long after the note start, the handler is called, in
+     *   nanoseconds. If negative, the handler is called before the note starts.
      */
-    fun offer(noteListItem: NoteListItem, startTimeNanos: Long, count: Long) {
-        channel?.trySend(NoteStartedInfo(noteListItem, startTimeNanos, count))
+    fun offer(
+        noteListItem: NoteListItem, startTimeNanos: Long, noteDurationNanos: Long, count: Long,
+        handlerDelayNanos: Long
+    ) {
+        channel?.trySend(
+            NoteStartedInfo(noteListItem, startTimeNanos, noteDurationNanos, count, handlerDelayNanos)
+        )
     }
 
     /** Call this to disconnect the channel, when this class is not needed anymore.
@@ -110,27 +125,35 @@ class NoteStartedHandler(delayInMillis: Int, val noteStartedListener: AudioMixer
 //                                                    val unregisterChannel: Boolean)
 
 /** Required information for handling the notifications when a playlist item starts.
- *  @param noteListItem NoteListItem which will be started
  *  @param noteStartedHandler NoteStartedHandler where the info is sent.
- *  @param frameNumber Frame number when the noteStartedListener should be called.
- *  @param noteCount Counter for played notes since player start
+ *  @param queuedNote Note with extra info to be started.
  */
-private class NoteStartedHandlerAndFrame(
-    val noteListItem: NoteListItem,
+private class NoteStartedHandlerAndQueuedNote(
     val noteStartedHandler: NoteStartedHandler,
-    val frameNumber: Int,
-    val noteCount: Long
-    //val timeMillis: Long
-)
+    val queuedNote: QueuedNote
+) {
+    /** NoteListItem which will be started. */
+    val noteListItem get() = queuedNote.noteListItem
+    /** Frame number when the noteStartedListener should be called. */
+    val frameNumber get() = queuedNote.startFrame
+    /** Counter for played notes since player start. */
+    val noteCount get() = queuedNote.noteCount
+    val noteDurationNanos get() = queuedNote.noteDurationNanos
+}
 
 /** Class which stores tracks which are queued for the playing.
  * @param noteListItem NoteListItem which is queued.
  * @param startFrame Frame index when this note starts playing.
+ * @param noteDurationNanos Note duration in nano seconds (as derived from bpm)
  * @param volume Track volume.
  * @param noteCount Counter for played notes since player start.
  */
 private data class QueuedNote(
-    val noteListItem: NoteListItem, val startFrame: Int, val volume: Float, val noteCount: Long
+    val noteListItem: NoteListItem,
+    val startFrame: Int,
+    val noteDurationNanos: Long,
+    val volume: Float,
+    val noteCount: Long
     )
 
 /** Info about next next note which must be queued for being played.
@@ -294,7 +317,7 @@ private class NoteStartedHandling(private val scope: CoroutineScope) {
         val frameTimeConversionChannel = Channel<FrameTimeConversion>(Channel.CONFLATED)
 
         val job = scope.launch(noteStartedDispatcher) {
-            val queuedNoteStartedHandlers = ArrayList<NoteStartedHandlerAndFrame>()
+            val queuedNoteStartedHandlers = ArrayList<NoteStartedHandlerAndQueuedNote>()
             var frameTimeConversion = frameTimeConversionChannel.receive()
 
             while (isActive) {
@@ -316,11 +339,7 @@ private class NoteStartedHandling(private val scope: CoroutineScope) {
                             noteStartedHandlersMutex.withLock {
                                 noteStartedHandlers.forEach {
                                     queuedNoteStartedHandlers.add(
-                                        NoteStartedHandlerAndFrame(
-                                            receivedValue.noteListItem,
-                                            it,
-                                            receivedValue.startFrame,
-                                            receivedValue.noteCount)
+                                        NoteStartedHandlerAndQueuedNote(it, receivedValue)
                                     )
                                 }
                             }
@@ -340,9 +359,15 @@ private class NoteStartedHandling(private val scope: CoroutineScope) {
                     val noteListItemCopy = it.noteListItem.clone()
                     val timeNanosOfNote = frameTimeConversion.frameToNanos(it.frameNumber)
                     if (it.noteStartedHandler.coroutineContext == null) {
-                        it.noteStartedHandler.noteStartedListener.onNoteStarted(noteListItemCopy, timeNanosOfNote, it.noteCount)
+                        it.noteStartedHandler.noteStartedListener.onNoteStarted(
+                            noteListItemCopy, timeNanosOfNote, it.noteDurationNanos, it.noteCount,
+                            it.noteStartedHandler.delayInMillis * 1000_000L
+                        )
                     } else {
-                        it.noteStartedHandler.offer(noteListItemCopy, timeNanosOfNote, it.noteCount)
+                        it.noteStartedHandler.offer(
+                            noteListItemCopy, timeNanosOfNote, it.noteDurationNanos, it.noteCount,
+                            it.noteStartedHandler.delayInMillis * 1000_000L
+                        )
                     }
                 }
                 queuedNoteStartedHandlers.removeAll {
@@ -602,7 +627,10 @@ private class Mixer(context: Context, val scope: CoroutineScope) {
                     if (nextNoteInfos.size > 1 && nextNoteInfos[0].nextNoteFrame == numQueuedFrames) {
                         val noteListItem = noteList[nextNoteInfos[0].nextNoteIndex]
                         queueSingleNote(
-                            noteListItem, nextNoteInfos[0].nextNoteFrame, nextNoteInfos[0].noteCount,
+                            noteListItem,
+                            nextNoteInfos[0].nextNoteFrame,
+                            max(0L, noteListItem.duration.durationInNanos(bpmQuarter)),
+                            nextNoteInfos[0].noteCount,
                             noteStartedJobCommunication.queuedNoteChannel, queuedNotes
                         )
                     }
@@ -735,7 +763,7 @@ private class Mixer(context: Context, val scope: CoroutineScope) {
             val beatDurationInFrames = (synchronizeTimeInfo.beatDurationInSeconds * sampleRate).roundToInt()
 //            Log.v("Metronome", "next note frame = $nextNoteFrame, reference time in frames = $referenceTimeInFrames, diff=${nextNoteFrame-referenceTimeInFrames}")
             if (nextNoteInfo.nextNoteIndex >= noteList.size)
-            nextNoteIndex = 0
+                nextNoteIndex = 0
 
             // determine reference time for the next note to be played. Actually the time of this note must be
             // timeOfNextNote = referenceTimeForNextNoteListItem + i * beatDurationInFrames
@@ -795,6 +823,7 @@ private class Mixer(context: Context, val scope: CoroutineScope) {
         /** Add a single note to our note queue and listeners.
          * @param noteListItem Note list item to be queued
          * @param noteFrame Frame at which the note should be queued.
+         * @param noteDurationNanos Total note duration in nano seconds (as derived from the bpm).
          * @param noteCount Count to be used for messaging the number of played notes since start of playing.
          * @param queuedNoteStartedChannel Channel wehre we send the newly queued note with some extra infos.
          * @param queuedNotes This is the queue where we add our notes.
@@ -802,11 +831,12 @@ private class Mixer(context: Context, val scope: CoroutineScope) {
         private fun queueSingleNote(
             noteListItem: NoteListItem,
             noteFrame: Int,
+            noteDurationNanos: Long,
             noteCount: Long,
             queuedNoteStartedChannel: SendChannel<QueuedNote?>,
             queuedNotes: ArrayList<QueuedNote>
         ) {
-            val queuedNote = QueuedNote(noteListItem, noteFrame, noteListItem.volume, noteCount)
+            val queuedNote = QueuedNote(noteListItem, noteFrame, noteDurationNanos, noteListItem.volume, noteCount)
             queuedNotes.add(queuedNote)
             queuedNoteStartedChannel.trySend(queuedNote)
         }
@@ -849,7 +879,13 @@ private class Mixer(context: Context, val scope: CoroutineScope) {
 
                 val noteListItem = noteList[nextNoteIndex]
                 // this will add the note list item to the queuedNotes and noteStartedChannelsAndFrames
-                queueSingleNote(noteListItem, nextNoteFrame, noteCount, queuedNoteStartedChannel, queuedNotes)
+                queueSingleNote(
+                    noteListItem,
+                    nextNoteFrame,
+                    max(0L, noteListItem.duration.durationInNanos(bpmQuarter)),
+                    noteCount,
+                    queuedNoteStartedChannel,
+                    queuedNotes)
 
                 // notes can have a duration of -1 if it is not yet set ... in this case we directly play the next note
                 nextNoteFrame += (max(0f, noteListItem.duration.durationInSeconds(bpmQuarter)) * sampleRate).roundToInt()
@@ -903,10 +939,16 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
     fun interface NoteStartedListener {
         /** Callback function which is called when a playlist item starts
          * @param noteListItem Note list item which is started.
-         * @param nanoTime Result of System.nanoTime() when the note is started.
+         * @param timeNanos Result of System.nanoTime() when the note is started.
+         * @param durationNanos Total note duration in nano seconds (as derived from the bpm)
          * @param noteCount Counter for notes since start of playing
+         * @param handlerStartDelayNanos Delay when handler is called after the note starts playing.
+         *   Can be negative if the handler is called before the note starts playing.
          */
-        fun onNoteStarted(noteListItem: NoteListItem?, timeNanos: Long, noteCount: Long)
+        fun onNoteStarted(
+            noteListItem: NoteListItem?, timeNanos: Long, durationNanos: Long, noteCount: Long,
+            handlerStartDelayNanos: Long
+        )
     }
 
     private val noteStartedHandling = NoteStartedHandling(scope)

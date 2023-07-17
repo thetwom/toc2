@@ -42,6 +42,8 @@ class MetronomeViewModel(private val playerConnection: PlayerServiceConnection):
     val playerStatus get() = playerConnection.playerStatus
     /** Event which is triggered each time a note is started. */
     val noteStartedEvent get() = playerConnection.noteStartedEvent
+    /** Info of which note is currently played or null if no note is played. */
+    val currentlyPlayingNote get() = playerConnection.currentlyPlayingNote
     /** Currently used note list. */
     val noteList get() = playerConnection.noteList
     /** Defines if metronome is muted or not. */

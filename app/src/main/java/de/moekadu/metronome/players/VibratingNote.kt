@@ -92,13 +92,12 @@ class VibratingNote(context: Context) {
     }
 
     /** Vibrate.
-     * @param volume Note volume (between 0f and 1f).
-     * @param note Note.
-     * @param bpmQuarter Bpm for a quarter note. This is needed to predict the time of the next
-     *   note, and when the next note comes very early, reducing the vibration duration.
+     * @param note Note which is played.
+     * @param noteStartTimeNanos Time in System.nanoTime() when note starts playing.
+     * @param noteDurationNanos Note duration as derived from note duration and bpm in nano seconds.
      */
-    fun vibrate(volume: Float, note: NoteListItem, bpmQuarter: Float) {
-        val halfNoteDurationInNanos = (0.5f * note.duration.durationInNanos(bpmQuarter)).toLong()
+    fun vibrate(note: NoteListItem, noteDurationNanos: Long) {
+        val halfNoteDurationInNanos = noteDurationNanos / 2
         val durationNanos = min(halfNoteDurationInNanos, 1000_000L * (_strength * getNoteVibrationDurationMillis(note.id)).toLong())
 
         if (durationNanos <= 0L)
@@ -112,7 +111,7 @@ class VibratingNote(context: Context) {
                 return
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val v = min(255, (volume * 255).toInt())
+                val v = min(255, (note.volume * 255).toInt())
                 if (v > 0) {
                     //    it.vibrate(VibrationEffect.createOneShot(duration, v))
                     val newTimeNanos = System.nanoTime()

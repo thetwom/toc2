@@ -61,11 +61,18 @@ class PlayerService : LifecycleService() {
          * This will be called when the note is queued for playing, not when the note actually
          * starts playing.
          * @param noteListItem Note which will be played
-         * @param nanoTime Time as given by System.nanoTime(), when the note acutally will start
+         * @param nanoTime Time as given by System.nanoTime(), when the note actually will start
          *   playing.
+         * @param nanoDuration Duration of note (as derived from bpm).
          * @param noteCount Total count of notes since the play was pressed.
+         * @param callDelayNanos Delay of call of this function after the note actually started
+         *   playing, in nano seconds. If negative, this function is called before the note
+         *   starts playing.
          */
-        fun onNoteStarted(noteListItem: NoteListItem, nanoTime: Long, noteCount: Long)
+        fun onNoteStarted(
+            noteListItem: NoteListItem, nanoTime: Long, nanoDuration:Long, noteCount: Long,
+            callDelayNanos: Long
+        )
 
         /** Called when metronome speed changed.
          * @param bpm New speed.
@@ -218,12 +225,12 @@ class PlayerService : LifecycleService() {
         // callback for ui stuff
         noteStartedHandler4Visualization = audioMixer?.createAndRegisterNoteStartedHandler(
             visualDelay,
-            NoteStartedHandler.CallbackWhen.NoteQueued,
+            NoteStartedHandler.CallbackWhen.NoteStarted,
             Dispatchers.Main
-        ) { noteListItem, nanoTime, noteCount ->
+        ) { noteListItem, nanoTime, nanoDuration, noteCount, handlerDelayNanos ->
             noteListItem?.let {
                 statusChangedListeners.forEach { s ->
-                    s.onNoteStarted(it, nanoTime, noteCount)
+                    s.onNoteStarted(it, nanoTime, nanoDuration, noteCount, handlerDelayNanos)
                 }
             }
         }
@@ -476,9 +483,9 @@ class PlayerService : LifecycleService() {
 
         noteStartedHandler4Vibration = audioMixer?.createAndRegisterNoteStartedHandler(
             delayInMillis, NoteStartedHandler.CallbackWhen.NoteStarted, null
-        ) { noteListItem, _, _ ->
+        ) { noteListItem, _, durationNanos, _, _ ->
             if (noteListItem != null) {
-                vibrator?.vibrate(noteListItem.volume, noteListItem, bpm.bpmQuarter)
+                vibrator?.vibrate(noteListItem, durationNanos)
             }
         }
     }

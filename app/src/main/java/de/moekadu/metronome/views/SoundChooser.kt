@@ -668,6 +668,10 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         //controlButtons.firstOrNull {it.uid == uid}?.animateAllNotes()
     }
 
+    fun setAdvanceMarker(uid: UId?) {
+        noteView.setAdvanceMarker(uid)
+    }
+
     private fun measureView(view: View, rect: Rect) {
 //        Log.v("Metronome", "SoundChooser.measureView: $rect")
         view.measure(

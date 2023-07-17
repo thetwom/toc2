@@ -37,29 +37,8 @@ import kotlin.math.sin
 class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     : View(context, attrs, defStyleAttr) {
 
-    /** Callback interface when a note visualization starts. */
-    fun interface NoteStartedListener {
-        /** Called when the note visualization starts.
-         * @param note Note, which is started.
-         * @param noteStartTimeNanos Time, when note is started.
-         * @param noteEndTimeNanos End time, i.e. the time, when follow-up note will start.
-         * @param noteCount Note counter of played notes since pressing play.
-         */
-        fun onNoteStarted(note: NoteListItem, noteStartTimeNanos: Long, noteEndTimeNanos: Long, noteCount: Long)
-    }
-
     /** Available tick visualization types. */
     enum class VisualizationType {LeftRight, Fade, Bounce}
-
-    /** Info about note which is in the que for being started.
-     * @param noteListItem Note to be started
-     * @param startTimeNanos Time as given by System.nanoTime(), when the note starts playing.
-     * @param noteCount A counter of notes which were played since the last player start.
-     */
-    private data class QueuedNote(val noteListItem: NoteListItem, val startTimeNanos: Long, val noteCount: Long)
-
-    /** Callback when a note ist started. */
-    var noteStartedListener: NoteStartedListener? = null
 
     /** Paint of the visualization. */
     private val paint = Paint().apply {
@@ -69,19 +48,14 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
     /** Current metronome speed. */
     var bpm = Bpm(120f, NoteDuration.Quarter)
 
-    /** List of notes in the queue for being started. */
-    private val queuedNotes = ArrayList<QueuedNote>()
     /** Start time of visualization of the currently played note. */
     private var currentTickStartTimeNanos = -1L
     /** End time of visualization of the currently played note. */
     private var currentTickEndTimeNanos = -1L
-    /** Note counter since player start of the currenlty played note. */
+    /** Note counter since player start of the currently played note. */
     private var tickCount = 0L
     /** Currently used tick visualization strategy. */
     var visualizationType = VisualizationType.Bounce
-
-    /** Visualization delay in nano seconds (can also be negative to visualize "before" */
-    var delayNanos = 0L
 
     /** Compute current position of the played visualization. (0 -- 1) */
     val fraction: Float
@@ -98,23 +72,6 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
     /** Time animator which is responsible for the regular visualization update. */
     private val animator = TimeAnimator().apply {
         setTimeListener { _, _ ,_ ->
-            val nanoTime = System.nanoTime()
-            var index = -1
-            for (q in queuedNotes) {
-                if (q.startTimeNanos + delayNanos > nanoTime)
-                    break
-                else
-                    ++index
-            }
-            val note = if (index in queuedNotes.indices) queuedNotes[index] else null
-
-            if (note != null) {
-                currentTickStartTimeNanos = note.startTimeNanos + delayNanos
-                currentTickEndTimeNanos = currentTickStartTimeNanos + note.noteListItem.duration.durationInNanos(bpm.bpmQuarter)
-                tickCount = note.noteCount
-                noteStartedListener?.onNoteStarted(note.noteListItem, currentTickStartTimeNanos, currentTickEndTimeNanos, tickCount)
-                queuedNotes.subList(0, index + 1).clear()
-            }
             invalidate()
         }
     }
@@ -136,19 +93,22 @@ class TickVisualizerSync(context : Context, attrs : AttributeSet?, defStyleAttr:
 
     /** Register new note which will be played.
      * This will also start the visualization animator, if it is not started.
-     * @param noteListItem Note to be played.
      * @param startTimeNanos Time as given by System.nanoTime(), when the note starts playing.
+     * @param noteDurationNanos Duration of note as derived from bpm and note duration, in
+     *   nano seconds.
      * @param noteCount Total counter of notes since pressing play.
      */
-    fun tick(noteListItem: NoteListItem, startTimeNanos: Long, noteCount: Long) {
-        queuedNotes.add(QueuedNote(noteListItem, startTimeNanos, noteCount))
+    fun tick(startTimeNanos: Long, noteDurationNanos: Long,  noteCount: Long) {
+        currentTickStartTimeNanos = startTimeNanos
+        currentTickEndTimeNanos = startTimeNanos + noteDurationNanos
+        tickCount = noteCount
+
         if (!animator.isRunning)
             animator.start()
     }
 
     /** The player stopped, so stop playing animations. */
     fun stop() {
-        queuedNotes.clear()
         animator.end()
         invalidate()
     }

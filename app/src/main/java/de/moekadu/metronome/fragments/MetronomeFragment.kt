@@ -222,12 +222,6 @@ class MetronomeFragment : Fragment() {
 
         tickVisualizer = view.findViewById(R.id.tick_visualizer)
         // tick visualizer controls the note animation since it contains better time synchronization than the soundChooser
-        tickVisualizer?.noteStartedListener = TickVisualizerSync.NoteStartedListener { note, startNanos, endNanos, count ->
-            //soundChooser.animateNote(note.uid)
-            if (tickingCircle)
-                speedPanel?.tick(note, startNanos, endNanos, count)
-        }
-
 
         playButton = view.findViewById(R.id.play_button)
         playButton?.buttonClickedListener = object : PlayButton.ButtonClickedListener {
@@ -257,7 +251,7 @@ class MetronomeFragment : Fragment() {
                         singleNotePlayer.play(noteListItem.id, noteListItem.volume)
                         if (vibrate) {
                             viewModel.bpm.value?.bpmQuarter?.let{ bpmQuarter ->
-                                vibratingNote?.vibrate(noteListItem.volume, noteListItem, bpmQuarter)
+                                vibratingNote?.vibrate(noteListItem, noteListItem.duration.durationInNanos(bpmQuarter))
                             }
                         }
                     }
@@ -394,9 +388,6 @@ class MetronomeFragment : Fragment() {
                         speedPanel?.stopTicking()
                     tickVisualizer?.visibility = if (tickingCircle) View.INVISIBLE else View.VISIBLE
                 }
-                "visualdelay" -> {
-                    tickVisualizer?.delayNanos = sharedPreferences.getInt("visualdelay", 0) * 1000_000L
-                }
             }
         }
 
@@ -428,7 +419,6 @@ class MetronomeFragment : Fragment() {
         }
         tickVisualizer?.visualizationType = type
         speedPanel?.visualizationType = type
-        tickVisualizer?.delayNanos = sharedPreferences.getInt("visualdelay", 0) * 1000_000L
 
         tickingCircle = sharedPreferences.getBoolean("tickingcircle", false)
         tickVisualizer?.visibility = if (tickingCircle) View.INVISIBLE else View.VISIBLE
@@ -436,7 +426,6 @@ class MetronomeFragment : Fragment() {
         // register all observers
         viewModel.bpm.observe(viewLifecycleOwner) { bpm ->
 //            Log.v("Metronome", "MetronomeFragment: viewModel.bpm: $it")
-            tickVisualizer?.bpm = bpm
 //            tickVisualizer?.waitForInputToTick()
             bpmText?.text = getString(R.string.eqbpm, Utilities.getBpmString(bpm.bpm, bpmIncrement))
             beatDurationManager?.setBeatDuration(bpm.noteDuration)
@@ -468,18 +457,32 @@ class MetronomeFragment : Fragment() {
                 tickVisualizer?.stop()
         }
 
-        viewModel.noteStartedEvent.observe(viewLifecycleOwner) { noteStartTime ->
-            // only tick when it is explicitly playing otherwise the ticker could play forever
-            if (viewModel.isVisible && viewModel.playerStatus.value == PlayerStatus.Playing && lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED))
+        viewModel.currentlyPlayingNote.observe(viewLifecycleOwner) { noteStartTime ->
+            if (noteStartTime == null) {
+                tickVisualizer?.stop()
+                speedPanel?.stopTicking()
+            }
+            else {
                 //tickVisualizer?.tick(noteStartTime.note.uid, noteStartTime.nanoTime, noteStartTime.noteCount)
-                tickVisualizer?.tick(noteStartTime.note, noteStartTime.nanoTime, noteStartTime.noteCount)
-            // don't animate note here, since this is controlled by the tickVisualizer.noteStartedListener defined above
-            // this is done, since the tickvisualizer contains an extra time synchronazation mechanism
+                tickVisualizer?.tick(
+                    noteStartTime.nanoTime + noteStartTime.delayNanos,
+                    noteStartTime.nanoDuration,
+                    noteStartTime.noteCount
+                )
+                if (tickingCircle)
+                    speedPanel?.tick(
+                        noteStartTime.note.volume,
+                        noteStartTime.nanoTime + noteStartTime.delayNanos,
+                        noteStartTime.nanoTime + noteStartTime.delayNanos + noteStartTime.nanoDuration,
+                        noteStartTime.noteCount
+                    )
+            }
             //soundChooser?.animateNote(noteStartTime.note.uid)
+            soundChooser.setAdvanceMarker(noteStartTime?.note?.uid)
         }
 
         viewModel.noteList.observe(viewLifecycleOwner) {
-            viewModel.noteList.value?.let {
+            if (it != null) {
 //                Log.v("Metronome", "MetronomeFragment: observing noteList, viewModel.isVisible=${viewModel.isVisible}")
 //                tickVisualizer?.setNoteList(it)
                 soundChooser.setNoteList(it, if (viewModel.isVisible) 200L else 0L)

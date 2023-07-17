@@ -84,7 +84,23 @@ class NoteListItem(var id : Int = 0, var volume : Float = 1.0f,
     }
 }
 
-data class NoteListItemStartTime(val note: NoteListItem, val nanoTime: Long, val noteCount: Long)
+/** Note which is played with extra infos of when it is started, current bpm, and more
+ * @param note Note which is played.
+ * @param nanoTime Nano time (System.nanoTime()) when note starts playing.
+ * @param nanoDuration Note play duration in nano seconds, as derived from the bpm, and the
+ *   note duration.
+ * @param noteCount Counter of notes which were played since start.
+ * @param delayNanos Delay in nano seconds when this information is generated (or rather, when
+ *   the note started callback is called). Can be negative if the callback is called before the
+ *   note starts playing.
+ */
+data class NoteListItemStartTime(
+    val note: NoteListItem,
+    val nanoTime: Long,
+    val nanoDuration: Long,
+    val noteCount: Long,
+    val delayNanos: Long
+)
 
 fun areNoteListsEqual(a: ArrayList<NoteListItem>?, b: ArrayList<NoteListItem>?): Boolean {
     if (a == null && b == null) return true

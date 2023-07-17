@@ -31,6 +31,7 @@ import de.moekadu.metronome.R
 import de.moekadu.metronome.misc.Utilities
 import de.moekadu.metronome.metronomeproperties.NoteDuration
 import de.moekadu.metronome.metronomeproperties.NoteListItem
+import de.moekadu.metronome.metronomeproperties.NoteListItemStartTime
 import de.moekadu.metronome.views.NoteView
 import de.moekadu.metronome.views.TickVisualizerSync
 
@@ -58,7 +59,6 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
     var onSceneClickedListener: OnSceneClickedListener? = null
     private var activatedStableId = Scene.NO_STABLE_ID
     private var tickVisualizationType = TickVisualizerSync.VisualizationType.LeftRight
-    private var visualDelayNanos = 0L
     private var useSimpleMode = false
 
     inner class ViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
@@ -153,13 +153,6 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
         }
     }
 
-    fun setVisualDelay(delayNanos: Long, recyclerView: RecyclerView?) {
-        visualDelayNanos = delayNanos
-        recyclerView?.forEachViewHolder { viewHolder ->
-            viewHolder.tickVisualizer?.delayNanos = delayNanos
-        }
-    }
-
     fun setSimpleMode(useSimpleMode: Boolean, recyclerView: RecyclerView?) {
         this.useSimpleMode = useSimpleMode
         recyclerView?.forEachViewHolder { viewHolder ->
@@ -168,8 +161,7 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
     }
 
     fun animateNoteAndTickVisualizer(
-        noteListItem: NoteListItem, noteStartNanos: Long, noteCount: Long,
-        recyclerView: RecyclerView?
+        noteStartTime: NoteListItemStartTime, recyclerView: RecyclerView?
     ) {
         if (recyclerView == null)
             return
@@ -178,7 +170,11 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
             if (viewHolder.isActivated) {
                 // noteView is now animated through the tickVisualizer since this has better time synchronization
                 //    viewHolder.noteView?.animateNote(index)
-                viewHolder.tickVisualizer?.tick(noteListItem, noteStartNanos, noteCount)
+                viewHolder.noteView?.setAdvanceMarker(noteStartTime.note.uid)
+                viewHolder.tickVisualizer?.tick(
+                    noteStartTime.nanoTime + noteStartTime.delayNanos,
+                    noteStartTime.nanoDuration, noteStartTime.noteCount
+                )
             }
         }
     }
@@ -208,10 +204,6 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
             noteView = view.findViewById(R.id.scene_sounds)
             tickVisualizer = view.findViewById(R.id.scene_ticks_visualizer)
             tickVisualizer?.visualizationType = tickVisualizationType
-            tickVisualizer?.delayNanos = visualDelayNanos
-            tickVisualizer?.noteStartedListener = TickVisualizerSync.NoteStartedListener { note, _, _, _ ->
-                //noteView?.animateNote(note.uid)
-            }
             selectedView = view.findViewById(R.id.scene_active)
             view.setOnClickListener {
                 activatedStableId = itemId
@@ -266,7 +258,6 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
         holder.titleViewSimple?.text = titleViewText
         holder.useSimpleMode = useSimpleMode
         holder.tickVisualizer?.visualizationType = tickVisualizationType
-        holder.tickVisualizer?.delayNanos = visualDelayNanos
         //holder.titleView?.text = "#${position + 1}: ${scene.title}"
 //        Log.v("Metronome", "ScenesAdapter.onViewAttachedToWindow: activatedStableId=$activatedStableId, isActivated=${holder.isActivated}")
         super.onViewAttachedToWindow(holder)

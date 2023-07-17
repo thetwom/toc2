@@ -66,6 +66,9 @@ class PlayerServiceConnection(
     val mute: LiveData<Boolean> get() {return _mute}
 
     val noteStartedEvent = LifecycleAwareEvent<NoteListItemStartTime>()
+    // TODO: we must switch the listener in the service to be triggered on note start and not on queued
+    private val _currentlyPlayingNote: MutableLiveData<NoteListItemStartTime?> = MutableLiveData(null)
+    val currentlyPlayingNote: LiveData<NoteListItemStartTime?> get() = _currentlyPlayingNote
 
     private val applicationContext = context.applicationContext
     private var serviceBinder: PlayerService.PlayerBinder? = null
@@ -79,12 +82,18 @@ class PlayerServiceConnection(
         override fun onPause() {
             if (_playerStatus.value != PlayerStatus.Paused)
                 _playerStatus.value = PlayerStatus.Paused
+            _currentlyPlayingNote.value = null
         }
 
-        override fun onNoteStarted(noteListItem: NoteListItem, nanoTime: Long, noteCount: Long) {
-
-            val noteStartedTime = NoteListItemStartTime(noteListItem, nanoTime, noteCount)
+        override fun onNoteStarted(
+            noteListItem: NoteListItem, nanoTime: Long, nanoDuration: Long, noteCount: Long,
+            callDelayNanos: Long
+        ) {
+            val noteStartedTime = NoteListItemStartTime(
+                noteListItem, nanoTime, nanoDuration, noteCount, callDelayNanos
+            )
             noteStartedEvent.triggerEvent(noteStartedTime)
+            _currentlyPlayingNote.value = noteStartedTime
         }
 
         override fun onSpeedChanged(bpm: Bpm) {

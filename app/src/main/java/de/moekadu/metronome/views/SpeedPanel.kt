@@ -356,13 +356,13 @@ class SpeedPanel(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         return true
     }
 
-    fun tick(note: NoteListItem, startTimeNanosBegin: Long, startTimeNanosEnd: Long, noteCount: Long) {
+    fun tick(noteVolume: Float, startTimeNanosBegin: Long, startTimeNanosEnd: Long, noteCount: Long) {
         if (!animator.isRunning)
             animator.start()
         currentNoteStartNanos = startTimeNanosBegin
         currentNoteEndNanos = startTimeNanosEnd
         currentNoteCount = noteCount
-        currentVolume = note.volume
+        currentVolume = noteVolume
     }
 
     fun stopTicking() {
