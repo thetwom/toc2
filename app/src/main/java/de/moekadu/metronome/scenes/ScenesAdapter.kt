@@ -75,6 +75,7 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
                     selectedView?.visibility = View.INVISIBLE
                     //tickVisualizer?.visibility = View.GONE
                     tickVisualizer?.stop()
+                    noteView?.setAdvanceMarker(null)
                 }
             }
 
