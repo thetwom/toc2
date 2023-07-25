@@ -93,6 +93,9 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                         if (i < numbering.size)
                             numbering[i].setTextColor(value)
                     }
+                    if (i in advanceMarkers.indices) {
+                        advanceMarkers[i].setColorFilter(value.defaultColor)
+                    }
                 }
                 for (t in tuplets) {
                     t.imageTintList = value
@@ -604,6 +607,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                     //setBackgroundColor(Color.GREEN)
                     scaleType = ImageView.ScaleType.FIT_CENTER
                     visibility = View.INVISIBLE
+                    noteColor?.let { setColorFilter(it.defaultColor) }
                 }
             )
             addView(advanceMarkers.last())
