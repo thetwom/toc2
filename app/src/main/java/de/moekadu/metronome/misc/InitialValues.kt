@@ -26,7 +26,7 @@ class InitialValues {
     companion object {
         val bpm = Bpm(120f, NoteDuration.Quarter)
         const val minimumBpm = 20f
-        const val maximumBpm = 250f
+        const val maximumBpm = 280f
         const val bpmPerCm = 2.0f
         const val bpmIncrementIndex = 3
     }
