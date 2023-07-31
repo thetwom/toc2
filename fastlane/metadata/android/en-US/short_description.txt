@@ -1,1 +1,1 @@
-Simple metronome app which helps you keep time when practicing music.
+A simple metronome app which helps you keep time when practicing music.
