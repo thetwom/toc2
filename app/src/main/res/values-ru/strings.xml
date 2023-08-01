@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Метроном</string>
+    <string name="action_settings">Настройки</string>
+
+    <string name="mute">Без звука</string>
+    <string name="bpm">%s уд/мин</string>
+    <string name="eqbpm">= %s уд/мин</string>
+
+    <string name="scenes">Сцены</string>
+    <string name="save_scene">Сохранить сцену</string>
+    <string name="load_from_disc">Загрузить сцены из файла</string>
+    <string name="save_to_disc">Сохранить сцены в файл</string>
+    <string name="clear_all">Удалить все</string>
+    <string name="clear_all_question">Удалить все сцены?</string>
+    <string name="title">Название</string>
+    <string name="done">Готово</string>
+    <string name="appearance">Внешний вид</string>
+    <string name="dark_appearance">Темная тема</string>
+    <string name="light_appearance">Светлая тема</string>
+    <string name="system_appearance">Следовать настройкам системы</string>
+
+    <string name="dark_appearance_short">Темный</string>
+    <string name="light_appearance_short">Светлый</string>
+    <string name="system_appearance_short">Авто</string>
+
+    <string name="add_note">Добавить ноту</string>
+
+    <string name="speed_sensitivity">Чувствительность изменения скорости</string>
+    <string name="speed_sensitivity_summary">Шагов скорости на см: %.1f</string>
+    <string name="speedincrement">Шаг скорости</string>
+    <string name="minimum_bpm">Минимальная скорость</string>
+    <string name="maximum_bpm">Максимальная скорость</string>
+
+    <string name="reset_all_settings">Сбросить все настройки</string>
+    <string name="reset_settings_prompt">Вы действительно хотите сбросить все настройки?</string>
+    <string name="about">О приложении</string>
+
+    <string name="undo">Отменить</string>
+    <string name="scene_deleted">Сцена удалена</string>
+
+    <string name="save_settings_dialog_title">Сохранить сцену</string>
+    <string name="save_name">Название</string>
+    <string name="saved_scene_message">Сохранена сцена: %s</string>
+    <string name="save">Сохранить</string>
+    <string name="dismiss">Закрыть</string>
+    <string name="max_allowed_characters">Максимальное количество символов: %d</string>
+    <plurals name="load_scenes">
+        <item quantity="one">Загрузка %d сцены</item>
+        <item quantity="few">Загрузка %d сцен</item>
+        <item quantity="many">Загрузка %d сцен</item>
+        <item quantity="other">Загрузка %d сцен</item>
+    </plurals>
+    <string name="abort">Прервать</string>
+    <string name="replace_current_list">Заменить текущий список</string>
+    <string name="prepend_current_list">Добавить в начало текущего списка</string>
+    <string name="append_current_list">Добавить в конец текущего списка</string>
+    <string name="file_empty">Файл пустой: %s</string>
+    <string name="file_invalid">Недействительный файл: %s</string>
+    <string name="file_incomplete">Файл \"%s\" заканчивается неожиданно, но успешно прочитано %d сцен.</string>
+    <string name="database_empty">Нет сцен, которые можно сохранить.</string>
+
+    <string name="cannot_delete_last_note">Нельзя удалить последнюю ноту.</string>
+
+    <string name="no_scenes">На данный момент сохраненных сцен нет.</string>
+
+    <string name="tap_in">Настучать темп</string>
+
+    <string name="about_message">Метроном\nВерсия: %s\nЛицензия: GPLv3</string>
+
+    <string name="yes">да</string>
+    <string name="no">нет</string>
+
+    <string name="saved_speed_too_small">Сохраненная скорость %s уд/мин меньше минимальной скорости %s уд/мин.</string>
+    <string name="saved_speed_too_large">Сохраненная скорость %s уд/мин больше максимальной скорости %s уд/мин.</string>
+    <string name="max_speed_lower_minimum">Максимальная скорость (%s) ниже минимальной скорости (%s).</string>
+    <string name="min_speed_higher_maximum">Минимальная скорость (%s) выше максимальной скорости (%s).</string>
+    <string name="inconsistent_saved_increment">Сохраненная скорость %s уд/мин не соответствует текущему шагу скорости %s уд/мин.</string>
+    <string name="inconsistent_load_title">Несовместимая загрузка</string>
+    <string name="inconsistent_summary">Измените настройки, если вы хотите правильно загрузить сцену.</string>
+    <string name="acknowledged">Принято</string>
+
+    <string name="keep_screen_on">Держать экран включенным</string>
+    <string name="vibrate_notes">Вибрировать ноты</string>
+    <string name="not_supported_by_hardware">Не поддерживается аппаратным обеспечением</string>
+    <string name="vibrate_strength">Сила вибрации</string>
+    <string name="low_strength">Слабая сила вибрации (%.2f)</string>
+    <string name="medium_strength">Средняя сила вибрации (%.2f)</string>
+    <string name="high_strength">Высокая сила вибрации (%.2f)</string>
+    <string name="all_notes_deleted">Все ноты удалены.</string>
+    <string name="set_new_speed">Установить новую скорость</string>
+    <string name="invalid_speed">"Неверная скорость: "</string>
+    <string name="speed_too_small">Заданная скорость (%s уд/мин) меньше минимальной скорости (%s уд/мин).</string>
+    <string name="speed_too_large">Заданная скорость (%s уд/мин) больше максимальной скорости (%s уд/мин).</string>
+    <string name="inconsistent_increment">Заданная скорость (%s уд/мин) не может быть получена с использованием текущего шага скорости (%s уд/мин).</string>
+    <string name="vibrate_delay">Задержка вибрации</string>
+    <string name="milliseconds">%d мс</string>
+    <string name="database_saved">Запись сцен в \"%s\".</string>
+    <string name="play_pause">Воспроизведение и пауза</string>
+    <string name="edit">Редактировать</string>
+    <string name="editing_scene">Редактирование сцены</string>
+    <string name="rename_scene">Переименовать</string>
+    <string name="scene">Сцена: %s</string>
+    <string name="failed_to_archive_scenes">Не удалось сохранить сцены в файл.</string>
+    <string name="share">Поделиться сценами</string>
+    <plurals name="sharing_num_scenes">
+        <item quantity="one">Передача %d сцены</item>
+        <item quantity="few">Передача %d сцен</item>
+        <item quantity="many">Передача %d сцен</item>
+        <item quantity="other">Передача %d сцен</item>
+    </plurals>
+    <string name="no_scenes_for_sharing">Нет сцен, которыми можно поделиться.</string>
+    <string name="max_speed_larger_than_allowed">Заданная максимальная скорость (%s) должна быть меньше, чем %s.</string>
+    <string name="delete_note">Удалить ноту</string>
+    <string name="tickvisualization">Стиль визуализации ударов</string>
+    <string name="tickvis_bounce">Отскок</string>
+    <string name="thickvis_fade">Затухание</string>
+    <string name="thickvis_leftright">Альтерантивный</string>
+    <string name="decorate_with_hash_number">%d. %s</string>
+    <string name="compact_scenes_layout">Компактное отображение сцен</string>
+    <string name="no_scenes_selected">Сцены не выбраны.</string>
+    <string name="select_scenes">Выбрать сцены</string>
+    <string name="share2">Поделиться</string>
+    <string name="select_all">Выбрать все</string>
+    <string name="bpm_nonumber">уд/мин</string>
+    <string name="ticking_circle">Анимированная зона круга</string>
+    <string name="vibration">Вибрация</string>
+    <string name="speed_selection">Выбор скорости</string>
+    <string name="visualization">Визуализация</string>
+    <string name="basic">Основной</string>
+    <string name="others">Другие</string>
+    <string name="visual_delay">Задержка визуальных эффектов</string>
+</resources>
