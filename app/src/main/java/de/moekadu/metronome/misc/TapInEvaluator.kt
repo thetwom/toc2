@@ -63,7 +63,7 @@ class TapInEvaluator(val maxNumHistoryValues: Int, val minimumAllowedDtInMillis:
             return
         }
 
-        // check if last two dts are extremely different, if yes, reset ...
+        // check if last two dts are extremely different. If yes, reset ...
         if (numValues >= 3) {
             val secondLastDt = values[numValues - 2] - values[numValues - 3]
             val smallerDt = min(lastDt, secondLastDt)
