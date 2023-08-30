@@ -1,0 +1,16 @@
+v4.10.0:
+- Russian translations (Thanks to Aleksey)
+- Update dependencies
+
+v4.9.1:
+- Fix monochrome icon
+
+v4.9.0:
+- New icon
+- Option for setting delay of visual feedback
+- Don't animate notes anymore but use an advance marker
+  (more precise feel)
+
+v4.8.0:
+- Add option for larger tick animations on the adjustment circle
+- More accurate tap in (averaging over up to 100 values)
