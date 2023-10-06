@@ -176,7 +176,7 @@ private data class SynchronizeTimeInfo(val referenceTimeNanos: Long, val beatDur
 /** We use not the minimum buffer size but scale it with this integer value.
  * A factor of 4 or larger seems to be necessary, to have noteStartedListeners registered early
  * enough to get a correct vibration/visualization behavior. */
-private const val minBufferSizeFactor = 4
+private const val MIN_BUFFER_SIZE_FACTOR = 4
 
 private val getLatencyMethod = try {
     AudioTrack::class.java.getMethod("getLatency")
@@ -696,7 +696,7 @@ private class Mixer(context: Context, val scope: CoroutineScope) {
          */
         private fun createPlayer(): AudioTrack {
             val nativeSampleRate = AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC)
-            val bufferSize = minBufferSizeFactor * AudioTrack.getMinBufferSize(nativeSampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_FLOAT)
+            val bufferSize = MIN_BUFFER_SIZE_FACTOR * AudioTrack.getMinBufferSize(nativeSampleRate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_FLOAT)
 
             return AudioTrack.Builder()
                 .setAudioAttributes(
@@ -735,7 +735,6 @@ private class Mixer(context: Context, val scope: CoroutineScope) {
          * @param bpmQuarter Metronome speed in quarter notes per minute
          * @param nextNoteInfo Info about the next note which is about to be queued
          * @param sampleRate Sample rate in Hz
-         * @param delayInFrames Delay which is used for playing notes.
          * @param alreadyQueuedFrames Frame number up to which we did already queued the notes.
          * @param frameTimeConversion Conversion between uptime millis and frame number.
          * @return Info about next notes to be played.

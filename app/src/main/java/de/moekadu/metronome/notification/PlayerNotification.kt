@@ -19,15 +19,18 @@
 
 package de.moekadu.metronome.notification
 
+import android.Manifest
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
 import android.support.v4.media.session.PlaybackStateCompat
 import android.widget.RemoteViews
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import de.moekadu.metronome.*
@@ -86,9 +89,12 @@ class PlayerNotification(val context: PlayerService) {
                         }
                     }
 
-                    if (haveActiveNotification)
+                    if (haveActiveNotification &&
+                        ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+                    ) {
                         NotificationManagerCompat.from(context)
                             .notify(NOTIFICATION_ID, notificationBuilder.build())
+                    }
                 }
             }
         }

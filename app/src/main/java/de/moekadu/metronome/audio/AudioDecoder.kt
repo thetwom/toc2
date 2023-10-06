@@ -133,7 +133,7 @@ fun audioToPCM(id : Int, context : Context) : FloatArray {
                 )
 
                 if (!sawInputEOS)
-                mediaExtractor.advance()
+                    mediaExtractor.advance()
             }
         }
 

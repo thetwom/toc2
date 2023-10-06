@@ -1,0 +1,7 @@
+v4.11.0:
+- Make app work on Android 14
+
+v4.10.0:
+- Russian translations (Thanks to Aleksey)
+- Update dependencies
+

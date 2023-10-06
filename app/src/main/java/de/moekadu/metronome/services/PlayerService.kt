@@ -28,6 +28,7 @@ import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
@@ -201,7 +202,8 @@ class PlayerService : LifecycleService() {
         super.onCreate()
 
         val filter = IntentFilter(BROADCAST_PLAYERACTION)
-        registerReceiver(actionReceiver, filter)
+
+        ContextCompat.registerReceiver(this, actionReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
 
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(applicationContext)
 

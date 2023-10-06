@@ -87,6 +87,6 @@ class NoteViewVolume(context : Context) : View(context) {
         path.lineTo(volumes.size * noteWidth, volumeMin)
         path.close()
 
-        canvas?.drawPath(path, paint)
+        canvas.drawPath(path, paint)
     }
 }

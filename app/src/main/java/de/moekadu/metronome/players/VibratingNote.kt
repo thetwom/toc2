@@ -93,7 +93,6 @@ class VibratingNote(context: Context) {
 
     /** Vibrate.
      * @param note Note which is played.
-     * @param noteStartTimeNanos Time in System.nanoTime() when note starts playing.
      * @param noteDurationNanos Note duration as derived from note duration and bpm in nano seconds.
      */
     fun vibrate(note: NoteListItem, noteDurationNanos: Long) {

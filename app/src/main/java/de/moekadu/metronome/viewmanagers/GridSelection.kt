@@ -115,7 +115,7 @@ class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
         for (iRow in 0 until numRows) {
             val h = if (iRow <= numHigherButtons) buttonHeightSpecHigh else buttonHeightSpec
             for (iCol in 0 until numCols) {
-            val w = if (iCol <= numWiderButtons) buttonWidthSpecWide else buttonWidthSpec
+                val w = if (iCol <= numWiderButtons) buttonWidthSpecWide else buttonWidthSpec
                 buttons.forEach { it.measure(w, h) }
             }
         }
