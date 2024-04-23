@@ -990,7 +990,7 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
     }
 
     /** Set metronome speed.
-     * @param bpmQuarter Beates per minute of a quarter note.
+     * @param bpmQuarter Beats per minute of a quarter note.
      */
     fun setBpmQuarter(bpmQuarter: Float) {
         mixer.bpmQuarter = bpmQuarter

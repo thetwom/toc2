@@ -322,6 +322,21 @@ class ScenesFragment : Fragment() {
                 }
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
             }
+
+            override fun interpolateOutOfBoundsScroll(
+                recyclerView: RecyclerView,
+                viewSize: Int,
+                viewSizeOutOfBounds: Int,
+                totalSize: Int,
+                msSinceStartScroll: Long
+            ): Int {
+                val sign = when {
+                    viewSizeOutOfBounds > 0 -> 1
+                    viewSizeOutOfBounds < 0 -> -1
+                    else -> 0
+                }
+                return 10 * sign //(20 * viewSizeOutOfBounds) / viewSize
+            }
         }
 
         val touchHelper = ItemTouchHelper(simpleTouchHelper)
