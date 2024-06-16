@@ -307,11 +307,11 @@ class PlayerService : LifecycleService() {
                     }
                     "vibratedelay" -> {
                         val delay = sharedPreferences.getInt("vibratedelay", 0)
-                        noteStartedHandler4Vibration?.delayInMillis = delay
+                        audioMixer?.changeDelayOfNoteStartedHandler(noteStartedHandler4Vibration, delay)
                     }
                     "visualdelay" -> {
                         val delay = sharedPreferences.getInt("visualdelay", 0)
-                        noteStartedHandler4Visualization?.delayInMillis = delay
+                        audioMixer?.changeDelayOfNoteStartedHandler(noteStartedHandler4Visualization, delay)
                     }
                 }
             }

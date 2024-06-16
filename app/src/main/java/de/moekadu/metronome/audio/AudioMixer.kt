@@ -72,8 +72,7 @@ class NoteStartedHandler(delayInMillis: Int, val noteStartedListener: AudioMixer
     @Volatile
     var delayInMillis = delayInMillis
         set(value) {
-            //require(Looper.getMainLooper().thread == Thread.currentThread())
-            require(Looper.getMainLooper().isCurrentThread)  // volatile variable should only be set from the same thread to avoid data races
+            // set this onl from the NoteStarterHandling-class (in theory, this should not be visible outside ...)
             field = value
         }
 
@@ -93,7 +92,7 @@ class NoteStartedHandler(delayInMillis: Int, val noteStartedListener: AudioMixer
     }
 
     /** Offer a new message of a started notes to trigger a call to the note started listener.
-     * @note This only has an effect if the coroutineContext of the lass is not null.
+     * @note This only has an effect if the coroutineContext of the class is not null.
      * @param noteListItem NoteListItem which starts playing.
      * @param startTimeNanos System.nanoTime() when the note started playing.
      * @param noteDurationNanos Total note duration in nano seconds (as derived from the bpm).
@@ -261,9 +260,9 @@ private class NoteStartedHandling(private val scope: CoroutineScope) {
     private val noteStartedHandlersMutex = Mutex()
 
     /** Tasks definitions for sending noteStartedHandler-change requests. */
-    private enum class Task {Register, Unregister}
+    private enum class Task {Register, Unregister, ChangeDelay}
     /** A task to register for a change of noteStartedHandlers. */
-    private data class HandlerTask(val task: Task, val handler: NoteStartedHandler)
+    private data class HandlerTask(val task: Task, val handler: NoteStartedHandler, val newDelay: Int? = null)
     /** The channel, through which we send tasks for changing noteStartedHandlers. */
     private val taskChannel = Channel<HandlerTask>(Channel.UNLIMITED)
     /** Job to handle noteStartedHandler-updates without blocking. */
@@ -278,8 +277,14 @@ private class NoteStartedHandling(private val scope: CoroutineScope) {
                     Task.Unregister -> {
                         noteStartedHandlers.remove(task.handler)
                     }
+                    Task.ChangeDelay -> {
+                        task.newDelay?.let { delay ->
+                            noteStartedHandlers.filter { it === task.handler }
+                                .forEach { it.delayInMillis = delay }
+                        }
+                    }
                 }
-                maxNegativeDelayInMillis = -(noteStartedHandlers.minOfOrNull { it.delayInMillis } ?: 0)
+                maxNegativeDelayInMillis = max(0, -(noteStartedHandlers.minOfOrNull { it.delayInMillis } ?: 0))
             }
         }
     }.apply { invokeOnCompletion { noteStartedHandlers.forEach { it.destroy() } } }
@@ -412,6 +417,10 @@ private class NoteStartedHandling(private val scope: CoroutineScope) {
             it.destroy()
             taskChannel.trySend(HandlerTask(Task.Unregister, noteStartedHandler))
         }
+    }
+
+    fun changeDelay(noteStartedHandler: NoteStartedHandler, newDelay: Int) {
+        taskChannel.trySend(HandlerTask(Task.ChangeDelay, noteStartedHandler, newDelay))
     }
 }
 
@@ -982,6 +991,14 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
         )
     }
 
+    fun changeDelayOfNoteStartedHandler(
+        noteStartedHandler: NoteStartedHandler?,
+        delayInMillis: Int
+    ) {
+        noteStartedHandler?.let {
+            noteStartedHandling.changeDelay(it, delayInMillis)
+        }
+    }
     /** Unregister a NoteStartedChannel.
      * @param noteStartedHandler NoteStartedChannel to be unregistered.
      */
