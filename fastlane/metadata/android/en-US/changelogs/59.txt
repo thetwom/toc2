@@ -1,0 +1,4 @@
+v4.12.1:
+- Slower scrolling on scene reordering
+- Fix sound issue when using positive delays.
+
