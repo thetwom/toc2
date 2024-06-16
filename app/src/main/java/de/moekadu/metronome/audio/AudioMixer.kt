@@ -34,21 +34,23 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.math.*
 
 /** Structure for notifying that a note started playing.
- * @param delayInMillis Initial delay in milliseconds when the NoteStartedListener should be called after
+ * @warning: Set this only from the NoteStarterHandling-class (in theory, this should not be visible outside ...)
+ * @param delayInMillis Delay in milliseconds when the NoteStartedListener should be called after
  *   the note started playing.
+ * @param noteStartedListener Callback which is called when a note is started.
  * @param callbackWhen Defines, when the callback is actually called, either when the note is
  *   started (NoteStarted) or as early as possible (NoteQueued).
- * @param noteStartedListener Callback which is called when a note is started.
  * @param coroutineContext CoroutineContext in which the noteStartedListener is called.
  *   If this is null, we will call it directly within the player thread. In this case it should
  *   return immediately.
  * @param coroutineScope Scope for launching the coroutines. Only relevant, if coroutineContext
  *   is not null.
  */
-class NoteStartedHandler(delayInMillis: Int, val noteStartedListener: AudioMixer.NoteStartedListener,
-                         val callbackWhen: CallbackWhen,
-                         val coroutineContext: CoroutineContext?,
-                         private val coroutineScope: CoroutineScope?) {
+class NoteStartedHandler(
+    @Volatile var delayInMillis: Int, val noteStartedListener: AudioMixer.NoteStartedListener,
+    val callbackWhen: CallbackWhen,
+    val coroutineContext: CoroutineContext?,
+    private val coroutineScope: CoroutineScope?) {
 
     /** Define when the callback should be called. Either as early as possible (NoteQueued) or
      * when the note actually starts playing (NoteStarted).*/
@@ -67,14 +69,6 @@ class NoteStartedHandler(delayInMillis: Int, val noteStartedListener: AudioMixer
 
     /** Channel which transfers signals from the audio mixer to the noteStartedListener context. */
     private val channel = if (coroutineContext == null) null else Channel<NoteStartedInfo>(Channel.UNLIMITED)
-
-    /** Current delay in millis. */
-    @Volatile
-    var delayInMillis = delayInMillis
-        set(value) {
-            // set this onl from the NoteStarterHandling-class (in theory, this should not be visible outside ...)
-            field = value
-        }
 
     init {
         coroutineContext?.let { context ->
