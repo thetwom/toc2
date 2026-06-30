@@ -98,8 +98,8 @@ class VibratingNote(context: Context) {
     fun vibrate(note: NoteListItem, noteDurationNanos: Long) {
         val halfNoteDurationInNanos = noteDurationNanos / 2
         val durationNanos = min(halfNoteDurationInNanos, 1000_000L * (_strength * getNoteVibrationDurationMillis(note.id)).toLong())
-
-        if (durationNanos <= 0L)
+        val durationMillis = durationNanos / 1000_000L
+        if (durationMillis <= 0L)
             return
 
         vibrator?.let {
@@ -117,10 +117,10 @@ class VibratingNote(context: Context) {
 //                    val diff = newTimeMillis - lastVibrationUpdateMillis
                     lastVibrationUpdateNanos = newTimeNanos
 //                    Log.v("Metronome", "VibratingNote: time since last vibration = ${diff}")
-                    it.vibrate(getVibrationEffect(durationNanos / 1000_000L, v))
+                    it.vibrate(getVibrationEffect(durationMillis, v))
                 }
             } else {
-                it.vibrate(durationNanos / 1000_000L)
+                it.vibrate(durationMillis)
             }
             earliestNextVibrationNanos = System.nanoTime() + (1.2f * durationNanos).toLong()
         }

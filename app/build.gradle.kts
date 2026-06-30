@@ -4,7 +4,7 @@ plugins {
 }
 android {
     namespace = "de.moekadu.metronome"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "de.moekadu.metronome"

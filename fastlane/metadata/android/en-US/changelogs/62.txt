@@ -1,2 +1,3 @@
 v4.14.0:
 - Update dependencies.
+- Fix some cases, which would crash the app.
