@@ -130,21 +130,6 @@
      app:layout_constraintBottom_toBottomOf="parent"
      app:layout_constraintHeight_percent="0.032"/>
 
-    <androidx.appcompat.widget.AppCompatImageButton
-        android:id="@+id/sound_set_button"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintHeight_percent="0.09"
-        app:layout_constraintDimensionRatio="1:1"
-        app:layout_constraintEnd_toStartOf="@id/scenes_button"
-        app:layout_constraintTop_toTopOf="parent"
-        android:src="@drawable/ic_sound_set"
-        android:scaleType="fitCenter"
-        android:padding="6dp"
-        app:tint="?attr/colorPrimary"
-        android:background="@null"
-        android:contentDescription="@string/soundset"
-        />
 
     <TextView
         android:id="@+id/scene_title_active"
@@ -257,7 +242,7 @@
         android:maxLines="1"
         android:ellipsize="none"
         android:textColor="?attr/colorPrimary"
-        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/sound_set_button"
         app:layout_constraintLeft_toRightOf="@id/beat_duration"
         app:layout_constraintTop_toBottomOf="@id/scene_title_active"
         app:layout_constraintBottom_toTopOf="@id/speed_panel"
@@ -307,6 +292,23 @@
         app:noteViewHeightPercent="0.23"
         app:numRows="2"
         app:numCols="4"
+        />
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/sound_set_button"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintHeight_percent="0.08"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintEnd_toStartOf="@id/scenes_button"
+        app:layout_constraintTop_toTopOf="@id/bpm_text"
+        android:elevation="9dp"
+        android:src="@drawable/ic_sound_set"
+        android:scaleType="fitCenter"
+        android:padding="6dp"
+        app:tint="?attr/colorPrimary"
+        android:background="@null"
+        android:contentDescription="@string/soundset"
         />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
