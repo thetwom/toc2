@@ -150,6 +150,8 @@
     <string name="basic">Basic</string>
     <string name="others">Others</string>
     <string name="visual_delay">Delay visual effects</string>
+    <string name="english_note_labels">English note names</string>
+    <string name="english_note_labels_summary">Show the note names in English instead of the system language</string>
     <string name="app_is_superseded">This app is superseded by \nhttps://codeberg.org/thetwom/metronome</string>
     <string name="dont_show_again">Do not show again</string>
     <string name="note">Note</string>

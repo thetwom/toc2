@@ -20,6 +20,7 @@
 package de.moekadu.metronome.views
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Rect
@@ -32,6 +33,7 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.core.view.setPadding
+import androidx.preference.PreferenceManager
 import de.moekadu.metronome.R
 import de.moekadu.metronome.metronomeproperties.*
 import de.moekadu.metronome.misc.Utilities
@@ -405,13 +407,24 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     /// Called when the sound set changes, so that the note icons follow the new sounds.
     private val soundSetChangeListener: () -> Unit = { refreshNoteIcons() }
 
+    /// Refresh the note labels when their language is changed in the settings.
+    private val labelLanguageChangeListener =
+        SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == "englishnotelabels")
+                setNoteSelectionNotes(activeControlButton?.noteDuration ?: NoteDuration.Quarter)
+        }
+
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         SoundSetManager.addChangeListener(soundSetChangeListener)
+        PreferenceManager.getDefaultSharedPreferences(context)
+            .registerOnSharedPreferenceChangeListener(labelLanguageChangeListener)
     }
 
     override fun onDetachedFromWindow() {
         SoundSetManager.removeChangeListener(soundSetChangeListener)
+        PreferenceManager.getDefaultSharedPreferences(context)
+            .unregisterOnSharedPreferenceChangeListener(labelLanguageChangeListener)
         super.onDetachedFromWindow()
     }
 
@@ -1403,7 +1416,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             val drawableId = getNoteDrawableResourceID(note, noteDuration)
             noteSelection.setButtonDrawable(note, drawableId)
             dynamicSelection.setButtonDrawable(note, drawableId)
-            noteSelection.setButtonLabel(note, context.getString(getNoteStringResourceID(note)))
+            noteSelection.setButtonLabel(note, getNoteLabel(context, note))
         }
     }
 

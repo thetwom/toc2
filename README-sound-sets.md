@@ -18,7 +18,9 @@
 | Techno kit | kick | snare | closed hat | open hat | clap | rim | mute | ride |
 | Rock kit | kick | snare | closed hat | open hat | tom | ride | mute | crash |
 
-每套 8 个槽位，第 7 槽固定为静音，第 8 槽是新增音色。音色选择网格 2x4 正好八格，每格右下角标注该音符的名字（click 类显示频率，中文界面下鼓件显示中文名）。
+每套 8 个槽位，第 7 槽固定为静音，第 8 槽是新增音色。音色选择网格 2x4 正好八格，每格右下角标注该音符的名字（click 类显示频率）。
+
+音符名字默认跟随系统语言，设置里的「音色名用英文」可以强制显示英文名，切换后立即生效，不需要重启。
 
 槽位 6 固定为静音，沿用原版 mute 采样。所有音色集槽位数量一致，因此旧场景里保存的 note id 不会失效。
 

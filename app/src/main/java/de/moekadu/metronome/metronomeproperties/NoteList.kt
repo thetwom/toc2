@@ -21,7 +21,11 @@
 
 package de.moekadu.metronome.metronomeproperties
 
+import android.content.Context
+import android.content.res.Configuration
 import android.os.Parcelable
+import androidx.preference.PreferenceManager
+import java.util.Locale
 import de.moekadu.metronome.R
 import kotlinx.parcelize.Parcelize
 import kotlin.math.min
@@ -247,6 +251,22 @@ fun getNoteAudioResourceID(index : Int, sampleRate: Int) = when(sampleRate) {  /
 
 /** Name of the note which is selectable at the given index (used as a small label on the note buttons). */
 fun getNoteStringResourceID(index: Int) = availableNotes[index].stringResourceID
+
+/// Name of the note in the language which is selected in the settings.
+/**
+ * By default the name follows the system language. With the preference "englishnotelabels" it can
+ * be forced to English, which is useful when the drum names should not be translated.
+ */
+fun getNoteLabel(context: Context, index: Int): String {
+    val resourceId = getNoteStringResourceID(index)
+    val preferences = PreferenceManager.getDefaultSharedPreferences(context)
+    if (!preferences.getBoolean("englishnotelabels", false))
+        return context.getString(resourceId)
+
+    val configuration = Configuration(context.resources.configuration)
+    configuration.setLocale(Locale.ENGLISH)
+    return context.createConfigurationContext(configuration).getString(resourceId)
+}
 
 fun getNoteDrawableResourceID(index: Int, duration: NoteDuration) =
     when (duration) {
