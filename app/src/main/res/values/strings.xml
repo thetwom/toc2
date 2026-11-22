@@ -165,7 +165,6 @@
     <string name="soundset_dnb" translatable="false">DnB kit</string>
     <string name="soundset_techno" translatable="false">Techno kit</string>
     <string name="soundset_rock" translatable="false">Rock kit</string>
-    <string name="click">click</string>
     <string name="hat_open">open hat</string>
     <string name="clap">clap</string>
     <string name="tom">tom</string>
@@ -188,7 +187,6 @@
     <string name="wood_560" translatable="false">560</string>
     <string name="wood_1000" translatable="false">1000</string>
     <string name="tracks">Tracks</string>
-    <string name="track">Track</string>
     <string name="new_track">+ New track</string>
     <string name="track_focus">Focus</string>
     <string name="delete_track">Delete track</string>

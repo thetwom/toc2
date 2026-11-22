@@ -19,6 +19,7 @@
 
 package de.moekadu.metronome.fragments
 
+import android.annotation.SuppressLint
 import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.*
@@ -177,6 +178,7 @@ class MetronomeAndScenesFragment : Fragment() {
     }
 
     /** The track page is always shown in portrait, all other pages follow the device orientation. */
+    @SuppressLint("SourceLockedOrientationActivity")
     private fun updateOrientationLock(position: Int) {
         val activity = activity ?: return
         val shouldLock = position == ViewPagerAdapter.TRACKS

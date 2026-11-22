@@ -94,7 +94,6 @@
     <string name="sticks">鼓框</string>
     <string name="claves">木鱼</string>
     <string name="woodblock">高音木鱼</string>
-    <string name="click">咔哒</string>
     <string name="hat_open">开镲</string>
     <string name="clap">拍手</string>
     <string name="tom">桶鼓</string>
@@ -104,7 +103,6 @@
     <string name="crash">碎音镲</string>
     <string name="woodblock_low">低音木鱼</string>
     <string name="tracks">轨道</string>
-    <string name="track">轨道</string>
     <string name="new_track">＋ 新建轨道</string>
     <string name="track_focus">焦点</string>
     <string name="delete_track">删除轨道</string>

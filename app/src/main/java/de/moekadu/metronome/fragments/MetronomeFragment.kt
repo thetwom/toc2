@@ -302,7 +302,6 @@ class MetronomeFragment : Fragment() {
                         Snackbar.make(view, getString(R.string.all_notes_deleted), Snackbar.LENGTH_LONG)
                             .setAction(R.string.undo) {
                                 viewModel.setTracks(tracksBackup)
-                                //noteList?.set(noteListBackup)
                             }.show()
                     }
                 }

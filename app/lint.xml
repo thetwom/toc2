@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The note names are maintained in English and Chinese only, all other languages fall back
+     to English on purpose. -->
+<lint>
+    <issue id="MissingTranslation" severity="warning" />
+    <issue id="ExtraTranslation" severity="warning" />
+</lint>

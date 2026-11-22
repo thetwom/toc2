@@ -20,6 +20,7 @@
 package de.moekadu.metronome
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.media.AudioManager
 import android.os.Bundle
 import android.view.Menu
@@ -134,6 +135,17 @@ class MainActivity : AppCompatActivity() {
 //        supportFragmentManager.popBackStack()
 //        return true
 //    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // The track page locks the orientation itself, for all other pages the activity has to be
+        // recreated so that the layout for the new orientation is inflated.
+        val fragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
+        if (fragment is MetronomeAndScenesFragment) {
+            if (fragment.viewPager?.currentItem != ViewPagerAdapter.TRACKS)
+                recreate()
+        }
+    }
 
     fun handleGoBackCommand() {
 //        Log.v("Metronome", "MainActivity.onBackPressed():  backStackEntryCount = ${supportFragmentManager.backStackEntryCount}")
