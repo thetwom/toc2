@@ -41,7 +41,7 @@ private fun note(
 ) = NoteInfo(audio44, audio48, name, quarter, eighth, sixteenth, vibration)
 
 /// Mute note which is part of every sound set (same as in the original sound set).
-private fun muteNote() = defaultNotes.last()
+private fun muteNote() = defaultNotes.first { it.stringResourceID == R.string.mute }
 
 object SoundSets {
 
