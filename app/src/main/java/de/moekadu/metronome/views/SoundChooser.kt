@@ -1393,6 +1393,13 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         }
     }
 
+    /// Update the note icons, e.g. after the sound set changed.
+    fun refreshNoteIcons() {
+        noteView.refreshNoteIcons()
+        setNoteSelectionNotes(activeControlButton?.noteDuration ?: NoteDuration.Quarter)
+        invalidate()
+    }
+
     enum class Orientation { Landscape, Portrait }
     enum class Status { Off, MoveNote, Dynamic, Static }
 

@@ -418,18 +418,36 @@ private class NoteStartedHandling(private val scope: CoroutineScope) {
     }
 }
 
-private class Mixer(context: Context, val scope: CoroutineScope) {
+private class Mixer(private val context: Context, val scope: CoroutineScope) {
 
-    private val noteSamplesForDifferentSampleRates = mapOf (
-        44100 to lazy {
-//            Log.v("Metronome", "AudioMixer: load samples for 44100Hz")
-            createNoteSamples(context, 44100)
-        },
-        48000 to lazy {
-//            Log.v("Metronome", "AudioMixer: load samples for 48000Hz")
-            createNoteSamples(context, 48000)
+    /** Version of the note samples. Increased when the sound set changes, so that the playing
+     *  coroutine knows that it must exchange its samples. */
+    @Volatile
+    var samplesVersion = 0
+        private set
+
+    /** Note samples (one float array per note) mapped to sample rate and the sample version. */
+    private val noteSamplesCache = HashMap<Int, Pair<Int, Array<FloatArray>>>()
+
+    /** Get the note samples for the given sample rate, reloading them when the sound set changed. */
+    fun getNoteSamples(sampleRate: Int): Array<FloatArray> = synchronized(noteSamplesCache) {
+        val version = samplesVersion
+        val cached = noteSamplesCache[sampleRate]
+        if (cached != null && cached.first == version)
+            cached.second
+        else
+            createNoteSamples(context, sampleRate).also {
+                noteSamplesCache[sampleRate] = version to it
+            }
+    }
+
+    /** Tell the mixer that the note sounds changed, so that they are reloaded. */
+    fun invalidateNoteSamples() {
+        synchronized(noteSamplesCache) {
+            samplesVersion += 1
+            noteSamplesCache.clear()
         }
-    )
+    }
 
     @Volatile
     var isMute = false
@@ -498,10 +516,10 @@ private class Mixer(context: Context, val scope: CoroutineScope) {
         scope.launch(Dispatchers.IO) {
             // first load with known native sample rate, then load for all sample rates
             val nativeSampleRate = AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC)
-            noteSamplesForDifferentSampleRates[nativeSampleRate]?.value
+            getNoteSamples(nativeSampleRate)
 
-            for (n in noteSamplesForDifferentSampleRates)
-                n.value.value
+            getNoteSamples(44100)
+            getNoteSamples(48000)
         }
     }
 
@@ -521,7 +539,8 @@ private class Mixer(context: Context, val scope: CoroutineScope) {
         val job = scope.launch(dispatcher) {
 
             val player = createPlayer()
-            val noteSamples = noteSamplesForDifferentSampleRates[player.sampleRate]!!.value
+            var noteSamples = getNoteSamples(player.sampleRate)
+            var localSamplesVersion = samplesVersion
             val queuedNotes = ArrayList<QueuedNote>(32)
 
             val mixingBufferSize = player.bufferSizeInFrames / 4
@@ -586,6 +605,14 @@ private class Mixer(context: Context, val scope: CoroutineScope) {
             while(true) {
                 if (!isActive) {
                     break
+                }
+
+                // the sound set changed -> exchange the samples, the notes which are queued for
+                // the old sounds are dropped
+                if (localSamplesVersion != samplesVersion) {
+                    noteSamples = getNoteSamples(player.sampleRate)
+                    localSamplesVersion = samplesVersion
+                    queuedNotes.clear()
                 }
 
                 // synchronize our timer very early but not too early, afterward we do a periodic
@@ -956,6 +983,13 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
     private val noteStartedHandling = NoteStartedHandling(scope)
     private val mixer = Mixer(context, scope)
 
+    /** Called when the sound set is changed, to make the mixer reload the note samples. */
+    private val soundSetChangeListener: () -> Unit = { mixer.invalidateNoteSamples() }
+
+    init {
+        SoundSetManager.addChangeListener(soundSetChangeListener)
+    }
+
     /** Job which does the playing. */
     private var mixerJob: Mixer.JobCommunication? = null
     /** Job and structures for handling callbacks when a note is started. */
@@ -1070,6 +1104,7 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
 
     /** Close all background jobs and stuff, when the class is not needed anymore. */
     fun destroy() {
+        SoundSetManager.removeChangeListener(soundSetChangeListener)
         noteStartedHandling.destroy()
     }
 }

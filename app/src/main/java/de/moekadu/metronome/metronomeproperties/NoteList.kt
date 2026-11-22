@@ -198,7 +198,7 @@ data class NoteInfo(val audio44ResourceID: Int, val audio48ResourceID: Int,
                     val drawableSixteenthResourceID: Int,
                     val vibrationDuration: Long)
 
-val availableNotes = arrayOf(
+val defaultNotes = arrayOf(
         NoteInfo(
             R.raw.base44_wav, R.raw.base48_wav, R.string.base,
             R.drawable.ic_note_a, R.drawable.ic_note_a_eighth,R.drawable.ic_note_a_sixteenth,
@@ -225,6 +225,10 @@ val availableNotes = arrayOf(
             R.drawable.ic_note_pause, R.drawable.ic_note_pause_eighth, R.drawable.ic_note_pause_sixteenth,
             0L)
 )
+
+/** Notes which are currently selectable. Replaced by [SoundSetManager] when the sound set changes.
+ *  All sound sets provide the same number of notes, so that note ids of already saved scenes stay valid. */
+var availableNotes: Array<NoteInfo> = defaultNotes
 
 fun getNumAvailableNotes() = availableNotes.size
 

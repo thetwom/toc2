@@ -180,6 +180,11 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             noteListItem.set(newNoteListItem)
         }
 
+        /// Recalculate the icon, e.g. after the sound set changed.
+        fun refreshDrawable() {
+            drawableID = getNoteDrawableResourceID(noteListItem.id, noteListItem.duration)
+        }
+
         var noteId: Int
             set(value) {
                 if (value != noteListItem.id) {
@@ -524,6 +529,13 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
     fun setNoteId(index: Int, id: Int) {
         notes.getOrNull(index)?.noteId = id
+    }
+
+    /// Recalculate all note icons, e.g. after the sound set changed.
+    fun refreshNoteIcons() {
+        for (note in notes)
+            note.refreshDrawable()
+        invalidate()
     }
 
     fun setVolume(index: Int, volume: Float) {

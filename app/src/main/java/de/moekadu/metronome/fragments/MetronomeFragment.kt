@@ -26,6 +26,7 @@ import android.view.*
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
@@ -334,6 +335,10 @@ class MetronomeFragment : Fragment() {
             false
         }
 
+        view.findViewById<ImageButton>(R.id.sound_set_button)?.setOnClickListener {
+            showSoundSetDialog()
+        }
+
         sharedPreferenceChangeListener = OnSharedPreferenceChangeListener { sharedPreferences, key ->
             when (key) {
                 "speedincrement" -> {
@@ -523,6 +528,25 @@ class MetronomeFragment : Fragment() {
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener)
         tickVisualizer?.stop()
         super.onStop()
+    }
+
+    /** Show a list of the available sound sets. Selecting one is applied immediately, also while
+     *  the metronome is playing. */
+    private fun showSoundSetDialog() {
+        val soundSets = SoundSets.all
+        val names = soundSets.map { getString(it.nameResourceID) }.toTypedArray()
+        val checkedIndex = soundSets.indexOfFirst { it.id == SoundSetManager.currentId }
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.soundset)
+            .setSingleChoiceItems(names, checkedIndex) { dialog, which ->
+                SoundSetManager.select(requireContext(), soundSets[which].id)
+                singleNotePlayer.reload()
+                if (this::soundChooser.isInitialized)
+                    soundChooser.refreshNoteIcons()
+                dialog.dismiss()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun updateSceneTitleTextAndSwipeView() {

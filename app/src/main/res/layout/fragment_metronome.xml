@@ -130,12 +130,28 @@
      app:layout_constraintBottom_toBottomOf="parent"
      app:layout_constraintHeight_percent="0.032"/>
 
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/sound_set_button"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintHeight_percent="0.09"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:src="@drawable/ic_sound_set"
+        android:scaleType="fitCenter"
+        android:padding="6dp"
+        app:tint="?attr/colorPrimary"
+        android:background="@null"
+        android:contentDescription="@string/soundset"
+        />
+
     <TextView
         android:id="@+id/scene_title_active"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@id/sound_set_button"
         app:layout_constraintEnd_toStartOf="@id/scenes_button"
         android:text="@string/scene"
         android:textColor="?attr/colorPrimary"

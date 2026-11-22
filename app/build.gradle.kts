@@ -7,7 +7,7 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "de.moekadu.metronome"
+        applicationId = "de.moekadu.metronome.custom"
         minSdk = 23
         targetSdk = 36
         versionCode = 62

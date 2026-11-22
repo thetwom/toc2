@@ -82,6 +82,15 @@ class SingleNotePlayer(context: Context, private val lifecycleOwner: LifecycleOw
 
     fun clear() {
         lifecycleOwner.lifecycle.removeObserver(this)
+        unloadAllSounds()
+    }
+
+    /** Unload all samples, so that the next playback uses the sounds of the current sound set. */
+    fun reload() {
+        unloadAllSounds()
+    }
+
+    private fun unloadAllSounds() {
         for (sH in soundHandles44)
             soundPool.unload(sH.value)
         for (sH in soundHandles48)

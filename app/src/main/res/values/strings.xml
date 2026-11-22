@@ -153,4 +153,19 @@
     <string name="app_is_superseded">This app is superseded by \nhttps://codeberg.org/thetwom/metronome</string>
     <string name="dont_show_again">Do not show again</string>
     <string name="note">Note</string>
+
+    <!-- sound sets -->
+    <string name="soundset">Sound set</string>
+    <string name="soundset_default" translatable="false">Default</string>
+    <string name="soundset_ableton" translatable="false">Ableton Live click</string>
+    <string name="soundset_808" translatable="false">808 kit</string>
+    <string name="soundset_ireal" translatable="false">iReal Pro click</string>
+    <string name="soundset_dnb" translatable="false">DnB kit</string>
+    <string name="soundset_techno" translatable="false">Techno kit</string>
+    <string name="soundset_rock" translatable="false">Rock kit</string>
+    <string name="click" translatable="false">click</string>
+    <string name="hat_open" translatable="false">open hat</string>
+    <string name="clap" translatable="false">clap</string>
+    <string name="tom" translatable="false">tom</string>
+    <string name="ride" translatable="false">ride</string>
 </resources>
