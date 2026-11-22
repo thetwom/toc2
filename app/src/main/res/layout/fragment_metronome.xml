@@ -137,7 +137,7 @@
         android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/sound_set_button"
+        app:layout_constraintEnd_toStartOf="@id/scenes_button"
         android:text="@string/scene"
         android:textColor="?attr/colorPrimary"
         android:padding="4dp"
@@ -242,7 +242,7 @@
         android:maxLines="1"
         android:ellipsize="none"
         android:textColor="?attr/colorPrimary"
-        app:layout_constraintRight_toLeftOf="@id/sound_set_button"
+        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintLeft_toRightOf="@id/beat_duration"
         app:layout_constraintTop_toBottomOf="@id/scene_title_active"
         app:layout_constraintBottom_toTopOf="@id/speed_panel"
@@ -294,21 +294,5 @@
         app:numCols="4"
         />
 
-    <androidx.appcompat.widget.AppCompatImageButton
-        android:id="@+id/sound_set_button"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintHeight_percent="0.08"
-        app:layout_constraintDimensionRatio="1:1"
-        app:layout_constraintEnd_toStartOf="@id/scenes_button"
-        app:layout_constraintTop_toTopOf="@id/bpm_text"
-        android:elevation="9dp"
-        android:src="@drawable/ic_sound_set"
-        android:scaleType="fitCenter"
-        android:padding="6dp"
-        app:tint="?attr/colorPrimary"
-        android:background="@null"
-        android:contentDescription="@string/soundset"
-        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -3,6 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_sound_set"
+        android:orderInCategory="0"
+        android:title="@string/soundset"
+        android:icon="@drawable/ic_sound_set"
+        app:showAsAction="always"
+        />
+
+    <item
         android:id="@+id/action_mute"
         android:orderInCategory="1"
         android:title="@string/mute"

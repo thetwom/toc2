@@ -85,4 +85,5 @@
     <string name="thickvis_leftright">交替</string>
     <string name="speedincrement">速度增减单位</string>
     <string name="speed_sensitivity_summary">每旋转 1 cm 令速度增减 %.1f 个单位</string>
+    <string name="soundset">节拍器音色</string>
 </resources>

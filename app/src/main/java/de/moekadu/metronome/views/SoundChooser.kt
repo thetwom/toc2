@@ -402,6 +402,19 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         visibility = View.GONE
     }
 
+    /// Called when the sound set changes, so that the note icons follow the new sounds.
+    private val soundSetChangeListener: () -> Unit = { refreshNoteIcons() }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        SoundSetManager.addChangeListener(soundSetChangeListener)
+    }
+
+    override fun onDetachedFromWindow() {
+        SoundSetManager.removeChangeListener(soundSetChangeListener)
+        super.onDetachedFromWindow()
+    }
+
     private val controlButtons = ArrayList<SoundChooserControlButton>()
     private var activeControlButton: SoundChooserControlButton? = null
     private var nextActiveControlButtonUidOnNoteListChange: UId? = null

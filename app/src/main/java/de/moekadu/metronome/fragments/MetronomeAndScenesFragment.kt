@@ -28,6 +28,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.widget.ViewPager2
 import de.moekadu.metronome.*
+import de.moekadu.metronome.dialogs.SoundSetDialog
 import de.moekadu.metronome.preferences.AppPreferences
 import de.moekadu.metronome.scenes.EditSceneCallback
 import de.moekadu.metronome.scenes.Scene
@@ -103,6 +104,10 @@ class MetronomeAndScenesFragment : Fragment() {
                 R.id.action_mute -> {
                     val isMute = metronomeViewModel.mute.value ?: false
                     metronomeViewModel.setMute(!isMute)
+                }
+                R.id.action_sound_set -> {
+                    SoundSetDialog().show(parentFragmentManager, SoundSetDialog.REQUEST_KEY)
+                    return true
                 }
             }
             return false

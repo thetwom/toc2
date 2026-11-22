@@ -4,7 +4,7 @@
 
 ## 用法
 
-主界面左上角新增一个波形图标按钮。点击弹出音色集列表，选中立即生效，播放过程中也能切换，切换后不需要停止播放。选择写入默认 SharedPreferences（键 `soundset`），重启后保留。
+主界面标题栏新增一个波形图标按钮，位于静音按钮左侧（横屏同样显示）。点击弹出音色集列表，选中立即生效，播放过程中也能切换，切换后不需要停止播放。选择写入默认 SharedPreferences（键 `soundset`），重启后保留。
 
 音色集内的鼓件按拍位分配：每个音色集提供 7 个槽位，槽位对应原有的音符音色选择器（底部网格与音符编辑界面）。想把 kick / snare / hat 分给不同拍，就用原有方式给每个音符选不同槽位。
 
@@ -36,9 +36,10 @@
 | `metronomeproperties/NoteList.kt` | `availableNotes` 由 `val` 改为可变，原数组改名 `defaultNotes` |
 | `audio/AudioMixer.kt` | 采样缓存改为可失效，加入采样版本号；播放线程检测到版本变化后换采样 |
 | `players/SingleNotePlayer.kt` | `reload()`：切换音色后清掉 SoundPool 里的旧采样 |
-| `fragments/MetronomeFragment.kt` | 音色按钮与音色集选择对话框 |
-| `views/NoteView.kt`、`views/SoundChooser.kt` | 切换音色后重算音符图标 |
-| `res/layout/fragment_metronome.xml` | 左上角音色按钮；场景标题起点改到该按钮右侧 |
+| `fragments/MetronomeAndScenesFragment.kt` | 处理工具栏音色按钮 |
+| `views/NoteView.kt`、`views/SoundChooser.kt` | 切换音色后重算音符图标（SoundChooser 自己监听音色变化） |
+| `res/menu/metronome_and_scenes.xml` | 工具栏新增音色按钮，位于静音按钮左侧，横竖屏共用 |
+| `dialogs/SoundSetDialog.kt` | 新增。音色集选择对话框 |
 | `res/values/strings.xml` | 音色集名称与鼓件名称 |
 | `res/drawable/ic_sound_set.xml` | 新增按钮图标 |
 | `res/raw/*.wav` | 72 个合成采样（6 套 × 6 槽 × 2 采样率） |
