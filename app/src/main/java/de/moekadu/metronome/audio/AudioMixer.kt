@@ -942,22 +942,22 @@ private class Mixer(private val context: Context, val scope: CoroutineScope) {
             if (cycle <= 0)
                 return NextNoteInfo(0, fromFrame, 0)
 
+            // position of "fromFrame" inside the loop of this track
             val positionInCycle = Math.floorMod(fromFrame, cycle)
-            var offset = 0
+
+            // find the first note start which is not before the current position, if there is none
+            // the track continues with the start of its next loop
+            var accumulated = 0
             var index = 0
-            while (index < notes.size && offset + lengths[index] <= positionInCycle) {
-                offset += lengths[index]
+            while (index < notes.size && accumulated < positionInCycle) {
+                accumulated += lengths[index]
                 ++index
             }
-
-            val completedCycles = fromFrame / cycle
-            val nextFrame = if (index >= notes.size)
-                fromFrame - positionInCycle + cycle
-            else
-                fromFrame - positionInCycle + offset
+            val nextOffset = if (accumulated >= positionInCycle) accumulated else cycle
             val nextIndex = if (index >= notes.size) 0 else index
-            val noteCount = (completedCycles + if (index >= notes.size) 1 else 0).toLong() * notes.size
-            return NextNoteInfo(nextIndex, max(fromFrame, nextFrame), noteCount)
+            val nextFrame = fromFrame - positionInCycle + nextOffset
+            val completedCycles = (fromFrame / cycle).toLong()
+            return NextNoteInfo(nextIndex, nextFrame, completedCycles * notes.size)
         }
 
         /** Volume which is applied to the notes of a track. */
