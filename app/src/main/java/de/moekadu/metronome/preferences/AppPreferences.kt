@@ -59,14 +59,14 @@ class AppPreferences {
             editor.apply()
         }
 
-        fun writeMetronomeState(bpm: Bpm?, noteList: ArrayList<NoteListItem>?, isMute: Boolean?,
+        fun writeMetronomeState(bpm: Bpm?, tracks: ArrayList<Track>?, isMute: Boolean?,
                                 activity: FragmentActivity) {
             if (bpm != null) {
                 writePreferenceFloat("bpm", bpm.bpm, activity)
                 writePreferenceString("beatNote", bpm.noteDuration.toString(), activity)
             }
-            if (noteList != null)
-                writePreferenceString("sound", noteListToString(noteList), activity)
+            if (tracks != null)
+                writePreferenceString("sound", tracksToString(tracks), activity)
 
             if (isMute != null)
                 writePreferenceBoolean("isMute", isMute, activity)
@@ -86,14 +86,16 @@ class AppPreferences {
             return Bpm(bpmToUse, noteDuration)
         }
 
-        fun readMetronomeNoteList(activity: FragmentActivity): ArrayList<NoteListItem> {
-            readPreferenceString("sound", activity)?.let { noteListString ->
-                return stringToNoteList(noteListString)
+        fun readMetronomeTracks(activity: FragmentActivity): ArrayList<Track> {
+            readPreferenceString("sound", activity)?.let { trackString ->
+                return stringToTracks(trackString)
             }
 
-            val noteList = ArrayList<NoteListItem>()
-            noteList.add(NoteListItem(defaultNote, 1.0f, NoteDuration.Quarter))
-            return noteList
+            val tracks = ArrayList<Track>()
+            val notes = ArrayList<NoteListItem>()
+            notes.add(NoteListItem(defaultNote, 1.0f, NoteDuration.Quarter))
+            tracks.add(Track(notes))
+            return tracks
         }
 
         fun writeScenesDatabase(databaseString: String?, activity: FragmentActivity) {

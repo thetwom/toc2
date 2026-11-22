@@ -25,12 +25,15 @@ import android.graphics.Color
 import android.graphics.Rect
 import android.graphics.drawable.Animatable
 import android.graphics.drawable.Drawable
+import android.graphics.Canvas
+import android.graphics.Paint
 import android.util.AttributeSet
 import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.appcompat.content.res.AppCompatResources
@@ -41,6 +44,7 @@ import androidx.transition.AutoTransition
 import androidx.transition.TransitionManager
 import de.moekadu.metronome.*
 import de.moekadu.metronome.metronomeproperties.*
+import kotlin.math.absoluteValue
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -77,6 +81,85 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     }
 
     val size get() = notes.size
+
+    /** Notes of all tracks, only used to draw and to detect the track under a touch position. */
+    private val trackSnapshots = ArrayList<ArrayList<NoteListItem>>()
+
+    /** Index of the track which is currently edited (its notes are the layouted child views). */
+    var activeTrack = 0
+        private set
+
+    /** Vertical scroll offset in pixels, for showing more tracks than fit into the view. */
+    private var scrollOffset = 0f
+
+    /** Listener for track gestures (tap to select, long press to open the track menu). */
+    interface OnTrackGestureListener {
+        fun onTrackClicked(trackIndex: Int)
+        fun onTrackLongClicked(trackIndex: Int)
+    }
+    var onTrackGestureListener: OnTrackGestureListener? = null
+
+    private var trackTouchDownY = 0f
+    private var trackTouchLastY = 0f
+    private var trackTouchDownRow = -1
+    private var trackScrolling = false
+    private var trackLongPressTriggered = false
+    private val trackTouchSlop = ViewConfiguration.get(context).scaledTouchSlop.toFloat()
+
+    private val trackLongPressRunnable = Runnable {
+        if (!trackScrolling && trackTouchDownRow >= 0) {
+            trackLongPressTriggered = true
+            onTrackGestureListener?.onTrackLongClicked(trackTouchDownRow)
+        }
+    }
+
+    /** Number of track rows which are visible at the same time. */
+    private fun numVisibleRows() = if (trackSnapshots.size <= 1) 1 else 2
+
+    /** Height of one track row in pixels (padding already subtracted). */
+    private fun rowHeight(): Int {
+        val totalHeight = max(0, height - paddingTop - paddingBottom)
+        return max(1, totalHeight / numVisibleRows())
+    }
+
+    /** Top position of a track row inside this view (including padding and scroll offset). */
+    private fun rowTop(row: Int): Int = paddingTop + row * rowHeight() - scrollOffset.roundToInt()
+
+    /** Scroll the tracks vertically so that all tracks can be reached. */
+    fun scrollTracks(delta: Float) {
+        if (trackSnapshots.size <= 1)
+            return
+        val totalHeight = max(0, height - paddingTop - paddingBottom)
+        val contentHeight = rowHeight() * trackSnapshots.size
+        val maxOffset = max(0, contentHeight - totalHeight).toFloat()
+        val newOffset = (scrollOffset + delta).coerceIn(0f, maxOffset)
+        if (newOffset != scrollOffset) {
+            scrollOffset = newOffset
+            requestLayout()
+            invalidate()
+        }
+    }
+
+    /** Leave vertical scrolling in a sane state after the number of tracks changed. */
+    private fun clampScrollOffset() {
+        val totalHeight = max(0, height - paddingTop - paddingBottom)
+        val contentHeight = rowHeight() * trackSnapshots.size
+        val maxOffset = max(0, contentHeight - totalHeight).toFloat()
+        scrollOffset = scrollOffset.coerceIn(0f, maxOffset)
+    }
+
+    /** Set all tracks. The notes of the active track are the child views which can be edited. */
+    fun setTracks(trackList: ArrayList<Track>, activeIndex: Int, animationDuration: Long) {
+        trackSnapshots.clear()
+        for (track in trackList)
+            trackSnapshots.add(track.notes)
+        activeTrack = activeIndex.coerceIn(0, max(0, trackList.size - 1))
+        val activeNotes = trackList.getOrNull(activeTrack)?.notes ?: ArrayList()
+        setNoteList(activeNotes, animationDuration)
+        clampScrollOffset()
+        requestLayout()
+        invalidate()
+    }
 
     var volumeColor: Int = Color.GREEN
         set(value) {
@@ -302,14 +385,15 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 
         val totalWidth = measuredWidth - paddingLeft - paddingRight
         val totalHeight = measuredHeight - paddingTop - paddingBottom
-        val totalHeightExcludingTuplet = (heightScaling * totalHeight).roundToInt()
+        val singleRowHeight = max(1, totalHeight / (if (trackSnapshots.size <= 1) 1 else 2))
+        val totalHeightExcludingTuplet = (heightScaling * singleRowHeight).roundToInt()
 
         val widthSpec = MeasureSpec.makeMeasureSpec(totalWidth, MeasureSpec.EXACTLY)
         val heightSpec = MeasureSpec.makeMeasureSpec(totalHeightExcludingTuplet, MeasureSpec.EXACTLY)
         volumeView.measure(widthSpec, heightSpec)
         lineView.measure(widthSpec, heightSpec)
 
-        val noteImageWidth = (totalHeight * largestAspectRatio).toInt()
+        val noteImageWidth = (singleRowHeight * largestAspectRatio).toInt()
         val noteWidthSpec = MeasureSpec.makeMeasureSpec(noteImageWidth, MeasureSpec.EXACTLY)
 
         for(n in notes)
@@ -321,7 +405,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         }
 
         tuplets.forEach {
-            it.measureOnNoteView(totalWidth, totalHeight, notes.size)
+            it.measureOnNoteView(totalWidth, singleRowHeight, notes.size)
         }
 
         val advanceMarkerHeight = (0.1f * totalHeightExcludingTuplet).roundToInt()
@@ -340,9 +424,12 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
 //        Log.v("Metronome", "NoteView.onLayout: changed: $changed")
         val totalWidth = r - l - paddingLeft - paddingRight
         val totalHeight = b - t - paddingTop - paddingBottom
+        val singleRowHeight = max(1, totalHeight / (if (trackSnapshots.size <= 1) 1 else 2))
+        val rowTopPosition = paddingTop + activeTrack * singleRowHeight - scrollOffset.roundToInt()
+        val rowBottom = rowTopPosition + singleRowHeight
         val heightScaling = if (showTuplets) NOTE_IMAGE_HEIGHT_SCALING else 1.0f
-        val totalHeightExcludingTuplet = (heightScaling * totalHeight).roundToInt()
-        val excludingTupletTop = paddingTop + totalHeight - totalHeightExcludingTuplet
+        val totalHeightExcludingTuplet = (heightScaling * singleRowHeight).roundToInt()
+        val excludingTupletTop = rowTopPosition + singleRowHeight - totalHeightExcludingTuplet
 
         if (changed) {
             volumeView.layout(
@@ -377,7 +464,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                 val textView = numbering[i]
                 val textViewLeft = (noteCenter - 0.5f * textView.measuredWidth).roundToInt()
                 val textViewRight = textViewLeft + textView.measuredWidth
-                val textViewBottom = b - t - paddingBottom
+                val textViewBottom = rowBottom
                 val textViewTop = textViewBottom - textView.measuredHeight
 //                Log.v("Metronome", "NoteView.onLayout, $textViewLeft, $textViewTop, $textViewRight, $textViewBottom")
                 textView.layout(textViewLeft, textViewTop, textViewRight, textViewBottom)
@@ -387,14 +474,14 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                 val marker = advanceMarkers[i]
                 val markerLeft = (noteCenter - 0.5f * marker.measuredWidth).roundToInt()
                 val markerRight = markerLeft + marker.measuredWidth
-                val markerBottom = b - t - paddingBottom
+                val markerBottom = rowBottom
                 val markerTop = markerBottom - marker.measuredHeight
                 marker.layout(markerLeft, markerTop, markerRight, markerBottom)
             }
         }
 
         for (tuplet in tuplets)
-            tuplet.layoutOnNoteView(totalWidth, totalHeight, notes.size, paddingLeft, paddingTop)
+            tuplet.layoutOnNoteView(totalWidth, singleRowHeight, notes.size, paddingLeft, rowTopPosition)
     }
 
     override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
@@ -403,8 +490,112 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         return true
     }
 
+    override fun dispatchDraw(canvas: Canvas) {
+        drawInactiveTracks(canvas)
+        super.dispatchDraw(canvas)
+    }
+
+    /** Draw the notes of all tracks which are not edited (the edited track is drawn by child views). */
+    private fun drawInactiveTracks(canvas: Canvas) {
+        if (trackSnapshots.size <= 1)
+            return
+        val totalWidth = width - paddingLeft - paddingRight
+        val totalHeight = height - paddingTop - paddingBottom
+        if (totalWidth <= 0 || totalHeight <= 0)
+            return
+
+        val rh = rowHeight()
+        val color = noteColor?.defaultColor ?: Color.BLACK
+        val paint = Paint().apply { isAntiAlias = true }
+
+        for (row in trackSnapshots.indices) {
+            if (row == activeTrack)
+                continue
+            val top = rowTop(row)
+            if (top + rh <= 0 || top >= height)
+                continue
+
+            paint.color = Color.argb(70, Color.red(color), Color.green(color), Color.blue(color))
+            canvas.drawRect(paddingLeft.toFloat(), (top + 1).toFloat(), width.toFloat(), (top + 2).toFloat(), paint)
+
+            val trackNotes = trackSnapshots[row]
+            if (trackNotes.isEmpty())
+                continue
+
+            val space = totalWidth / trackNotes.size.toFloat()
+            val iconHeight = max(1, (rh * NOTE_IMAGE_HEIGHT_SCALING * 0.6f).toInt())
+            for (i in trackNotes.indices) {
+                val note = trackNotes[i]
+                val drawable = AppCompatResources.getDrawable(
+                    context, getNoteDrawableResourceID(note.id, note.duration)
+                ) ?: continue
+                val aspect = if (drawable.intrinsicHeight > 0)
+                    drawable.intrinsicWidth.toFloat() / drawable.intrinsicHeight else 1f
+                val h = iconHeight
+                val w = max(1, (h * aspect).toInt())
+                val centerX = paddingLeft + (0.5f + i) * space
+                val left = (centerX - 0.5f * w).toInt()
+                val iconTop = top + (rh - h) / 2
+                drawable.setBounds(left, iconTop, left + w, iconTop + h)
+                drawable.setTint(color)
+                drawable.alpha = (120 + (125 * note.volume).toInt()).coerceIn(0, 255)
+                drawable.draw(canvas)
+            }
+        }
+    }
+
     override fun onTouchEvent(event: MotionEvent?): Boolean {
-        if(onNoteClickListener == null || event == null)
+        if (event == null)
+            return super.onTouchEvent(event)
+
+        // gestures on the track area: tap selects a track, long press opens the track menu,
+        // vertical dragging scrolls through the tracks
+        if (trackSnapshots.size > 1) {
+            val rh = rowHeight()
+            val row = ((event.y - paddingTop + scrollOffset) / rh).toInt()
+                .coerceIn(0, trackSnapshots.size - 1)
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    trackTouchDownY = event.y
+                    trackTouchLastY = event.y
+                    trackTouchDownRow = row
+                    trackScrolling = false
+                    trackLongPressTriggered = false
+                    removeCallbacks(trackLongPressRunnable)
+                    postDelayed(trackLongPressRunnable, 400L)
+                    if (row != activeTrack) {
+                        isPressed = true
+                        return true
+                    }
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    val dy = event.y - trackTouchLastY
+                    trackTouchLastY = event.y
+                    if (row != activeTrack || (event.y - trackTouchDownY).absoluteValue > trackTouchSlop) {
+                        trackScrolling = true
+                        removeCallbacks(trackLongPressRunnable)
+                        scrollTracks(-dy)
+                        return true
+                    }
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    removeCallbacks(trackLongPressRunnable)
+                    isPressed = false
+                    val wasScrolling = trackScrolling
+                    val wasLongPress = trackLongPressTriggered
+                    trackScrolling = false
+                    trackLongPressTriggered = false
+                    if (wasScrolling || wasLongPress)
+                        return true
+                    if (row != activeTrack) {
+                        onTrackGestureListener?.onTrackClicked(row)
+                        return true
+                    }
+                }
+            }
+        }
+
+        if(onNoteClickListener == null)
             return super.onTouchEvent(event)
 //        Log.v("Metronome", "NoteView.onTouchEvent")
 //        if(event == null)

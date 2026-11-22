@@ -74,7 +74,7 @@ class MetronomeFragment : Fragment() {
         val playerConnection = PlayerServiceConnection.getInstance(
             requireContext(),
             AppPreferences.readMetronomeBpm(requireActivity()),
-            AppPreferences.readMetronomeNoteList(requireActivity()),
+            AppPreferences.readMetronomeTracks(requireActivity()),
             AppPreferences.readIsMute(requireActivity())
         )
         MetronomeViewModel.Factory(playerConnection)
@@ -113,7 +113,7 @@ class MetronomeFragment : Fragment() {
 
 //    private var dummyViewGroupWithTransition: DummyViewGroupWithTransition? = null
 
-    private val noteListBackup = ArrayList<NoteListItem>()
+    private val tracksBackup = ArrayList<Track>()
 
     private var tickVisualizer: TickVisualizerSync? = null
 
@@ -247,7 +247,7 @@ class MetronomeFragment : Fragment() {
             override fun changeNoteId(uid: UId, noteId: Int, status: SoundChooser.Status) {
                 viewModel.setNoteListId(uid, noteId)
                 if (viewModel.playerStatus.value != PlayerStatus.Playing && status == SoundChooser.Status.Static && context != null) {
-                    viewModel.noteList.value?.firstOrNull { it.uid == uid }?.let { noteListItem ->
+                    findNote(uid)?.let { noteListItem ->
                         singleNotePlayer.play(noteListItem.id, noteListItem.volume)
                         if (vibrate) {
                             viewModel.bpm.value?.bpmQuarter?.let{ bpmQuarter ->
@@ -265,7 +265,7 @@ class MetronomeFragment : Fragment() {
             override fun changeVolume(uid: UId, volume: Float) {
                 viewModel.setNoteListVolume(uid, volume)
                 if (viewModel.playerStatus.value != PlayerStatus.Playing && context != null) {
-                    viewModel.noteList.value?.firstOrNull { it.uid == uid }?.let { noteListItem ->
+                    findNote(uid)?.let { noteListItem ->
                         singleNotePlayer.play(noteListItem.id, noteListItem.volume)
                     }
                 }
@@ -274,7 +274,7 @@ class MetronomeFragment : Fragment() {
             override fun changeVolume(index: Int, volume: Float) {
                 viewModel.setNoteListVolume(index, volume)
                 if (viewModel.playerStatus.value != PlayerStatus.Playing && context != null) {
-                    viewModel.noteList.value?.getOrNull(index)?.id?.let { id ->
+                    viewModel.currentTrackNotes()?.getOrNull(index)?.id?.let { id ->
                         singleNotePlayer.play(id, volume)
                     }
                 }
@@ -285,15 +285,15 @@ class MetronomeFragment : Fragment() {
             }
 
             override fun removeNote(uid: UId) {
-                if ((viewModel.noteList.value?.size ?: 0) <= 1)
+                if ((viewModel.currentTrackNotes()?.size ?: 0) <= 1)
                     Toast.makeText(context, context?.getString(R.string.cannot_delete_last_note), Toast.LENGTH_LONG).show()
                 else
                     viewModel.removeNote(uid)
             }
 
             override fun removeAllNotes() {
-                viewModel.noteList.value?.let { notes ->
-                    deepCopyNoteList(notes, noteListBackup)
+                viewModel.tracks.value?.let { tracks ->
+                    deepCopyTracks(tracks, tracksBackup)
                     val newNoteList = ArrayList<NoteListItem>()
                     newNoteList.add(NoteListItem(defaultNote))
                     viewModel.setNoteList(newNoteList)
@@ -301,7 +301,7 @@ class MetronomeFragment : Fragment() {
                     getView()?.let { view ->
                         Snackbar.make(view, getString(R.string.all_notes_deleted), Snackbar.LENGTH_LONG)
                             .setAction(R.string.undo) {
-                                viewModel.setNoteList(noteListBackup)
+                                viewModel.setTracks(tracksBackup)
                                 //noteList?.set(noteListBackup)
                             }.show()
                     }
@@ -310,6 +310,47 @@ class MetronomeFragment : Fragment() {
 
             override fun moveNote(uid: UId, toIndex: Int) {
                 viewModel.moveNote(uid, toIndex)
+            }
+
+            override fun addTrack() {
+                if (viewModel.addTrack() < 0) {
+                    Toast.makeText(context, getString(R.string.max_num_tracks_reached), Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun selectTrack(index: Int) {
+                viewModel.setActiveTrackIndex(index)
+            }
+
+            override fun changeTrackVolume(volume: Float) {
+                val index = soundChooser.editedTrackIndex
+                if (index >= 0)
+                    viewModel.setTrackVolume(index, volume)
+            }
+
+            override fun removeTrack() {
+                val index = soundChooser.editedTrackIndex
+                if (index < 0)
+                    return
+                if (viewModel.removeTrack(index)) {
+                    soundChooser.hideSoundChooser(SoundChooser.animateLong)
+                } else {
+                    Toast.makeText(context, getString(R.string.cannot_delete_last_track), Toast.LENGTH_LONG).show()
+                }
+            }
+
+            override fun changeTrackMute(isMute: Boolean) {
+                val index = soundChooser.editedTrackIndex
+                if (index >= 0)
+                    viewModel.setTrackMute(index, isMute)
+            }
+
+            override fun trackLongClicked(index: Int) {
+                viewModel.setActiveTrackIndex(index)
+                val track = viewModel.tracks.value?.getOrNull(index) ?: return
+                soundChooser.showTrackChooser(
+                    index, track.volume, track.isMute, SoundChooser.animateLong
+                )
             }
         }
 
@@ -481,11 +522,16 @@ class MetronomeFragment : Fragment() {
             soundChooser.setAdvanceMarker(noteStartTime?.note?.uid)
         }
 
-        viewModel.noteList.observe(viewLifecycleOwner) {
-            if (it != null) {
-//                Log.v("Metronome", "MetronomeFragment: observing noteList, viewModel.isVisible=${viewModel.isVisible}")
-//                tickVisualizer?.setNoteList(it)
-                soundChooser.setNoteList(it, if (viewModel.isVisible) 200L else 0L)
+        viewModel.tracks.observe(viewLifecycleOwner) { tracks ->
+            if (tracks != null) {
+                val activeIndex = viewModel.activeTrackIndex.value ?: 0
+                soundChooser.setTracks(tracks, activeIndex, if (viewModel.isVisible) 200L else 0L)
+            }
+        }
+
+        viewModel.activeTrackIndex.observe(viewLifecycleOwner) { index ->
+            viewModel.tracks.value?.let { tracks ->
+                soundChooser.setTracks(tracks, index, 0L)
             }
         }
 
@@ -523,6 +569,16 @@ class MetronomeFragment : Fragment() {
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener)
         tickVisualizer?.stop()
         super.onStop()
+    }
+
+    /** Find a note by its uid in all tracks. */
+    private fun findNote(uid: UId?): NoteListItem? {
+        if (uid == null)
+            return null
+        viewModel.tracks.value?.forEach { track ->
+            track.notes.firstOrNull { it.uid == uid }?.let { return it }
+        }
+        return null
     }
 
     private fun updateSceneTitleTextAndSwipeView() {
@@ -571,19 +627,20 @@ class MetronomeFragment : Fragment() {
 
     private fun saveCurrentSettingIntoScene(title: String) {
         val bpm = viewModel.bpm.value
-        val noteList = viewModel.noteList.value
+        val tracks = viewModel.tracks.value
 
-        if (bpm != null && noteList != null) {
+        if (bpm != null && tracks != null) {
             val dateFormat = SimpleDateFormat("dd.MM.yyyy")
             val timeFormat = SimpleDateFormat("HH:mm")
             val calendarDate = Calendar.getInstance().time
             val date = dateFormat.format(calendarDate)
             val time = timeFormat.format(calendarDate)
-            val noteListCopy = ArrayList<NoteListItem>(noteList.size)
-            deepCopyNoteList(noteList, noteListCopy)
-            for (note in noteListCopy)
-                note.uid = UId.create()
-            val scene = Scene(title, date, time, bpm, noteListCopy, Scene.NO_STABLE_ID)
+            val tracksCopy = ArrayList<Track>()
+            deepCopyTracks(tracks, tracksCopy)
+            for (track in tracksCopy)
+                for (note in track.notes)
+                    note.uid = UId.create()
+            val scene = Scene(title, date, time, bpm, tracksCopy, Scene.NO_STABLE_ID)
             scenesViewModel.scenes.value?.add(scene)?.let { stableId ->
                 scenesViewModel.setActiveStableId(stableId)
             }

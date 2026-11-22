@@ -122,8 +122,10 @@ fun deepCopyNoteList(origin: ArrayList<NoteListItem>, target: ArrayList<NoteList
 
 fun isNoteListStringValid(string: String): Boolean {
     val elements = string.split(" ")
-    //    Log.v("Metronome", "NoteList:isNoteListStringValid: string=$string")
     when (val version = getNoteListStringVersion(string)) {
+        2 -> {
+            return stringToTracks(string).isNotEmpty()
+        }
         0 -> {
             for (i in 0 until elements.size / 2) {
                 try {
@@ -146,7 +148,7 @@ fun isNoteListStringValid(string: String): Boolean {
             }
         }
         else -> {
-            throw RuntimeException("Invalid note list version: $version")
+            return false
         }
     }
     return true

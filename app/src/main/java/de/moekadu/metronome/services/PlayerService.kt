@@ -37,7 +37,8 @@ import de.moekadu.metronome.audio.AudioMixer
 import de.moekadu.metronome.audio.NoteStartedHandler
 import de.moekadu.metronome.metronomeproperties.Bpm
 import de.moekadu.metronome.metronomeproperties.NoteListItem
-import de.moekadu.metronome.metronomeproperties.deepCopyNoteList
+import de.moekadu.metronome.metronomeproperties.Track
+import de.moekadu.metronome.metronomeproperties.deepCopyTracks
 import de.moekadu.metronome.misc.InitialValues
 import de.moekadu.metronome.notification.PlayerNotification
 import de.moekadu.metronome.players.VibratingNote
@@ -81,9 +82,9 @@ class PlayerService : LifecycleService() {
         fun onSpeedChanged(bpm: Bpm)
 
         /** Called when the list of notes changed.
-         * @param noteList New note list.
+         * @param tracks New track list.
          */
-        fun onNoteListChanged(noteList: ArrayList<NoteListItem>)
+        fun onTracksChanged(tracks: ArrayList<Track>)
     }
 
     /** Callback for status changes of the metronome. */
@@ -144,13 +145,13 @@ class PlayerService : LifecycleService() {
     /** Vibrate when the note starts playing. */
     private var vibrator: VibratingNote? = null
 
-    /** The currently played note list. */
-    var noteList = ArrayList<NoteListItem>()
+    /** The currently played tracks. */
+    var tracks = ArrayList<Track>()
         set(value) {
-            deepCopyNoteList(value, field)
-            audioMixer?.setNoteList(field)
+            deepCopyTracks(value, field)
+            audioMixer?.setTracks(field)
             for (s in statusChangedListeners)
-                s.onNoteListChanged(field)
+                s.onTracksChanged(field)
         }
 
     /** Listener to changes of shared preferences. */
@@ -219,7 +220,7 @@ class PlayerService : LifecycleService() {
 
         audioMixer = AudioMixer(applicationContext, lifecycleScope)
         audioMixer?.setBpmQuarter(bpm.bpmQuarter)
-        audioMixer?.setNoteList(noteList)
+        audioMixer?.setTracks(tracks)
 
         audioMixer?.setMute(isMute)
 
@@ -462,13 +463,12 @@ class PlayerService : LifecycleService() {
      *   return true, if the input note list was changed or false, if the input note list was
      *   not changed.
      */
-    fun modifyNoteList(op: (noteList: ArrayList<NoteListItem>) -> Boolean) {
-        val modified = op(noteList)
-//        Log.v("Metronome", "PlayerService.modifyNoteList: modified=$modified")
+    fun modifyTracks(op: (tracks: ArrayList<Track>) -> Boolean) {
+        val modified = op(tracks)
         if (modified) {
-            audioMixer?.setNoteList(noteList)
+            audioMixer?.setTracks(tracks)
             for (s in statusChangedListeners)
-                s.onNoteListChanged(noteList)
+                s.onTracksChanged(tracks)
         }
     }
 

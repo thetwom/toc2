@@ -86,4 +86,6 @@
     <string name="speedincrement">速度增减单位</string>
     <string name="speed_sensitivity_summary">每旋转 1 cm 令速度增减 %.1f 个单位</string>
     <string name="soundset">节拍器音色</string>
+    <string name="max_num_tracks_reached">已达到最大轨道数</string>
+    <string name="cannot_delete_last_track">最后一轨无法删除</string>
 </resources>

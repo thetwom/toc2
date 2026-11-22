@@ -244,7 +244,7 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
         holder.bpmDuration?.setImageResource(bpmDurationResource)
 //        Log.v("Metronome", "SceneDatabase.onBindViewHolder: scene.noteList = ${scene.noteList}, scene.bpm = ${scene.bpm}")
 
-        holder.noteView?.setNoteList(scene.noteList, 0L)
+        holder.noteView?.setNoteList(scene.tracks.firstOrNull()?.notes ?: ArrayList(), 0L)
 //        holder.tickVisualizer?.setNoteList(scene.noteList)
         holder.tickVisualizer?.bpm = scene.bpm
         // Log.v("Metronome", "SceneDatabase:onBindViewHolder (position = " + position + ")")

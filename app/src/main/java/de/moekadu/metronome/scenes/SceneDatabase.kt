@@ -30,18 +30,18 @@ import kotlin.math.min
 
 class Scene(var title: String = "", var date: String = "",
             var time: String = "", var bpm: Bpm = Bpm(0f, NoteDuration.Quarter),
-            var noteList: ArrayList<NoteListItem>,
+            var tracks: ArrayList<Track>,
             val stableId: Long) {
     companion object {
         const val NO_STABLE_ID = 0L
     }
 
     fun clone(title: String = this.title, date: String = this.date, time: String = this.time,
-              bpm: Bpm = this.bpm, noteList: ArrayList<NoteListItem> = this.noteList,
+              bpm: Bpm = this.bpm, tracks: ArrayList<Track> = this.tracks,
               stableId: Long = this.stableId): Scene {
-        val noteListCopy = ArrayList<NoteListItem>()
-        deepCopyNoteList(noteList, noteListCopy)
-        return Scene(title, date, time, bpm.copy(), noteListCopy, stableId)
+        val tracksCopy = ArrayList<Track>()
+        deepCopyTracks(tracks, tracksCopy)
+        return Scene(title, date, time, bpm.copy(), tracksCopy, stableId)
     }
 
     fun isEqualApartFromStableId(other: Scene?): Boolean {
@@ -52,7 +52,7 @@ class Scene(var title: String = "", var date: String = "",
         if (time != other.time) return false
         if (bpm != other.bpm) return false
         // if (stableId != other.stableId) return false
-        if (!areNoteListsEqual(noteList, other.noteList)) return false
+        if (!areTrackListsEqual(tracks, other.tracks)) return false
         return true
     }
 }
@@ -103,13 +103,13 @@ class SceneDatabase {
         return scenes.firstOrNull { it.stableId == stableId }
     }
 
-    fun editScene(stableId: Long?, title: String? = null, bpm: Bpm? = null, noteList: ArrayList<NoteListItem>? = null) {
+    fun editScene(stableId: Long?, title: String? = null, bpm: Bpm? = null, tracks: ArrayList<Track>? = null) {
         if (stableId == null)
             return
         val scene = getScene(stableId) ?: return
         title?.let { scene.title = it }
         bpm?.let { scene.bpm = it }
-        noteList?.let { deepCopyNoteList(it, scene.noteList) }
+        tracks?.let { deepCopyTracks(it, scene.tracks) }
         databaseChangedListener?.onChanged(this)
     }
 
@@ -201,7 +201,7 @@ class SceneDatabase {
             for (si in scenes) {
                 stringBuilder.append(String.format(Locale.ENGLISH, "%200s%10s%5s%12.5f%30s%sEND",
                     si.title, si.date, si.time, si.bpm.bpm, si.bpm.noteDuration.toString(),
-                    noteListToString(si.noteList)))
+                    tracksToString(si.tracks)))
             }
 //        Log.v("Metronome", "SceneDatabase.getSceneString: string= ${stringBuilder}")
             return stringBuilder.toString()
@@ -260,7 +260,7 @@ class SceneDatabase {
                     return ScenesAndFileCheckResult(FileCheck.Invalid, scenes)
                 pos = noteListEnd + 3
 
-                val si = Scene(title, date, time, Bpm(bpmValue, noteDuration), stringToNoteList(noteList), Scene.NO_STABLE_ID)
+                val si = Scene(title, date, time, Bpm(bpmValue, noteDuration), stringToTracks(noteList), Scene.NO_STABLE_ID)
                 scenes.add(si)
                 ++numScenesRead
             }

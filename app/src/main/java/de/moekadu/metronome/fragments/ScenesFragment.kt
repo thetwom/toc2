@@ -67,7 +67,7 @@ class ScenesFragment : Fragment() {
         val playerConnection = PlayerServiceConnection.getInstance(
             requireContext(),
             AppPreferences.readMetronomeBpm(requireActivity()),
-            AppPreferences.readMetronomeNoteList(requireActivity()),
+            AppPreferences.readMetronomeTracks(requireActivity()),
             AppPreferences.readIsMute(requireActivity())
         )
         MetronomeViewModel.Factory(playerConnection)
@@ -342,27 +342,25 @@ class ScenesFragment : Fragment() {
         val touchHelper = ItemTouchHelper(simpleTouchHelper)
         touchHelper.attachToRecyclerView(scenesRecyclerView)
 
-        metronomeViewModel.noteList.observe(viewLifecycleOwner) {noteList ->
-            // all this complicated code just checks is the notelist of the active stable id
-            // is equal to the note list in the metronome and if it is not equal, we make sure
-            // that the active saved items are unselected
-            var areNoteListsEqual = false
+        metronomeViewModel.tracks.observe(viewLifecycleOwner) { tracks ->
+            // check whether the tracks of the active scene are equal to the ones which are played,
+            // if they are not equal the active saved items are unselected
+            var areTracksEqual = false
             viewModel.activeStableId.value?.let { stableId ->
-                viewModel.scenes.value?.scenes?.firstOrNull { it.stableId == stableId }?.noteList?.let { activeNoteList ->
-                    areNoteListsEqual = true
-                    if (activeNoteList.size != noteList.size) {
-                        areNoteListsEqual = false
-                    } else {
-                      noteList.zip(activeNoteList) {a, b ->
-                          if (a.id != b.id || a.volume != b.volume)
-                              areNoteListsEqual = false
-                      }
+                viewModel.scenes.value?.scenes?.firstOrNull { it.stableId == stableId }?.tracks?.let { activeTracks ->
+                    areTracksEqual = activeTracks.size == tracks.size
+                    if (areTracksEqual) {
+                        for (i in activeTracks.indices) {
+                            if (!activeTracks[i].isEqual(tracks[i])) {
+                                areTracksEqual = false
+                                break
+                            }
+                        }
                     }
                 }
             }
 
-//            Log.v("Metronome", "ScenesFragment.observeNoteList: areNoteListsEqual=$areNoteListsEqual")
-            if (!areNoteListsEqual) {
+            if (!areTracksEqual) {
                 viewModel.setActiveStableId(Scene.NO_STABLE_ID)
             }
         }
@@ -399,8 +397,8 @@ class ScenesFragment : Fragment() {
         viewModel.activeStableId.observe(viewLifecycleOwner) { stableId ->
 //            Log.v("Metronome", "ScenesFragment: observing stable id: $stableId")
             viewModel.scenes.value?.getScene(stableId)?.let { scene ->
-                if (scene.noteList.size > 0)
-                    metronomeViewModel.setNoteList(scene.noteList)
+                if (scene.tracks.isNotEmpty())
+                    metronomeViewModel.setTracks(scene.tracks)
                 speedLimiter?.let {
                     it.checkSavedItemBpmAndAlert(scene.bpm.bpm, requireContext(), parentFragmentManager)
                     metronomeViewModel.setBpm(it.limit(scene.bpm))

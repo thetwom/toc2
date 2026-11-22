@@ -42,7 +42,7 @@ class MetronomeAndScenesFragment : Fragment() {
         val playerConnection = PlayerServiceConnection.getInstance(
             requireContext(),
             AppPreferences.readMetronomeBpm(requireActivity()),
-            AppPreferences.readMetronomeNoteList(requireActivity()),
+            AppPreferences.readMetronomeTracks(requireActivity()),
             AppPreferences.readIsMute(requireActivity())
         )
         MetronomeViewModel.Factory(playerConnection)

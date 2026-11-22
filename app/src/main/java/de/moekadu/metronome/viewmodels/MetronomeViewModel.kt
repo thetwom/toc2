@@ -25,7 +25,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import de.moekadu.metronome.metronomeproperties.Bpm
 import de.moekadu.metronome.metronomeproperties.NoteDuration
+import de.moekadu.metronome.metronomeproperties.MAX_NUM_TRACKS
 import de.moekadu.metronome.metronomeproperties.NoteListItem
+import de.moekadu.metronome.metronomeproperties.Track
 import de.moekadu.metronome.metronomeproperties.UId
 import de.moekadu.metronome.misc.InitialValues
 import de.moekadu.metronome.services.PlayerServiceConnection
@@ -44,8 +46,105 @@ class MetronomeViewModel(private val playerConnection: PlayerServiceConnection):
     val noteStartedEvent get() = playerConnection.noteStartedEvent
     /** Info of which note is currently played or null if no note is played. */
     val currentlyPlayingNote get() = playerConnection.currentlyPlayingNote
-    /** Currently used note list. */
-    val noteList get() = playerConnection.noteList
+    /** Currently used tracks. */
+    val tracks get() = playerConnection.tracks
+
+    /** Index of the track which is currently edited. */
+    private val _activeTrackIndex = MutableLiveData(0)
+    val activeTrackIndex: LiveData<Int> get() = _activeTrackIndex
+
+    /** Select the track which is currently edited.
+     * @param index Index of the track, clamped to the valid range.
+     */
+    fun setActiveTrackIndex(index: Int) {
+        val size = tracks.value?.size ?: 0
+        val corrected = if (size == 0) 0 else index.coerceIn(0, size - 1)
+        if (_activeTrackIndex.value != corrected)
+            _activeTrackIndex.value = corrected
+    }
+
+    /** Index of the currently edited track or -1 if there is none. */
+    private fun currentTrackIndex(): Int {
+        val size = tracks.value?.size ?: 0
+        if (size == 0) return -1
+        return (_activeTrackIndex.value ?: 0).coerceIn(0, size - 1)
+    }
+
+    /** Notes of the currently edited track (null if there is no track). */
+    fun currentTrackNotes(): ArrayList<NoteListItem>? {
+        val index = currentTrackIndex()
+        return if (index < 0) null else tracks.value?.getOrNull(index)?.notes
+    }
+
+    /** Replace all tracks, e.g. when a scene is loaded. */
+    fun setTracks(newTracks: ArrayList<Track>) {
+        playerConnection.setTracks(newTracks)
+        setActiveTrackIndex(0)
+    }
+
+    /** Add an empty track and select it.
+     * @return Index of the new track or -1 if the maximum number of tracks is reached.
+     */
+    fun addTrack(): Int {
+        var newIndex = -1
+        playerConnection.modifyTracks { trackList ->
+            if (trackList.size >= MAX_NUM_TRACKS) {
+                false
+            } else {
+                trackList.add(Track())
+                newIndex = trackList.size - 1
+                true
+            }
+        }
+        if (newIndex >= 0)
+            setActiveTrackIndex(newIndex)
+        return newIndex
+    }
+
+    /** Remove a track. The last remaining track cannot be removed. */
+    fun removeTrack(index: Int): Boolean {
+        var removed = false
+        playerConnection.modifyTracks { trackList ->
+            if (trackList.size <= 1 || index !in trackList.indices) {
+                false
+            } else {
+                trackList.removeAt(index)
+                removed = true
+                true
+            }
+        }
+        if (removed) {
+            val size = tracks.value?.size ?: 1
+            setActiveTrackIndex(min(index, size - 1))
+        }
+        return removed
+    }
+
+    /** Change the volume of a whole track. */
+    fun setTrackVolume(index: Int, volume: Float) {
+        playerConnection.modifyTracks { trackList ->
+            val track = trackList.getOrNull(index)
+            if (track != null) {
+                track.volume = volume
+                true
+            } else {
+                false
+            }
+        }
+    }
+
+    /** Mute or unmute a single track. */
+    fun setTrackMute(index: Int, isMute: Boolean) {
+        playerConnection.modifyTracks { trackList ->
+            val track = trackList.getOrNull(index)
+            if (track != null) {
+                track.isMute = isMute
+                true
+            } else {
+                false
+            }
+        }
+    }
     /** Defines if metronome is muted or not. */
     val mute: LiveData<Boolean> get() = playerConnection.mute
     /** Title of currently used scene or null if no scene is used. */
@@ -110,17 +209,12 @@ class MetronomeViewModel(private val playerConnection: PlayerServiceConnection):
      * @param noteList New note list to be played.
      */
     fun setNoteList(noteList: ArrayList<NoteListItem>) {
-        playerConnection.setNoteList(noteList)
-    }
-
-    /** Change volume of a note by providing the note list index.
-     * @param index Note index in note list.
-     * @param volume New volume (0 -- 1)
-     */
-    fun setNoteListVolume(index: Int, volume: Float) {
-        playerConnection.modifyNoteList { noteList ->
-            if (index in 0 until noteList.size) {
-                noteList[index].volume = volume
+        val trackIndex = currentTrackIndex()
+        playerConnection.modifyTracks { trackList ->
+            val notes = trackList.getOrNull(trackIndex)?.notes
+            if (notes != null) {
+                notes.clear()
+                notes.addAll(noteList)
                 true
             } else {
                 false
@@ -128,97 +222,104 @@ class MetronomeViewModel(private val playerConnection: PlayerServiceConnection):
         }
     }
 
-    /** Change volume of a note by providing the note uid.
-     * @param uid Uid of note.
-     * @param volume New volume (0 -- 1)
-     */
+    /** Change volume of a note by providing the note list index (within the edited track). */
+    fun setNoteListVolume(index: Int, volume: Float) {
+        val trackIndex = currentTrackIndex()
+        playerConnection.modifyTracks { trackList ->
+            val notes = trackList.getOrNull(trackIndex)?.notes
+            if (notes != null && index in notes.indices) {
+                notes[index].volume = volume
+                true
+            } else {
+                false
+            }
+        }
+    }
+
+    /** Change volume of a note by providing the note uid. */
     fun setNoteListVolume(uid: UId, volume: Float) {
-        playerConnection.modifyNoteList { noteList ->
+        playerConnection.modifyTracks { trackList ->
             var success = false
-            noteList.filter { uid == it.uid }.forEach {
-                it.volume = volume
-                success = true
-            }
+            for (track in trackList)
+                track.notes.filter { uid == it.uid }.forEach {
+                    it.volume = volume
+                    success = true
+                }
             success
         }
     }
 
-    /** Change type of note.
-     * @param uid Uid of note, which should be changed.
-     * @param id New note type id for the given note.
-     */
+    /** Change type of note. */
     fun setNoteListId(uid: UId, id: Int) {
-        playerConnection.modifyNoteList { noteList ->
+        playerConnection.modifyTracks { trackList ->
             var success = false
-            noteList.filter { uid == it.uid }.forEach {
-                it.id = id
-                success = true
-            }
+            for (track in trackList)
+                track.notes.filter { uid == it.uid }.forEach {
+                    it.id = id
+                    success = true
+                }
             success
         }
     }
 
-    /** Change note duration of a note (quarter, eights, ...).
-     * @param uid Uid of note, which should be changed.
-     * @param duration Note duration.
-     */
+    /** Change note duration of a note (quarter, eights, ...). */
     fun setNoteListDuration(uid: UId, duration: NoteDuration) {
-        playerConnection.modifyNoteList { noteList ->
+        playerConnection.modifyTracks { trackList ->
             var success = false
-            noteList.filter { uid == it.uid }.forEach {
-                it.duration = duration
-                success = true
-            }
+            for (track in trackList)
+                track.notes.filter { uid == it.uid }.forEach {
+                    it.duration = duration
+                    success = true
+                }
             success
         }
     }
 
-    /** Add a note to the note list.
-     * @param noteListItem New note.
-     * @param index Position where to insert the note or null to insert at the end.
-     */
+    /** Add a note to the currently edited track. */
     fun addNote(noteListItem: NoteListItem, index: Int? = null) {
-        playerConnection.modifyNoteList { noteList ->
-            val i = if (index == null) noteList.size else min(index, noteList.size)
-            noteList.add(i, noteListItem)
-            true
-        }
-    }
-
-    /** Remove a note from note list.
-     * @param uid Uid of note to be removed.
-     */
-    fun removeNote(uid: UId) {
-        playerConnection.modifyNoteList { noteList ->
-            noteList.removeAll { it.uid == uid }
-        }
-    }
-
-    /** Move a note within note list.
-     * @param uid Uid of note to be moved.
-     * @param toIndex New note position.
-     */
-    fun moveNote(uid: UId, toIndex: Int) {
-        playerConnection.modifyNoteList { noteList ->
-            val toIndexCorrected = min(toIndex, noteList.size - 1)
-            val fromIndex = noteList.indexOfFirst { it.uid == uid }
-            when {
-                toIndexCorrected == fromIndex -> {
-                    false
-                }
-                fromIndex == -1 -> {
-                    false
-                }
-                else -> {
-                    val note = noteList.removeAt(fromIndex)
-                    noteList.add(toIndexCorrected, note)
-                    true
-                }
+        val trackIndex = currentTrackIndex()
+        playerConnection.modifyTracks { trackList ->
+            val notes = trackList.getOrNull(trackIndex)?.notes
+            if (notes != null) {
+                val i = if (index == null) notes.size else min(index, notes.size)
+                notes.add(i, noteListItem)
+                true
+            } else {
+                false
             }
         }
     }
 
-    /** Set the title of the scene which is currently edited. */
+    /** Remove a note from any track. */
+    fun removeNote(uid: UId) {
+        playerConnection.modifyTracks { trackList ->
+            var success = false
+            for (track in trackList)
+                if (track.notes.removeAll { it.uid == uid })
+                    success = true
+            success
+        }
+    }
+
+    /** Move a note within its track. */
+    fun moveNote(uid: UId, toIndex: Int) {
+        playerConnection.modifyTracks { trackList ->
+            for (track in trackList) {
+                val notes = track.notes
+                val fromIndex = notes.indexOfFirst { it.uid == uid }
+                if (fromIndex >= 0) {
+                    val toIndexCorrected = min(toIndex, notes.size - 1)
+                    if (toIndexCorrected == fromIndex)
+                        return@modifyTracks false
+                    val note = notes.removeAt(fromIndex)
+                    notes.add(toIndexCorrected, note)
+                    return@modifyTracks true
+                }
+            }
+            false
+        }
+    }
+
     fun setEditedSceneTitle(name: String?) {
         _editedSceneTitle.value = name
     }

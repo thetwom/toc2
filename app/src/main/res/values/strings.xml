@@ -168,4 +168,6 @@
     <string name="clap" translatable="false">clap</string>
     <string name="tom" translatable="false">tom</string>
     <string name="ride" translatable="false">ride</string>
+    <string name="max_num_tracks_reached">Maximum number of tracks reached</string>
+    <string name="cannot_delete_last_track">The last track cannot be deleted</string>
 </resources>
