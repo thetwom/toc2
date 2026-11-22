@@ -17,6 +17,12 @@
                 <path
                     android:fillColor="#FF000000"
                     android:pathData="m15.2883,18.5c-2.4955,-3.7323 -10.9025,1.1337 -8.3652,5.0197 2.5373,3.886 10.8606,-1.2874 8.3652,-5.0197z"/>
+            
+                <group android:translateY="10.5">
+                    <path
+                        android:fillColor="#FF000000"
+                        android:pathData="m15.2883,18.5c-2.4955,-3.7323 -10.9025,1.1337 -8.3652,5.0197 2.5373,3.886 10.8606,-1.2874 8.3652,-5.0197z"/>
+                </group>
             </group>
             <group
                 android:name="note_line"
@@ -27,10 +33,6 @@
                     android:strokeColor="#000000"
                     android:strokeWidth="1"/>
             </group>
-            <path
-                android:name="extra_note_dot"
-                android:fillColor="#FF000000"
-                android:pathData="M17.6,30.4 a1.9,1.9 0 1 0 0.05,0z"/>
         </vector>
     </aapt:attr>
 
