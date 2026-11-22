@@ -21,12 +21,12 @@
     <string name="app_name">Metronome</string>
     <string name="action_settings">Settings</string>
 
-    <string name="base" translatable="false">kick drum</string>
-    <string name="hihat" translatable="false">hi-hat</string>
-    <string name="snare" translatable="false">snare</string>
-    <string name="sticks" translatable="false">sticks</string>
-    <string name="claves" translatable="false">claves</string>
-    <string name="woodblock" translatable="false">woodblock</string>
+    <string name="base">kick drum</string>
+    <string name="hihat">hi-hat</string>
+    <string name="snare">snare</string>
+    <string name="sticks">rim</string>
+    <string name="claves">claves</string>
+    <string name="woodblock">woodblock</string>
     <string name="mute">mute</string>
     <string name="bpm">%s bpm</string>
     <string name="eqbpm">= %s bpm</string>
@@ -163,11 +163,28 @@
     <string name="soundset_dnb" translatable="false">DnB kit</string>
     <string name="soundset_techno" translatable="false">Techno kit</string>
     <string name="soundset_rock" translatable="false">Rock kit</string>
-    <string name="click" translatable="false">click</string>
-    <string name="hat_open" translatable="false">open hat</string>
-    <string name="clap" translatable="false">clap</string>
-    <string name="tom" translatable="false">tom</string>
-    <string name="ride" translatable="false">ride</string>
+    <string name="click">click</string>
+    <string name="hat_open">open hat</string>
+    <string name="clap">clap</string>
+    <string name="tom">tom</string>
+    <string name="ride">ride</string>
+    <string name="cowbell">cowbell</string>
+    <string name="shaker">shaker</string>
+    <string name="crash">crash</string>
+    <string name="woodblock_low">wood low</string>
+    <string name="click_1568" translatable="false">1568</string>
+    <string name="click_1046" translatable="false">1046</string>
+    <string name="click_880" translatable="false">880</string>
+    <string name="click_1319" translatable="false">1319</string>
+    <string name="click_2093" translatable="false">2093</string>
+    <string name="click_698" translatable="false">698</string>
+    <string name="click_784" translatable="false">784</string>
+    <string name="wood_1180" translatable="false">1180</string>
+    <string name="wood_900" translatable="false">900</string>
+    <string name="wood_720" translatable="false">720</string>
+    <string name="wood_1520" translatable="false">1520</string>
+    <string name="wood_560" translatable="false">560</string>
+    <string name="wood_1000" translatable="false">1000</string>
     <string name="tracks">Tracks</string>
     <string name="track">Track</string>
     <string name="new_track">+ New track</string>

@@ -8,15 +8,17 @@
 
 音色集内的鼓件按拍位分配：每个音色集提供 7 个槽位，槽位对应原有的音符音色选择器（底部网格与音符编辑界面）。想把 kick / snare / hat 分给不同拍，就用原有方式给每个音符选不同槽位。
 
-| 音色集 | 槽位 0 | 1 | 2 | 3 | 4 | 5 | 6 |
-|---|---|---|---|---|---|---|---|
-| Default | kick drum | snare | sticks | woodblock | claves | hi-hat | mute |
-| Ableton Live click | click 1568 Hz | click 1046 Hz | click 880 Hz | click 1319 Hz | click 2093 Hz | click 698 Hz | mute |
-| 808 kit | kick | snare | closed hat | cowbell | clap | rim | mute |
-| iReal Pro click | 木 click 1180 Hz | 900 Hz | 720 Hz | rim 1520 Hz | shaker | 560 Hz | mute |
-| DnB kit | kick | snare | closed hat | open hat | rimshot | shaker/ride | mute |
-| Techno kit | 909 kick | 909 snare | closed hat | open hat | clap | rim | mute |
-| Rock kit | kick | snare | closed hat | open hat | tom | ride | mute |
+| 音色集 | 槽位 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+|---|---|---|---|---|---|---|---|---|
+| Default | kick drum | snare | rim | woodblock | claves | hi-hat | mute | wood low |
+| Ableton Live click | 1568 | 1046 | 880 | 1319 | 2093 | 698 | mute | 784 |
+| 808 kit | kick | snare | closed hat | cowbell | clap | rim | mute | tom |
+| iReal Pro click | 1180 | 900 | 720 | 1520 | shaker | 560 | mute | 1000 |
+| DnB kit | kick | snare | closed hat | open hat | rim | shaker | mute | tom |
+| Techno kit | kick | snare | closed hat | open hat | clap | rim | mute | ride |
+| Rock kit | kick | snare | closed hat | open hat | tom | ride | mute | crash |
+
+每套 8 个槽位，第 7 槽固定为静音，第 8 槽是新增音色。音色选择网格 2x4 正好八格，每格右下角标注该音符的名字（click 类显示频率，中文界面下鼓件显示中文名）。
 
 槽位 6 固定为静音，沿用原版 mute 采样。所有音色集槽位数量一致，因此旧场景里保存的 note id 不会失效。
 

@@ -50,57 +50,63 @@ object SoundSets {
     /// Ableton Live like metronome clicks: very short sine pulses.
     val ableton = SoundSet(
         "ableton", R.string.soundset_ableton, arrayOf(
-            note(R.raw.ableton_0_44_wav, R.raw.ableton_0_48_wav, R.string.click,
+            note(R.raw.ableton_0_44_wav, R.raw.ableton_0_48_wav, R.string.click_1568,
                 R.drawable.ic_note_a, R.drawable.ic_note_a_eighth, R.drawable.ic_note_a_sixteenth, 25L),
-            note(R.raw.ableton_1_44_wav, R.raw.ableton_1_48_wav, R.string.click,
+            note(R.raw.ableton_1_44_wav, R.raw.ableton_1_48_wav, R.string.click_1046,
                 R.drawable.ic_note_c, R.drawable.ic_note_c_eighth, R.drawable.ic_note_c_sixteenth, 25L),
-            note(R.raw.ableton_2_44_wav, R.raw.ableton_2_48_wav, R.string.click,
+            note(R.raw.ableton_2_44_wav, R.raw.ableton_2_48_wav, R.string.click_880,
                 R.drawable.ic_note_c_rim, R.drawable.ic_note_c_rim_eighth, R.drawable.ic_note_c_rim_sixteenth, 25L),
-            note(R.raw.ableton_3_44_wav, R.raw.ableton_3_48_wav, R.string.click,
+            note(R.raw.ableton_3_44_wav, R.raw.ableton_3_48_wav, R.string.click_1319,
                 R.drawable.ic_note_ep, R.drawable.ic_note_ep_eighth, R.drawable.ic_note_ep_sixteenth, 25L),
-            note(R.raw.ableton_4_44_wav, R.raw.ableton_4_48_wav, R.string.click,
+            note(R.raw.ableton_4_44_wav, R.raw.ableton_4_48_wav, R.string.click_2093,
                 R.drawable.ic_note_gp, R.drawable.ic_note_gp_eighth, R.drawable.ic_note_gp_sixteenth, 25L),
-            note(R.raw.ableton_5_44_wav, R.raw.ableton_5_48_wav, R.string.click,
+            note(R.raw.ableton_5_44_wav, R.raw.ableton_5_48_wav, R.string.click_698,
                 R.drawable.ic_note_hihat, R.drawable.ic_note_hihat_eighth, R.drawable.ic_note_hihat_sixteenth, 25L),
-            muteNote()
+            muteNote(),
+            note(R.raw.ableton_6_44_wav, R.raw.ableton_6_48_wav, R.string.click_784,
+                R.drawable.ic_note_extra, R.drawable.ic_note_extra_eighth, R.drawable.ic_note_extra_sixteenth, 25L),
         )
     )
 
-    /// 808 style drum kit: kick, snare, closed hat, cowbell, clap, rim.
+    /// 808 style drum kit.
     val m808 = SoundSet(
-        "s808", R.string.soundset_808, arrayOf(
+        "m808", R.string.soundset_808, arrayOf(
             note(R.raw.s808_0_44_wav, R.raw.s808_0_48_wav, R.string.base,
                 R.drawable.ic_note_a, R.drawable.ic_note_a_eighth, R.drawable.ic_note_a_sixteenth, 70L),
             note(R.raw.s808_1_44_wav, R.raw.s808_1_48_wav, R.string.snare,
                 R.drawable.ic_note_c, R.drawable.ic_note_c_eighth, R.drawable.ic_note_c_sixteenth, 60L),
             note(R.raw.s808_2_44_wav, R.raw.s808_2_48_wav, R.string.hihat,
                 R.drawable.ic_note_hihat, R.drawable.ic_note_hihat_eighth, R.drawable.ic_note_hihat_sixteenth, 30L),
-            note(R.raw.s808_3_44_wav, R.raw.s808_3_48_wav, R.string.claves,
+            note(R.raw.s808_3_44_wav, R.raw.s808_3_48_wav, R.string.cowbell,
                 R.drawable.ic_note_gp, R.drawable.ic_note_gp_eighth, R.drawable.ic_note_gp_sixteenth, 55L),
             note(R.raw.s808_4_44_wav, R.raw.s808_4_48_wav, R.string.clap,
                 R.drawable.ic_note_c_rim, R.drawable.ic_note_c_rim_eighth, R.drawable.ic_note_c_rim_sixteenth, 55L),
             note(R.raw.s808_5_44_wav, R.raw.s808_5_48_wav, R.string.sticks,
                 R.drawable.ic_note_ep, R.drawable.ic_note_ep_eighth, R.drawable.ic_note_ep_sixteenth, 30L),
-            muteNote()
+            muteNote(),
+            note(R.raw.s808_6_44_wav, R.raw.s808_6_48_wav, R.string.tom,
+                R.drawable.ic_note_extra, R.drawable.ic_note_extra_eighth, R.drawable.ic_note_extra_sixteenth, 60L),
         )
     )
 
     /// iReal Pro like wooden clicks.
     val ireal = SoundSet(
         "ireal", R.string.soundset_ireal, arrayOf(
-            note(R.raw.ireal_0_44_wav, R.raw.ireal_0_48_wav, R.string.click,
+            note(R.raw.ireal_0_44_wav, R.raw.ireal_0_48_wav, R.string.wood_1180,
                 R.drawable.ic_note_a, R.drawable.ic_note_a_eighth, R.drawable.ic_note_a_sixteenth, 35L),
-            note(R.raw.ireal_1_44_wav, R.raw.ireal_1_48_wav, R.string.click,
+            note(R.raw.ireal_1_44_wav, R.raw.ireal_1_48_wav, R.string.wood_900,
                 R.drawable.ic_note_c, R.drawable.ic_note_c_eighth, R.drawable.ic_note_c_sixteenth, 35L),
-            note(R.raw.ireal_2_44_wav, R.raw.ireal_2_48_wav, R.string.click,
+            note(R.raw.ireal_2_44_wav, R.raw.ireal_2_48_wav, R.string.wood_720,
                 R.drawable.ic_note_c_rim, R.drawable.ic_note_c_rim_eighth, R.drawable.ic_note_c_rim_sixteenth, 35L),
-            note(R.raw.ireal_3_44_wav, R.raw.ireal_3_48_wav, R.string.click,
+            note(R.raw.ireal_3_44_wav, R.raw.ireal_3_48_wav, R.string.wood_1520,
                 R.drawable.ic_note_ep, R.drawable.ic_note_ep_eighth, R.drawable.ic_note_ep_sixteenth, 30L),
-            note(R.raw.ireal_4_44_wav, R.raw.ireal_4_48_wav, R.string.click,
+            note(R.raw.ireal_4_44_wav, R.raw.ireal_4_48_wav, R.string.shaker,
                 R.drawable.ic_note_gp, R.drawable.ic_note_gp_eighth, R.drawable.ic_note_gp_sixteenth, 30L),
-            note(R.raw.ireal_5_44_wav, R.raw.ireal_5_48_wav, R.string.click,
+            note(R.raw.ireal_5_44_wav, R.raw.ireal_5_48_wav, R.string.wood_560,
                 R.drawable.ic_note_hihat, R.drawable.ic_note_hihat_eighth, R.drawable.ic_note_hihat_sixteenth, 30L),
-            muteNote()
+            muteNote(),
+            note(R.raw.ireal_6_44_wav, R.raw.ireal_6_48_wav, R.string.wood_1000,
+                R.drawable.ic_note_extra, R.drawable.ic_note_extra_eighth, R.drawable.ic_note_extra_sixteenth, 30L),
         )
     )
 
@@ -117,9 +123,11 @@ object SoundSets {
                 R.drawable.ic_note_gp, R.drawable.ic_note_gp_eighth, R.drawable.ic_note_gp_sixteenth, 40L),
             note(R.raw.dnb_4_44_wav, R.raw.dnb_4_48_wav, R.string.sticks,
                 R.drawable.ic_note_c_rim, R.drawable.ic_note_c_rim_eighth, R.drawable.ic_note_c_rim_sixteenth, 30L),
-            note(R.raw.dnb_5_44_wav, R.raw.dnb_5_48_wav, R.string.ride,
+            note(R.raw.dnb_5_44_wav, R.raw.dnb_5_48_wav, R.string.shaker,
                 R.drawable.ic_note_ep, R.drawable.ic_note_ep_eighth, R.drawable.ic_note_ep_sixteenth, 35L),
-            muteNote()
+            muteNote(),
+            note(R.raw.dnb_6_44_wav, R.raw.dnb_6_48_wav, R.string.tom,
+                R.drawable.ic_note_extra, R.drawable.ic_note_extra_eighth, R.drawable.ic_note_extra_sixteenth, 55L),
         )
     )
 
@@ -138,7 +146,9 @@ object SoundSets {
                 R.drawable.ic_note_c_rim, R.drawable.ic_note_c_rim_eighth, R.drawable.ic_note_c_rim_sixteenth, 50L),
             note(R.raw.techno_5_44_wav, R.raw.techno_5_48_wav, R.string.sticks,
                 R.drawable.ic_note_ep, R.drawable.ic_note_ep_eighth, R.drawable.ic_note_ep_sixteenth, 30L),
-            muteNote()
+            muteNote(),
+            note(R.raw.techno_6_44_wav, R.raw.techno_6_48_wav, R.string.ride,
+                R.drawable.ic_note_extra, R.drawable.ic_note_extra_eighth, R.drawable.ic_note_extra_sixteenth, 35L),
         )
     )
 
@@ -157,10 +167,11 @@ object SoundSets {
                 R.drawable.ic_note_c_rim, R.drawable.ic_note_c_rim_eighth, R.drawable.ic_note_c_rim_sixteenth, 60L),
             note(R.raw.rock_5_44_wav, R.raw.rock_5_48_wav, R.string.ride,
                 R.drawable.ic_note_ep, R.drawable.ic_note_ep_eighth, R.drawable.ic_note_ep_sixteenth, 35L),
-            muteNote()
+            muteNote(),
+            note(R.raw.rock_6_44_wav, R.raw.rock_6_48_wav, R.string.crash,
+                R.drawable.ic_note_extra, R.drawable.ic_note_extra_eighth, R.drawable.ic_note_extra_sixteenth, 40L),
         )
     )
-
     /// All sound sets in display order.
     val all: List<SoundSet> = listOf(default, ableton, m808, ireal, dnb, techno, rock)
 

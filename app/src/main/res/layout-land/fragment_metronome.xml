@@ -317,7 +317,7 @@
         app:layout_constraintBottom_toTopOf="@id/tick_visualizer"
         app:layout_constraintTop_toTopOf="parent"
         app:numRows="1"
-        app:numCols="7"
+        app:numCols="8"
         app:noteViewHeightPercent="0.4"
         app:plusButtonRightPercent="0.55"
         app:vertical="false"

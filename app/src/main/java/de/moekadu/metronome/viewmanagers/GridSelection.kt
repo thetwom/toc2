@@ -20,11 +20,15 @@
 package de.moekadu.metronome.viewmanagers
 
 import android.content.res.ColorStateList
+import android.graphics.Color
+import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ImageView
+import androidx.appcompat.widget.AppCompatTextView
+import kotlin.math.roundToInt
 import de.moekadu.metronome.misc.Utilities
 
 class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
@@ -41,6 +45,7 @@ class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
     var activeButtonChangedListener: ActiveButtonChangedListener? = null
 
     private val buttons = ArrayList<ImageButton>()
+    private val labels = ArrayList<AppCompatTextView>()
     private val deactivatedIndices = ArrayList<Boolean>()
 
     val size get() = buttons.size
@@ -52,11 +57,15 @@ class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
         buttons.forEachIndexed { index, button ->
             val alphaEnd = if (deactivatedIndices[index]) alphaDeactivated else 1.0f
             AnimateView.emerge(button, animationDuration, alphaEnd)
+            labels.getOrNull(index)?.let { AnimateView.emerge(it, animationDuration, alphaEnd) }
         }
     }
 
     fun disappear(animationDuration: Long) {
         buttons.forEach {
+            AnimateView.hide(it, animationDuration)
+        }
+        labels.forEach {
             AnimateView.hide(it, animationDuration)
         }
     }
@@ -93,9 +102,22 @@ class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
                     imageTintList = tint
                     visibility = View.GONE
                 }
+                val label = AppCompatTextView(viewGroup.context).apply {
+                    textSize = 9f
+                    gravity = Gravity.BOTTOM or Gravity.END
+                    setPadding(0, 0, Utilities.dp2px(3f).roundToInt(), Utilities.dp2px(1f).roundToInt())
+                    setTextColor(tint?.defaultColor ?: Color.BLACK)
+                    includeFontPadding = false
+                    maxLines = 1
+                    isClickable = false
+                    isFocusable = false
+                    visibility = View.GONE
+                }
                 buttons.add(button)
+                labels.add(label)
                 deactivatedIndices.add(false)
                 viewGroup.addView(button)
+                viewGroup.addView(label)
             }
         }
     }
@@ -117,6 +139,7 @@ class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
             for (iCol in 0 until numCols) {
                 val w = if (iCol <= numWiderButtons) buttonWidthSpecWide else buttonWidthSpec
                 buttons.forEach { it.measure(w, h) }
+                labels.forEach { it.measure(w, h) }
             }
         }
     }
@@ -129,6 +152,9 @@ class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
             for (iCol in 0 until numCols) {
                 val button = buttons[iRow * numCols + iCol]
                 button.layout(posX, posY, posX + button.measuredWidth, posY + button.measuredHeight)
+                labels.getOrNull(iRow * numCols + iCol)?.layout(
+                    posX, posY, posX + button.measuredWidth, posY + button.measuredHeight
+                )
                 posX += button.measuredWidth + buttonSpacing
             }
             val button0 = buttons[iRow * numCols]
@@ -138,6 +164,17 @@ class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
 
     fun setButtonDrawable(index: Int, resourceId: Int) {
         buttons[index].setImageResource(resourceId)
+    }
+
+    /** Small text in the lower right corner of the button, to tell the different notes apart. */
+    fun setButtonLabel(index: Int, text: String?) {
+        val label = labels.getOrNull(index) ?: return
+        if (text.isNullOrEmpty()) {
+            label.text = null
+            label.visibility = View.GONE
+        } else {
+            label.text = text
+        }
     }
 
     fun deactivateButton(index: Int) {

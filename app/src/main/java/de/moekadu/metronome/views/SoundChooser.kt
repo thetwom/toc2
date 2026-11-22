@@ -1403,6 +1403,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             val drawableId = getNoteDrawableResourceID(note, noteDuration)
             noteSelection.setButtonDrawable(note, drawableId)
             dynamicSelection.setButtonDrawable(note, drawableId)
+            noteSelection.setButtonLabel(note, context.getString(getNoteStringResourceID(note)))
         }
     }
 

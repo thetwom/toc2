@@ -225,7 +225,10 @@ val defaultNotes = arrayOf(
         // NoteInfo(R.raw.sn_jazz_c, R.string.snare, R.drawable.ic_snare, R.drawable.ic_note_c_eighth, R.drawable.ic_note_c_sixteenth, 30L),
         NoteInfo(R.raw.mute44_wav, R.raw.mute48_wav, R.string.mute,
             R.drawable.ic_note_pause, R.drawable.ic_note_pause_eighth, R.drawable.ic_note_pause_sixteenth,
-            0L)
+            0L),
+        NoteInfo(R.raw.woodblock_low_44_wav, R.raw.woodblock_low_48_wav, R.string.woodblock_low,
+            R.drawable.ic_note_extra, R.drawable.ic_note_extra_eighth, R.drawable.ic_note_extra_sixteenth,
+            45L)
 )
 
 /** Notes which are currently selectable. Replaced by [SoundSetManager] when the sound set changes.
@@ -242,7 +245,8 @@ fun getNoteAudioResourceID(index : Int, sampleRate: Int) = when(sampleRate) {  /
     else ->  availableNotes[index].audio48ResourceID
 }
 
-//fun getNoteStringResourceID(index : Int) = availableNotes[index].stringResourceID
+/** Name of the note which is selectable at the given index (used as a small label on the note buttons). */
+fun getNoteStringResourceID(index: Int) = availableNotes[index].stringResourceID
 
 fun getNoteDrawableResourceID(index: Int, duration: NoteDuration) =
     when (duration) {

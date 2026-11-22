@@ -131,10 +131,8 @@ def ableton(slot, sr):
            (1319, 0.026, 0.005, 0.05),
            (2093, 0.020, 0.004, 0.06),
            (698, 0.028, 0.006, 0.05),
-           (0, 0.02, 0.004, 0.0)]
+           (784, 0.027, 0.0055, 0.05)]
     f, dur, tau, nz = cfg[slot]
-    if slot == 6:
-        return finish(np.zeros(1), sr, dur)
     return click_tone(f, dur, sr, tau, nz, 100 + slot)
 
 
@@ -177,7 +175,9 @@ def m808(slot, sr):
         d = 0.05
         s = sweep_sine(2400, 900, d, sr, tau=0.006, curve=0.004)
         return finish(s, sr, d, peak=0.8)
-    return finish(np.zeros(1), sr, 0.02)
+    # slot 6: tom
+    d = 0.30
+    return finish(sweep_sine(190, 95, d, sr, tau=0.10, curve=0.05), sr, d)
 
 
 def ireal(slot, sr):
@@ -188,11 +188,9 @@ def ireal(slot, sr):
            (1520, 0.020, 0.0045, 0.45, 0.75),
            (0, 0.040, 0.0140, 0.85, 0.55),
            (560, 0.030, 0.0060, 0.50, 0.70),
-           (0, 0.02, 0.004, 0.0, 0.0)]
+           (1000, 0.028, 0.0070, 0.55, 0.85)]
     f, dur, tau, nz_amt, peak = cfg[slot]
     n = int(dur * sr)
-    if slot == 6:
-        return finish(np.zeros(1), sr, dur)
     if f == 0:  # shaker
         nz = biquad_bp(noise(n, 200 + slot), 5200, 0.9, sr) * env_exp(n, tau, sr, attack=0.001)
         return finish(nz, sr, dur, peak=peak)
@@ -235,7 +233,9 @@ def dnb(slot, sr):
         n = int(d * sr)
         nz = biquad_hp(noise(n, 37), 5200, 0.8, sr) * env_exp(n, 0.07, sr, attack=0.004)
         return finish(nz, sr, d, peak=0.6)
-    return finish(np.zeros(1), sr, 0.02)
+    # slot 6: tom
+    d = 0.26
+    return finish(sweep_sine(230, 120, d, sr, tau=0.085, curve=0.045), sr, d)
 
 
 def techno(slot, sr):
@@ -276,7 +276,11 @@ def techno(slot, sr):
         s = np.sin(2 * np.pi * 1400 * np.arange(n) / sr) * env_exp(n, 0.004, sr) * 0.7
         s += biquad_bp(noise(n, 46), 2600, 1.5, sr) * env_exp(n, 0.004, sr) * 0.5
         return finish(s, sr, d, peak=0.8)
-    return finish(np.zeros(1), sr, 0.02)
+    # slot 6: ride
+    d = 0.30
+    n = int(d * sr)
+    nz = biquad_hp(noise(n, 47), 5000, 0.7, sr) * env_exp(n, 0.11, sr, attack=0.003)
+    return finish(nz, sr, d, peak=0.55)
 
 
 def rock(slot, sr):
@@ -310,7 +314,11 @@ def rock(slot, sr):
         n = int(d * sr)
         nz = biquad_hp(noise(n, 56), 4800, 0.7, sr) * env_exp(n, 0.10, sr, attack=0.003)
         return finish(nz, sr, d, peak=0.55)
-    return finish(np.zeros(1), sr, 0.02)
+    # slot 6: crash
+    d = 0.42
+    n = int(d * sr)
+    nz = biquad_hp(noise(n, 57), 4200, 0.6, sr) * env_exp(n, 0.16, sr, attack=0.002)
+    return finish(nz, sr, d, peak=0.5)
 
 
 SETS = {
@@ -338,13 +346,29 @@ def write_wav(path, samples, sr):
     assert raw[12:16] == b"fmt " and raw[36:40] == b"data", f"{path}: 非 44 字节头"
 
 
+def default_extra(sr):
+    """Extra note of the default sound set: low wood block, matching the built in wood block."""
+    d = 0.075
+    n = int(d * sr)
+    f = 700.0
+    t = np.arange(n) / sr
+    tone = np.sin(2 * np.pi * f * t) * env_exp(n, 0.012, sr, attack=0.0004)
+    tone += 0.35 * np.sin(2 * np.pi * f * 2.1 * t) * env_exp(n, 0.008, sr, attack=0.0003)
+    nz = biquad_bp(noise(n, 900), f * 2.4, 1.2, sr) * env_exp(n, 0.005, sr, attack=0.0002) * 0.5
+    return finish(tone + nz, sr, d, peak=0.9)
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     count = 0
+    for sr in SRATES:
+        tag = 44 if sr == 44100 else 48
+        write_wav(os.path.join(OUT, f"woodblock_low_{tag}_wav.wav"), default_extra(sr), sr)
+        count += 1
     for set_id, fn in SETS.items():
         for sr in SRATES:
             tag = 44 if sr == 44100 else 48
-            for slot in range(6):  # slot 6 (mute) is taken from the original sound set
+            for slot in range(7):
                 x = fn(slot, sr)
                 path = os.path.join(OUT, f"{set_id}_{slot}_{tag}_wav.wav")
                 write_wav(path, x, sr)
