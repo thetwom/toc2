@@ -103,6 +103,8 @@ class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
                     visibility = View.GONE
                 }
                 val label = AppCompatTextView(viewGroup.context).apply {
+                    // the button below has an elevation of 3dp, the label must be drawn above it
+                    elevation = Utilities.dp2px(4f)
                     textSize = 9f
                     gravity = Gravity.BOTTOM or Gravity.END
                     setPadding(0, 0, Utilities.dp2px(3f).roundToInt(), Utilities.dp2px(1f).roundToInt())
@@ -174,6 +176,9 @@ class GridSelection(val numRows: Int, val numCols: Int, val buttonSpacing: Int,
             label.visibility = View.GONE
         } else {
             label.text = text
+            // in case the label is created after the grid was shown already
+            if (buttons[index].visibility == View.VISIBLE)
+                label.visibility = View.VISIBLE
         }
     }
 
