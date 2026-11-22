@@ -37,6 +37,7 @@
             android:name="de.moekadu.metronome.MainActivity"
             android:launchMode="singleTask"
             android:windowSoftInputMode="adjustPan"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
             android:theme="@style/AppTheme"
             android:exported="true">
             <intent-filter>

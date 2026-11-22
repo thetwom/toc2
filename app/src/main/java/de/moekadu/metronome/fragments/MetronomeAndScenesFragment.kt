@@ -19,6 +19,7 @@
 
 package de.moekadu.metronome.fragments
 
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.*
 import androidx.appcompat.view.ActionMode
@@ -56,12 +57,14 @@ class MetronomeAndScenesFragment : Fragment() {
         private set
 
     private var actionMode: ActionMode? = null
+    private var orientationLocked = false
 
     private val pageChangeListener = object : ViewPager2.OnPageChangeCallback() {
         override fun onPageSelected(position: Int) {
             (activity as MainActivity?)?.setDisplayHomeButton()
             metronomeViewModel.isVisible = (position == ViewPagerAdapter.METRONOME)
             scenesViewModel.isVisible = (position == ViewPagerAdapter.SCENES)
+            updateOrientationLock(position)
 
             super.onPageSelected(position)
         }
@@ -127,6 +130,9 @@ class MetronomeAndScenesFragment : Fragment() {
 
         viewPager?.registerOnPageChangeCallback(pageChangeListener)
         viewPager?.offscreenPageLimit = 1
+        viewPager?.post {
+            viewPager?.currentItem?.let { updateOrientationLock(it) }
+        }
 
         metronomeViewModel.mute.observe(viewLifecycleOwner) {
             activity?.invalidateOptionsMenu()
@@ -167,6 +173,19 @@ class MetronomeAndScenesFragment : Fragment() {
         if (stableId != null && stableId != Scene.NO_STABLE_ID) {
             scenesViewModel.setEditingStableId(stableId)
             viewPager?.currentItem = ViewPagerAdapter.METRONOME
+        }
+    }
+
+    /** The track page is always shown in portrait, all other pages follow the device orientation. */
+    private fun updateOrientationLock(position: Int) {
+        val activity = activity ?: return
+        val shouldLock = position == ViewPagerAdapter.TRACKS
+        if (shouldLock && !orientationLocked) {
+            orientationLocked = true
+            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        } else if (!shouldLock && orientationLocked) {
+            orientationLocked = false
+            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         }
     }
 

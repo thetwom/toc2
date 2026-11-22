@@ -314,12 +314,6 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         fun removeNote(uid: UId)
         fun removeAllNotes()
         fun moveNote(uid: UId, toIndex: Int)
-        fun addTrack() {}
-        fun selectTrack(index: Int) {}
-        fun changeTrackVolume(volume: Float) {}
-        fun removeTrack() {}
-        fun trackLongClicked(index: Int) {}
-        fun changeTrackMute(isMute: Boolean) {}
     }
 
     var stateChangedListener: StateChangedListener? = null
@@ -338,29 +332,8 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 
     private var orientation = Orientation.Portrait
 
-    /** True when the plus button was pressed in its lower half (which adds a track). */
-    private var plusButtonPressOnLowerHalf = false
-
-    /** Index of the track which is currently edited by the track chooser (-1 if none). */
-    private var trackEditIndex = -1
-    val editedTrackIndex get() = trackEditIndex
-
-    /** Mute state which is shown in the track menu. */
-    private var trackEditIsMute = false
-
-    /** Button inside the track menu which mutes the whole track. */
-    private val trackMuteButton = ImageButton(context).apply {
-        setBackgroundResource(R.drawable.plus_button_background)
-        setImageResource(R.drawable.ic_action_mute)
-        scaleType = ImageView.ScaleType.FIT_CENTER
-        translationZ = Utilities.dp2px(5f)
-        setPadding(0)
-        visibility = GONE
-        disableSwipeForClickableButton(this)
-    }
-
     private val plusButton = ImageButton(context).apply {
-        setBackgroundResource(R.drawable.plus_button_background_split)
+        setBackgroundResource(R.drawable.plus_button_background)
         setImageResource(R.drawable.ic_add)
         scaleType = ImageView.ScaleType.FIT_CENTER
         translationZ = Utilities.dp2px(5f)
@@ -520,7 +493,6 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 
         addView(backgroundSurface)
         addView(plusButtonNoteLines)
-        addView(trackMuteButton)
         addView(noteView)
         addView(plusButton)
         addView(deleteButton)
@@ -530,26 +502,11 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 
         addView(volumeControl)
         volumeControl.onVolumeChangedListener = VolumeControl.OnVolumeChangedListener { volume ->
-            if (status == Status.Track) {
-                stateChangedListener?.changeTrackVolume(volume)
-            } else {
-                activeControlButton?.let { controlButton ->
-                    if (controlButton.volume != volume) {
-                        stateChangedListener?.changeVolume(controlButton.uid, volume)
-                    }
+            activeControlButton?.let { controlButton ->
+                if (controlButton.volume != volume) {
+//                    controlButton.setVolume(0, volume)
+                    stateChangedListener?.changeVolume(controlButton.uid, volume)
                 }
-            }
-        }
-
-        noteView.onTrackGestureListener = object : NoteView.OnTrackGestureListener {
-            override fun onTrackClicked(trackIndex: Int) {
-                if (status == Status.Static || status == Status.Dynamic)
-                    hideSoundChooser(animateLong)
-                stateChangedListener?.selectTrack(trackIndex)
-            }
-
-            override fun onTrackLongClicked(trackIndex: Int) {
-                stateChangedListener?.trackLongClicked(trackIndex)
             }
         }
 
@@ -669,38 +626,15 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             showBackground(animateLong)
         }
 
-        trackMuteButton.setOnClickListener {
-            trackEditIsMute = !trackEditIsMute
-            trackMuteButton.setImageResource(
-                if (trackEditIsMute) R.drawable.ic_action_mute_active else R.drawable.ic_action_mute
-            )
-            stateChangedListener?.changeTrackMute(trackEditIsMute)
-        }
         plusButton.setOnClickListener {
-            if (plusButtonPressOnLowerHalf) {
-                // lower half -> new track
-                stateChangedListener?.addTrack()
-            } else {
-                // upper half -> new note
-                val newNote = controlButtons.lastOrNull()?.note?.clone()?.apply { uid = UId.create() }
-                    ?: NoteListItem(defaultNote, 1.0f, NoteDuration.Quarter)
-                if (status == Status.Static)
-                    nextActiveControlButtonUidOnNoteListChange = newNote.uid
-                stateChangedListener?.addNote(newNote)
-            }
-        }
-        plusButton.setOnTouchListener { _, event ->
-            if (event.actionMasked == MotionEvent.ACTION_DOWN) {
-                plusButton.parent?.requestDisallowInterceptTouchEvent(true)
-                plusButtonPressOnLowerHalf = event.y >= plusButton.height / 2f
-            }
-            false
+            val newNote = controlButtons.lastOrNull()?.note?.clone()?.apply { uid = UId.create() }
+                ?: NoteListItem(defaultNote, 1.0f, NoteDuration.Quarter)
+            if (status == Status.Static)
+                nextActiveControlButtonUidOnNoteListChange = newNote.uid
+            stateChangedListener?.addNote(newNote)
         }
         deleteButton.setOnClickListener {
-            if (status == Status.Track)
-                stateChangedListener?.removeTrack()
-            else
-                deleteNote(activeControlButton?.uid)
+            deleteNote(activeControlButton?.uid)
 //            activeControlButton?.let { button ->
 //                val buttonIndex = controlButtons.indexOf(activeControlButton)
 //                nextActiveControlButtonUidOnNoteListChange =
@@ -822,7 +756,6 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         measureView(volumeControl, soundChooserViewMeasures.volume)
         measureView(plusButtonNoteLines, soundChooserViewMeasures.extraNoteLines)
         measureView(plusButton, soundChooserViewMeasures.plus)
-        measureView(trackMuteButton, soundChooserViewMeasures.plus)
         measureView(deleteButton, soundChooserViewMeasures.delete)
         measureView(doneButton, soundChooserViewMeasures.done)
         measureView(clearAllButton, soundChooserViewMeasures.clearAll)
@@ -890,7 +823,6 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         if (changed) {
             layoutView(plusButtonNoteLines, soundChooserViewMeasures.extraNoteLines)
             layoutView(plusButton, soundChooserViewMeasures.plus)
-        layoutView(trackMuteButton, soundChooserViewMeasures.plus)
 
             // position of the following elements on plus button ... will change by using translation later
             layoutView(deleteButton, soundChooserViewMeasures.plus)
@@ -1226,83 +1158,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             AnimateView.emerge(openVolumeSlidersButton, animationDuration, name = "openVolumeSlidersButton")
             //volumeSliders.showOpenButton(animationDuration)
         }
-        AnimateView.emerge(plusButton, animationDuration)
-        AnimateView.emerge(plusButtonNoteLines, animationDuration)
-        AnimateView.hide(trackMuteButton, animationDuration)
-        trackEditIndex = -1
         setActiveControlButton(null, animationDuration)
-    }
-
-    /** Set all tracks. The notes of the active track are the ones which are edited here. */
-    fun setTracks(trackList: ArrayList<Track>, activeIndex: Int, animationDuration: Long) {
-        val activeNotes = trackList.getOrNull(activeIndex)?.notes ?: ArrayList()
-        setNoteList(activeNotes, animationDuration)
-        noteView.setTracks(trackList, activeIndex, animationDuration)
-    }
-
-    /** Open the track menu (volume, mute, done, delete) for the given track. */
-    fun showTrackChooser(trackIndex: Int, volume: Float, isMute: Boolean, animationDuration: Long) {
-        trackEditIndex = trackIndex
-        trackEditIsMute = isMute
-        trackMuteButton.setImageResource(
-            if (isMute) R.drawable.ic_action_mute_active else R.drawable.ic_action_mute
-        )
-        if (status == Status.Track) {
-            volumeControl.setVolume(volume, animationDuration)
-            AnimateView.emerge(trackMuteButton, animationDuration)
-            return
-        }
-        status = Status.Track
-        volumeSliders.fold(animateLong)
-        showBackground(animationDuration)
-
-        AnimateView.hide(plusButton, animationDuration)
-        AnimateView.hide(plusButtonNoteLines, animationDuration)
-        noteSelection.disappear(animationDuration)
-        noteDuration.disappear(animationDuration)
-        tuplets.disappear(animationDuration)
-        dynamicSelection.disappear(animationDuration)
-        controlButtons.forEach { it.moveToTarget2AndDisappear(animationDuration) }
-        setActiveControlButton(null, animationDuration)
-        volumeControl.setVolume(volume, 0L)
-
-        val deleteButtonTranslationX: Float =
-            (soundChooserViewMeasures.delete.left - soundChooserViewMeasures.plus.left).toFloat()
-        val deleteButtonTranslationY: Float =
-            (soundChooserViewMeasures.delete.top - soundChooserViewMeasures.plus.top).toFloat()
-        val doneButtonTranslationX: Float =
-            (soundChooserViewMeasures.done.left - soundChooserViewMeasures.plus.left).toFloat()
-        val doneButtonTranslationY: Float =
-            (soundChooserViewMeasures.done.top - soundChooserViewMeasures.plus.top).toFloat()
-
-        if (doneButton.visibility != VISIBLE)
-            doneButton.alpha = 0f
-        if (deleteButton.visibility != VISIBLE)
-            deleteButton.alpha = 0f
-        if (volumeControl.visibility != VISIBLE)
-            volumeControl.alpha = 0f
-
-        doneButton.animate()
-            .setDuration(animationDuration)
-            .translationX(doneButtonTranslationX)
-            .translationY(doneButtonTranslationY)
-            .alpha(1.0f)
-            .withStartAction { doneButton.visibility = VISIBLE }
-
-        deleteButton.animate()
-            .setDuration(animationDuration)
-            .translationX(deleteButtonTranslationX)
-            .translationY(deleteButtonTranslationY)
-            .alpha(1.0f)
-            .withStartAction { deleteButton.visibility = VISIBLE }
-
-        volumeControl.animate()
-            .setDuration(animationDuration)
-            .alpha(1.0f)
-            .withStartAction { volumeControl.visibility = VISIBLE }
-
-        AnimateView.hide(openVolumeSlidersButton, animationDuration, name = "openVolumeSlidersButton")
-        AnimateView.emerge(trackMuteButton, animationDuration)
     }
 
     fun setNoteList(noteList: ArrayList<NoteListItem>, animationDuration: Long) {
@@ -1558,7 +1414,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
     }
 
     enum class Orientation { Landscape, Portrait }
-    enum class Status { Off, MoveNote, Dynamic, Static, Track }
+    enum class Status { Off, MoveNote, Dynamic, Static }
 
     companion object {
         const val animateShort = 50L // 100L

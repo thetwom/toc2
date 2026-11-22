@@ -34,6 +34,9 @@ class ViewPagerAdapter(activity: FragmentActivity) : FragmentStateAdapter(activi
             METRONOME -> {
                 MetronomeFragment()
             }
+            TRACKS -> {
+                TrackFragment()
+            }
             SCENES -> {
                 ScenesFragment()
             }
@@ -45,7 +48,8 @@ class ViewPagerAdapter(activity: FragmentActivity) : FragmentStateAdapter(activi
 
     companion object {
         const val METRONOME = 0
-        const val SCENES = 1
-        const val NUM_FRAGMENTS = 2
+        const val TRACKS = 1
+        const val SCENES = 2
+        const val NUM_FRAGMENTS = 3
     }
 }

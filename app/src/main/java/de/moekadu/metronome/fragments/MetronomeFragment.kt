@@ -312,46 +312,6 @@ class MetronomeFragment : Fragment() {
                 viewModel.moveNote(uid, toIndex)
             }
 
-            override fun addTrack() {
-                if (viewModel.addTrack() < 0) {
-                    Toast.makeText(context, getString(R.string.max_num_tracks_reached), Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            override fun selectTrack(index: Int) {
-                viewModel.setActiveTrackIndex(index)
-            }
-
-            override fun changeTrackVolume(volume: Float) {
-                val index = soundChooser.editedTrackIndex
-                if (index >= 0)
-                    viewModel.setTrackVolume(index, volume)
-            }
-
-            override fun removeTrack() {
-                val index = soundChooser.editedTrackIndex
-                if (index < 0)
-                    return
-                if (viewModel.removeTrack(index)) {
-                    soundChooser.hideSoundChooser(SoundChooser.animateLong)
-                } else {
-                    Toast.makeText(context, getString(R.string.cannot_delete_last_track), Toast.LENGTH_LONG).show()
-                }
-            }
-
-            override fun changeTrackMute(isMute: Boolean) {
-                val index = soundChooser.editedTrackIndex
-                if (index >= 0)
-                    viewModel.setTrackMute(index, isMute)
-            }
-
-            override fun trackLongClicked(index: Int) {
-                viewModel.setActiveTrackIndex(index)
-                val track = viewModel.tracks.value?.getOrNull(index) ?: return
-                soundChooser.showTrackChooser(
-                    index, track.volume, track.isMute, SoundChooser.animateLong
-                )
-            }
         }
 
         beatDurationManager = BeatDurationManager(view)
@@ -373,6 +333,11 @@ class MetronomeFragment : Fragment() {
             if (event.actionMasked == MotionEvent.ACTION_DOWN)
                 view.parent.requestDisallowInterceptTouchEvent(false)
             false
+        }
+
+        swipeToScenesView?.setOnClickListener {
+            (parentFragment as? MetronomeAndScenesFragment)?.viewPager?.currentItem =
+                ViewPagerAdapter.SCENES
         }
 
         sharedPreferenceChangeListener = OnSharedPreferenceChangeListener { sharedPreferences, key ->
@@ -523,16 +488,11 @@ class MetronomeFragment : Fragment() {
         }
 
         viewModel.tracks.observe(viewLifecycleOwner) { tracks ->
-            if (tracks != null) {
-                val activeIndex = viewModel.activeTrackIndex.value ?: 0
-                soundChooser.setTracks(tracks, activeIndex, if (viewModel.isVisible) 200L else 0L)
-            }
+            showActiveTrackNotes(if (viewModel.isVisible) 200L else 0L)
         }
 
-        viewModel.activeTrackIndex.observe(viewLifecycleOwner) { index ->
-            viewModel.tracks.value?.let { tracks ->
-                soundChooser.setTracks(tracks, index, 0L)
-            }
+        viewModel.activeTrackIndex.observe(viewLifecycleOwner) {
+            showActiveTrackNotes(0L)
         }
 
         viewModel.isParentViewPagerSwiping.observe(viewLifecycleOwner) {
@@ -569,6 +529,17 @@ class MetronomeFragment : Fragment() {
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(sharedPreferenceChangeListener)
         tickVisualizer?.stop()
         super.onStop()
+    }
+
+    /** Show the notes of the currently focused track in the sound chooser. */
+    private fun showActiveTrackNotes(animationDuration: Long) {
+        val tracks = viewModel.tracks.value ?: return
+        if (tracks.isEmpty()) {
+            soundChooser.setNoteList(ArrayList(), animationDuration)
+            return
+        }
+        val index = (viewModel.activeTrackIndex.value ?: 0).coerceIn(0, tracks.size - 1)
+        soundChooser.setNoteList(tracks[index].notes, animationDuration)
     }
 
     /** Find a note by its uid in all tracks. */
