@@ -156,6 +156,9 @@ private data class QueuedNote(
  */
 private data class NextNoteInfo(val nextNoteIndex: Int, val nextNoteFrame: Int, val noteCount: Long)
 
+/** Value of NextNoteInfo.nextNoteFrame which marks a track which is not aligned to the time grid yet. */
+private const val FRAME_NEEDS_ALIGNMENT = -1
+
 /** Class containing info for synchronize click time to a given reference.
  * @param referenceTimeNanos Time in uptime millis (from call to System.nanoTime())
  *   to which the first beat should be synchronized.
@@ -660,9 +663,14 @@ private class Mixer(private val context: Context, val scope: CoroutineScope) {
 
                 synchronizeTimeChannel.tryReceive().getOrNull()?.let { synchronizeTimeInfo ->
                     for (track in tracksCopy) {
-                        val trackState = trackStates[track.uid] ?: NextNoteInfo(0, numQueuedFrames, 0)
+                        val trackState = trackStates[track.uid]
                         if (track.notes.isEmpty()) {
-                            trackStates[track.uid] = trackState.copy(nextNoteIndex = 0)
+                            trackStates[track.uid] = NextNoteInfo(0, FRAME_NEEDS_ALIGNMENT, trackState?.noteCount ?: 0)
+                            continue
+                        }
+                        if (trackState == null || trackState.nextNoteFrame == FRAME_NEEDS_ALIGNMENT) {
+                            // not started yet, it is aligned when it is queued in the next step
+                            trackStates[track.uid] = alignedTrackState(track, bpmQuarter, numQueuedFrames, player.sampleRate)
                             continue
                         }
                         // at synchronizing there possibly must be played a note immediately,
@@ -694,7 +702,12 @@ private class Mixer(private val context: Context, val scope: CoroutineScope) {
                 // - to "queuedNoteChannel" we will send the queued notes.
                 // - to "queuedNotes", we add the notes which are queued.
                 for (track in tracksCopy) {
-                    val trackState = trackStates[track.uid] ?: NextNoteInfo(0, numQueuedFrames, 0)
+                    var trackState = trackStates[track.uid]
+                    if (trackState == null || trackState.nextNoteFrame == FRAME_NEEDS_ALIGNMENT) {
+                        // new or refilled track: start at the next beat of the common time grid,
+                        // so that it is in sync with all other tracks
+                        trackState = alignedTrackState(track, bpmQuarter, numQueuedFrames, player.sampleRate)
+                    }
                     trackStates[track.uid] = queueNextNotes(trackState, track, bpmQuarter, numQueuedFrames,
                         numFramesToQueue, noteStartedJobCommunication.queuedNoteChannel, queuedNotes,
                         player.sampleRate)
@@ -904,6 +917,49 @@ private class Mixer(private val context: Context, val scope: CoroutineScope) {
          * @param sampleRate Currently used sample rate
          * @return An updated nextNoteInfo which serves as input to this function on the next cycle.
          */
+        /** Create the state of a track which has to be started. The first note is placed on the
+         *  time grid which all tracks share, i.e. on the grid which starts at frame 0 of the player.
+         *  This keeps every track in sync, also when it is added while the metronome is playing.
+         * @param track Track which gets its first state.
+         * @param bpmQuarter Speed of the metronome in quarter notes per minute.
+         * @param fromFrame Frame at which the track starts, normally the first frame which is not queued yet.
+         * @param sampleRate Sample rate of the player.
+         */
+        private fun alignedTrackState(
+            track: Track,
+            bpmQuarter: Float,
+            fromFrame: Int,
+            sampleRate: Int
+        ): NextNoteInfo {
+            val notes = track.notes
+            if (notes.isEmpty())
+                return NextNoteInfo(0, FRAME_NEEDS_ALIGNMENT, 0)
+
+            val lengths = IntArray(notes.size) {
+                max(1, (max(0f, notes[it].duration.durationInSeconds(bpmQuarter)) * sampleRate).roundToInt())
+            }
+            val cycle = lengths.sum()
+            if (cycle <= 0)
+                return NextNoteInfo(0, fromFrame, 0)
+
+            val positionInCycle = Math.floorMod(fromFrame, cycle)
+            var offset = 0
+            var index = 0
+            while (index < notes.size && offset + lengths[index] <= positionInCycle) {
+                offset += lengths[index]
+                ++index
+            }
+
+            val completedCycles = fromFrame / cycle
+            val nextFrame = if (index >= notes.size)
+                fromFrame - positionInCycle + cycle
+            else
+                fromFrame - positionInCycle + offset
+            val nextIndex = if (index >= notes.size) 0 else index
+            val noteCount = (completedCycles + if (index >= notes.size) 1 else 0).toLong() * notes.size
+            return NextNoteInfo(nextIndex, max(fromFrame, nextFrame), noteCount)
+        }
+
         /** Volume which is applied to the notes of a track. */
         private fun trackVolumeScale(track: Track) = if (track.isMute) 0f else track.volume
 
@@ -920,8 +976,9 @@ private class Mixer(private val context: Context, val scope: CoroutineScope) {
 
             val noteList = track.notes
             if (noteList.isEmpty()) {
-                // nothing to play, but keep the track aligned with the current time
-                return NextNoteInfo(0, alreadyQueuedFrames + numFramesToQueue, nextNoteInfo.noteCount)
+                // nothing to play. The state is marked so that the track is aligned to the time
+                // grid as soon as it gets notes.
+                return NextNoteInfo(0, FRAME_NEEDS_ALIGNMENT, nextNoteInfo.noteCount)
             }
 
             val volumeScale = trackVolumeScale(track)
