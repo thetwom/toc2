@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Michael Moessner
+ * Copyright 2020 Michael Moessner
  *
  * This file is part of Metronome.
  *
@@ -23,6 +23,10 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 
+/** Adapter for the three pages metronome, tracks and scenes.
+ *
+ * @param activity Activity which hosts the pages.
+ */
 class ViewPagerAdapter(activity: FragmentActivity) : FragmentStateAdapter(activity) {
 
     override fun getItemCount(): Int {
@@ -31,21 +35,17 @@ class ViewPagerAdapter(activity: FragmentActivity) : FragmentStateAdapter(activi
 
     override fun createFragment(position: Int): Fragment {
         return when (position) {
-            METRONOME -> {
-                MetronomeFragment()
-            }
-            SCENES -> {
-                ScenesFragment()
-            }
-            else -> {
-                throw RuntimeException("No fragment for position $position")
-            }
+            METRONOME -> MetronomeFragment()
+            TRACKS -> TrackFragment()
+            SCENES -> ScenesFragment()
+            else -> throw RuntimeException("No fragment for position $position")
         }
     }
 
     companion object {
         const val METRONOME = 0
-        const val SCENES = 1
-        const val NUM_FRAGMENTS = 2
+        const val TRACKS = 1
+        const val SCENES = 2
+        const val NUM_FRAGMENTS = 3
     }
 }

@@ -65,6 +65,14 @@
             app:icon="@drawable/ic_flash_circle"
             />
 
+        <SwitchPreferenceCompat
+            app:key="englishnotelabels"
+            app:title="@string/english_note_labels"
+            app:summary="@string/english_note_labels_summary"
+            app:defaultValue="false"
+            app:icon="@drawable/ic_note_extra"
+            />
+
         <SeekBarPreference
             app:key="visualdelay"
             app:title="@string/visual_delay"

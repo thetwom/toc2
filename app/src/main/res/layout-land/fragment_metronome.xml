@@ -206,6 +206,7 @@
          app:layout_constraintHeight_percent="0.032"
          />
 
+
     <androidx.appcompat.widget.AppCompatImageButton
         android:id="@+id/beat_duration"
         android:layout_width="0dp"
@@ -316,7 +317,7 @@
         app:layout_constraintBottom_toTopOf="@id/tick_visualizer"
         app:layout_constraintTop_toTopOf="parent"
         app:numRows="1"
-        app:numCols="7"
+        app:numCols="8"
         app:noteViewHeightPercent="0.4"
         app:plusButtonRightPercent="0.55"
         app:vertical="false"
@@ -331,5 +332,6 @@
         app:layout_constraintBottom_toBottomOf="@id/sound_chooser3"
         app:layout_constraintDimensionRatio="1:1"
         android:visibility="invisible"/>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

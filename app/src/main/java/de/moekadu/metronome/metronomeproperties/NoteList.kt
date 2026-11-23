@@ -21,7 +21,11 @@
 
 package de.moekadu.metronome.metronomeproperties
 
+import android.content.Context
+import android.content.res.Configuration
 import android.os.Parcelable
+import androidx.preference.PreferenceManager
+import java.util.Locale
 import de.moekadu.metronome.R
 import kotlinx.parcelize.Parcelize
 import kotlin.math.min
@@ -122,8 +126,10 @@ fun deepCopyNoteList(origin: ArrayList<NoteListItem>, target: ArrayList<NoteList
 
 fun isNoteListStringValid(string: String): Boolean {
     val elements = string.split(" ")
-    //    Log.v("Metronome", "NoteList:isNoteListStringValid: string=$string")
     when (val version = getNoteListStringVersion(string)) {
+        2 -> {
+            return stringToTracks(string).isNotEmpty()
+        }
         0 -> {
             for (i in 0 until elements.size / 2) {
                 try {
@@ -146,7 +152,7 @@ fun isNoteListStringValid(string: String): Boolean {
             }
         }
         else -> {
-            throw RuntimeException("Invalid note list version: $version")
+            return false
         }
     }
     return true
@@ -196,35 +202,41 @@ data class NoteInfo(val audio44ResourceID: Int, val audio48ResourceID: Int,
                     val drawableQuarterResourceID: Int,
                     val drawableEighthResourceID: Int,
                     val drawableSixteenthResourceID: Int,
+                    val drawableThirtySecondResourceID: Int,
                     val vibrationDuration: Long)
 
-val availableNotes = arrayOf(
+val defaultNotes = arrayOf(
         NoteInfo(
             R.raw.base44_wav, R.raw.base48_wav, R.string.base,
-            R.drawable.ic_note_a, R.drawable.ic_note_a_eighth,R.drawable.ic_note_a_sixteenth,
+            R.drawable.ic_note_a, R.drawable.ic_note_a_eighth,R.drawable.ic_note_a_sixteenth, R.drawable.ic_note_a_thirtysecond,
             80L),
         NoteInfo(R.raw.snare44_wav, R.raw.snare48_wav, R.string.snare,
-            R.drawable.ic_note_c, R.drawable.ic_note_c_eighth, R.drawable.ic_note_c_sixteenth,
+            R.drawable.ic_note_c, R.drawable.ic_note_c_eighth, R.drawable.ic_note_c_sixteenth, R.drawable.ic_note_c_thirtysecond,
             65L),
 
         NoteInfo(R.raw.sticks44_wav, R.raw.sticks48_wav, R.string.sticks,
-            R.drawable.ic_note_c_rim, R.drawable.ic_note_c_rim_eighth, R.drawable.ic_note_c_rim_sixteenth,
+            R.drawable.ic_note_c_rim, R.drawable.ic_note_c_rim_eighth, R.drawable.ic_note_c_rim_sixteenth, R.drawable.ic_note_c_rim_thirtysecond,
             65L),
         NoteInfo(R.raw.woodblock_high44_wav, R.raw.woodblock_high48_wav, R.string.woodblock,
-            R.drawable.ic_note_ep, R.drawable.ic_note_ep_eighth, R.drawable.ic_note_ep_sixteenth,
+            R.drawable.ic_note_ep, R.drawable.ic_note_ep_eighth, R.drawable.ic_note_ep_sixteenth, R.drawable.ic_note_ep_thirtysecond,
             50L),
         NoteInfo(R.raw.claves44_wav, R.raw.claves48_wav, R.string.claves,
-            R.drawable.ic_note_gp, R.drawable.ic_note_gp_eighth, R.drawable.ic_note_gp_sixteenth,
+            R.drawable.ic_note_gp, R.drawable.ic_note_gp_eighth, R.drawable.ic_note_gp_sixteenth, R.drawable.ic_note_gp_thirtysecond,
             35L),
-        // NoteInfo(R.raw.hhp_dry_a, R.string.hihat, R.drawable.ic_note_hihat_eighth, R.drawable.ic_note_hihat_sixteenth, R.drawable.ic_hihat, 30L),
         NoteInfo(R.raw.hihat44_wav, R.raw.hihat48_wav, R.string.hihat,
-            R.drawable.ic_note_hihat, R.drawable.ic_note_hihat_eighth, R.drawable.ic_note_hihat_sixteenth,
+            R.drawable.ic_note_hihat, R.drawable.ic_note_hihat_eighth, R.drawable.ic_note_hihat_sixteenth, R.drawable.ic_note_hihat_thirtysecond,
             35L),
-        // NoteInfo(R.raw.sn_jazz_c, R.string.snare, R.drawable.ic_snare, R.drawable.ic_note_c_eighth, R.drawable.ic_note_c_sixteenth, 30L),
         NoteInfo(R.raw.mute44_wav, R.raw.mute48_wav, R.string.mute,
-            R.drawable.ic_note_pause, R.drawable.ic_note_pause_eighth, R.drawable.ic_note_pause_sixteenth,
-            0L)
+            R.drawable.ic_note_pause, R.drawable.ic_note_pause_eighth, R.drawable.ic_note_pause_sixteenth, R.drawable.ic_note_pause_thirtysecond,
+            0L),
+        NoteInfo(R.raw.woodblock_low_44_wav, R.raw.woodblock_low_48_wav, R.string.woodblock_low,
+            R.drawable.ic_note_extra, R.drawable.ic_note_extra_eighth, R.drawable.ic_note_extra_sixteenth, R.drawable.ic_note_extra_thirtysecond,
+            45L)
 )
+
+/** Notes which are currently selectable. Replaced by [SoundSetManager] when the sound set changes.
+ *  All sound sets provide the same number of notes, so that note ids of already saved scenes stay valid. */
+var availableNotes: Array<NoteInfo> = defaultNotes
 
 fun getNumAvailableNotes() = availableNotes.size
 
@@ -236,17 +248,41 @@ fun getNoteAudioResourceID(index : Int, sampleRate: Int) = when(sampleRate) {  /
     else ->  availableNotes[index].audio48ResourceID
 }
 
-//fun getNoteStringResourceID(index : Int) = availableNotes[index].stringResourceID
+/** Name of the note which is selectable at the given index (used as a small label on the note buttons). */
+fun getNoteStringResourceID(index: Int) = availableNotes[index].stringResourceID
+
+/// Name of the note in the language which is selected in the settings.
+/**
+ * By default the name follows the system language. With the preference "englishnotelabels" it can
+ * be forced to English, which is useful when the drum names should not be translated.
+ */
+fun getNoteLabel(context: Context, index: Int): String {
+    val resourceId = getNoteStringResourceID(index)
+    val preferences = PreferenceManager.getDefaultSharedPreferences(context)
+    if (!preferences.getBoolean("englishnotelabels", false))
+        return context.getString(resourceId)
+
+    val configuration = Configuration(context.resources.configuration)
+    configuration.setLocale(Locale.ENGLISH)
+    return context.createConfigurationContext(configuration).getString(resourceId)
+}
 
 fun getNoteDrawableResourceID(index: Int, duration: NoteDuration) =
-    when (duration) {
-        NoteDuration.Quarter, NoteDuration.QuarterTriplet, NoteDuration.QuarterQuintuplet ->
-            availableNotes[index].drawableQuarterResourceID
-        NoteDuration.Eighth, NoteDuration.EighthTriplet, NoteDuration.EighthQuintuplet ->
-            availableNotes[index].drawableEighthResourceID
-        NoteDuration.Sixteenth, NoteDuration.SixteenthTriplet, NoteDuration.SixteenthQuintuplet ->
-            availableNotes[index].drawableSixteenthResourceID
+    availableNotes[index].let { note ->
+        when (duration.baseSubdivision) {
+            1 -> note.drawableQuarterResourceID
+            2 -> note.drawableEighthResourceID
+            4 -> note.drawableSixteenthResourceID
+            else -> note.drawableThirtySecondResourceID
+        }
     }
+
+internal fun NoteDuration.baseDrawableResource() = when (baseSubdivision) {
+    1 -> R.drawable.ic_note_duration_quarter
+    2 -> R.drawable.ic_note_duration_eighth
+    4 -> R.drawable.ic_note_duration_sixteenth
+    else -> R.drawable.ic_note_duration_thirtysecond
+}
 
 /** Return note vibration duration in milliseconds. */
 fun getNoteVibrationDurationMillis(index : Int) = availableNotes[index].vibrationDuration

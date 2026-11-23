@@ -149,12 +149,8 @@ private data class QueuedNote(
     val noteCount: Long
     )
 
-/** Info about next next note which must be queued for being played.
- * @param nextNoteIndex Note index in note list of the note to be played.
- * @param nextNoteFrame Frame, when the note should be played.
- * @param noteCount Absolute counter of notes, since starting playing.
- */
-private data class NextNoteInfo(val nextNoteIndex: Int, val nextNoteFrame: Int, val noteCount: Long)
+/** Value of NextNoteInfo.nextNoteFrame which marks a track which is not aligned to the time grid yet. */
+private const val FRAME_NEEDS_ALIGNMENT = -1
 
 /** Class containing info for synchronize click time to a given reference.
  * @param referenceTimeNanos Time in uptime millis (from call to System.nanoTime())
@@ -418,18 +414,36 @@ private class NoteStartedHandling(private val scope: CoroutineScope) {
     }
 }
 
-private class Mixer(context: Context, val scope: CoroutineScope) {
+private class Mixer(private val context: Context, val scope: CoroutineScope) {
 
-    private val noteSamplesForDifferentSampleRates = mapOf (
-        44100 to lazy {
-//            Log.v("Metronome", "AudioMixer: load samples for 44100Hz")
-            createNoteSamples(context, 44100)
-        },
-        48000 to lazy {
-//            Log.v("Metronome", "AudioMixer: load samples for 48000Hz")
-            createNoteSamples(context, 48000)
+    /** Version of the note samples. Increased when the sound set changes, so that the playing
+     *  coroutine knows that it must exchange its samples. */
+    @Volatile
+    var samplesVersion = 0
+        private set
+
+    /** Note samples (one float array per note) mapped to sample rate and the sample version. */
+    private val noteSamplesCache = HashMap<Int, Pair<Int, Array<FloatArray>>>()
+
+    /** Get the note samples for the given sample rate, reloading them when the sound set changed. */
+    fun getNoteSamples(sampleRate: Int): Array<FloatArray> = synchronized(noteSamplesCache) {
+        val version = samplesVersion
+        val cached = noteSamplesCache[sampleRate]
+        if (cached != null && cached.first == version)
+            cached.second
+        else
+            createNoteSamples(context, sampleRate).also {
+                noteSamplesCache[sampleRate] = version to it
+            }
+    }
+
+    /** Tell the mixer that the note sounds changed, so that they are reloaded. */
+    fun invalidateNoteSamples() {
+        synchronized(noteSamplesCache) {
+            samplesVersion += 1
+            noteSamplesCache.clear()
         }
-    )
+    }
 
     @Volatile
     var isMute = false
@@ -445,24 +459,24 @@ private class Mixer(context: Context, val scope: CoroutineScope) {
             field = value
         }
 
-    /** Note list with notes which are played in a loop. */
-    var noteList = ArrayList<NoteListItem>()
+    /** Tracks with the notes which are played in a loop. Every track is looped on its own. */
+    var tracks = ArrayList<Track>()
         set(value) {
             // we must make sure that during copy the original is not changed, so we do the copy on the main thread and request that it is called on the main thread
             require(Looper.getMainLooper().isCurrentThread)
             scope.launch(Dispatchers.Main) {
-                noteListLock.withLock {
-                    deepCopyNoteList(value, field)
-                    noteListHash += 1
+                tracksLock.withLock {
+                    deepCopyTracks(value, field)
+                    tracksHash += 1
                 }
             }
         }
 
-    /** Lock which is active when we access the noteList. */
-    private val noteListLock = Mutex()
-    /** Hash, tracking changed on the note list ... so we can don't have to compare the whole list all the time */
+    /** Lock which is active when we access the tracks. */
+    private val tracksLock = Mutex()
+    /** Hash, tracking changes on the tracks ... so we don't have to compare the whole list all the time */
     @Volatile
-    private var noteListHash = 0L
+    private var tracksHash = 0L
 
     /** Class for communicating with the job.
      * @param job The job itself.
@@ -498,10 +512,10 @@ private class Mixer(context: Context, val scope: CoroutineScope) {
         scope.launch(Dispatchers.IO) {
             // first load with known native sample rate, then load for all sample rates
             val nativeSampleRate = AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC)
-            noteSamplesForDifferentSampleRates[nativeSampleRate]?.value
+            getNoteSamples(nativeSampleRate)
 
-            for (n in noteSamplesForDifferentSampleRates)
-                n.value.value
+            getNoteSamples(44100)
+            getNoteSamples(48000)
         }
     }
 
@@ -521,7 +535,8 @@ private class Mixer(context: Context, val scope: CoroutineScope) {
         val job = scope.launch(dispatcher) {
 
             val player = createPlayer()
-            val noteSamples = noteSamplesForDifferentSampleRates[player.sampleRate]!!.value
+            var noteSamples = getNoteSamples(player.sampleRate)
+            var localSamplesVersion = samplesVersion
             val queuedNotes = ArrayList<QueuedNote>(32)
 
             val mixingBufferSize = player.bufferSizeInFrames / 4
@@ -535,10 +550,12 @@ private class Mixer(context: Context, val scope: CoroutineScope) {
             var numMixedFrames = 0
             // Total number of frames which are already considered for queued notes.
             var numQueuedFrames = 0
-            var nextNoteInfo = NextNoteInfo(0, 1 + prefetchToQueueInFrames, 0)
+            // state of every track (note index, next note frame, note counter), keyed by track id
+            val trackStates = HashMap<UId, NextNoteInfo>()
 
-            val noteListCopy = ArrayList<NoteListItem>()
-            var noteListCopyHash = -1L // hash of the note list, for quick check if there are changes.
+            val tracksCopy = ArrayList<Track>()
+            var tracksCopyHash = -1L // hash of the tracks, for quick check if there are changes.
+            var useExactNoteFrames = false
 
             val frameTimeConversionFactory = FrameTimeConversion.Factory()
             var frameTimeConversion = frameTimeConversionFactory.create(player, null)
@@ -588,6 +605,14 @@ private class Mixer(context: Context, val scope: CoroutineScope) {
                     break
                 }
 
+                // the sound set changed -> exchange the samples, the notes which are queued for
+                // the old sounds are dropped
+                if (localSamplesVersion != samplesVersion) {
+                    noteSamples = getNoteSamples(player.sampleRate)
+                    localSamplesVersion = samplesVersion
+                    queuedNotes.clear()
+                }
+
                 // synchronize our timer very early but not too early, afterward we do a periodic
                 // sync in large time periods
                 if (frameTimeConversion.synchronizedBy != FrameTimeConversion.SynchronizedBy.TimeStamp
@@ -598,46 +623,79 @@ private class Mixer(context: Context, val scope: CoroutineScope) {
                         noteStartedJobCommunication.frameTimeConversionChannel.send(frameTimeConversion)
                 }
 
-                // update our local noteList copy
-                if (noteListCopyHash != noteListHash) {
-                    if (noteListLock.tryLock()) {
+                // update our local copy of the tracks
+                if (tracksCopyHash != tracksHash) {
+                    if (tracksLock.tryLock()) {
                         try {
-                            deepCopyNoteList(noteList, noteListCopy)
-                            noteListCopyHash = noteListHash
+                            deepCopyTracks(tracks, tracksCopy)
+                            tracksCopyHash = tracksHash
+                            val needsExactNoteFrames = tracksCopy.any { track ->
+                                track.notes.any { it.duration.usesExpandedTiming }
+                            }
+                            if (useExactNoteFrames != needsExactNoteFrames) {
+                                useExactNoteFrames = needsExactNoteFrames
+                                // Rephase pending notes on one grid, keeping sounds already queued.
+                                trackStates.clear()
+                            }
                         } finally {
-                            noteListLock.unlock()
+                            tracksLock.unlock()
                         }
                     }
                 }
 
+                // drop the state of tracks which do not exist anymore
+                if (trackStates.isNotEmpty() && trackStates.size > tracksCopy.size) {
+                    val activeIds = HashSet<UId>(tracksCopy.size)
+                    for (track in tracksCopy)
+                        activeIds.add(track.uid)
+                    trackStates.keys.retainAll(activeIds)
+                }
+
                 nextNoteIndexModificationChannel.tryReceive().getOrNull()?.let { index ->
-                    nextNoteInfo = nextNoteInfo.copy(nextNoteIndex = index)
+                    for ((uid, state) in trackStates)
+                        trackStates[uid] = state.copy(nextNoteIndex = index)
                 }
 
                 restartPlayingNoteListChannel.tryReceive().getOrNull()?.let {
-                    nextNoteInfo = nextNoteInfo.copy(nextNoteFrame = numMixedFrames, nextNoteIndex = 0)
+                    // clearing the states makes every track start again from its beginning
+                    trackStates.clear()
                     queuedNotes.clear()
                     noteStartedJobCommunication.queuedNoteChannel.trySend(null)
                 }
 
                 synchronizeTimeChannel.tryReceive().getOrNull()?.let { synchronizeTimeInfo ->
-                    // at synchronizing there possible must be played a note immediately,
-                    // if this is the case, it will be stored in nextNoteInfos[0] and an additional entry will be in the list.
-                    val nextNoteInfos = synchronizeWithSystemNanos(
-                        synchronizeTimeInfo, noteListCopy, bpmQuarter, nextNoteInfo,
-                        player.sampleRate, numQueuedFrames, frameTimeConversion
-                    )
-                    if (nextNoteInfos.size > 1 && nextNoteInfos[0].nextNoteFrame == numQueuedFrames) {
-                        val noteListItem = noteList[nextNoteInfos[0].nextNoteIndex]
-                        queueSingleNote(
-                            noteListItem,
-                            nextNoteInfos[0].nextNoteFrame,
-                            max(0L, noteListItem.duration.durationInNanos(bpmQuarter)),
-                            nextNoteInfos[0].noteCount,
-                            noteStartedJobCommunication.queuedNoteChannel, queuedNotes
+                    for (track in tracksCopy) {
+                        val trackState = trackStates[track.uid]
+                        if (track.notes.isEmpty()) {
+                            trackStates[track.uid] = NextNoteInfo(0, FRAME_NEEDS_ALIGNMENT.toDouble(), trackState?.noteCount ?: 0)
+                            continue
+                        }
+                        if (trackState == null || trackState.nextNoteFrame == FRAME_NEEDS_ALIGNMENT) {
+                            // not started yet, it is aligned when it is queued in the next step
+                            trackStates[track.uid] = alignedTrackState(
+                                track, bpmQuarter, numQueuedFrames, player.sampleRate, useExactNoteFrames
+                            )
+                            continue
+                        }
+                        // at synchronizing there possibly must be played a note immediately,
+                        // if this is the case, it will be stored in nextNoteInfos[0] and an additional entry will be in the list.
+                        val nextNoteInfos = synchronizeWithSystemNanos(
+                            synchronizeTimeInfo, track.notes, bpmQuarter, trackState,
+                            player.sampleRate, numQueuedFrames, frameTimeConversion, useExactNoteFrames
                         )
+                        if (nextNoteInfos.size > 1 && nextNoteInfos[0].nextNoteFrame == numQueuedFrames) {
+                            val noteListItem = track.notes[nextNoteInfos[0].nextNoteIndex]
+                            queueSingleNote(
+                                noteListItem,
+                                nextNoteInfos[0].nextNoteFrame,
+                                max(0L, noteListItem.duration.durationInNanos(bpmQuarter)),
+                                nextNoteInfos[0].noteCount,
+                                trackVolumeScale(track),
+                                noteStartedJobCommunication.queuedNoteChannel, queuedNotes
+                            )
+                        }
+                        trackStates[track.uid] = nextNoteInfos.last()
                     }
-                    nextNoteInfo = nextNoteInfos.last()
                 }
 
                 prefetchToQueueInFrames = (noteStartedJobCommunication.maxNegativeDelayInMillis * player.sampleRate) / 1000
@@ -647,9 +705,19 @@ private class Mixer(context: Context, val scope: CoroutineScope) {
                 // side effects of following function:
                 // - to "queuedNoteChannel" we will send the queued notes.
                 // - to "queuedNotes", we add the notes which are queued.
-                nextNoteInfo = queueNextNotes(nextNoteInfo, noteListCopy, bpmQuarter, numQueuedFrames,
-                    numFramesToQueue, noteStartedJobCommunication.queuedNoteChannel, queuedNotes,
-                    player.sampleRate)
+                for (track in tracksCopy) {
+                    var trackState = trackStates[track.uid]
+                    if (trackState == null || trackState.nextNoteFrame == FRAME_NEEDS_ALIGNMENT) {
+                        // new or refilled track: start at the next beat of the common time grid,
+                        // so that it is in sync with all other tracks
+                        trackState = alignedTrackState(
+                            track, bpmQuarter, numQueuedFrames, player.sampleRate, useExactNoteFrames
+                        )
+                    }
+                    trackStates[track.uid] = queueNextNotes(trackState, track, bpmQuarter, numQueuedFrames,
+                        numFramesToQueue, noteStartedJobCommunication.queuedNoteChannel, queuedNotes,
+                        player.sampleRate, useExactNoteFrames)
+                }
                 numQueuedFrames += numFramesToQueue
 
                 // fill the mixing buffer with our mixed sound samples.
@@ -749,7 +817,8 @@ private class Mixer(context: Context, val scope: CoroutineScope) {
             nextNoteInfo: NextNoteInfo,
             sampleRate: Int,
             alreadyQueuedFrames: Int,
-            frameTimeConversion: FrameTimeConversion
+            frameTimeConversion: FrameTimeConversion,
+            useExactNoteFrames: Boolean
         ): Array<NextNoteInfo> {
             if (noteList.isEmpty())
                 return arrayOf(nextNoteInfo)
@@ -762,7 +831,10 @@ private class Mixer(context: Context, val scope: CoroutineScope) {
             // first note would be timeOfFirstNoteInFrames = referenceTimeInFrames + i * beatDurationInFrames
             // where i is an integer number.
             val referenceTimeInFrames = frameTimeConversion.nanosToFrames(synchronizeTimeInfo.referenceTimeNanos)
-            val beatDurationInFrames = (synchronizeTimeInfo.beatDurationInSeconds * sampleRate).roundToInt()
+            val beatFrames = (synchronizeTimeInfo.beatDurationInSeconds.toDouble() * sampleRate)
+                .coerceAtLeast(1.0)
+            val beatDurationInFrames = if (useExactNoteFrames) beatFrames else
+                (synchronizeTimeInfo.beatDurationInSeconds * sampleRate).roundToInt().coerceAtLeast(1).toDouble()
 //            Log.v("Metronome", "next note frame = $nextNoteFrame, reference time in frames = $referenceTimeInFrames, diff=${nextNoteFrame-referenceTimeInFrames}")
             if (nextNoteInfo.nextNoteIndex >= noteList.size)
                 nextNoteIndex = 0
@@ -770,10 +842,10 @@ private class Mixer(context: Context, val scope: CoroutineScope) {
             // determine reference time for the next note to be played. Actually the time of this note must be
             // timeOfNextNote = referenceTimeForNextNoteListItem + i * beatDurationInFrames
             // where i is a integer number.
-            var referenceFrameForNextNoteListItem = referenceTimeInFrames
-
+            var noteOffset = 0.0
             for (i in 0 until nextNoteIndex)
-                referenceFrameForNextNoteListItem += (max(0f, noteList[i].duration.durationInSeconds(bpmQuarter)) * sampleRate).roundToInt()
+                noteOffset += noteList[i].duration.lengthInAudioFrames(bpmQuarter, sampleRate, useExactNoteFrames)
+            val referenceFrameForNextNoteListItem = referenceTimeInFrames + noteOffset
 
             // find the closest possible time in frames for our next note to be played, relative to the
             // previously used frame.
@@ -781,37 +853,34 @@ private class Mixer(context: Context, val scope: CoroutineScope) {
             // of positive/negative numbers can occur and depending on this we get different behaviors.
             // So we we first remove multiples of beatDurations and then check if we remove one beatDuration
             // less or more ist closer.
-            val closeFrameForNextNoteListItemInit = referenceFrameForNextNoteListItem - beatDurationInFrames * ((referenceFrameForNextNoteListItem - nextNoteFrame) / beatDurationInFrames)
+            val cycles = ((referenceFrameForNextNoteListItem - nextNoteFrame) / beatDurationInFrames).toInt()
+            val closeFrameForNextNoteListItemInit = referenceFrameForNextNoteListItem -
+                cycles * beatDurationInFrames
             val closeFrameDistanceInit = (closeFrameForNextNoteListItemInit - nextNoteFrame).absoluteValue
             val closeFrameForNextNoteListItemUpper = closeFrameForNextNoteListItemInit + beatDurationInFrames
             val closeFrameDistanceUpper = (closeFrameForNextNoteListItemUpper - nextNoteFrame).absoluteValue
             val closeFrameForNextNoteListItemLower = closeFrameForNextNoteListItemInit - beatDurationInFrames
             val closeFrameDistanceLower = (closeFrameForNextNoteListItemLower - nextNoteFrame).absoluteValue
 
-            var correctedFrameForNextNote = if (closeFrameDistanceUpper < closeFrameDistanceInit)
+            val closestFrame = if (closeFrameDistanceUpper < closeFrameDistanceInit)
                 closeFrameForNextNoteListItemUpper
             else if (closeFrameDistanceLower < closeFrameDistanceInit)
                 closeFrameForNextNoteListItemLower
             else
                 closeFrameForNextNoteListItemInit
 
+            var correctedFrameForNextNote = closestFrame
             var noteToBeQueuedImmediately: NextNoteInfo? = null
-            // we now have the time when the nextNoteListItem should actually be played,
-            // however it is possible that this should be played earlier than expected. In this case
-            // we play it directly, and directly queue the next note.
-            // But, it is possible that we are very late, such that even the note after the next note would
-            // be played late, so we skip so many notes, until the next note takes place later than the
-            // already queued frames.
-            while (correctedFrameForNextNote < alreadyQueuedFrames) {
-                val timeInFramesForNoteAfterNextNote = correctedFrameForNextNote + (max(0f, noteList[nextNoteIndex].duration.durationInSeconds(bpmQuarter)) * sampleRate).roundToInt()
-
-                if (timeInFramesForNoteAfterNextNote > alreadyQueuedFrames) {
-                    noteToBeQueuedImmediately = NextNoteInfo(nextNoteIndex, alreadyQueuedFrames, noteCount)
-                    correctedFrameForNextNote = timeInFramesForNoteAfterNextNote
-                    ++nextNoteIndex
-                    if (nextNoteIndex >= noteList.size)
-                        nextNoteIndex -= noteList.size
+            // Move forward over missed notes. Play one immediately if its duration still overlaps now.
+            while (correctedFrameForNextNote.roundToInt() < alreadyQueuedFrames) {
+                val followingFrame = correctedFrameForNextNote +
+                    noteList[nextNoteIndex].duration.lengthInAudioFrames(bpmQuarter, sampleRate, useExactNoteFrames)
+                if (followingFrame.roundToInt() > alreadyQueuedFrames) {
+                    noteToBeQueuedImmediately =
+                        NextNoteInfo(nextNoteIndex, alreadyQueuedFrames.toDouble(), noteCount)
                 }
+                correctedFrameForNextNote = followingFrame
+                nextNoteIndex = (nextNoteIndex + 1) % noteList.size
                 ++noteCount
             }
 
@@ -835,10 +904,11 @@ private class Mixer(context: Context, val scope: CoroutineScope) {
             noteFrame: Int,
             noteDurationNanos: Long,
             noteCount: Long,
+            volumeScale: Float,
             queuedNoteStartedChannel: SendChannel<QueuedNote?>,
             queuedNotes: ArrayList<QueuedNote>
         ) {
-            val queuedNote = QueuedNote(noteListItem, noteFrame, noteDurationNanos, noteListItem.volume, noteCount)
+            val queuedNote = QueuedNote(noteListItem, noteFrame, noteDurationNanos, noteListItem.volume * volumeScale, noteCount)
             queuedNotes.add(queuedNote)
             queuedNoteStartedChannel.trySend(queuedNote)
         }
@@ -854,28 +924,59 @@ private class Mixer(context: Context, val scope: CoroutineScope) {
          * @param sampleRate Currently used sample rate
          * @return An updated nextNoteInfo which serves as input to this function on the next cycle.
          */
+        /** Create the state of a track which has to be started. The first note is placed on the
+         *  time grid which all tracks share, i.e. on the grid which starts at frame 0 of the player.
+         *  This keeps every track in sync, also when it is added while the metronome is playing.
+         * @param track Track which gets its first state.
+         * @param bpmQuarter Speed of the metronome in quarter notes per minute.
+         * @param fromFrame Frame at which the track starts, normally the first frame which is not queued yet.
+         * @param sampleRate Sample rate of the player.
+         */
+        private fun alignedTrackState(
+            track: Track,
+            bpmQuarter: Float,
+            fromFrame: Int,
+            sampleRate: Int,
+            useExactNoteFrames: Boolean
+        ): NextNoteInfo {
+            val notes = track.notes
+            if (notes.isEmpty())
+                return NextNoteInfo(0, FRAME_NEEDS_ALIGNMENT.toDouble(), 0)
+
+            val lengths = DoubleArray(notes.size) {
+                notes[it].duration.lengthInAudioFrames(bpmQuarter, sampleRate, useExactNoteFrames)
+            }
+            return nextNoteOnTrackGrid(lengths, fromFrame)
+        }
+
+        /** Volume which is applied to the notes of a track. */
+        private fun trackVolumeScale(track: Track) = if (track.isMute) 0f else track.volume
+
         private fun queueNextNotes(
             nextNoteInfo: NextNoteInfo,
-            noteList: ArrayList<NoteListItem>,
+            track: Track,
             bpmQuarter: Float,
             alreadyQueuedFrames: Int,
             numFramesToQueue: Int,
             queuedNoteStartedChannel: SendChannel<QueuedNote?>,
             queuedNotes: ArrayList<QueuedNote>,
-            sampleRate: Int
+            sampleRate: Int,
+            useExactNoteFrames: Boolean
         ) : NextNoteInfo{
 
-            require(noteList.isNotEmpty())
-            var maxDuration = -1f
-            for (n in noteList)
-                maxDuration = max(n.duration.durationInSeconds(bpmQuarter), maxDuration)
-            require(maxDuration > 0f)
+            val noteList = track.notes
+            if (noteList.isEmpty()) {
+                // nothing to play. The state is marked so that the track is aligned to the time
+                // grid as soon as it gets notes.
+                return NextNoteInfo(0, FRAME_NEEDS_ALIGNMENT.toDouble(), nextNoteInfo.noteCount)
+            }
 
+            val volumeScale = trackVolumeScale(track)
             var nextNoteIndex = nextNoteInfo.nextNoteIndex
-            var nextNoteFrame = nextNoteInfo.nextNoteFrame
+            var exactNextNoteFrame = nextNoteInfo.exactNextNoteFrame
             var noteCount = nextNoteInfo.noteCount
 
-            while (nextNoteFrame < alreadyQueuedFrames + numFramesToQueue) {
+            while (exactNextNoteFrame.roundToInt() < alreadyQueuedFrames + numFramesToQueue) {
                 if (nextNoteIndex >= noteList.size)
                     nextNoteIndex = 0
 
@@ -883,18 +984,18 @@ private class Mixer(context: Context, val scope: CoroutineScope) {
                 // this will add the note list item to the queuedNotes and noteStartedChannelsAndFrames
                 queueSingleNote(
                     noteListItem,
-                    nextNoteFrame,
+                    exactNextNoteFrame.roundToInt(),
                     max(0L, noteListItem.duration.durationInNanos(bpmQuarter)),
                     noteCount,
+                    volumeScale,
                     queuedNoteStartedChannel,
                     queuedNotes)
 
-                // notes can have a duration of -1 if it is not yet set ... in this case we directly play the next note
-                nextNoteFrame += (max(0f, noteListItem.duration.durationInSeconds(bpmQuarter)) * sampleRate).roundToInt()
+                exactNextNoteFrame += noteListItem.duration.lengthInAudioFrames(bpmQuarter, sampleRate, useExactNoteFrames)
                 ++nextNoteIndex
                 ++noteCount
             }
-            return NextNoteInfo(nextNoteIndex, nextNoteFrame, noteCount)
+            return NextNoteInfo(nextNoteIndex, exactNextNoteFrame, noteCount)
         }
 
         /** Mix all currently queued frames to the mixing buffer.
@@ -955,6 +1056,13 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
 
     private val noteStartedHandling = NoteStartedHandling(scope)
     private val mixer = Mixer(context, scope)
+
+    /** Called when the sound set is changed, to make the mixer reload the note samples. */
+    private val soundSetChangeListener: () -> Unit = { mixer.invalidateNoteSamples() }
+
+    init {
+        SoundSetManager.addChangeListener(soundSetChangeListener)
+    }
 
     /** Job which does the playing. */
     private var mixerJob: Mixer.JobCommunication? = null
@@ -1017,8 +1125,8 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
     /** Update the note list to be played.
      * @param noteList New note list to be played.
      */
-    fun setNoteList(noteList: ArrayList<NoteListItem>) {
-        mixer.noteList = noteList
+    fun setTracks(tracks: ArrayList<Track>) {
+        mixer.tracks = tracks
     }
 
     /** Start playing the note list from the beginning. */
@@ -1070,6 +1178,7 @@ class AudioMixer (val context: Context, private val scope: CoroutineScope) {
 
     /** Close all background jobs and stuff, when the class is not needed anymore. */
     fun destroy() {
+        SoundSetManager.removeChangeListener(soundSetChangeListener)
         noteStartedHandling.destroy()
     }
 }

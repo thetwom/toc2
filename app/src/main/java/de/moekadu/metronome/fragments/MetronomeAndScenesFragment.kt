@@ -19,6 +19,8 @@
 
 package de.moekadu.metronome.fragments
 
+import android.annotation.SuppressLint
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.*
 import androidx.appcompat.view.ActionMode
@@ -28,6 +30,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.widget.ViewPager2
 import de.moekadu.metronome.*
+import de.moekadu.metronome.dialogs.SoundSetDialog
 import de.moekadu.metronome.preferences.AppPreferences
 import de.moekadu.metronome.scenes.EditSceneCallback
 import de.moekadu.metronome.scenes.Scene
@@ -41,7 +44,7 @@ class MetronomeAndScenesFragment : Fragment() {
         val playerConnection = PlayerServiceConnection.getInstance(
             requireContext(),
             AppPreferences.readMetronomeBpm(requireActivity()),
-            AppPreferences.readMetronomeNoteList(requireActivity()),
+            AppPreferences.readMetronomeTracks(requireActivity()),
             AppPreferences.readIsMute(requireActivity())
         )
         MetronomeViewModel.Factory(playerConnection)
@@ -54,13 +57,29 @@ class MetronomeAndScenesFragment : Fragment() {
     var viewPager: ViewPager2? = null
         private set
 
+    companion object {
+        private const val KEY_CURRENT_PAGE = "currentPage"
+    }
+
     private var actionMode: ActionMode? = null
+    private var orientationLocked = false
+
+    /** Logical page (metronome, tracks or scenes) which is currently shown. */
+    var currentPage = ViewPagerAdapter.METRONOME
+        private set
+
+    /** True while the restored page is applied, so that the page is not overwritten meanwhile. */
+    private var restoringPage = false
 
     private val pageChangeListener = object : ViewPager2.OnPageChangeCallback() {
         override fun onPageSelected(position: Int) {
+            val page = position
+            if (!restoringPage)
+                currentPage = page
             (activity as MainActivity?)?.setDisplayHomeButton()
-            metronomeViewModel.isVisible = (position == ViewPagerAdapter.METRONOME)
-            scenesViewModel.isVisible = (position == ViewPagerAdapter.SCENES)
+            metronomeViewModel.isVisible = (page == ViewPagerAdapter.METRONOME)
+            scenesViewModel.isVisible = (page == ViewPagerAdapter.SCENES)
+            updateOrientationLock(page)
 
             super.onPageSelected(position)
         }
@@ -89,7 +108,7 @@ class MetronomeAndScenesFragment : Fragment() {
         override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
             when (menuItem.itemId) {
                 R.id.action_load -> {
-                    viewPager?.currentItem = ViewPagerAdapter.SCENES
+                    jumpToPage(ViewPagerAdapter.SCENES)
                     return true
                 }
                 R.id.action_edit -> {
@@ -104,6 +123,10 @@ class MetronomeAndScenesFragment : Fragment() {
                     val isMute = metronomeViewModel.mute.value ?: false
                     metronomeViewModel.setMute(!isMute)
                 }
+                R.id.action_sound_set -> {
+                    SoundSetDialog().show(parentFragmentManager, SoundSetDialog.REQUEST_KEY)
+                    return true
+                }
             }
             return false
         }
@@ -116,12 +139,21 @@ class MetronomeAndScenesFragment : Fragment() {
         activity?.addMenuProvider(menuProvider, viewLifecycleOwner, Lifecycle.State.RESUMED)
 
         viewPager = view.findViewById(R.id.viewpager)
-        viewPager?.adapter = ViewPagerAdapter(requireActivity())
+        val pagerAdapter = ViewPagerAdapter(requireActivity())
+        viewPager?.adapter = pagerAdapter
 
         (activity as MainActivity?)?.setDisplayHomeButton()
 
         viewPager?.registerOnPageChangeCallback(pageChangeListener)
         viewPager?.offscreenPageLimit = 1
+
+        currentPage = savedInstanceState?.getInt(KEY_CURRENT_PAGE, ViewPagerAdapter.METRONOME)
+            ?: ViewPagerAdapter.METRONOME
+        restoringPage = true
+        viewPager?.post {
+            viewPager?.setCurrentItem(currentPage, false)
+            restoringPage = false
+        }
 
         metronomeViewModel.mute.observe(viewLifecycleOwner) {
             activity?.invalidateOptionsMenu()
@@ -137,7 +169,7 @@ class MetronomeAndScenesFragment : Fragment() {
                 actionMode = null
 //                Log.v("Metronome", "MetronomeAndScenesFragment: observing uri: uri=$it")
                 // use "post" here, since otherwise, the view pager might miss the scene switching
-                viewPager?.post {viewPager?.currentItem = ViewPagerAdapter.SCENES }
+                viewPager?.post { jumpToPage(ViewPagerAdapter.SCENES) }
                 scenesViewModel.loadingFileComplete(ScenesViewModel.FragmentTypes.MetronomeAndScenes)
             }
         }
@@ -145,6 +177,11 @@ class MetronomeAndScenesFragment : Fragment() {
         if (scenesViewModel.editingStableId.value != Scene.NO_STABLE_ID)
             startEditingMode()
         return view
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(KEY_CURRENT_PAGE, currentPage)
     }
 
     override fun onDestroyView() {
@@ -161,7 +198,26 @@ class MetronomeAndScenesFragment : Fragment() {
 //                Log.v("Metronome", "MainActivity: onOptionsItemSelected: R.id.action_edit, stableId = $stableId")
         if (stableId != null && stableId != Scene.NO_STABLE_ID) {
             scenesViewModel.setEditingStableId(stableId)
-            viewPager?.currentItem = ViewPagerAdapter.METRONOME
+            jumpToPage(ViewPagerAdapter.METRONOME)
+        }
+    }
+
+    /** Show the given page. */
+    fun jumpToPage(page: Int) {
+        viewPager?.currentItem = page
+    }
+
+    /** The track page is always shown in portrait, all other pages follow the device orientation. */
+    @SuppressLint("SourceLockedOrientationActivity")
+    private fun updateOrientationLock(position: Int) {
+        val activity = activity ?: return
+        val shouldLock = position == ViewPagerAdapter.TRACKS
+        if (shouldLock && !orientationLocked) {
+            orientationLocked = true
+            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        } else if (!shouldLock && orientationLocked) {
+            orientationLocked = false
+            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         }
     }
 

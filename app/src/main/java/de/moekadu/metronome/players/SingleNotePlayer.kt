@@ -25,6 +25,7 @@ import android.media.AudioTrack
 import android.media.SoundPool
 import androidx.lifecycle.*
 import de.moekadu.metronome.metronomeproperties.getNoteAudioResourceID
+import de.moekadu.metronome.metronomeproperties.SoundSetManager
 
 class SingleNotePlayer(context: Context, private val lifecycleOwner: LifecycleOwner): LifecycleEventObserver {
     /// Sound pool which is used for playing sample sounds when selected in the sound chooser.
@@ -42,7 +43,11 @@ class SingleNotePlayer(context: Context, private val lifecycleOwner: LifecycleOw
 
     private var cachedVolume = 1.0f
 
+    /// Called when the sound set changes, so that the cached samples are dropped.
+    private val soundSetChangeListener: () -> Unit = { reload() }
+
     init {
+        SoundSetManager.addChangeListener(soundSetChangeListener)
         lifecycleOwner.lifecycle.addObserver(this)
     }
 
@@ -82,6 +87,16 @@ class SingleNotePlayer(context: Context, private val lifecycleOwner: LifecycleOw
 
     fun clear() {
         lifecycleOwner.lifecycle.removeObserver(this)
+        SoundSetManager.removeChangeListener(soundSetChangeListener)
+        unloadAllSounds()
+    }
+
+    /** Unload all samples, so that the next playback uses the sounds of the current sound set. */
+    fun reload() {
+        unloadAllSounds()
+    }
+
+    private fun unloadAllSounds() {
         for (sH in soundHandles44)
             soundPool.unload(sH.value)
         for (sH in soundHandles48)

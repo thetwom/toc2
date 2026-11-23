@@ -34,13 +34,14 @@ import de.moekadu.metronome.players.PlayerStatus
 import de.moekadu.metronome.metronomeproperties.Bpm
 import de.moekadu.metronome.metronomeproperties.NoteListItem
 import de.moekadu.metronome.metronomeproperties.NoteListItemStartTime
+import de.moekadu.metronome.metronomeproperties.Track
 
 class PlayerServiceConnection(
-    context: Context, private val initialBpm: Bpm, private val initialNoteList: ArrayList<NoteListItem>,
+    context: Context, private val initialBpm: Bpm, private val initialTracks: ArrayList<Track>,
     private val initialIsMute: Boolean) {
 
-    private val _noteList = MutableLiveData<ArrayList<NoteListItem> >()
-    val noteList: LiveData<ArrayList<NoteListItem> > get() = _noteList
+    private val _tracks = MutableLiveData<ArrayList<Track> >()
+    val tracks: LiveData<ArrayList<Track> > get() = _tracks
 
     private val _bpm = MutableLiveData<Bpm>()
     val bpm: LiveData<Bpm> get() = _bpm
@@ -101,9 +102,8 @@ class PlayerServiceConnection(
                 _bpm.value = bpm
         }
 
-        override fun onNoteListChanged(noteList: ArrayList<NoteListItem>) {
-//            Log.v("Metronome", "PlayerServiceConnection.onNoteListChanged")
-            _noteList.value = noteList
+        override fun onTracksChanged(tracks: ArrayList<Track>) {
+            _tracks.value = tracks
         }
     }
 
@@ -122,13 +122,13 @@ class PlayerServiceConnection(
                         _playerStatus.value = PlayerStatus.Paused
 
                     setBpm(initialBpm)
-                    service.noteList = initialNoteList
+                    service.tracks = initialTracks
                     isMute = initialIsMute
 
                     if (_bpm.value != service.bpm)
                         _bpm.value = service.bpm
-                    if (_noteList.value != service.noteList)
-                        _noteList.value = service.noteList
+                    if (_tracks.value != service.tracks)
+                        _tracks.value = service.tracks
                 }
             }
             catch (_: DeadObjectException) {
@@ -173,18 +173,18 @@ class PlayerServiceConnection(
         }
     }
 
-    fun setNoteList(noteList: ArrayList<NoteListItem>) {
+    fun setTracks(tracks: ArrayList<Track>) {
         try {
-            serviceBinder?.service?.noteList = noteList
+            serviceBinder?.service?.tracks = tracks
         }
         catch (_: DeadObjectException) {
             serviceBinder = null
         }
     }
 
-    fun modifyNoteList(op: (ArrayList<NoteListItem>) -> Boolean) {
+    fun modifyTracks(op: (ArrayList<Track>) -> Boolean) {
         try {
-            serviceBinder?.service?.modifyNoteList(op)
+            serviceBinder?.service?.modifyTracks(op)
         }
         catch (_: DeadObjectException) {
             serviceBinder = null
@@ -254,10 +254,10 @@ class PlayerServiceConnection(
         @Volatile
         private var instance: PlayerServiceConnection? = null
 
-        fun getInstance(context: Context, initialBpm: Bpm, initialNoteList: ArrayList<NoteListItem>,
+        fun getInstance(context: Context, initialBpm: Bpm, initialTracks: ArrayList<Track>,
                         initialIsMute: Boolean) =
                 instance ?: synchronized(this) {
-                instance ?: PlayerServiceConnection(context, initialBpm, initialNoteList, initialIsMute)
+                instance ?: PlayerServiceConnection(context, initialBpm, initialTracks, initialIsMute)
                     .also { instance = it }
             }
 

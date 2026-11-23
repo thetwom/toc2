@@ -21,12 +21,12 @@
     <string name="app_name">Metronome</string>
     <string name="action_settings">Settings</string>
 
-    <string name="base" translatable="false">kick drum</string>
-    <string name="hihat" translatable="false">hi-hat</string>
-    <string name="snare" translatable="false">snare</string>
-    <string name="sticks" translatable="false">sticks</string>
-    <string name="claves" translatable="false">claves</string>
-    <string name="woodblock" translatable="false">woodblock</string>
+    <string name="base">kick drum</string>
+    <string name="hihat">hi-hat</string>
+    <string name="snare">snare</string>
+    <string name="sticks">rim</string>
+    <string name="claves">claves</string>
+    <string name="woodblock">woodblock</string>
     <string name="mute">mute</string>
     <string name="bpm">%s bpm</string>
     <string name="eqbpm">= %s bpm</string>
@@ -150,7 +150,54 @@
     <string name="basic">Basic</string>
     <string name="others">Others</string>
     <string name="visual_delay">Delay visual effects</string>
+    <string name="english_note_labels">English note names</string>
+    <string name="english_note_labels_summary">Show the note names in English instead of the system language</string>
     <string name="app_is_superseded">This app is superseded by \nhttps://codeberg.org/thetwom/metronome</string>
     <string name="dont_show_again">Do not show again</string>
     <string name="note">Note</string>
+
+    <!-- sound sets -->
+    <string name="soundset">Sound set</string>
+    <string name="soundset_default" translatable="false">Default</string>
+    <string name="soundset_ableton" translatable="false">Ableton Live click</string>
+    <string name="soundset_808" translatable="false">808 kit</string>
+    <string name="soundset_ireal" translatable="false">iReal Pro click</string>
+    <string name="soundset_dnb" translatable="false">DnB kit</string>
+    <string name="soundset_techno" translatable="false">Techno kit</string>
+    <string name="soundset_rock" translatable="false">Rock kit</string>
+    <string name="hat_open">open hat</string>
+    <string name="clap">clap</string>
+    <string name="tom">tom</string>
+    <string name="ride">ride</string>
+    <string name="cowbell">cowbell</string>
+    <string name="shaker">shaker</string>
+    <string name="crash">crash</string>
+    <string name="woodblock_low">wood low</string>
+    <string name="click_1568" translatable="false">1568</string>
+    <string name="click_1046" translatable="false">1046</string>
+    <string name="click_880" translatable="false">880</string>
+    <string name="click_1319" translatable="false">1319</string>
+    <string name="click_2093" translatable="false">2093</string>
+    <string name="click_698" translatable="false">698</string>
+    <string name="click_784" translatable="false">784</string>
+    <string name="wood_1180" translatable="false">1180</string>
+    <string name="wood_900" translatable="false">900</string>
+    <string name="wood_720" translatable="false">720</string>
+    <string name="wood_1520" translatable="false">1520</string>
+    <string name="wood_560" translatable="false">560</string>
+    <string name="wood_1000" translatable="false">1000</string>
+    <string name="tracks">Tracks</string>
+    <string name="new_track">+ New track</string>
+    <string name="track_focus">Focus</string>
+    <string name="delete_track">Delete track</string>
+    <string name="max_num_tracks_reached">Maximum number of tracks reached</string>
+    <string name="cannot_delete_last_track">The last track cannot be deleted</string>
+    <string name="note_duration_quarter">Quarter note</string>
+    <string name="note_duration_eighth">Eighth note</string>
+    <string name="note_duration_sixteenth">Sixteenth note</string>
+    <string name="note_duration_thirty_second">Thirty-second note</string>
+    <string name="note_duration_no_tuplet">No tuplet</string>
+    <string name="note_duration_triplet">Triplet</string>
+    <string name="note_duration_quintuplet">Quintuplet</string>
+    <string name="note_duration_septuplet">Septuplet (7 in the time of 4)</string>
 </resources>

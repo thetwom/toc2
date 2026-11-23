@@ -24,7 +24,6 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
-import de.moekadu.metronome.R
 import de.moekadu.metronome.misc.Utilities
 import kotlin.math.max
 import kotlin.math.min
@@ -47,10 +46,7 @@ class TupletView(context: Context) : androidx.appcompat.widget.AppCompatImageVie
             if (field == value)
                 return
             field = value
-            when (value) {
-                3 -> setImageResource(R.drawable.ic_triplet)
-                5 -> setImageResource(R.drawable.ic_quintuplet)
-            }
+            setImageResource(tupletNumberResource(value))
         }
 
     var tupletComplete: Boolean = true
@@ -79,6 +75,8 @@ class TupletView(context: Context) : androidx.appcompat.widget.AppCompatImageVie
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+        if (measuredWidth <= measuredHeight) return
+
         val strokeWidth = 0.15f * measuredHeight
         paint.strokeWidth = strokeWidth
         paint.color = imageTintList?.defaultColor ?: Color.GREEN
@@ -129,7 +127,7 @@ class TupletView(context: Context) : androidx.appcompat.widget.AppCompatImageVie
         )
 //        Log.v("Metronome", "TupletView.measureOnNoteView: minimumSpacing=$minimumSpacing, rectRight.right=${rectRight.right}, rectRight.centerX=${rectRight.centerX()}")
         val height = (0.15f * rectLeft.height()).roundToInt()
-        val width = (right - left).roundToInt()
+        val width = (right - left).roundToInt().coerceAtLeast(0)
         measure(
             MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
             MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY),
