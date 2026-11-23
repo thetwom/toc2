@@ -335,8 +335,7 @@ class MetronomeFragment : Fragment() {
         }
 
         swipeToScenesView?.setOnClickListener {
-            (parentFragment as? MetronomeAndScenesFragment)?.viewPager?.currentItem =
-                ViewPagerAdapter.SCENES
+            (parentFragment as? MetronomeAndScenesFragment)?.jumpToPage(ViewPagerAdapter.SCENES)
         }
 
         sharedPreferenceChangeListener = OnSharedPreferenceChangeListener { sharedPreferences, key ->

@@ -138,12 +138,15 @@ class MainActivity : AppCompatActivity() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        // The track page locks the orientation itself, for all other pages the activity has to be
-        // recreated so that the layout for the new orientation is inflated.
+        // The track page locks the orientation itself, so a rotation can only happen on the other
+        // pages. Those have to be recreated so that the layout for the new orientation is inflated
+        // and the track page is added to or removed from the pages.
         val fragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
         if (fragment is MetronomeAndScenesFragment) {
-            if (fragment.viewPager?.currentItem != ViewPagerAdapter.TRACKS)
+            if (fragment.currentPage != ViewPagerAdapter.TRACKS)
                 recreate()
+        } else {
+            recreate()
         }
     }
 
@@ -187,8 +190,10 @@ class MainActivity : AppCompatActivity() {
         var changed = false
         when (val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)) {
             is MetronomeAndScenesFragment -> {
-                if (currentFragment.viewPager?.currentItem != id) {
-                    currentFragment.viewPager?.currentItem = id
+                val adapter = currentFragment.viewPager?.adapter as? ViewPagerAdapter
+                val position = adapter?.positionOf(id) ?: id
+                if (currentFragment.viewPager?.currentItem != position) {
+                    currentFragment.viewPager?.currentItem = position
                     changed = true
                 }
                 supportActionBar?.setDisplayHomeAsUpEnabled(id != ViewPagerAdapter.METRONOME)

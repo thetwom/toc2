@@ -93,8 +93,7 @@ class TrackFragment : Fragment() {
         }
 
         view.findViewById<ImageButton>(R.id.to_scenes_button)?.setOnClickListener {
-            (parentFragment as? MetronomeAndScenesFragment)?.viewPager?.currentItem =
-                ViewPagerAdapter.SCENES
+            (parentFragment as? MetronomeAndScenesFragment)?.jumpToPage(ViewPagerAdapter.SCENES)
         }
 
         return view
