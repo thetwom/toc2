@@ -202,36 +202,35 @@ data class NoteInfo(val audio44ResourceID: Int, val audio48ResourceID: Int,
                     val drawableQuarterResourceID: Int,
                     val drawableEighthResourceID: Int,
                     val drawableSixteenthResourceID: Int,
+                    val drawableThirtySecondResourceID: Int,
                     val vibrationDuration: Long)
 
 val defaultNotes = arrayOf(
         NoteInfo(
             R.raw.base44_wav, R.raw.base48_wav, R.string.base,
-            R.drawable.ic_note_a, R.drawable.ic_note_a_eighth,R.drawable.ic_note_a_sixteenth,
+            R.drawable.ic_note_a, R.drawable.ic_note_a_eighth,R.drawable.ic_note_a_sixteenth, R.drawable.ic_note_a_thirtysecond,
             80L),
         NoteInfo(R.raw.snare44_wav, R.raw.snare48_wav, R.string.snare,
-            R.drawable.ic_note_c, R.drawable.ic_note_c_eighth, R.drawable.ic_note_c_sixteenth,
+            R.drawable.ic_note_c, R.drawable.ic_note_c_eighth, R.drawable.ic_note_c_sixteenth, R.drawable.ic_note_c_thirtysecond,
             65L),
 
         NoteInfo(R.raw.sticks44_wav, R.raw.sticks48_wav, R.string.sticks,
-            R.drawable.ic_note_c_rim, R.drawable.ic_note_c_rim_eighth, R.drawable.ic_note_c_rim_sixteenth,
+            R.drawable.ic_note_c_rim, R.drawable.ic_note_c_rim_eighth, R.drawable.ic_note_c_rim_sixteenth, R.drawable.ic_note_c_rim_thirtysecond,
             65L),
         NoteInfo(R.raw.woodblock_high44_wav, R.raw.woodblock_high48_wav, R.string.woodblock,
-            R.drawable.ic_note_ep, R.drawable.ic_note_ep_eighth, R.drawable.ic_note_ep_sixteenth,
+            R.drawable.ic_note_ep, R.drawable.ic_note_ep_eighth, R.drawable.ic_note_ep_sixteenth, R.drawable.ic_note_ep_thirtysecond,
             50L),
         NoteInfo(R.raw.claves44_wav, R.raw.claves48_wav, R.string.claves,
-            R.drawable.ic_note_gp, R.drawable.ic_note_gp_eighth, R.drawable.ic_note_gp_sixteenth,
+            R.drawable.ic_note_gp, R.drawable.ic_note_gp_eighth, R.drawable.ic_note_gp_sixteenth, R.drawable.ic_note_gp_thirtysecond,
             35L),
-        // NoteInfo(R.raw.hhp_dry_a, R.string.hihat, R.drawable.ic_note_hihat_eighth, R.drawable.ic_note_hihat_sixteenth, R.drawable.ic_hihat, 30L),
         NoteInfo(R.raw.hihat44_wav, R.raw.hihat48_wav, R.string.hihat,
-            R.drawable.ic_note_hihat, R.drawable.ic_note_hihat_eighth, R.drawable.ic_note_hihat_sixteenth,
+            R.drawable.ic_note_hihat, R.drawable.ic_note_hihat_eighth, R.drawable.ic_note_hihat_sixteenth, R.drawable.ic_note_hihat_thirtysecond,
             35L),
-        // NoteInfo(R.raw.sn_jazz_c, R.string.snare, R.drawable.ic_snare, R.drawable.ic_note_c_eighth, R.drawable.ic_note_c_sixteenth, 30L),
         NoteInfo(R.raw.mute44_wav, R.raw.mute48_wav, R.string.mute,
-            R.drawable.ic_note_pause, R.drawable.ic_note_pause_eighth, R.drawable.ic_note_pause_sixteenth,
+            R.drawable.ic_note_pause, R.drawable.ic_note_pause_eighth, R.drawable.ic_note_pause_sixteenth, R.drawable.ic_note_pause_thirtysecond,
             0L),
         NoteInfo(R.raw.woodblock_low_44_wav, R.raw.woodblock_low_48_wav, R.string.woodblock_low,
-            R.drawable.ic_note_extra, R.drawable.ic_note_extra_eighth, R.drawable.ic_note_extra_sixteenth,
+            R.drawable.ic_note_extra, R.drawable.ic_note_extra_eighth, R.drawable.ic_note_extra_sixteenth, R.drawable.ic_note_extra_thirtysecond,
             45L)
 )
 
@@ -269,11 +268,21 @@ fun getNoteLabel(context: Context, index: Int): String {
 }
 
 fun getNoteDrawableResourceID(index: Int, duration: NoteDuration) =
-    when {
-        duration.hasBaseTypeQuarter() -> availableNotes[index].drawableQuarterResourceID
-        duration.hasBaseTypeEighth() -> availableNotes[index].drawableEighthResourceID
-        else -> availableNotes[index].drawableSixteenthResourceID
+    availableNotes[index].let { note ->
+        when (duration.baseSubdivision) {
+            1 -> note.drawableQuarterResourceID
+            2 -> note.drawableEighthResourceID
+            4 -> note.drawableSixteenthResourceID
+            else -> note.drawableThirtySecondResourceID
+        }
     }
+
+internal fun NoteDuration.baseDrawableResource() = when (baseSubdivision) {
+    1 -> R.drawable.ic_note_duration_quarter
+    2 -> R.drawable.ic_note_duration_eighth
+    4 -> R.drawable.ic_note_duration_sixteenth
+    else -> R.drawable.ic_note_duration_thirtysecond
+}
 
 /** Return note vibration duration in milliseconds. */
 fun getNoteVibrationDurationMillis(index : Int) = availableNotes[index].vibrationDuration

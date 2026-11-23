@@ -24,10 +24,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.util.AttributeSet
 import android.view.View
-import androidx.appcompat.content.res.AppCompatResources
 import de.moekadu.metronome.metronomeproperties.NoteListItem
-import de.moekadu.metronome.metronomeproperties.getNoteDrawableResourceID
-import kotlin.math.max
 
 /** Small preview of the notes of one track, used in the track list. It does not react to touches. */
 class TrackPreviewView(context: Context, attrs: AttributeSet? = null) : View(context, attrs) {
@@ -57,22 +54,23 @@ class TrackPreviewView(context: Context, attrs: AttributeSet? = null) : View(con
             return
 
         val space = availableWidth / notes.size.toFloat()
-        val iconHeight = max(1, (availableHeight * 0.9f).toInt())
+        val iconHeight = availableHeight * 0.9f
 
         for (i in notes.indices) {
             val note = notes[i]
-            val drawable = AppCompatResources.getDrawable(
-                context, getNoteDrawableResourceID(note.id, note.duration)
-            ) ?: continue
-            val aspect = if (drawable.intrinsicHeight > 0)
-                drawable.intrinsicWidth.toFloat() / drawable.intrinsicHeight else 1f
-            val iconWidth = max(1, (iconHeight * aspect).toInt())
+            val drawable = notePreviewDrawable(context, note.id, note.duration) ?: continue
+            val scale = minOf(iconHeight / drawable.intrinsicHeight, space / drawable.intrinsicWidth)
             val centerX = paddingLeft + (0.5f + i) * space
-            val left = (centerX - 0.5f * iconWidth).toInt()
-            drawable.setBounds(left, paddingTop, left + iconWidth, paddingTop + iconHeight)
+            val left = centerX - 0.5f * drawable.intrinsicWidth * scale
+            val top = paddingTop + 0.5f * (iconHeight - drawable.intrinsicHeight * scale)
+            drawable.setBounds(0, 0, drawable.intrinsicWidth, drawable.intrinsicHeight)
             drawable.setTint(iconColor)
             drawable.alpha = (120 + (125 * note.volume).toInt()).coerceIn(0, 255)
+            val checkpoint = canvas.save()
+            canvas.translate(left, top)
+            canvas.scale(scale, scale)
             drawable.draw(canvas)
+            canvas.restoreToCount(checkpoint)
         }
     }
 }

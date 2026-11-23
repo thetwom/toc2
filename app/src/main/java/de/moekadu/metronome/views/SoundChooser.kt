@@ -84,8 +84,13 @@ import kotlin.math.roundToInt
 // |                noteView: h      |  h x h  |   h x h |  h x h  |
 // |                                 |         |         |         |
 // |-------------------------------------------|---------|---------|
+private val durationSubdivisions = listOf(1, 2, 4, 8)
+private val tupletSizes = listOf(1, 3, 5, 7)
+
 private class SoundChooserViewMeasures(
         val viewSpacing: Float,
+        val rhythmButtonSpacing: Int,
+        val minimumRhythmButtonWidth: Int,
         val noteViewHeightPercent: Float,
         val plusButtonRightPercent: Float, // only landscape
         val paddingLeft: Int,
@@ -112,7 +117,39 @@ private class SoundChooserViewMeasures(
     val volumeSliders = Rect()
     var volumeSlidersButtonSize = 0
 
-    fun layoutPortrait(width: Int, height: Int) {
+    var durationColumns = durationSubdivisions.size
+        private set
+    private val rhythmRows get() = durationSubdivisions.size / durationColumns
+    private val rhythmExtraSpacing get() = (rhythmRows - 1) * rhythmButtonSpacing
+
+    fun layout(width: Int, height: Int, orientation: SoundChooser.Orientation) {
+        durationColumns = durationSubdivisions.size
+        layoutForOrientation(width, height, orientation)
+        val singleRowWidth = durationColumns * minimumRhythmButtonWidth +
+            (durationColumns - 1) * rhythmButtonSpacing
+        if (noteDuration.width() < singleRowWidth) {
+            durationColumns /= 2
+            layoutForOrientation(width, height, orientation)
+        }
+    }
+
+    private fun layoutForOrientation(width: Int, height: Int, orientation: SoundChooser.Orientation) {
+        when (orientation) {
+            SoundChooser.Orientation.Portrait -> layoutPortrait(width, height)
+            SoundChooser.Orientation.Landscape -> layoutLandscape(width, height)
+        }
+    }
+
+    private fun layoutRhythmGrids(gridCellHeight: Float) {
+        val rhythmHeight = (0.5f * rhythmRows * gridCellHeight).roundToInt() + rhythmExtraSpacing
+        noteDuration.bottom = (noteSelection.top - viewSpacing).roundToInt()
+        noteDuration.top = noteDuration.bottom - rhythmHeight
+
+        tuplets.bottom = (noteDuration.top - viewSpacing).roundToInt()
+        tuplets.top = tuplets.bottom - rhythmHeight
+    }
+
+    private fun layoutPortrait(width: Int, height: Int) {
         // vertical pass
         noteView.bottom = height - paddingBottom
         noteView.top = (noteView.bottom - noteViewHeightPercent * height).roundToInt()
@@ -130,18 +167,16 @@ private class SoundChooserViewMeasures(
         done.bottom = delete.bottom
         done.top = delete.top
 
-        val gridCellHeightMax = (done.top - 3 * viewSpacing - staticElementPadding) / 3f
+        val gridCellHeightMax =
+            (done.top - 3 * viewSpacing - staticElementPadding - 2 * rhythmExtraSpacing) /
+                (2 + rhythmRows)
         val gridCellDesired = noteView.height() * gridCellHeightToNoteViewRatio
-        val gridCellHeight = min(gridCellHeightMax, gridCellDesired)
+        val gridCellHeight = min(gridCellHeightMax, gridCellDesired).coerceAtLeast(0f)
 
         noteSelection.bottom = (done.top - viewSpacing).roundToInt()
         noteSelection.top = (noteSelection.bottom - 2 * gridCellHeight).roundToInt()
 
-        noteDuration.bottom = (noteSelection.top - viewSpacing).roundToInt()
-        noteDuration.top = (noteDuration.bottom - 0.5f * gridCellHeight).roundToInt()
-
-        tuplets.bottom = (noteDuration.top - viewSpacing).roundToInt()
-        tuplets.top = (tuplets.bottom - 0.5f * gridCellHeight).roundToInt()
+        layoutRhythmGrids(gridCellHeight)
 
         volume.bottom = noteSelection.bottom
         volume.top = tuplets.top
@@ -177,7 +212,7 @@ private class SoundChooserViewMeasures(
         // volume width:
         // user the larger value of "ratio 1:7" and tuplets height
         // but max 0.2 * width of view
-        val volumeWidth = min(0.2f * width, max(volume.height() / 7.0f, 0.8f * noteDuration.height()))
+        val volumeWidth = min(0.2f * width, max(volume.height() / 7.0f, 0.4f * gridCellHeight))
         //Log.v("Metronome", "SoundChooser3: h/5=${volume.height()/5.0f}")
         volume.left = staticElementPadding
         volume.right = (volume.left + volumeWidth).roundToInt()
@@ -204,7 +239,7 @@ private class SoundChooserViewMeasures(
         clearAll.left = clearAll.right - clearAll.height()
     }
 
-    fun layoutLandscape(width: Int, height: Int) {
+    private fun layoutLandscape(width: Int, height: Int) {
         //Log.v("Metronome", "SoundChooser.layoutLandscape: width=$width, height=$height")
         // vertical pass
         noteView.bottom = height - paddingBottom
@@ -223,18 +258,16 @@ private class SoundChooserViewMeasures(
         done.bottom = delete.bottom
         done.top = delete.top
 
-        val gridCellHeightMax = (noteView.top - 3 * viewSpacing - staticElementPadding) / 2f
+        val gridCellHeightMax =
+            (noteView.top - 3 * viewSpacing - staticElementPadding - 2 * rhythmExtraSpacing) /
+                (1 + rhythmRows)
         val gridCellDesired = noteView.height() * gridCellHeightToNoteViewRatio
-        val gridCellHeight = min(gridCellHeightMax, gridCellDesired)
+        val gridCellHeight = min(gridCellHeightMax, gridCellDesired).coerceAtLeast(0f)
 
         noteSelection.bottom = (noteView.top - viewSpacing).roundToInt()
         noteSelection.top = (noteSelection.bottom - gridCellHeight).roundToInt()
 
-        noteDuration.bottom = (noteSelection.top - viewSpacing).roundToInt()
-        noteDuration.top = (noteDuration.bottom - 0.5f * gridCellHeight).roundToInt()
-
-        tuplets.bottom = (noteDuration.top - viewSpacing).roundToInt()
-        tuplets.top = (tuplets.bottom - 0.5f * gridCellHeight).roundToInt()
+        layoutRhythmGrids(gridCellHeight)
 
         volume.bottom = noteSelection.bottom
         volume.top = tuplets.top
@@ -271,7 +304,7 @@ private class SoundChooserViewMeasures(
         // volume width:
         // user the larger value of "ratio 1:5" and tuplets height
         // but max 0.2 * width of view
-        val volumeWidth = min(0.2f * width, max(volume.height() / 7.0f, 0.8f * noteDuration.height()))
+        val volumeWidth = min(0.2f * width, max(volume.height() / 7.0f, 0.4f * gridCellHeight))
         volume.left = staticElementPadding
         volume.right = (volume.left + volumeWidth).roundToInt()
 
@@ -435,6 +468,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 
     private val staticElementPadding = Utilities.dp2px(8f).roundToInt()
     private val viewSpacing = Utilities.dp2px(8f)
+    private val rhythmButtonSpacing = Utilities.dp2px(2f).roundToInt()
 
     private var soundChooserViewMeasures: SoundChooserViewMeasures
 
@@ -495,7 +529,8 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         }
 
         soundChooserViewMeasures = SoundChooserViewMeasures(
-            viewSpacing, noteViewHeightPercent, plusButtonRightPercent,
+            viewSpacing, rhythmButtonSpacing, Utilities.dp2px(48f).roundToInt(),
+            noteViewHeightPercent, plusButtonRightPercent,
             paddingLeft, paddingTop, paddingTop, paddingRight, staticElementPadding
         )
         noteView.volumeColor = volumeColor
@@ -550,7 +585,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             noteSelection.deactivateButton(i)
 
         noteDuration = GridSelection(
-            1, 4, Utilities.dp2px(2f).roundToInt(),
+            1, durationSubdivisions.size, rhythmButtonSpacing,
             R.drawable.grid_background_topleft,
             R.drawable.grid_background_topright,
             R.drawable.grid_background_bottomleft,
@@ -562,13 +597,17 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         )
         noteDuration.addView(this)
         noteDuration.disappear(0L)
-        noteDuration.setButtonDrawable(0, R.drawable.ic_note_duration_quarter)
-        noteDuration.setButtonDrawable(1, R.drawable.ic_note_duration_eighth)
-        noteDuration.setButtonDrawable(2, R.drawable.ic_note_duration_sixteenth)
-        noteDuration.setButtonDrawable(3, R.drawable.ic_note_duration_thirtysecond)
+        val durationDescriptions = listOf(
+            R.string.note_duration_quarter, R.string.note_duration_eighth,
+            R.string.note_duration_sixteenth, R.string.note_duration_thirty_second
+        )
+        durationSubdivisions.forEachIndexed { index, subdivision ->
+            noteDuration.setButtonDrawable(index, NoteDuration.of(subdivision, 1).baseDrawableResource())
+            noteDuration.setButtonDescription(index, context.getString(durationDescriptions[index]))
+        }
 
         tuplets = GridSelection(
-            1, 4, Utilities.dp2px(2f).roundToInt(),
+            1, tupletSizes.size, rhythmButtonSpacing,
             R.drawable.grid_background_topleft,
             R.drawable.grid_background_topright,
             R.drawable.grid_background_bottomleft,
@@ -580,10 +619,18 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         )
         tuplets.addView(this)
         tuplets.disappear(0L)
-        tuplets.setButtonDrawable(0, R.drawable.ic_note_duration_normal)
-        tuplets.setButtonDrawable(1, R.drawable.ic_note_duration_triplet)
-        tuplets.setButtonDrawable(2, R.drawable.ic_note_duration_quintuplet)
-        tuplets.setButtonDrawable(3, R.drawable.ic_note_duration_septuplet)
+        val tupletDrawables = listOf(
+            R.drawable.ic_note_duration_normal, R.drawable.ic_note_duration_triplet,
+            R.drawable.ic_note_duration_quintuplet, R.drawable.ic_note_duration_septuplet
+        )
+        val tupletDescriptions = listOf(
+            R.string.note_duration_no_tuplet, R.string.note_duration_triplet,
+            R.string.note_duration_quintuplet, R.string.note_duration_septuplet
+        )
+        tupletDrawables.forEachIndexed { index, drawable ->
+            tuplets.setButtonDrawable(index, drawable)
+            tuplets.setButtonDescription(index, context.getString(tupletDescriptions[index]))
+        }
 
         noteDuration.activeButtonChangedListener =
             GridSelection.ActiveButtonChangedListener { index ->
@@ -756,16 +803,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
 
         backgroundSurface.measure(widthMeasureSpec, heightMeasureSpec)
 
-        when (orientation) {
-            Orientation.Portrait -> soundChooserViewMeasures.layoutPortrait(
-                measuredWidth,
-                measuredHeight
-            )
-            Orientation.Landscape -> soundChooserViewMeasures.layoutLandscape(
-                measuredWidth,
-                measuredHeight
-            )
-        }
+        soundChooserViewMeasures.layout(measuredWidth, measuredHeight, orientation)
 
         measureView(noteView, soundChooserViewMeasures.noteView)
         measureView(volumeControl, soundChooserViewMeasures.volume)
@@ -782,11 +820,13 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         )
         noteDuration.measure(
             soundChooserViewMeasures.noteDuration.width(),
-            soundChooserViewMeasures.noteDuration.height()
+            soundChooserViewMeasures.noteDuration.height(),
+            soundChooserViewMeasures.durationColumns
         )
         tuplets.measure(
             soundChooserViewMeasures.tuplets.width(),
-            soundChooserViewMeasures.tuplets.height()
+            soundChooserViewMeasures.tuplets.height(),
+            soundChooserViewMeasures.durationColumns
         )
         dynamicSelection.measure(
             soundChooserViewMeasures.dynamicSelection.width(),
@@ -846,23 +886,23 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             layoutView(clearAllButton, soundChooserViewMeasures.clearAll)
             layoutView(openVolumeSlidersButton, soundChooserViewMeasures.openVolumeSliders)
 
-            noteSelection.layout(
-                soundChooserViewMeasures.noteSelection.left,
-                soundChooserViewMeasures.noteSelection.top
-            )
-            noteDuration.layout(
-                soundChooserViewMeasures.noteDuration.left,
-                soundChooserViewMeasures.noteDuration.top
-            )
-            tuplets.layout(
-                soundChooserViewMeasures.tuplets.left,
-                soundChooserViewMeasures.tuplets.top
-            )
             dynamicSelection.layout(
                 soundChooserViewMeasures.dynamicSelection.left,
                 soundChooserViewMeasures.dynamicSelection.bottom
             )
         }
+        noteSelection.layout(
+            soundChooserViewMeasures.noteSelection.left,
+            soundChooserViewMeasures.noteSelection.top
+        )
+        noteDuration.layout(
+            soundChooserViewMeasures.noteDuration.left,
+            soundChooserViewMeasures.noteDuration.top
+        )
+        tuplets.layout(
+            soundChooserViewMeasures.tuplets.left,
+            soundChooserViewMeasures.tuplets.top
+        )
         volumeSliders.layout(
             soundChooserViewMeasures.volumeSliders.left,
             soundChooserViewMeasures.volumeSliders.bottom,
@@ -1278,8 +1318,8 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         activeControlButton?.let { controlButton ->
             volumeControl.setVolume(controlButton.volume, animationDuration)
             noteSelection.setActiveButton(controlButton.noteId)
-            noteDuration.setActiveButton(getNoteDurationIndex(controlButton.noteDuration))
-            tuplets.setActiveButton(getTupletIndex(controlButton.noteDuration))
+            noteDuration.setActiveButton(durationSubdivisions.indexOf(controlButton.noteDuration.baseSubdivision))
+            tuplets.setActiveButton(tupletSizes.indexOf(controlButton.noteDuration.tupletSize))
             setNoteSelectionNotes(controlButton.noteDuration)
         }
     }
@@ -1373,62 +1413,16 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         return centerX > deleteButton.x && centerX < deleteButton.x + deleteButton.width
     }
 
-    private fun getSelectedNoteDuration(indexDuration: Int, indexTuplets: Int): NoteDuration {
-//        Log.v(
-//            "Metronome",
-//            "SoundChooser.getSelectedNoteDuration: indexDuration: $indexDuration, indexTuplets: $indexTuplets"
-//        )
-        return when (indexTuplets) {
-            1 -> when (indexDuration) {
-                1 -> NoteDuration.EighthTriplet
-                2 -> NoteDuration.SixteenthTriplet
-                3 -> NoteDuration.ThirtySecondTriplet
-                else -> NoteDuration.QuarterTriplet
-            }
-            2 -> when (indexDuration) {
-                1 -> NoteDuration.EighthQuintuplet
-                2 -> NoteDuration.SixteenthQuintuplet
-                3 -> NoteDuration.ThirtySecondQuintuplet
-                else -> NoteDuration.QuarterQuintuplet
-            }
-            3 -> when (indexDuration) {
-                1 -> NoteDuration.EighthSeptuplet
-                2 -> NoteDuration.SixteenthSeptuplet
-                3 -> NoteDuration.ThirtySecondSeptuplet
-                else -> NoteDuration.QuarterSeptuplet
-            }
-            else -> when (indexDuration) {
-                1 -> NoteDuration.Eighth
-                2 -> NoteDuration.Sixteenth
-                3 -> NoteDuration.ThirtySecond
-                else -> NoteDuration.Quarter
-            }
-        }
-    }
-
-    private fun getNoteDurationIndex(noteDuration: NoteDuration): Int {
-        return when {
-            noteDuration.hasBaseTypeQuarter() -> 0
-            noteDuration.hasBaseTypeEighth() -> 1
-            noteDuration.hasBaseTypeSixteenth() -> 2
-            else -> 3
-        }
-    }
-
-    private fun getTupletIndex(noteDuration: NoteDuration): Int {
-        return when {
-            noteDuration.isNoTuplet() -> 0
-            noteDuration.isTriplet() -> 1
-            noteDuration.isQuintuplet() -> 2
-            else -> 3
-        }
-    }
+    private fun getSelectedNoteDuration(indexDuration: Int, indexTuplets: Int): NoteDuration =
+        NoteDuration.of(
+            durationSubdivisions.getOrElse(indexDuration) { 1 },
+            tupletSizes.getOrElse(indexTuplets) { 1 }
+        )
 
     private fun setNoteSelectionNotes(noteDuration: NoteDuration) {
         for (note in 0 until getNumAvailableNotes()) {
-            val drawableId = getNoteDrawableResourceID(note, noteDuration)
-            noteSelection.setButtonDrawable(note, drawableId)
-            dynamicSelection.setButtonDrawable(note, drawableId)
+            noteSelection.setButtonDrawable(note, notePreviewDrawable(context, note, noteDuration))
+            dynamicSelection.setButtonDrawable(note, notePreviewDrawable(context, note, noteDuration))
             noteSelection.setButtonLabel(note, getNoteLabel(context, note))
         }
     }

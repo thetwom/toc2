@@ -192,4 +192,12 @@
     <string name="delete_track">Delete track</string>
     <string name="max_num_tracks_reached">Maximum number of tracks reached</string>
     <string name="cannot_delete_last_track">The last track cannot be deleted</string>
+    <string name="note_duration_quarter">Quarter note</string>
+    <string name="note_duration_eighth">Eighth note</string>
+    <string name="note_duration_sixteenth">Sixteenth note</string>
+    <string name="note_duration_thirty_second">Thirty-second note</string>
+    <string name="note_duration_no_tuplet">No tuplet</string>
+    <string name="note_duration_triplet">Triplet</string>
+    <string name="note_duration_quintuplet">Quintuplet</string>
+    <string name="note_duration_septuplet">Septuplet (7 in the time of 4)</string>
 </resources>

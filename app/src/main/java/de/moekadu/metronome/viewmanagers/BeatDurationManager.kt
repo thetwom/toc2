@@ -22,6 +22,7 @@ package de.moekadu.metronome.viewmanagers
 import android.view.View
 import androidx.appcompat.widget.AppCompatImageButton
 import de.moekadu.metronome.metronomeproperties.NoteDuration
+import de.moekadu.metronome.metronomeproperties.baseDrawableResource
 import de.moekadu.metronome.R
 import de.moekadu.metronome.misc.Utilities
 
@@ -65,12 +66,7 @@ class BeatDurationManager(parent: View) {
     }
 
     fun setBeatDuration(duration: NoteDuration) {
-        when(duration) {
-            NoteDuration.Quarter -> beatDuration.setImageResource(R.drawable.ic_note_duration_quarter)
-            NoteDuration.Eighth -> beatDuration.setImageResource(R.drawable.ic_note_duration_eighth)
-            NoteDuration.Sixteenth -> beatDuration.setImageResource(R.drawable.ic_note_duration_sixteenth)
-            else -> throw RuntimeException("Cannot handle beat duration: $duration")
-        }
+        beatDuration.setImageResource(duration.baseDrawableResource())
         quarterView.isActivated = duration == NoteDuration.Quarter
         eighthView.isActivated = duration == NoteDuration.Eighth
         sixteenthView.isActivated = duration == NoteDuration.Sixteenth

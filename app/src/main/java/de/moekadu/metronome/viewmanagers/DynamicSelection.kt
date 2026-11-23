@@ -20,6 +20,7 @@
 package de.moekadu.metronome.viewmanagers
 
 import android.content.res.ColorStateList
+import android.graphics.drawable.Drawable
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.OvershootInterpolator
@@ -133,8 +134,8 @@ class DynamicSelection(val buttonSpacing: Int,
         }
     }
 
-    fun setButtonDrawable(index: Int, resourceId: Int) {
-        buttons[index].setImageResource(resourceId)
+    fun setButtonDrawable(index: Int, drawable: Drawable?) {
+        buttons[index].setImageDrawable(drawable)
     }
 
     fun setActiveButton(index: Int, animationDuration: Long) {

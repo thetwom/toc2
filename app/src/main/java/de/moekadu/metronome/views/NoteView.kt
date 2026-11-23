@@ -632,147 +632,61 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     }
 
     private fun detectAllTuplets() {
-        var numTuplets = detectTuplets(0, 3)
-        numTuplets = detectTuplets(numTuplets, 5)
-        numTuplets = detectTuplets(numTuplets, 7)
-        for (i in numTuplets until tuplets.size)
-            removeView(tuplets[i])
-        tuplets.subList(numTuplets, tuplets.size).clear()
-    }
-    private fun detectTuplets(firstTupletIndex: Int, numTupletNotes: Int): Int {
+        var groupCount = 0
+        var groupStart = 0
+        var tupletSize = 1
+        var totalUnits = 0
+        var shortestUnit = 0
+        var longestUnit = 0
 
-        var numTupletsTotal = firstTupletIndex
-
-        var quarterCounts = 0
-        var eighthCounts = 0
-        var sixteenthCounts = 0
-        var thirtySecondCounts = 0
-
-        var tupletStartIndex = -1
-
-        for (index in 0 .. notes.size) {
-            val note = if (index < notes.size) notes[index] else null
-            val duration = note?.duration
-
-            val isTuplet = if (duration == null) {
-                false
-            } else {
-                (numTupletNotes == 3 && duration.isTriplet()) ||
-                (numTupletNotes == 5 && duration.isQuintuplet()) ||
-                (numTupletNotes == 7 && duration.isSeptuplet())
+        fun finishGroup(endIndex: Int, complete: Boolean) {
+            val tuplet = tuplets.getOrNull(groupCount) ?: TupletView(context).apply {
+                visibility = if (showTuplets) VISIBLE else GONE
+                addView(this)
+                tuplets.add(this)
             }
-            var endTuplet = false
-            var tupletComplete = false
-
-            if (isTuplet && duration != null){
-                when {
-                    duration.hasBaseTypeQuarter() -> quarterCounts += 1
-                    duration.hasBaseTypeEighth()  -> eighthCounts += 1
-                    duration.hasBaseTypeSixteenth() -> sixteenthCounts += 1
-                    duration.hasBaseTypeThirtySecond() -> thirtySecondCounts += 1
-                    else -> throw RuntimeException("Unknown duration base type")
-                }
-            }
-
-//            Log.v("Metronome", "NoteView.detectTuplets: isTuplet=$isTuplet, numQuarter: quarterCounts= $quarterCounts, eighthCounts=$eighthCounts, sixteenthCounts=$sixteenthCounts, endTuplet=$endTuplet, tupletStartIndex=$tupletStartIndex")
-            // start collecting for a new tuplet
-            if (isTuplet && tupletStartIndex == -1) {
-                tupletStartIndex = index
-            }
-            else if (isTuplet && tupletStartIndex >= 0) {
-                if (thirtySecondCounts > 0) {
-                    if (quarterCounts > 0) {
-                        endTuplet = true
-                        tupletComplete = false
-                    } else {
-                        val numThirtySecond = thirtySecondCounts + 2 * sixteenthCounts + 4 * eighthCounts
-                        if (numThirtySecond == numTupletNotes) {
-                            endTuplet = true
-                            tupletComplete = true
-                        } else if (numThirtySecond > numTupletNotes) {
-                            endTuplet = true
-                            tupletComplete = false
-                        }
-                    }
-                } else if (sixteenthCounts > 0) {
-                    if (quarterCounts > 0) {
-                        endTuplet = true
-                        tupletComplete = false
-                    } else {
-                        val numSixteenth = sixteenthCounts + 2 * eighthCounts
-                        if (numSixteenth == numTupletNotes) {
-                            endTuplet = true
-                            tupletComplete = true
-                        } else if (numSixteenth > numTupletNotes) {
-                            endTuplet = true
-                            tupletComplete = false
-                        }
-                    }
-                } else if (eighthCounts > 0) {
-                    val numEighth = eighthCounts + 2 * quarterCounts
-                    if (numEighth == numTupletNotes) {
-                        endTuplet = true
-                        tupletComplete = true
-                    } else if (numEighth > numTupletNotes) {
-                        endTuplet = true
-                        tupletComplete = false
-                    }
-                } else if (quarterCounts > 0) {
-                    if (quarterCounts == numTupletNotes) {
-                        endTuplet = true
-                        tupletComplete = true
-                    }
-                    else if (quarterCounts > numTupletNotes) {
-                        throw RuntimeException("There should not be more quarter notes than tuplet notes")
-                    }
-                }
-            } else if (!isTuplet) {
-                endTuplet = true
-            }
-
-            if (endTuplet && tupletStartIndex >= 0) {
-
-                val tupletEndIndex = if (tupletComplete) index else index - 1
-
-                val tuplet = if (numTupletsTotal >= tuplets.size) {
-                    val newTuplet = TupletView(context).apply {
-                        visibility = if (showTuplets) VISIBLE else GONE
-                    }
-
-                    addView(newTuplet)
-                    tuplets.add(newTuplet)
-                    newTuplet
-                } else {
-                    tuplets[numTupletsTotal]
-                }
-                tuplet.imageTintList = noteColor
-                tuplet.tupletNumber = numTupletNotes
-                tuplet.setStartAndEnd(tupletStartIndex, tupletEndIndex)
-                tuplet.tupletComplete = tupletComplete
-                ++numTupletsTotal
-//                Log.v("Metronome", "NoteView.detectTuplets: ENDING TUPLET")
-
-                // reset values
-                sixteenthCounts = 0
-                eighthCounts = 0
-                quarterCounts = 0
-
-                // store tupletStart - tupletEnd
-                // count current note to contribute to tuplet
-                if (!tupletComplete && isTuplet && duration != null) {
-                    when {
-                        duration.hasBaseTypeQuarter() -> quarterCounts = 1
-                        duration.hasBaseTypeEighth() -> eighthCounts = 1
-                        duration.hasBaseTypeSixteenth() -> sixteenthCounts = 1
-                        else -> throw RuntimeException("Unknown duration base type")
-                    }
-                    tupletStartIndex = index
-                }
-                else {
-                    tupletStartIndex = -1
-                }
-            }
+            tuplet.imageTintList = noteColor
+            tuplet.tupletNumber = tupletSize
+            tuplet.setStartAndEnd(groupStart, endIndex)
+            tuplet.tupletComplete = complete
+            groupCount++
+            totalUnits = 0
         }
-        return numTupletsTotal
+
+        for ((index, note) in notes.withIndex()) {
+            val duration = note.duration
+            val units = 8 / duration.baseSubdivision
+            if (totalUnits > 0) {
+                val nextShortest = minOf(shortestUnit, units)
+                val nextLongest = maxOf(longestUnit, units)
+                // Preserve the old quarter/sixteenth break for existing triplets and quintuplets.
+                val legacyBreak = tupletSize < 7 && nextShortest > 1 && nextLongest > 2 * nextShortest
+                if (duration.tupletSize != tupletSize || legacyBreak ||
+                    totalUnits + units > tupletSize * nextShortest
+                ) {
+                    finishGroup(index - 1, false)
+                }
+            }
+            if (duration.tupletSize == 1)
+                continue
+
+            if (totalUnits == 0) {
+                groupStart = index
+                tupletSize = duration.tupletSize
+                shortestUnit = units
+                longestUnit = units
+            }
+            shortestUnit = minOf(shortestUnit, units)
+            longestUnit = maxOf(longestUnit, units)
+            totalUnits += units
+            if (totalUnits == tupletSize * shortestUnit)
+                finishGroup(index, true)
+        }
+
+        if (totalUnits > 0)
+            finishGroup(notes.lastIndex, false)
+        for (i in groupCount until tuplets.size)
+            removeView(tuplets[i])
+        tuplets.subList(groupCount, tuplets.size).clear()
     }
 }

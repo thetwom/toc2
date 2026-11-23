@@ -29,7 +29,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import de.moekadu.metronome.R
 import de.moekadu.metronome.misc.Utilities
-import de.moekadu.metronome.metronomeproperties.NoteDuration
+import de.moekadu.metronome.metronomeproperties.baseDrawableResource
 import de.moekadu.metronome.metronomeproperties.NoteListItem
 import de.moekadu.metronome.metronomeproperties.NoteListItemStartTime
 import de.moekadu.metronome.views.NoteView
@@ -235,14 +235,7 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
             R.string.bpm,
             Utilities.getBpmString(scene.bpm.bpm)
         )
-        val bpmDurationResource = when (scene.bpm.noteDuration) {
-            NoteDuration.Quarter -> R.drawable.ic_note_duration_quarter
-            NoteDuration.Eighth -> R.drawable.ic_note_duration_eighth
-            NoteDuration.Sixteenth -> R.drawable.ic_note_duration_sixteenth
-            NoteDuration.ThirtySecond -> R.drawable.ic_note_duration_thirtysecond
-            else -> throw RuntimeException("Invalid bpm duration")
-        }
-        holder.bpmDuration?.setImageResource(bpmDurationResource)
+        holder.bpmDuration?.setImageResource(scene.bpm.noteDuration.baseDrawableResource())
 //        Log.v("Metronome", "SceneDatabase.onBindViewHolder: scene.noteList = ${scene.noteList}, scene.bpm = ${scene.bpm}")
 
         holder.noteView?.setNoteList(scene.tracks.firstOrNull()?.notes ?: ArrayList(), 0L)
