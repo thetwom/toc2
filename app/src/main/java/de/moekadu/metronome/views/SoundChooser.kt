@@ -550,7 +550,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             noteSelection.deactivateButton(i)
 
         noteDuration = GridSelection(
-            1, 3, Utilities.dp2px(2f).roundToInt(),
+            1, 4, Utilities.dp2px(2f).roundToInt(),
             R.drawable.grid_background_topleft,
             R.drawable.grid_background_topright,
             R.drawable.grid_background_bottomleft,
@@ -565,9 +565,10 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         noteDuration.setButtonDrawable(0, R.drawable.ic_note_duration_quarter)
         noteDuration.setButtonDrawable(1, R.drawable.ic_note_duration_eighth)
         noteDuration.setButtonDrawable(2, R.drawable.ic_note_duration_sixteenth)
+        noteDuration.setButtonDrawable(3, R.drawable.ic_note_duration_thirtysecond)
 
         tuplets = GridSelection(
-            1, 3, Utilities.dp2px(2f).roundToInt(),
+            1, 4, Utilities.dp2px(2f).roundToInt(),
             R.drawable.grid_background_topleft,
             R.drawable.grid_background_topright,
             R.drawable.grid_background_bottomleft,
@@ -582,6 +583,7 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
         tuplets.setButtonDrawable(0, R.drawable.ic_note_duration_normal)
         tuplets.setButtonDrawable(1, R.drawable.ic_note_duration_triplet)
         tuplets.setButtonDrawable(2, R.drawable.ic_note_duration_quintuplet)
+        tuplets.setButtonDrawable(3, R.drawable.ic_note_duration_septuplet)
 
         noteDuration.activeButtonChangedListener =
             GridSelection.ActiveButtonChangedListener { index ->
@@ -1380,34 +1382,45 @@ class SoundChooser(context : Context, attrs : AttributeSet?, defStyleAttr: Int)
             1 -> when (indexDuration) {
                 1 -> NoteDuration.EighthTriplet
                 2 -> NoteDuration.SixteenthTriplet
+                3 -> NoteDuration.ThirtySecondTriplet
                 else -> NoteDuration.QuarterTriplet
             }
             2 -> when (indexDuration) {
                 1 -> NoteDuration.EighthQuintuplet
                 2 -> NoteDuration.SixteenthQuintuplet
+                3 -> NoteDuration.ThirtySecondQuintuplet
                 else -> NoteDuration.QuarterQuintuplet
+            }
+            3 -> when (indexDuration) {
+                1 -> NoteDuration.EighthSeptuplet
+                2 -> NoteDuration.SixteenthSeptuplet
+                3 -> NoteDuration.ThirtySecondSeptuplet
+                else -> NoteDuration.QuarterSeptuplet
             }
             else -> when (indexDuration) {
                 1 -> NoteDuration.Eighth
                 2 -> NoteDuration.Sixteenth
+                3 -> NoteDuration.ThirtySecond
                 else -> NoteDuration.Quarter
             }
         }
     }
 
     private fun getNoteDurationIndex(noteDuration: NoteDuration): Int {
-        return when (noteDuration) {
-            NoteDuration.Quarter, NoteDuration.QuarterTriplet, NoteDuration.QuarterQuintuplet -> 0
-            NoteDuration.Eighth, NoteDuration.EighthTriplet, NoteDuration.EighthQuintuplet -> 1
-            NoteDuration.Sixteenth, NoteDuration.SixteenthTriplet, NoteDuration.SixteenthQuintuplet -> 2
+        return when {
+            noteDuration.hasBaseTypeQuarter() -> 0
+            noteDuration.hasBaseTypeEighth() -> 1
+            noteDuration.hasBaseTypeSixteenth() -> 2
+            else -> 3
         }
     }
 
     private fun getTupletIndex(noteDuration: NoteDuration): Int {
-        return when (noteDuration) {
-            NoteDuration.Quarter, NoteDuration.Eighth, NoteDuration.Sixteenth -> 0
-            NoteDuration.QuarterTriplet, NoteDuration.EighthTriplet, NoteDuration.SixteenthTriplet -> 1
-            NoteDuration.QuarterQuintuplet, NoteDuration.EighthQuintuplet, NoteDuration.SixteenthQuintuplet -> 2
+        return when {
+            noteDuration.isNoTuplet() -> 0
+            noteDuration.isTriplet() -> 1
+            noteDuration.isQuintuplet() -> 2
+            else -> 3
         }
     }
 

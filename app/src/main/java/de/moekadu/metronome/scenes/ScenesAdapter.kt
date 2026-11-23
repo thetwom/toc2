@@ -239,6 +239,7 @@ class ScenesAdapter : ListAdapter<Scene, ScenesAdapter.ViewHolder>(ScenesDiffCal
             NoteDuration.Quarter -> R.drawable.ic_note_duration_quarter
             NoteDuration.Eighth -> R.drawable.ic_note_duration_eighth
             NoteDuration.Sixteenth -> R.drawable.ic_note_duration_sixteenth
+            NoteDuration.ThirtySecond -> R.drawable.ic_note_duration_thirtysecond
             else -> throw RuntimeException("Invalid bpm duration")
         }
         holder.bpmDuration?.setImageResource(bpmDurationResource)

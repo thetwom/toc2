@@ -269,13 +269,10 @@ fun getNoteLabel(context: Context, index: Int): String {
 }
 
 fun getNoteDrawableResourceID(index: Int, duration: NoteDuration) =
-    when (duration) {
-        NoteDuration.Quarter, NoteDuration.QuarterTriplet, NoteDuration.QuarterQuintuplet ->
-            availableNotes[index].drawableQuarterResourceID
-        NoteDuration.Eighth, NoteDuration.EighthTriplet, NoteDuration.EighthQuintuplet ->
-            availableNotes[index].drawableEighthResourceID
-        NoteDuration.Sixteenth, NoteDuration.SixteenthTriplet, NoteDuration.SixteenthQuintuplet ->
-            availableNotes[index].drawableSixteenthResourceID
+    when {
+        duration.hasBaseTypeQuarter() -> availableNotes[index].drawableQuarterResourceID
+        duration.hasBaseTypeEighth() -> availableNotes[index].drawableEighthResourceID
+        else -> availableNotes[index].drawableSixteenthResourceID
     }
 
 /** Return note vibration duration in milliseconds. */

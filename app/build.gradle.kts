@@ -10,8 +10,8 @@ android {
         applicationId = "de.moekadu.metronome.custom"
         minSdk = 23
         targetSdk = 36
-        versionCode = 66
-        versionName = "4.15.3"
+        versionCode = 67
+        versionName = "4.15.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true

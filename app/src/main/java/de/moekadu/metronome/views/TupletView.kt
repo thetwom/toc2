@@ -50,6 +50,7 @@ class TupletView(context: Context) : androidx.appcompat.widget.AppCompatImageVie
             when (value) {
                 3 -> setImageResource(R.drawable.ic_triplet)
                 5 -> setImageResource(R.drawable.ic_quintuplet)
+                7 -> setImageResource(R.drawable.ic_septuplet)
             }
         }
 

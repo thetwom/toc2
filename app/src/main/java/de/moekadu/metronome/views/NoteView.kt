@@ -634,6 +634,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
     private fun detectAllTuplets() {
         var numTuplets = detectTuplets(0, 3)
         numTuplets = detectTuplets(numTuplets, 5)
+        numTuplets = detectTuplets(numTuplets, 7)
         for (i in numTuplets until tuplets.size)
             removeView(tuplets[i])
         tuplets.subList(numTuplets, tuplets.size).clear()
@@ -645,6 +646,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
         var quarterCounts = 0
         var eighthCounts = 0
         var sixteenthCounts = 0
+        var thirtySecondCounts = 0
 
         var tupletStartIndex = -1
 
@@ -655,7 +657,9 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
             val isTuplet = if (duration == null) {
                 false
             } else {
-                (numTupletNotes == 3 && duration.isTriplet()) || (numTupletNotes == 5 && duration.isQuintuplet())
+                (numTupletNotes == 3 && duration.isTriplet()) ||
+                (numTupletNotes == 5 && duration.isQuintuplet()) ||
+                (numTupletNotes == 7 && duration.isSeptuplet())
             }
             var endTuplet = false
             var tupletComplete = false
@@ -665,6 +669,7 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                     duration.hasBaseTypeQuarter() -> quarterCounts += 1
                     duration.hasBaseTypeEighth()  -> eighthCounts += 1
                     duration.hasBaseTypeSixteenth() -> sixteenthCounts += 1
+                    duration.hasBaseTypeThirtySecond() -> thirtySecondCounts += 1
                     else -> throw RuntimeException("Unknown duration base type")
                 }
             }
@@ -675,7 +680,21 @@ open class NoteView(context : Context, attrs : AttributeSet?, defStyleAttr : Int
                 tupletStartIndex = index
             }
             else if (isTuplet && tupletStartIndex >= 0) {
-                if (sixteenthCounts > 0) {
+                if (thirtySecondCounts > 0) {
+                    if (quarterCounts > 0) {
+                        endTuplet = true
+                        tupletComplete = false
+                    } else {
+                        val numThirtySecond = thirtySecondCounts + 2 * sixteenthCounts + 4 * eighthCounts
+                        if (numThirtySecond == numTupletNotes) {
+                            endTuplet = true
+                            tupletComplete = true
+                        } else if (numThirtySecond > numTupletNotes) {
+                            endTuplet = true
+                            tupletComplete = false
+                        }
+                    }
+                } else if (sixteenthCounts > 0) {
                     if (quarterCounts > 0) {
                         endTuplet = true
                         tupletComplete = false
