@@ -25,21 +25,16 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 
 /** Adapter for the three pages metronome, tracks and scenes.
  *
- *  The track page is always shown in portrait, therefore it does not exist in landscape. In
- *  landscape the pages are metronome and scenes, so that a swipe from the metronome page leads
- *  directly to the scenes page.
- *
  * @param activity Activity which hosts the pages.
- * @param includeTracks If true the track page is part of the pages (portrait).
  */
-class ViewPagerAdapter(activity: FragmentActivity, val includeTracks: Boolean) : FragmentStateAdapter(activity) {
+class ViewPagerAdapter(activity: FragmentActivity) : FragmentStateAdapter(activity) {
 
     override fun getItemCount(): Int {
-        return if (includeTracks) NUM_FRAGMENTS else NUM_FRAGMENTS_WITHOUT_TRACKS
+        return NUM_FRAGMENTS
     }
 
     override fun createFragment(position: Int): Fragment {
-        return when (pageOf(position)) {
+        return when (position) {
             METRONOME -> MetronomeFragment()
             TRACKS -> TrackFragment()
             SCENES -> ScenesFragment()
@@ -47,21 +42,10 @@ class ViewPagerAdapter(activity: FragmentActivity, val includeTracks: Boolean) :
         }
     }
 
-    /** Logical page of a view pager position. */
-    fun pageOf(position: Int): Int {
-        return if (!includeTracks && position >= TRACKS) position + 1 else position
-    }
-
-    /** View pager position of a logical page. */
-    fun positionOf(page: Int): Int {
-        return if (!includeTracks && page > METRONOME) page - 1 else page
-    }
-
     companion object {
         const val METRONOME = 0
         const val TRACKS = 1
         const val SCENES = 2
         const val NUM_FRAGMENTS = 3
-        const val NUM_FRAGMENTS_WITHOUT_TRACKS = 2
     }
 }

@@ -20,7 +20,6 @@
 package de.moekadu.metronome
 
 import android.content.Intent
-import android.content.res.Configuration
 import android.media.AudioManager
 import android.os.Bundle
 import android.view.Menu
@@ -136,20 +135,6 @@ class MainActivity : AppCompatActivity() {
 //        return true
 //    }
 
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-        // The track page locks the orientation itself, so a rotation can only happen on the other
-        // pages. Those have to be recreated so that the layout for the new orientation is inflated
-        // and the track page is added to or removed from the pages.
-        val fragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
-        if (fragment is MetronomeAndScenesFragment) {
-            if (fragment.currentPage != ViewPagerAdapter.TRACKS)
-                recreate()
-        } else {
-            recreate()
-        }
-    }
-
     fun handleGoBackCommand() {
 //        Log.v("Metronome", "MainActivity.onBackPressed():  backStackEntryCount = ${supportFragmentManager.backStackEntryCount}")
         when (supportFragmentManager.findFragmentById(R.id.fragment_container)) {
@@ -190,10 +175,8 @@ class MainActivity : AppCompatActivity() {
         var changed = false
         when (val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)) {
             is MetronomeAndScenesFragment -> {
-                val adapter = currentFragment.viewPager?.adapter as? ViewPagerAdapter
-                val position = adapter?.positionOf(id) ?: id
-                if (currentFragment.viewPager?.currentItem != position) {
-                    currentFragment.viewPager?.currentItem = position
+                if (currentFragment.viewPager?.currentItem != id) {
+                    currentFragment.viewPager?.currentItem = id
                     changed = true
                 }
                 supportActionBar?.setDisplayHomeAsUpEnabled(id != ViewPagerAdapter.METRONOME)

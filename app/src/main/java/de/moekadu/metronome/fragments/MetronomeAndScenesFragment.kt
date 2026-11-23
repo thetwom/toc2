@@ -21,7 +21,6 @@ package de.moekadu.metronome.fragments
 
 import android.annotation.SuppressLint
 import android.content.pm.ActivityInfo
-import android.content.res.Configuration
 import android.os.Bundle
 import android.view.*
 import androidx.appcompat.view.ActionMode
@@ -74,8 +73,7 @@ class MetronomeAndScenesFragment : Fragment() {
 
     private val pageChangeListener = object : ViewPager2.OnPageChangeCallback() {
         override fun onPageSelected(position: Int) {
-            val adapter = viewPager?.adapter as? ViewPagerAdapter
-            val page = adapter?.pageOf(position) ?: position
+            val page = position
             if (!restoringPage)
                 currentPage = page
             (activity as MainActivity?)?.setDisplayHomeButton()
@@ -141,7 +139,7 @@ class MetronomeAndScenesFragment : Fragment() {
         activity?.addMenuProvider(menuProvider, viewLifecycleOwner, Lifecycle.State.RESUMED)
 
         viewPager = view.findViewById(R.id.viewpager)
-        val pagerAdapter = ViewPagerAdapter(requireActivity(), isPortrait())
+        val pagerAdapter = ViewPagerAdapter(requireActivity())
         viewPager?.adapter = pagerAdapter
 
         (activity as MainActivity?)?.setDisplayHomeButton()
@@ -149,14 +147,11 @@ class MetronomeAndScenesFragment : Fragment() {
         viewPager?.registerOnPageChangeCallback(pageChangeListener)
         viewPager?.offscreenPageLimit = 1
 
-        // restore the logical page, the number of pages depends on the orientation
         currentPage = savedInstanceState?.getInt(KEY_CURRENT_PAGE, ViewPagerAdapter.METRONOME)
             ?: ViewPagerAdapter.METRONOME
-        if (!pagerAdapter.includeTracks && currentPage == ViewPagerAdapter.TRACKS)
-            currentPage = ViewPagerAdapter.SCENES
         restoringPage = true
         viewPager?.post {
-            viewPager?.setCurrentItem(pagerAdapter.positionOf(currentPage), false)
+            viewPager?.setCurrentItem(currentPage, false)
             restoringPage = false
         }
 
@@ -207,14 +202,9 @@ class MetronomeAndScenesFragment : Fragment() {
         }
     }
 
-    /** True if the device is currently in portrait orientation. */
-    private fun isPortrait(): Boolean =
-        resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
-
-    /** Show the given logical page. The track page does not exist in landscape. */
+    /** Show the given page. */
     fun jumpToPage(page: Int) {
-        val adapter = viewPager?.adapter as? ViewPagerAdapter ?: return
-        viewPager?.currentItem = adapter.positionOf(page)
+        viewPager?.currentItem = page
     }
 
     /** The track page is always shown in portrait, all other pages follow the device orientation. */
